@@ -1,0 +1,522 @@
+/* SEM Studio — shared stylesheet
+   Typography and layout chosen for legibility (dyslexia-friendly measure, spacing and contrast)
+   and for color-vision deficiency (Okabe–Ito palette; color never the only cue). */
+
+:root {
+  --ink: #1b1f24;
+  --ink-soft: #3d444d;
+  --paper: #fbfaf7;
+  --panel: #ffffff;
+  --line: #d6d9de;
+  --line-soft: #e8eaee;
+  --brand: #0b4f8a;          /* dark blue, 7.6:1 on paper */
+  --brand-ink: #083a66;
+  --focus: #d55e00;          /* Okabe–Ito vermilion */
+  --ok-bg: #e6f2ec;   --ok-ink: #0f5a3c;   --ok-line: #009e73;
+  --warn-bg: #fff3e0; --warn-ink: #7a3e00; --warn-line: #e69f00;
+  --bad-bg: #fbe9e4;  --bad-ink: #7a2000;  --bad-line: #d55e00;
+  --info-bg: #e8f1fa; --info-ink: #0b4f8a; --info-line: #0072b2;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --measure: 72ch;
+  --radius: 10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+/* Several containers on this site are flex or grid, and their display
+   declaration is more specific than the browser's own rule for the hidden
+   attribute, so a hidden element would keep its box. */
+[hidden] { display: none !important; }
+
+html { font-size: 112.5%; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--paper);
+  letter-spacing: 0.01em;
+  word-spacing: 0.04em;
+  overflow-x: hidden;
+}
+
+img, svg, video, canvas { max-width: 100%; height: auto; }
+
+/* Skip link */
+.skip {
+  position: absolute; left: 1rem; top: -4rem;
+  background: var(--brand); color: #fff; padding: 0.5rem 1rem; border-radius: 0 0 var(--radius) var(--radius);
+  z-index: 100; text-decoration: none;
+}
+.skip:focus { top: 0; }
+
+/* Header and footer */
+header.site, footer.site, main {
+  width: min(100% - 2rem, 76rem);
+  margin-inline: auto;
+}
+header.site {
+  padding-top: 1rem;
+  display: grid; align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 2.6rem;
+}
+/* On a wide screen the opening paragraph and the box that says what to
+   request from the program are set side by side, so the head of the page
+   occupies the width of the content band instead of one text column. */
+@media (min-width: 66rem) {
+  header.site { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  header.site > .site-nav, header.site > h1 { grid-column: 1 / -1; }
+  header.site > .lede { margin-bottom: 0; }
+  header.site > .callout { margin-top: 0; }
+}
+body:not(.home) main { padding-top: 1.2rem; }
+.site-nav {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; align-items: baseline;
+  padding: 0.6rem 0; border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+}
+.site-nav a { color: var(--brand-ink); text-decoration: none; }
+.site-nav a:hover, .site-nav a:focus { text-decoration: underline; }
+.site-nav .brand { font-weight: 700; font-size: 1.05rem; letter-spacing: 0.02em; }
+.site-nav .spacer { flex: 1; }
+
+h1 { font-size: clamp(1.7rem, 1.2rem + 1.8vw, 2.4rem); line-height: 1.2; margin: 1.4rem 0 0.6rem; letter-spacing: -0.01em; }
+h2 { font-size: 1.35rem; line-height: 1.3; margin: 2.2rem 0 0.7rem; }
+h3 { font-size: 1.1rem; line-height: 1.35; margin: 1.5rem 0 0.4rem; }
+h1, h2, h3 { font-weight: 700; color: var(--ink); max-width: var(--measure); }
+
+p, li, dd, dt, figcaption { max-width: var(--measure); }
+p { margin: 0 0 1rem; }
+.lede { font-size: 1.12rem; color: var(--ink-soft); }
+ul, ol { padding-left: 1.4rem; }
+li { margin-bottom: 0.35rem; }
+
+a { color: var(--brand); text-decoration: underline; text-underline-offset: 0.14em; text-decoration-thickness: 1px; overflow-wrap: break-word; }
+a:hover { text-decoration-thickness: 2px; }
+
+/* Explanatory text under a control or a drop zone. */
+.hint { color: var(--ink-soft); font-size: 0.92rem; max-width: var(--measure); }
+.small { font-size: 0.88rem; color: var(--ink-soft); }
+
+/* Reference lists: hanging indent, and break points inside the digital
+   object identifiers, which have none of their own. */
+ul.refs { list-style: none; padding-left: 0; }
+ul.refs li { padding-left: 2rem; text-indent: -2rem; margin-bottom: 0.6rem; }
+ul.refs li, code { overflow-wrap: break-word; }
+
+/* One gap between sections, and no second gap added by whatever the
+   section opens or closes with. */
+main > section + section, main > section + .split, main > .split + section,
+main > .split + .split, main > .split + div, main > div + .split { margin-top: 2.4rem; }
+main > section > :first-child, .split-col > section > :first-child { margin-top: 0; }
+main > section > :last-child, .split-col > section > :last-child { margin-bottom: 0; }
+
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+
+code, pre, kbd, .mono { font-family: var(--mono); font-size: 0.92em; }
+code { background: var(--line-soft); padding: 0.05em 0.35em; border-radius: 4px; }
+pre {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 0.9rem 1rem; overflow-x: auto; max-width: 100%;
+  white-space: pre; line-height: 1.5;
+}
+pre code { background: none; padding: 0; }
+/* A formula is a line or two of text and belongs to the paragraph above it,
+   so its box keeps the width of the reading column; generated syntax can be
+   any width and takes the width of whatever holds it. */
+pre.formula { white-space: pre-wrap; max-width: var(--measure); }
+pre.syntax { white-space: pre; }
+
+footer.site {
+  margin-top: 3.5rem; padding: 1.4rem 0 2.5rem; border-top: 1px solid var(--line);
+  color: var(--ink-soft); font-size: 0.95rem;
+}
+footer.site p { max-width: none; margin-bottom: 0.4rem; }
+
+/* Panels, callouts, status */
+.panel, .card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 1.1rem 1.25rem; margin: 1rem 0;
+}
+.callout {
+  border-left: 5px solid var(--info-line); background: var(--info-bg); color: var(--ink);
+  padding: 0.8rem 1rem; border-radius: 0 var(--radius) var(--radius) 0; margin: 1rem 0; max-width: var(--measure);
+}
+.callout p:last-child { margin-bottom: 0; }
+
+.status { border-radius: var(--radius); padding: 0.8rem 1rem; margin: 0.8rem 0; border: 1px solid; }
+.status .tag { font-weight: 700; margin-right: 0.4rem; }
+.status.ok   { background: var(--ok-bg);   color: var(--ok-ink);   border-color: var(--ok-line); }
+.status.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+.status.bad  { background: var(--bad-bg);  color: var(--bad-ink);  border-color: var(--bad-line); }
+.status.info { background: var(--info-bg); color: var(--info-ink); border-color: var(--info-line); }
+.status p:last-child { margin-bottom: 0; }
+
+/* Checklist rows (result verification) */
+.checks { list-style: none; padding: 0; margin: 0.5rem 0; }
+.checks li { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.5rem; align-items: start; padding: 0.3rem 0; border-bottom: 1px solid var(--line-soft); }
+.checks .glyph { font-weight: 700; text-align: center; }
+.checks .ok .glyph { color: var(--ok-ink); }
+.checks .warn .glyph { color: var(--warn-ink); }
+.checks .bad .glyph { color: var(--bad-ink); }
+.checks li:last-child { border-bottom: 0; }
+
+/* Tables.
+   A table wider than its box scrolls inside it. The two outer layers below
+   are a shadow fixed to each edge of the box; the two inner layers are the
+   colour of the page and travel with the content, so they cover the shadow
+   whenever that edge has been reached. A shadow is therefore visible only on
+   the side where content is still hidden, and disappears when there is
+   nothing left to scroll to. The covering colour has to be the colour behind
+   the box, which is the page outside a box and the panel inside one, so it is
+   read from a custom property that every kind of box sets for itself. Paint
+   containment keeps the overflow of the table out of the scrollable width of
+   the page. */
+.table-wrap {
+  overflow-x: auto; max-width: 100%; margin: 1rem 0; -webkit-overflow-scrolling: touch;
+  contain: paint;
+  background-image:
+    linear-gradient(to right, var(--wrap-bg, var(--paper)), transparent),
+    linear-gradient(to left,  var(--wrap-bg, var(--paper)), transparent),
+    linear-gradient(to right, rgba(27, 31, 36, 0.20), transparent),
+    linear-gradient(to left,  rgba(27, 31, 36, 0.20), transparent);
+  background-position: left center, right center, left center, right center;
+  background-size: 2.4rem 100%, 2.4rem 100%, 0.9rem 100%, 0.9rem 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
+}
+.panel, .card, details, fieldset, .drop { --wrap-bg: var(--panel); }
+.status.ok { --wrap-bg: var(--ok-bg); }
+.status.warn { --wrap-bg: var(--warn-bg); }
+.status.bad { --wrap-bg: var(--bad-bg); }
+.status.info, .callout { --wrap-bg: var(--info-bg); }
+.table-wrap.narrow { max-width: min(100%, var(--measure)); }
+/* The line that names a table and sits outside the scrolling box, so that it
+   stays readable on a narrow screen instead of scrolling away with it. */
+.table-note { font-weight: 700; margin: 1.4rem 0 0.35rem; max-width: var(--measure); }
+.table-note + .table-wrap { margin-top: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+th, td { padding: 0.5rem 0.65rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { background: var(--line-soft); font-weight: 700; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.hl td { background: var(--warn-bg); }
+/* Every table is named by a bold line, left-aligned, at body size, directly
+   above it. Where the name is short it is a <caption>; where a page uses the
+   same line as a note about the table it is a paragraph outside the scrolling
+   box, tied to the table with aria-labelledby. The two render alike, and a
+   caption stays at the left edge of its box while the table is scrolled. */
+caption, .table-note { text-align: left; font-weight: 700; color: var(--ink); font-size: 1rem; line-height: 1.5; }
+caption {
+  padding: 0 0 0.35rem; caption-side: top;
+  position: sticky; left: 0; width: max-content; max-width: min(100%, var(--measure));
+}
+
+/* Forms */
+label { display: block; font-weight: 600; margin-bottom: 0.25rem; }
+.field { margin: 0.8rem 0; }
+.field .hint { font-weight: 400; color: var(--ink-soft); font-size: 0.92rem; display: block; }
+input[type="text"], input[type="number"], select, textarea {
+  font: inherit; color: var(--ink); background: #fff; border: 1px solid #8a9099; border-radius: 6px;
+  padding: 0.45rem 0.6rem; width: 100%; max-width: 100%;
+}
+/* A control is no wider than what it has to hold: a number field a few
+   digits, a menu its longest option, a single-line text field a short name.
+   A page that needs another width sets it on the control itself. */
+input[type="number"] { max-width: 11rem; }
+input[type="text"] { max-width: 26rem; }
+select { max-width: 32rem; }
+textarea { min-height: 8rem; font-family: var(--mono); font-size: 0.9rem; white-space: pre; overflow: auto; }
+.row { display: flex; flex-wrap: wrap; gap: 0.8rem 1.4rem; align-items: flex-end; }
+/* A flex or grid item takes its content as a floor unless it is told
+   otherwise, and a row of fields would then push a narrow page sideways
+   instead of wrapping. */
+.row .field, fieldset, .workspace > * { min-width: 0; }
+.row .field { margin: 0.3rem 0; flex: 1 1 12rem; }
+fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.8rem 1rem; margin: 1rem 0; }
+legend { font-weight: 700; padding: 0 0.4rem; }
+.check { display: flex; gap: 0.5rem; align-items: flex-start; font-weight: 400; }
+.check input { margin-top: 0.35rem; }
+
+button, .button {
+  font: inherit; font-weight: 600; cursor: pointer;
+  background: var(--brand); color: #fff; border: 2px solid var(--brand);
+  padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; display: inline-block;
+}
+button:hover, .button:hover { background: var(--brand-ink); border-color: var(--brand-ink); }
+button.secondary, .button.secondary { background: #fff; color: var(--brand-ink); }
+button.secondary:hover { background: var(--info-bg); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.8rem 0; }
+
+/* Drop zones */
+.drop {
+  border: 2px dashed #8a9099; border-radius: var(--radius); background: #fff;
+  padding: 1.5rem 1.25rem; text-align: center; cursor: pointer; color: var(--ink-soft);
+}
+.drop:hover, .drop.over, .drop:focus-within { border-color: var(--brand); background: var(--info-bg); color: var(--ink); }
+/* The file input inside a drop zone is hidden, so its focus ring would be
+   invisible; the zone carries it instead, in the same color as every other
+   focus ring on the site. */
+.drop:focus-within { outline: 3px solid var(--focus); outline-offset: 2px; }
+.drop strong { color: var(--ink); }
+.drop input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.drop .file-name { display: block; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.9rem; word-break: break-all; }
+/* The zone centres its text, so the paragraphs inside it are centred boxes
+   rather than boxes that begin at the left edge of a wide zone. The zone
+   itself stays a block: a flex or grid container would make a separate item
+   of every element inside it, and the words in bold would then sit on a line
+   of their own instead of running on into the sentence they open. */
+.drop p, .drop .hint { max-width: min(100%, var(--measure)); margin-left: auto; margin-right: auto; }
+.drop p:last-child, .drop > :last-child { margin-bottom: 0; }
+
+/* Two-column workspace (controls + results) */
+.workspace { display: grid; gap: 1.5rem; grid-template-columns: 1fr; }
+@media (min-width: 64rem) { .workspace { grid-template-columns: minmax(20rem, 26rem) minmax(0, 1fr); align-items: start; } }
+/* Past this width the column of controls takes two fields side by side
+   instead of one, which shortens it without narrowing the results. */
+@media (min-width: 84rem) { .workspace { grid-template-columns: minmax(0, 30rem) minmax(0, 1fr); column-gap: 1.8rem; } }
+
+/* The working area of a tool: the controls in a column of their own and the
+   results in the rest of the content band. Below the breakpoint the two
+   columns become one and the order on the page is the order in the markup,
+   which is controls first. */
+.split { display: grid; gap: 2.4rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.split > * { min-width: 0; }
+.split-col { display: grid; gap: 2.4rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.split-col > * { min-width: 0; }
+.split > * > :first-child, .split-col > * > :first-child { margin-top: 0; }
+.split > * > :last-child, .split-col > * > :last-child { margin-bottom: 0; }
+@media (min-width: 66rem) {
+  .split { grid-template-columns: minmax(19rem, 27rem) minmax(0, 1fr); column-gap: 2.6rem; }
+  .split.even { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .split.wide-left { grid-template-columns: minmax(0, 1fr) minmax(19rem, 27rem); }
+}
+
+/* Figures */
+figure { margin: 1rem 0; }
+figure svg { width: 100%; height: auto; display: block; background: #fff; border: 1px solid var(--line-soft); border-radius: 6px; }
+figcaption { color: var(--ink-soft); font-size: 0.95rem; margin-top: 0.4rem; }
+
+/* Definition lists for key results */
+/* The label column takes the width of the longest label, but not beyond the
+   width of the list itself: a long label wraps rather than pushing the value
+   column, and the page with it, past the edge of the screen. */
+dl.kv { display: grid; grid-template-columns: minmax(0, max-content) minmax(0, 1fr); gap: 0.3rem 1.2rem; margin: 0.8rem 0; }
+dl.kv dt, dl.kv dd { min-width: 0; overflow-wrap: break-word; }
+dl.kv dt { font-weight: 600; }
+dl.kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+@media (max-width: 30rem) { dl.kv { grid-template-columns: 1fr; } dl.kv dd { margin-bottom: 0.5rem; } }
+
+/* Details */
+details { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.6rem 1rem; margin: 1rem 0; background: var(--panel); }
+summary { cursor: pointer; font-weight: 700; padding: 0.3rem 0; }
+
+/* ---------- Home page ---------- */
+
+body.home { background: var(--paper); }
+body.home main { width: min(100% - 2rem, 62rem); margin-inline: auto; }
+
+.hero {
+  width: min(100% - 2rem, 62rem);
+  margin: 0 auto;
+  padding: clamp(3rem, 9vw, 6rem) 0 clamp(2rem, 5vw, 3.5rem);
+  text-align: center;
+}
+.logo {
+  margin: 0 0 1.1rem;
+  max-width: none; width: 100%;
+  font-size: 1rem; font-weight: 400; letter-spacing: normal; line-height: 1.6;
+  display: flex; flex-direction: column; align-items: center; gap: 1.1rem;
+  color: var(--brand);
+}
+.logo .mark { width: clamp(74px, 12vw, 104px); height: auto; display: block; }
+.wordmark {
+  font-size: clamp(2.3rem, 1.1rem + 4.6vw, 4rem);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--ink);
+}
+.wordmark .w1 { font-weight: 600; }
+.wordmark .w2 { color: var(--brand); font-weight: 300; }
+.tagline {
+  margin: 0 auto;
+  max-width: 62ch;
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.3rem);
+  font-weight: 400;
+  color: var(--ink-soft);
+  line-height: 1.45;
+}
+
+.group { margin: 0 0 2.4rem; --accent: var(--brand); }
+.group h2 {
+  display: flex; align-items: center; gap: 0.7rem;
+  margin: 0 0 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  max-width: none;
+}
+.group h2::before {
+  content: ""; width: 1.6rem; height: 0.28rem; border-radius: 2px;
+  background: var(--accent); flex: none;
+}
+.group h2::after {
+  content: ""; height: 1px; background: var(--line); flex: 1 1 auto;
+}
+.tiles {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 56rem) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 34rem) { .tiles { grid-template-columns: 1fr; } }
+
+.tile {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 0.28rem;
+  min-height: 100%;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.3rem 3rem 1.4rem 1.35rem;
+  text-decoration: none; color: var(--ink);
+  box-shadow: 0 1px 0 #fff inset, 0 1px 2px rgba(27, 31, 36, 0.06), 0 4px 10px rgba(27, 31, 36, 0.07);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.tile::before {
+  content: ""; position: absolute; inset: 0 auto 0 0; width: 5px;
+  background: var(--accent);
+  transform: scaleX(1); transform-origin: left;
+  transition: width 0.16s ease;
+}
+.tile::after {
+  content: "\2192"; position: absolute; right: 1.15rem; top: 1.2rem;
+  font-size: 1.15rem; line-height: 1; color: var(--accent); opacity: 0.55;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+.tile .t {
+  font-size: 1.12rem; font-weight: 650; color: var(--ink); line-height: 1.28;
+  letter-spacing: -0.005em;
+}
+.tile .s { font-size: 0.92rem; color: var(--ink-soft); line-height: 1.42; }
+.tile:hover, .tile:focus-visible {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  box-shadow: 0 1px 0 #fff inset, 0 10px 26px rgba(27, 31, 36, 0.16);
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--accent) 7%, #fff) 100%);
+  text-decoration: none;
+}
+.tile:hover::before, .tile:focus-visible::before { width: 8px; }
+.tile:hover::after, .tile:focus-visible::after { transform: translateX(4px); opacity: 1; }
+.tile:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(27, 31, 36, 0.10);
+}
+
+.note {
+  margin: 2.6rem auto 0; padding-top: 1.6rem;
+  max-width: 58rem; border-top: 1px solid var(--line);
+}
+.note h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-soft); max-width: none;
+}
+.note p { font-size: 0.98rem; color: var(--ink-soft); max-width: none; }
+.note .citation { color: var(--ink); }
+
+body.home footer.site { width: min(100% - 2rem, 62rem); text-align: center; }
+body.home footer.site p { margin-inline: auto; }
+
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* The name of the software is an upright capital M followed by "plus" in
+   italics. Inside a caption, a lede or any other italic run the surrounding
+   slant would tip the M over as well, so the class restores the upright form
+   and re-slants only the second part. Use <span class="mp">M<em>plus</em></span>
+   wherever the context may be italic, and M<em>plus</em> elsewhere. */
+.mp { font-style: normal; }
+.mp em { font-style: italic; }
+
+/* ---------- Composition of a tool page ---------- */
+
+/* A box carries its own padding, so whatever opens and closes it drops the
+   margin that would be added to that padding and read as a double gap. */
+.panel > :first-child, .card > :first-child, .status > :first-child,
+.callout > :first-child, fieldset > legend + *, details > summary + * { margin-top: 0; }
+.panel > :last-child, .card > :last-child, .status > :last-child,
+.callout > :last-child, fieldset > :last-child, details > :last-child { margin-bottom: 0; }
+
+/* Boxes of every kind take the same padding, the same radius, the same
+   border and the same gap between one and the next. */
+.panel, .card { padding: 1.15rem 1.25rem; margin: 1.25rem 0; }
+fieldset { padding: 1rem 1.25rem; margin: 1.25rem 0; }
+details { padding: 0.85rem 1.25rem; margin: 1.25rem 0; }
+
+/* A row of fields: the labels of the row sit on one line and the controls
+   under them, so a field that carries a hint below it no longer drags the
+   rest of the row down to line the bottoms up. */
+.row { align-items: start; }
+.row .field.end { align-self: end; }
+/* Widths matched to what the control has to hold rather than to the row. */
+.row .field.w1 { flex: 0 1 7.5rem; }
+.row .field.w2 { flex: 0 1 12rem; }
+.row .field.w3 { flex: 0 1 17rem; }
+.row .field.w4 { flex: 1 1 24rem; }
+.field.w1 input, .field.w1 select { max-width: 100%; }
+
+/* A table of a few columns keeps its own width instead of being stretched
+   across the whole content band. */
+.table-wrap.fit { width: max-content; max-width: 100%; }
+/* The shadow at the edge of a scrolling box says the same thing in colour;
+   this line says it in words, for the box that actually scrolls. */
+.scroll-hint { font-size: 0.88rem; color: var(--ink-soft); max-width: var(--measure); margin: 0.3rem 0 1rem; }
+.table-wrap + .scroll-hint { margin-top: -0.55rem; }
+
+/* Generated syntax: one width, one padding, and a height beyond which the
+   block scrolls inside itself instead of burying the rest of the page. */
+pre.syntax { max-height: 30rem; overflow: auto; contain: paint; }
+/* The heading of such a block and the button that copies it stay on one
+   line, the button at the end of it, on every page that has them. */
+.block-head { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; align-items: baseline; justify-content: space-between; }
+.block-head > :first-child { margin-top: 0; }
+.block-head .actions { margin: 0; }
+
+/* A figure drawn at the size at which it will be printed leaves room beside
+   it on a wide screen. The caption and the numbers that belong to it are set
+   in that room instead of under the figure. */
+.figrow { display: grid; gap: 0.5rem 1.8rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 84rem) {
+  .figrow { grid-template-columns: max-content minmax(17rem, 1fr); }
+  .figrow > figcaption { margin-top: 0.15rem; }
+}
+
+/* Prose sections on a wide screen: the headings hang in a track of their own
+   and the text runs in the track beside them, so the reading column is set
+   against the headings instead of against an empty half of the screen. */
+@media (min-width: 70rem) {
+  .tracks { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); column-gap: 3rem; align-items: start; }
+  .tracks > * { grid-column: 2; min-width: 0; }
+  .tracks > h2, .tracks > h3 { grid-column: 1; }
+  .tracks > h2 { margin-top: 0; }
+  .tracks > h3, .tracks > h3 + * { margin-top: 1.9rem; }
+  .tracks > h3:first-of-type, .tracks > h3:first-of-type + * { margin-top: 0; }
+  /* A reference list is a run of short blocks, and two columns keep it from
+     running down the page as a single narrow strip. */
+  ul.refs { columns: 2; column-gap: 3rem; }
+  ul.refs li { break-inside: avoid; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+@media print {
+  .site-nav, .skip, .actions, .drop { display: none; }
+  body { background: #fff; color: #000; }
+  a { color: #000; }
+}

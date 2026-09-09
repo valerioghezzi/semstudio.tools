@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Writes the input files for a sequence of identified multiple-group confirmatory factor models, for continuous indicators and for ordered-categorical indicators following Wu and Estabrook (2016).">
+<title>Invariance Syntax Builder · semstudio.tools</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* Page-specific: the item table needs compact cells with a small number
+   field, and each generated input needs a header row that keeps its copy
+   button beside the level name. Neither belongs in the shared sheet. */
+#cats { max-width: 34rem; }
+#cats td, #cats th { padding: 0.3rem 0.45rem; vertical-align: middle; }
+#cats input[type="number"] { width: 5.5rem; padding: 0.25rem 0.4rem; text-align: right; }
+#cats label { margin: 0; font-weight: 400; }
+/* One written input: its number and name, the button that copies it, the
+   paragraphs that say what the level does, and the syntax itself. */
+.level { margin: 1.6rem 0 0; }
+.level h3 { margin-top: 0; }
+.level-text > :last-child, .level-syntax > :last-child { margin-bottom: 0; }
+/* On a wide screen what the level does is read beside the input it writes
+   rather than above it, so no block of syntax buries the next level. */
+@media (min-width: 76rem) {
+  .level { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); column-gap: 2.2rem; align-items: start; }
+  .level > .block-head, .level > details { grid-column: 1 / -1; }
+  .level-syntax > .pill { margin-top: 0; }
+}
+.pill { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-soft); }
+p.pill { margin: 0.9rem 0 0.25rem; }
+#selftest-banner { margin-top: 1rem; }
+.seq { list-style: none; padding-left: 0; }
+.seq li { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.5rem; padding: 0.25rem 0; max-width: none; }
+.seq .n { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+/* The textarea that holds the factor definitions is read as syntax, so it
+   keeps the width of a syntax block rather than that of the column. */
+#defs { max-width: 34rem; min-height: 6rem; }
+#names { max-width: 34rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All tools</a>
+  </nav>
+  <h1>Invariance Syntax Builder</h1>
+  <p class="lede">This page writes the M<em>plus</em> input for a sequence of identified multiple-group confirmatory factor models, for continuous indicators and for ordered-categorical indicators. For continuous indicators it writes the configural, metric, scalar and strict models and the optional structural steps; for ordered-categorical indicators it writes the sequence of Wu and Estabrook (2016) as applied by Svetina, Rutkowski and Rutkowski (2020), in which each level is identified on its own rather than by adding constraints to an identified baseline.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> Every input written here ends with <code>OUTPUT: TECH1 TECH4 STDYX;</code>. TECH1 prints the parameter specification group by group, which is the direct way to check that each equality constraint landed on the parameter it was meant for; TECH4 prints the estimated factor means, variances and covariances, which are the quantities the later levels license you to compare; STDYX gives the standardized loadings.
+  </div>
+</header>
+
+<main id="main">
+
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-model">
+  <h2 id="h-model">The model</h2>
+
+  <div class="split even">
+  <div>
+
+  <fieldset>
+    <legend>Indicators</legend>
+    <label class="check"><input type="radio" name="family" id="fam-a" value="A" checked> Continuous indicators: configural, metric, scalar, strict</label>
+    <label class="check"><input type="radio" name="family" id="fam-b" value="B"> Ordered-categorical indicators: the sequence of Wu and Estabrook (2016)</label>
+  </fieldset>
+
+  <div class="field">
+    <label for="defs">Factor definitions</label>
+    <span class="hint">One factor per line, written as it would be written in M<em>plus</em>: <code>F1 BY x1 x2 x3 x4;</code>. The hyphen range notation is read, so <code>F1 BY x1-x4;</code> is the same definition. Semicolons may be left out. Names may be up to eight characters, must begin with a letter and may contain letters, digits and underscores. Each item may belong to one factor only.</span>
+    <textarea id="defs" spellcheck="false" aria-describedby="defs-report">F1 BY x1-x4;</textarea>
+  </div>
+
+  <div class="row">
+    <div class="field w2">
+      <label for="ngroups">Number of groups</label>
+      <input type="number" id="ngroups" min="2" max="12" step="1" value="2">
+    </div>
+    <div class="field w2">
+      <label for="groupvar">Grouping variable</label>
+      <input type="text" id="groupvar" value="grp" spellcheck="false">
+    </div>
+    <div class="field w4">
+      <label for="groupnames">Group names and codes</label>
+      <input type="text" id="groupnames" value="1 = G1, 2 = G2" spellcheck="false">
+      <span class="hint">Comma-separated, as <code>code = name</code>. The names are used in the <code>GROUPING</code> statement and in the <code>MODEL</code> blocks, so they follow the same naming rules as variables.</span>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="field w4">
+      <label for="ident">Identification of the factors</label>
+      <select id="ident">
+        <option value="fixed" selected>Fixed factor: variance at one, mean at zero in the reference group</option>
+        <option value="marker">Marker indicator: the first item of each factor has a loading of one</option>
+      </select>
+    </div>
+    <div class="field w3">
+      <label for="estimator">Estimator</label>
+      <select id="estimator"></select>
+    </div>
+    <div class="field w4" id="param-field" hidden>
+      <label for="param">Parameterization</label>
+      <select id="param">
+        <option value="DELTA" selected>DELTA: scale factors for the latent responses</option>
+        <option value="THETA">THETA: residual variances of the latent responses</option>
+      </select>
+    </div>
+  </div>
+
+  <fieldset id="cat-fieldset" hidden>
+    <legend>Response categories</legend>
+    <div class="row">
+      <div class="field w1">
+        <label for="catall">The same number for every item</label>
+        <input type="number" id="catall" min="2" max="12" step="1" value="4">
+      </div>
+      <div class="field end">
+        <button type="button" class="secondary" id="catapply">Apply to every item</button>
+      </div>
+    </div>
+    <p class="table-note" id="cats-note">Number of response categories per item. An item with <em>C</em> categories has <em>C</em> − 1 thresholds.</p>
+    <div class="table-wrap fit">
+      <table id="cats" aria-labelledby="cats-note">
+        <thead><tr><th scope="col">Item</th><th scope="col">Factor</th><th scope="col" class="num">Categories</th><th scope="col" class="num">Thresholds</th></tr></thead>
+        <tbody id="cats-body"></tbody>
+      </table>
+    </div>
+  </fieldset>
+
+  </div>
+  <div>
+
+  <fieldset>
+    <legend>Levels to write</legend>
+    <div id="levels-box"></div>
+  </fieldset>
+
+  <details>
+    <summary>Data file and variable list (optional, for a complete runnable input)</summary>
+    <div class="field">
+      <label for="title">Title</label>
+      <input type="text" id="title" value="Measurement invariance" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="datafile">Data file</label>
+      <input type="text" id="datafile" value="data.dat" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="names">Variable list for <code>NAMES</code></label>
+      <span class="hint">The whole list of columns in the data file, in order, with the hyphen range notation allowed. Leave it empty and the grouping variable followed by the items is written instead, which is a placeholder to be checked against the data file.</span>
+      <textarea id="names" spellcheck="false" style="min-height:4rem"></textarea>
+    </div>
+    <div class="field">
+      <label for="missing">Missing value code</label>
+      <input type="text" id="missing" value="" spellcheck="false" placeholder="-999">
+      <span class="hint">Written as <code>MISSING = ALL (code);</code>. Left out when empty.</span>
+    </div>
+    <div class="field">
+      <label for="prefix">Prefix for the file names</label>
+      <input type="text" id="prefix" value="mi" spellcheck="false">
+    </div>
+  </details>
+
+  <div class="actions">
+    <button type="button" id="build">Write the inputs</button>
+    <button type="button" class="secondary" id="ex-cont">Example: four continuous items, two groups</button>
+    <button type="button" class="secondary" id="ex-cat">Example: four four-category items, three groups</button>
+  </div>
+  <div id="defs-report" aria-live="polite"></div>
+
+  </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-out">
+  <h2 id="h-out">The inputs</h2>
+  <div class="status warn">
+    <p><span class="tag"><span aria-hidden="true">!</span> What this page cannot do.</span> The syntax written below is a starting point to be read and checked against your data and your model before it is run. The page cannot verify that a model is identified for every structure that can be typed into it: cross-loadings, correlated residuals, an item belonging to more than one factor, factors with one or two indicators and empirically singular groups all change the identification argument, and the conditions used here are those given for a clustered pattern of non-negative loadings with each item on one factor.</p>
+  </div>
+  <div id="out" aria-live="polite"></div>
+</section>
+
+<section class="tracks" aria-labelledby="h-why">
+  <h2 id="h-why">Why the ordered-categorical sequence is not the familiar one</h2>
+  <p>With continuous indicators the observed variable has a metric of its own. Its mean and its variance are estimated in every group, so an intercept and a residual variance can be estimated in every group as well, and the sequence configural, metric, scalar, strict adds one type of constraint at a time to a model that is already identified.</p>
+  <p>With ordered categories nothing is observed but the proportion of respondents in each category and the association between items. The model puts a normally distributed latent response variable behind each item and cuts it at thresholds, and that latent response has no metric of its own: its location and its scale are conventions. Wu and Estabrook (2016) write the transformation that changes those conventions without changing the probability of any response pattern. It has four parts in each group: a shift and a rescaling for every latent response, and a shift and a rescaling for every factor, so 2(<em>p</em> + <em>m</em>) constraints per group are needed to identify a model with <em>p</em> items and <em>m</em> factors.</p>
+  <p>The consequence is that the identification condition of a baseline model is not neutral with respect to the invariance tests that follow it. Once loadings are held equal across groups, a condition such as fixing the variance of every latent response to one in every group stops being a free choice of metric and becomes a restriction, and the same invariance hypothesis tested from two differently identified baselines gives two different chi-squares. Wu and Estabrook show a two-group example in which loading invariance is rejected under two identification conditions and retained under a third, with the same data and the same true parameters. Their answer is to identify each level of invariance separately, which is what this page writes.</p>
+  <p>Three consequences follow for the sequence itself.</p>
+  <ul>
+    <li>Invariance of loadings alone, of intercepts alone, and of residual variances alone cannot be tested. A model with only one of these constrained is statistically equivalent to the configural model, so the difference test has no degrees of freedom to spend. Thresholds have to be dealt with first.</li>
+    <li>How much of threshold invariance can be tested depends on the number of categories. A shift and a rescaling of one latent response can always be chosen to make one threshold match, and can be chosen to make two thresholds match, but not three. An item with <em>C</em> categories therefore contributes (<em>C</em> − 3)(<em>G</em> − 1) degrees of freedom to the test of threshold invariance across <em>G</em> groups: none at all for a binary or three-category item, one per extra group for a four-category item.</li>
+    <li>Binary items are a separate case. With one threshold per item, threshold invariance and threshold-and-loading invariance are both statistically equivalent to the configural model (Wu &amp; Estabrook, 2016, Propositions 3 and 6), and the model that holds thresholds invariant while freeing the intercepts and the scales of the other groups is not even identified. When any item is binary this page drops those two levels and goes from the configural model to the model with invariant thresholds, loadings and intercepts.</li>
+  </ul>
+  <p>The two articles differ in how far they take the sequence and in what they call the levels. Wu and Estabrook (2016) name each model by the parameters it holds invariant and set out the whole hierarchy of sixteen models, of which ten are statistically distinct for polytomous items and five for binary items. Svetina, Rutkowski and Rutkowski (2020) follow the same identification conditions but write out three models only, which they name after the propositions they come from: the baseline model, Proposition 4 for threshold invariance and Proposition 7 for threshold and loading invariance. They also point out that the resulting order — thresholds first, then loadings — differs from the order in which applied work usually proceeds, where loadings are tested before thresholds and intercepts. One detail in their tutorial is a slip: the text and the annotation of the Proposition 7 input say that the item intercept is fixed at one in the first group and give <code>[y1-y4@1];</code>, while Condition 19 of Wu and Estabrook, which that step implements, sets those intercepts to zero. This page writes <code>@0</code>.</p>
+</section>
+
+<section class="tracks" aria-labelledby="h-methods">
+  <h2 id="h-methods">Methods</h2>
+  <div id="methods"></div>
+</section>
+
+<section class="tracks" aria-labelledby="h-refs">
+  <h2 id="h-refs">References</h2>
+  <ul class="refs">
+    <li>Meredith, W. (1993). Measurement invariance, factor analysis and factorial invariance. <em>Psychometrika, 58</em>(4), 525–543. https://doi.org/10.1007/BF02294825</li>
+    <li>Millsap, R. E. (2011). <em>Statistical approaches to measurement invariance</em>. Routledge.</li>
+    <li>Millsap, R. E., &amp; Yun-Tein, J. (2004). Assessing factorial invariance in ordered-categorical measures. <em>Multivariate Behavioral Research, 39</em>(3), 479–515. https://doi.org/10.1207/S15327906MBR3903_4</li>
+    <li>Muthén, B., &amp; Asparouhov, T. (2002). <em>Latent variable analysis with categorical outcomes: Multiple-group and growth modeling in <span class="mp">M<em>plus</em></span></em> (<span class="mp">M<em>plus</em></span> Web Notes No. 4).</li>
+    <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using M<em>plus</em> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111–130. https://doi.org/10.1080/10705511.2019.1602776</li>
+    <li>Vandenberg, R. J., &amp; Lance, C. E. (2000). A review and synthesis of the measurement invariance literature: Suggestions, practices, and recommendations for organizational research. <em>Organizational Research Methods, 3</em>(1), 4–70. https://doi.org/10.1177/109442810031002</li>
+    <li>Wu, H., &amp; Estabrook, R. (2016). Identification of confirmatory factor analysis models of different levels of invariance for ordered categorical outcomes. <em>Psychometrika, 81</em>(4), 1014–1045. https://doi.org/10.1007/s11336-016-9506-0</li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+
+<script>
+"use strict";
+
+var IS = (function () {
+
+/* ==================================================================
+   Names, words and small helpers
+   ================================================================== */
+
+var MP = "M<em>plus</em>";
+
+/* Words the Mplus language uses inside statements. A variable, factor
+   or group name that is one of them cannot be told apart from the
+   keyword, so the page refuses it. */
+var RESERVED = ["ALL", "AND", "ARE", "AT", "BETWEEN", "BY", "IND", "IS",
+                "NOT", "ON", "OR", "PON", "PWITH", "TO", "VIA", "WITH",
+                "WITHIN", "XWITH"];
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function code(s) { return "<code>" + esc(s) + "</code>"; }
+function up(s) { return String(s).toUpperCase(); }
+
+/* Returns null when the name may be used, otherwise an object with a
+   code and a message that says which rule the name breaks. The order of
+   the tests is the order in which the messages are most useful. */
+function nameProblem(name, what) {
+  var w = what || "name";
+  if (name === "" || /^\s*$/.test(name)) return { code: "empty", html: "An empty " + w + " was found." };
+  var nonAscii = name.match(/[^\x20-\x7E]/);
+  if (nonAscii) {
+    return { code: "nonascii", html: "The " + w + " " + code(name) + " contains the character " +
+      code(nonAscii[0]) + ", which is outside the printable ASCII range that " + MP + " names use." };
+  }
+  if (!/^[A-Za-z]/.test(name)) {
+    return { code: "badstart", html: "The " + w + " " + code(name) + " does not begin with a letter." };
+  }
+  var badChar = name.match(/[^A-Za-z0-9_]/);
+  if (badChar) {
+    return { code: "badchar", html: "The " + w + " " + code(name) + " contains " + code(badChar[0]) +
+      "; " + MP + " names take letters, digits and the underscore only." };
+  }
+  if (name.length > 8) {
+    return { code: "toolong", html: "The " + w + " " + code(name) + " is " + name.length +
+      " characters long; " + MP + " names may be at most eight." };
+  }
+  if (RESERVED.indexOf(up(name)) >= 0) {
+    return { code: "reserved", html: "The " + w + " " + code(name) + " is a word the " + MP +
+      " language uses inside statements and cannot be a name." };
+  }
+  return null;
+}
+
+function padZero(n, width) {
+  var s = String(n);
+  while (s.length < width) s = "0" + s;
+  return s;
+}
+
+/* ==================================================================
+   Parsing the factor definitions
+   ================================================================== */
+
+/* Expands one token of the hyphen range notation, x1-x4, into the names
+   it stands for. Leading zeros are kept when both ends are padded to the
+   same width, because x01-x04 names four columns called x01 to x04. */
+function expandRange(tok) {
+  var m = tok.match(/^([A-Za-z][A-Za-z0-9_]*?)(\d+)-([A-Za-z][A-Za-z0-9_]*?)(\d+)$/);
+  if (!m) {
+    return { error: { code: "badrange", html: "The range " + code(tok) +
+      " could not be read. A range is written as a name ending in a number, a hyphen, " +
+      "and the same name ending in a larger number, as in " + code("x1-x4") + "." } };
+  }
+  if (up(m[1]) !== up(m[3])) {
+    return { error: { code: "badrange", html: "The range " + code(tok) + " runs from " + code(m[1]) +
+      " to " + code(m[3]) + ". The two ends of a range must share the same stem." } };
+  }
+  var a = parseInt(m[2], 10), b = parseInt(m[4], 10);
+  if (b < a) {
+    return { error: { code: "revrange", html: "The range " + code(tok) + " runs backwards, from " +
+      a + " down to " + b + ". Write the smaller number first." } };
+  }
+  if (b - a + 1 > 5000) {
+    return { error: { code: "toomanyitems", html: "The range " + code(tok) + " covers " + (b - a + 1) +
+      " items, which is more than this page reads." } };
+  }
+  var width = (m[2].length === m[4].length && /^0/.test(m[2])) ? m[2].length : 0;
+  var out = [], i;
+  for (i = a; i <= b; i++) out.push(m[1] + (width ? padZero(i, width) : String(i)));
+  return { items: out };
+}
+
+/* Splits the text into factor definitions. Comments are removed, tabs
+   become spaces, and a statement runs to the next semicolon or to the
+   next line that begins a new definition, so that missing semicolons are
+   read the way they were meant. */
+function splitStatements(text) {
+  var t = String(text).replace(/\r\n?/g, "\n").replace(/!.*$/gm, "").replace(/\t/g, " ");
+  var pieces = t.split(";"), stmts = [], i, j;
+  for (i = 0; i < pieces.length; i++) {
+    var lines = pieces[i].split("\n"), cur = "";
+    for (j = 0; j < lines.length; j++) {
+      if (/^\s*[A-Za-z][A-Za-z0-9_]*\s+BY\b/i.test(lines[j]) && /\S/.test(cur)) {
+        stmts.push(cur.trim());
+        cur = lines[j];
+      } else {
+        cur = cur + " " + lines[j];
+      }
+    }
+    if (/\S/.test(cur)) stmts.push(cur.trim());
+  }
+  return stmts;
+}
+
+function parseFactors(text) {
+  var errors = [], warnings = [], factors = [], byName = {}, owner = {};
+  var stmts = splitStatements(text), s, i, k;
+
+  for (s = 0; s < stmts.length; s++) {
+    var stmt = stmts[s].replace(/\s+/g, " ").trim();
+    if (stmt === "") continue;
+    var m = stmt.match(/^(\S+)\s+BY\s*(.*)$/i);
+    if (!m) {
+      errors.push({ code: "notadef", html: "The line " + code(stmt) +
+        " is not a factor definition. Every line has the form " + code("F1 BY x1 x2 x3;") + "." });
+      continue;
+    }
+    var fname = m[1], rest = m[2].trim();
+    var p = nameProblem(fname, "factor name");
+    if (p) { errors.push(p); continue; }
+    if (rest === "") {
+      errors.push({ code: "emptyfactor", html: "The factor " + code(fname) + " is defined with no items." });
+      continue;
+    }
+    /* commas separate items; spaces around a hyphen belong to the range */
+    var toks = rest.replace(/,/g, " ").replace(/\s*-\s*/g, "-").split(/\s+/);
+    var items = [], bad = false;
+    for (i = 0; i < toks.length; i++) {
+      if (toks[i] === "") continue;
+      var got;
+      if (toks[i].indexOf("-") >= 0) {
+        got = expandRange(toks[i]);
+        if (got.error) { errors.push(got.error); bad = true; continue; }
+      } else {
+        got = { items: [toks[i]] };
+      }
+      for (k = 0; k < got.items.length; k++) {
+        var pi = nameProblem(got.items[k], "item name");
+        if (pi) { errors.push(pi); bad = true; continue; }
+        items.push(got.items[k]);
+      }
+    }
+    if (bad) continue;
+    if (items.length === 0) {
+      errors.push({ code: "emptyfactor", html: "The factor " + code(fname) + " is defined with no items." });
+      continue;
+    }
+
+    var fac;
+    if (Object.prototype.hasOwnProperty.call(byName, up(fname))) {
+      fac = byName[up(fname)];
+      warnings.push({ code: "dupfactor", html: "The factor " + code(fname) +
+        " is defined more than once; the items of the two definitions were put together." });
+    } else {
+      fac = { name: fname, items: [] };
+      byName[up(fname)] = fac;
+      factors.push(fac);
+    }
+    for (i = 0; i < items.length; i++) {
+      var key = up(items[i]);
+      if (Object.prototype.hasOwnProperty.call(owner, key)) {
+        if (owner[key] === fac) {
+          warnings.push({ code: "dupitem", html: "The item " + code(items[i]) + " is listed twice in " +
+            code(fac.name) + "; the second mention was left out." });
+        } else {
+          errors.push({ code: "crossload", html: "The item " + code(items[i]) + " is listed on " +
+            code(owner[key].name) + " and on " + code(fac.name) + ". The identification conditions " +
+            "used here hold for a pattern in which every item belongs to one factor." });
+        }
+        continue;
+      }
+      owner[key] = fac;
+      fac.items.push(items[i]);
+    }
+  }
+
+  /* a factor whose name is also an item name cannot be told from it */
+  for (i = 0; i < factors.length; i++) {
+    if (Object.prototype.hasOwnProperty.call(owner, up(factors[i].name))) {
+      errors.push({ code: "dupname", html: "The name " + code(factors[i].name) +
+        " is used both for a factor and for an item." });
+    }
+  }
+  if (factors.length === 0 && errors.length === 0) {
+    errors.push({ code: "nofactors", html: "No factor definition was found. Write at least one line of the form " +
+      code("F1 BY x1 x2 x3;") + "." });
+  }
+  for (i = 0; i < factors.length; i++) {
+    if (factors[i].items.length === 1) {
+      warnings.push({ code: "onefactoritem", html: "The factor " + code(factors[i].name) +
+        " has one indicator. A factor with one indicator is not identified unless its residual variance is " +
+        "fixed, which this page does not do." });
+    } else if (factors[i].items.length === 2 && factors.length === 1) {
+      warnings.push({ code: "twoitems", html: "The factor " + code(factors[i].name) +
+        " has two indicators and is the only factor, so the model is not identified in a single group." });
+    }
+  }
+  return { factors: factors, errors: errors, warnings: warnings };
+}
+
+/* ==================================================================
+   Building the structure: items, groups, phantom variables
+   ================================================================== */
+
+/* Reads the "1 = AZE, 2 = AUT" field. A bare name takes its position as
+   its code, so "AZE, AUT" is read as 1 = AZE and 2 = AUT. */
+function parseGroups(spec, n) {
+  var out = [], errors = [], parts = String(spec).split(","), i, seen = {};
+  for (i = 0; i < n; i++) {
+    var raw = (parts[i] === undefined ? "" : parts[i]).trim();
+    var value = String(i + 1), name = "G" + (i + 1);
+    if (raw !== "") {
+      var m = raw.match(/^(.*?)\s*=\s*(.*)$/);
+      if (m) { value = m[1].trim(); name = m[2].trim(); }
+      else { name = raw; }
+    }
+    if (!/^-?\d+(\.\d+)?$/.test(value)) {
+      errors.push({ code: "badgroupcode", html: "The group code " + code(value) +
+        " is not a number. A code in a " + code("GROUPING") + " statement is the value the grouping " +
+        "variable takes in the data file." });
+    }
+    var p = nameProblem(name, "group name");
+    if (p) { errors.push(p); }
+    if (Object.prototype.hasOwnProperty.call(seen, up(name))) {
+      errors.push({ code: "dupgroup", html: "The group name " + code(name) + " is used twice." });
+    }
+    seen[up(name)] = true;
+    out.push({ value: value, name: name });
+  }
+  return { groups: out, errors: errors };
+}
+
+/* Latent response variables need names of their own. They are latent, so
+   they never reach USEVARIABLES, but a name already taken by an item, a
+   factor or the grouping variable would be read as that variable. */
+function phantomNames(count, taken) {
+  var stems = ["yy", "yz", "yw", "yv", "yq", "ys", "yp", "yk"], s, i, ok, names;
+  for (s = 0; s < stems.length; s++) {
+    names = []; ok = true;
+    for (i = 1; i <= count; i++) {
+      var nm = stems[s] + i;
+      if (nm.length > 8 || Object.prototype.hasOwnProperty.call(taken, up(nm))) { ok = false; break; }
+      names.push(nm);
+    }
+    if (ok) return names;
+  }
+  return null;
+}
+
+function buildStructure(cfg) {
+  var pr = parseFactors(cfg.defs);
+  var errors = pr.errors.slice(), warnings = pr.warnings.slice(), i, j;
+  var gp = parseGroups(cfg.groupNames, cfg.nGroups);
+  errors = errors.concat(gp.errors);
+
+  var gvProblem = nameProblem(cfg.groupVar, "grouping variable");
+  if (gvProblem) errors.push(gvProblem);
+
+  var items = [], taken = {}, idx = 0;
+  for (i = 0; i < pr.factors.length; i++) {
+    for (j = 0; j < pr.factors[i].items.length; j++) {
+      idx++;
+      var nm = pr.factors[i].items[j];
+      var cat = cfg.cats && Object.prototype.hasOwnProperty.call(cfg.cats, up(nm))
+        ? cfg.cats[up(nm)] : cfg.catAll;
+      items.push({ name: nm, index: idx, factor: i, first: (j === 0), cat: cat });
+      taken[up(nm)] = true;
+    }
+  }
+  for (i = 0; i < pr.factors.length; i++) taken[up(pr.factors[i].name)] = true;
+  taken[up(cfg.groupVar)] = true;
+
+  if (cfg.family === "B") {
+    for (i = 0; i < items.length; i++) {
+      var c = items[i].cat;
+      if (!(typeof c === "number" && isFinite(c) && c === Math.round(c))) {
+        errors.push({ code: "badcat", html: "The number of categories of " + code(items[i].name) +
+          " is not a whole number." });
+      } else if (c < 2) {
+        errors.push({ code: "badcat", html: "The item " + code(items[i].name) + " is given " + c +
+          " categories. An ordered-categorical item needs at least two." });
+      } else if (c > 12) {
+        errors.push({ code: "badcat", html: "The item " + code(items[i].name) + " is given " + c +
+          " categories, which is more than this page writes thresholds for." });
+      }
+    }
+  }
+  if (items.length > 500) {
+    errors.push({ code: "toomanyitems", html: "The model has " + items.length +
+      " items. This page writes syntax for at most 500." });
+  }
+  if (cfg.nGroups < 2) {
+    errors.push({ code: "groups", html: "A multiple-group model needs at least two groups." });
+  }
+
+  var phantom = null;
+  if (cfg.family === "B" && items.length > 0 && items.length <= 500) {
+    phantom = phantomNames(items.length, taken);
+    if (!phantom) {
+      errors.push({ code: "phantom", html: "No free names were left for the latent response variables. " +
+        "Rename the items so that names beginning with " + code("yy") + " are free." });
+    }
+  }
+
+  return {
+    ok: errors.length === 0,
+    factors: pr.factors, items: items, phantom: phantom, groups: gp.groups,
+    errors: errors, warnings: warnings
+  };
+}
+
+/* ==================================================================
+   The sequences
+
+   Each level is a set of flags. eqThr, eqLoad, eqInt and eqRes say which
+   of the four measurement parameter types are held invariant; eqFvar and
+   eqFmean are the two structural steps. Everything the generator does
+   with fixed and freed parameters follows from these six flags together
+   with the identification method and the parameterization.
+   ================================================================== */
+
+var LEVELS_A = [
+  { key: "configural", name: "Configural", flags: {} },
+  { key: "metric", name: "Metric: equal loadings", flags: { eqLoad: 1 } },
+  { key: "scalar", name: "Scalar: equal loadings and intercepts", flags: { eqLoad: 1, eqInt: 1 } },
+  { key: "strict", name: "Strict: equal loadings, intercepts and residual variances",
+    flags: { eqLoad: 1, eqInt: 1, eqRes: 1 } },
+  { key: "fvar", name: "Equal factor variances and covariances",
+    flags: { eqLoad: 1, eqInt: 1, eqRes: 1, eqFvar: 1 } },
+  { key: "fmean", name: "Equal factor means",
+    flags: { eqLoad: 1, eqInt: 1, eqRes: 1, eqFvar: 1, eqFmean: 1 } }
+];
+
+var LEVELS_B = [
+  { key: "baseline", name: "Configural (baseline)", flags: {} },
+  { key: "thresholds", name: "Equal thresholds", flags: { eqThr: 1 } },
+  { key: "loadings", name: "Equal thresholds and loadings", flags: { eqThr: 1, eqLoad: 1 } },
+  { key: "intercepts", name: "Equal thresholds, loadings and intercepts",
+    flags: { eqThr: 1, eqLoad: 1, eqInt: 1 } },
+  { key: "residuals", name: "Equal thresholds, loadings, intercepts and residual variances",
+    flags: { eqThr: 1, eqLoad: 1, eqInt: 1, eqRes: 1 } },
+  { key: "fvar", name: "Equal factor variances and covariances",
+    flags: { eqThr: 1, eqLoad: 1, eqInt: 1, eqFvar: 1 } },
+  { key: "fmean", name: "Equal factor means",
+    flags: { eqThr: 1, eqLoad: 1, eqInt: 1, eqFvar: 1, eqFmean: 1 } }
+];
+
+function levelsFor(family) { return family === "A" ? LEVELS_A : LEVELS_B; }
+
+/* Which levels can be written for this model, and why the others cannot.
+   The rules come from Wu and Estabrook (2016): with a binary item the
+   models with invariant thresholds and with invariant thresholds and
+   loadings are equivalent to the baseline, and the first of them is not
+   identified once the intercepts and scales of the other groups are
+   freed; invariance of the residual variances is a constraint on Theta,
+   which is a parameter only under the theta parameterization. */
+function availableLevels(cfg, S) {
+  var all = levelsFor(cfg.family), out = [], notes = [], i;
+  var anyBinary = false, maxCat = 0, minCat = 99, p = S.items.length;
+  for (i = 0; i < S.items.length; i++) {
+    if (S.items[i].cat === 2) anyBinary = true;
+    if (S.items[i].cat > maxCat) maxCat = S.items[i].cat;
+    if (S.items[i].cat < minCat) minCat = S.items[i].cat;
+  }
+  for (i = 0; i < all.length; i++) {
+    var lv = all[i], why = null;
+    if (cfg.family === "B") {
+      if ((lv.key === "thresholds" || lv.key === "loadings") && anyBinary) {
+        why = "every item would have to have at least three categories; with a binary item this level is " +
+          "statistically equivalent to the configural model, and the model with invariant thresholds alone " +
+          "is not identified once the intercepts and the scales of the other groups are freed " +
+          "(Wu &amp; Estabrook, 2016, Propositions 3 and 6).";
+      }
+      if (lv.key === "residuals" && cfg.param === "DELTA") {
+        why = "the residual variances of the latent responses are not parameters under the delta " +
+          "parameterization, where the scale factors are estimated instead, so their invariance cannot be " +
+          "written as an equality constraint. Choose the theta parameterization for this level.";
+      }
+    }
+    out.push({ def: lv, available: !why, why: why });
+  }
+  notes.push({ anyBinary: anyBinary, maxCat: maxCat, minCat: minCat, p: p });
+  return { levels: out, anyBinary: anyBinary, maxCat: maxCat, minCat: minCat };
+}
+
+/* The number of freely estimated parameters of one level. Every degree
+   of freedom reported on the page is a difference between two of these
+   counts, so the counts, and not the steps, are what has to be right.
+   They reproduce the parameter counts of Tables 3 and 4 of Wu and
+   Estabrook (2016) for the categorical models and the usual counts for
+   the continuous ones; the identification method does not change them. */
+function paramCount(lv, S, cfg) {
+  var p = S.items.length, m = S.factors.length, G = S.groups.length, i;
+  var cov = m * (m - 1) / 2, f = lv.flags, marker = (cfg.ident === "marker");
+  var nLoadPerGroup = marker ? (p - m) : p;
+  var n = 0, sumK = 0;
+
+  if (cfg.family === "B") {
+    for (i = 0; i < S.items.length; i++) sumK += S.items[i].cat - 1;
+    n += f.eqThr ? sumK : G * sumK;
+  }
+  n += f.eqLoad ? nLoadPerGroup : G * nLoadPerGroup;
+
+  if (cfg.family === "A") {
+    n += f.eqInt ? p : G * p;                 /* item intercepts */
+    n += f.eqRes ? p : G * p;                 /* residual variances */
+  } else {
+    /* the intercepts of the latent responses are fixed at zero except in
+       the groups after the first once the thresholds are invariant, and
+       the same holds for the scale factors or residual variances */
+    n += f.eqInt ? 0 : (f.eqThr ? (G - 1) * p : 0);
+    n += f.eqRes ? 0 : (f.eqThr ? (G - 1) * p : 0);
+  }
+
+  if (marker) n += f.eqFvar ? m : G * m;
+  else n += f.eqFvar ? 0 : (f.eqLoad ? (G - 1) * m : 0);
+
+  n += f.eqFmean ? 0 : (f.eqInt ? (G - 1) * m : 0);
+  n += f.eqFvar ? cov : G * cov;
+  return n;
+}
+
+function stepDf(prev, lv, S, cfg) {
+  if (!prev) return null;
+  return paramCount(prev, S, cfg) - paramCount(lv, S, cfg);
+}
+
+/* ==================================================================
+   Writing the syntax
+   ================================================================== */
+
+var EST_A = ["MLR", "ML", "MLM", "MLMV"];
+var EST_B = ["WLSMV", "WLSM", "WLS", "ULSMV"];
+var EST_DIFFTEST = ["MLMV", "WLSMV", "ULSMV"];
+var EST_SCALED = ["MLR", "MLM", "WLSM"];
+
+function needsDifftest(est) { return EST_DIFFTEST.indexOf(up(est)) >= 0; }
+function isScaled(est) { return EST_SCALED.indexOf(up(est)) >= 0; }
+
+/* Mplus reads at most 90 characters of a line, so every list is wrapped
+   well inside that width; a statement may run over as many lines as it
+   needs as long as it ends with a semicolon. */
+var MAXLEN = 76;
+function wrapList(names, indent) {
+  var out = [], line = indent, i;
+  for (i = 0; i < names.length; i++) {
+    var add = (line === indent ? "" : " ") + names[i];
+    if (line.length + add.length > MAXLEN && line !== indent) {
+      out.push(line);
+      line = indent + names[i];
+    } else {
+      line = line + add;
+    }
+  }
+  out.push(line);
+  return out;
+}
+function listStatement(head, names) {
+  var lines = wrapList(names, "    ");
+  lines[lines.length - 1] = lines[lines.length - 1] + ";";
+  return ["  " + head + " ="].concat(lines);
+}
+
+/* One MODEL block. Everything is written out for every group, so that no
+   default of the program decides whether a parameter is free or held
+   equal: what the block says is what the model is. */
+function modelBlock(cfg, S, lv, gi) {
+  var f = lv.flags, ref = (gi === 0), marker = (cfg.ident === "marker");
+  var B = (cfg.family === "B"), out = [], i, k, it, target;
+  var nuFixed = f.eqInt ? true : (f.eqThr ? ref : true);
+  var scaleFixed = f.eqRes ? true : (f.eqThr ? ref : true);
+  var facVarFixed = f.eqFvar ? true : (f.eqLoad ? ref : true);
+  var facMeanFixed = f.eqFmean ? true : (f.eqInt ? ref : true);
+
+  if (B) {
+    out.push("  ! one latent response variable behind each item");
+    for (i = 0; i < S.items.length; i++) out.push("  " + S.phantom[i] + " BY " + S.items[i].name + "@1;");
+    out.push("  ! the latent responses carry no disturbance of their own");
+    for (i = 0; i < S.items.length; i++) out.push("  " + S.phantom[i] + "@0;");
+  }
+
+  out.push("  ! factor loadings" + (f.eqLoad ? ", held equal across groups" : ", free in every group"));
+  for (i = 0; i < S.items.length; i++) {
+    it = S.items[i];
+    target = B ? S.phantom[i] : it.name;
+    var fac = S.factors[it.factor].name;
+    if (marker && it.first) out.push("  " + fac + " BY " + target + "@1;");
+    else if (f.eqLoad) out.push("  " + fac + " BY " + target + "* (L" + it.index + ");");
+    else out.push("  " + fac + " BY " + target + "*;");
+  }
+
+  if (B) {
+    out.push("  ! thresholds" + (f.eqThr ? ", held equal across groups" : ", free in every group"));
+    for (i = 0; i < S.items.length; i++) {
+      it = S.items[i];
+      for (k = 1; k <= it.cat - 1; k++) {
+        if (f.eqThr) out.push("  [" + it.name + "$" + k + "*] (T" + it.index + "_" + k + ");");
+        else out.push("  [" + it.name + "$" + k + "*];");
+      }
+    }
+    out.push("  ! intercepts of the latent responses" +
+      (nuFixed ? ", fixed at zero" : ", free in this group"));
+    for (i = 0; i < S.items.length; i++) {
+      out.push("  [" + S.phantom[i] + (nuFixed ? "@0" : "*") + "];");
+    }
+    if (cfg.param === "DELTA") {
+      out.push("  ! scale factors of the latent responses" +
+        (scaleFixed ? ", fixed at one" : ", free in this group"));
+      for (i = 0; i < S.items.length; i++) {
+        out.push("  {" + S.items[i].name + (scaleFixed ? "@1" : "*") + "};");
+      }
+    } else {
+      out.push("  ! residual variances of the latent responses" +
+        (scaleFixed ? ", fixed at one" : ", free in this group"));
+      for (i = 0; i < S.items.length; i++) {
+        out.push("  " + S.items[i].name + (scaleFixed ? "@1" : "*") + ";");
+      }
+    }
+  } else {
+    out.push("  ! item intercepts" + (f.eqInt ? ", held equal across groups" : ", free in every group"));
+    for (i = 0; i < S.items.length; i++) {
+      it = S.items[i];
+      if (f.eqInt) out.push("  [" + it.name + "*] (N" + it.index + ");");
+      else out.push("  [" + it.name + "*];");
+    }
+    out.push("  ! residual variances" + (f.eqRes ? ", held equal across groups" : ", free in every group"));
+    for (i = 0; i < S.items.length; i++) {
+      it = S.items[i];
+      if (f.eqRes) out.push("  " + it.name + "* (E" + it.index + ");");
+      else out.push("  " + it.name + "*;");
+    }
+  }
+
+  out.push("  ! factor variances and means");
+  for (i = 0; i < S.factors.length; i++) {
+    var fn = S.factors[i].name;
+    if (marker) out.push("  " + fn + "*" + (f.eqFvar ? " (V" + (i + 1) + ")" : "") + ";");
+    else out.push("  " + fn + (facVarFixed ? "@1" : "*") + ";");
+    out.push("  [" + fn + (facMeanFixed ? "@0" : "*") + "];");
+  }
+  if (S.factors.length > 1) {
+    out.push("  ! factor covariances" + (f.eqFvar ? ", held equal across groups" : ""));
+    for (i = 0; i < S.factors.length; i++) {
+      for (k = i + 1; k < S.factors.length; k++) {
+        out.push("  " + S.factors[i].name + " WITH " + S.factors[k].name + "*" +
+          (f.eqFvar ? " (C" + (i + 1) + "_" + (k + 1) + ")" : "") + ";");
+      }
+    }
+  }
+  return out;
+}
+
+function fileNames(cfg, key) {
+  var pre = (cfg.prefix || "mi").replace(/[^A-Za-z0-9_]/g, "");
+  if (pre === "") pre = "mi";
+  return { inp: pre + "_" + key + ".inp", dif: "d_" + pre + "_" + key + ".dat" };
+}
+
+/* The whole input for one level. difIn is the file this model reads for
+   the difference test, difOut the file it writes for the next one. */
+function buildInput(cfg, S, lv, difIn, difOut) {
+  var L = [], i, names = [], itemNames = [];
+  for (i = 0; i < S.items.length; i++) itemNames.push(S.items[i].name);
+
+  L.push("TITLE:");
+  L.push("  " + (cfg.title || "Measurement invariance") + " -- " + lv.name);
+  L.push("");
+  L.push("DATA:");
+  L.push("  FILE = \"" + (cfg.dataFile || "data.dat") + "\";");
+  L.push("");
+  L.push("VARIABLE:");
+  if (cfg.namesList && cfg.namesList.length) names = cfg.namesList;
+  else names = [cfg.groupVar].concat(itemNames);
+  L = L.concat(listStatement("NAMES", names));
+  L = L.concat(listStatement("USEVARIABLES", itemNames));
+  if (cfg.family === "B") L = L.concat(listStatement("CATEGORICAL", itemNames));
+  var gspec = [];
+  for (i = 0; i < S.groups.length; i++) gspec.push(S.groups[i].value + " = " + S.groups[i].name);
+  var oneLine = "  GROUPING = " + cfg.groupVar + " (" + gspec.join(" ") + ");";
+  if (oneLine.length <= MAXLEN) {
+    L.push(oneLine);
+  } else {
+    L.push("  GROUPING = " + cfg.groupVar + " (");
+    L = L.concat(wrapList(gspec, "    "));
+    L.push("    );");
+  }
+  if (cfg.missing && String(cfg.missing).trim() !== "") {
+    L.push("  MISSING = ALL (" + String(cfg.missing).trim() + ");");
+  }
+  L.push("");
+  L.push("ANALYSIS:");
+  L.push("  ESTIMATOR = " + up(cfg.estimator) + ";");
+  if (cfg.family === "B") L.push("  PARAMETERIZATION = " + up(cfg.param) + ";");
+  if (difIn) L.push("  DIFFTEST = " + difIn + ";");
+  L.push("");
+  L.push("MODEL:");
+  L.push("  ! reference group: " + S.groups[0].name);
+  L = L.concat(modelBlock(cfg, S, lv, 0));
+  for (i = 1; i < S.groups.length; i++) {
+    L.push("");
+    L.push("MODEL " + S.groups[i].name + ":");
+    L = L.concat(modelBlock(cfg, S, lv, i));
+  }
+  L.push("");
+  L.push("OUTPUT:");
+  L.push("  TECH1 TECH4 STDYX;");
+  if (difOut) {
+    L.push("");
+    L.push("SAVEDATA:");
+    L.push("  DIFFTEST = " + difOut + ";");
+  }
+  L.push("");
+  return L.join("\n");
+}
+
+/* The whole sequence. Only the levels that were asked for and that can
+   be written are kept, and the difference-test files are paired to the
+   levels that end up next to each other. */
+function buildSequence(cfg) {
+  var S = buildStructure(cfg);
+  if (!S.ok) return { ok: false, errors: S.errors, warnings: S.warnings, levels: [], structure: S };
+  var av = availableLevels(cfg, S), keep = [], dropped = [], i;
+  for (i = 0; i < av.levels.length; i++) {
+    var e = av.levels[i], want = cfg.include[e.def.key];
+    if (!want) continue;
+    if (!e.available) { dropped.push(e); continue; }
+    keep.push(e.def);
+  }
+  if (keep.length === 0) {
+    return { ok: false, errors: [{ code: "nolevels", html: "No level was left to write." }],
+             warnings: S.warnings, levels: [], structure: S, dropped: dropped };
+  }
+  /* The two structural steps are not levels of their own: they add a
+     constraint on top of whatever measurement level was written last,
+     so their flags are taken from that level rather than assumed. */
+  var lastMeas = {}, merged = [];
+  for (i = 0; i < keep.length; i++) {
+    var d = keep[i], nf = {}, key2;
+    if (d.key === "fvar" || d.key === "fmean") {
+      for (key2 in lastMeas) if (Object.prototype.hasOwnProperty.call(lastMeas, key2)) nf[key2] = 1;
+      if (merged.length && merged[merged.length - 1].flags.eqFvar) nf.eqFvar = 1;
+      if (d.key === "fvar") nf.eqFvar = 1; else nf.eqFmean = 1;
+      if (d.key === "fvar" && !lastMeas.eqLoad && cfg.ident !== "marker") {
+        dropped.push({ def: d, why: "the factor variances are already fixed at the same value in every " +
+          "group while the loadings are free, so there is nothing left to constrain. Add the level with " +
+          "equal loadings first." });
+        continue;
+      }
+      if (d.key === "fmean" && !lastMeas.eqInt) {
+        dropped.push({ def: d, why: "the factor means are already fixed at zero in every group while the " +
+          "intercepts are free, so there is nothing left to constrain. Add the level with equal intercepts " +
+          "first." });
+        continue;
+      }
+      merged.push({ key: d.key, name: d.name, flags: nf });
+    } else {
+      lastMeas = d.flags;
+      merged.push(d);
+    }
+  }
+  keep = merged;
+
+  var dt = needsDifftest(cfg.estimator), out = [];
+  for (i = 0; i < keep.length; i++) {
+    var lv = keep[i];
+    var difIn = (dt && i > 0) ? fileNames(cfg, keep[i].key).dif : null;
+    var difOut = (dt && i < keep.length - 1) ? fileNames(cfg, keep[i + 1].key).dif : null;
+    out.push({
+      key: lv.key, name: lv.name, flags: lv.flags,
+      file: fileNames(cfg, lv.key).inp,
+      difIn: difIn, difOut: difOut,
+      df: stepDf(i > 0 ? keep[i - 1] : null, lv, S, cfg),
+      params: paramCount(lv, S, cfg),
+      prev: i > 0 ? keep[i - 1].name : null,
+      text: buildInput(cfg, S, lv, difIn, difOut)
+    });
+  }
+  return { ok: true, levels: out, structure: S, errors: [], warnings: S.warnings,
+           dropped: dropped, anyBinary: av.anyBinary, maxCat: av.maxCat, minCat: av.minCat };
+}
+
+/* ==================================================================
+   Reading the generated syntax back
+
+   Nothing here trusts the generator. The input is taken apart again as
+   text and checked against what the level was supposed to be, which is
+   how a mistake in the generator becomes a visible failed check rather
+   than a model that quietly estimates the wrong thing.
+   ================================================================== */
+
+var COMMANDS = ["TITLE", "DATA", "VARIABLE", "DEFINE", "ANALYSIS", "MODEL", "OUTPUT", "SAVEDATA", "PLOT"];
+
+function stripComments(t) { return t.replace(/!.*$/gm, ""); }
+
+/* Splits an input into its command sections, keeping the group name of a
+   group-specific MODEL block. */
+function sections(text) {
+  var lines = String(text).split("\n"), out = [], cur = null, i;
+  for (i = 0; i < lines.length; i++) {
+    var m = lines[i].match(/^([A-Za-z]+)(\s+[A-Za-z0-9_]+)?\s*:(.*)$/);
+    if (m && COMMANDS.indexOf(up(m[1])) >= 0) {
+      cur = { name: up(m[1]), group: m[2] ? m[2].trim() : null, body: [], line: i };
+      out.push(cur);
+      if (m[3] && /\S/.test(m[3])) cur.body.push(m[3]);
+    } else if (cur) {
+      cur.body.push(lines[i]);
+    }
+  }
+  for (i = 0; i < out.length; i++) out[i].text = out[i].body.join("\n");
+  return out;
+}
+
+/* Statements of a MODEL section, with the label taken off, so that two
+   statements bearing the same label can be compared. */
+function modelStatements(body) {
+  var t = stripComments(body), parts = t.split(";"), out = [], i;
+  for (i = 0; i < parts.length; i++) {
+    var s = parts[i].replace(/\s+/g, " ").trim();
+    if (s === "") continue;
+    var lab = null, m = s.match(/^(.*?)\s*\(([A-Za-z0-9_]+)\)$/);
+    if (m) { lab = m[2]; s = m[1].trim(); }
+    out.push({ text: s, label: lab });
+  }
+  return out;
+}
+
+function checkInput(text, ctx) {
+  var checks = [], i, j, k;
+  function add(ok, msg) { checks.push({ ok: !!ok, msg: msg }); }
+
+  var raw = String(text).split("\n"), longest = 0, longestAt = -1;
+  for (i = 0; i < raw.length; i++) {
+    if (raw[i].length > longest) { longest = raw[i].length; longestAt = i + 1; }
+  }
+  add(longest <= 90, longest <= 90
+    ? "No line is longer than the 90 characters " + MP + " reads; the longest is " + longest + "."
+    : "Line " + longestAt + " is " + longest + " characters long, past the 90 " + MP + " reads.");
+
+  var secs = sections(text), names = [], order = [], bad = null;
+  for (i = 0; i < secs.length; i++) {
+    names.push(secs[i].name + (secs[i].group ? " " + secs[i].group : ""));
+    var pos = COMMANDS.indexOf(secs[i].name);
+    if (order.length && pos < order[order.length - 1]) bad = secs[i].name;
+    order.push(pos);
+  }
+  add(!bad, bad ? "The section " + bad + " comes after a section that must follow it."
+                : "The sections appear in the order " + MP + " expects: " + names.join(", ") + ".");
+
+  var want = ["TITLE", "DATA", "VARIABLE", "ANALYSIS", "MODEL", "OUTPUT"], missing = [];
+  for (i = 0; i < want.length; i++) {
+    var found = false;
+    for (j = 0; j < secs.length; j++) if (secs[j].name === want[i]) found = true;
+    if (!found) missing.push(want[i]);
+  }
+  add(missing.length === 0, missing.length === 0
+    ? "TITLE, DATA, VARIABLE, ANALYSIS, MODEL and OUTPUT are all present."
+    : "These sections are missing: " + missing.join(", ") + ".");
+
+  /* every statement terminated */
+  var unterminated = [];
+  for (i = 0; i < secs.length; i++) {
+    if (secs[i].name === "TITLE") continue;
+    var body = stripComments(secs[i].text);
+    if (!/\S/.test(body)) continue;
+    var tail = body.split(";").pop();
+    if (/\S/.test(tail)) unterminated.push(secs[i].name + (secs[i].group ? " " + secs[i].group : ""));
+  }
+  add(unterminated.length === 0, unterminated.length === 0
+    ? "Every statement outside TITLE ends with a semicolon."
+    : "A statement is left unterminated in " + unterminated.join(", ") + ".");
+
+  /* brackets */
+  var stack = [], pairs = { ")": "(", "]": "[", "}": "{" }, txt = stripComments(text), unb = null;
+  for (i = 0; i < txt.length; i++) {
+    var c = txt.charAt(i);
+    if (c === "(" || c === "[" || c === "{") stack.push(c);
+    else if (c === ")" || c === "]" || c === "}") {
+      if (stack.pop() !== pairs[c]) { unb = c; break; }
+    }
+  }
+  add(!unb && stack.length === 0, (!unb && stack.length === 0)
+    ? "Round, square and curly brackets are balanced."
+    : "The brackets are not balanced" + (unb ? " at a closing " + unb + "." : "; " + stack.length + " were left open."));
+
+  /* MODEL blocks */
+  var models = [];
+  for (i = 0; i < secs.length; i++) if (secs[i].name === "MODEL") models.push(secs[i]);
+  add(models.length === ctx.nGroups, "There are " + models.length + " MODEL blocks for " +
+    ctx.nGroups + " groups.");
+  var empty = [];
+  for (i = 0; i < models.length; i++) {
+    if (modelStatements(models[i].text).length === 0) empty.push(models[i].group || "the reference group");
+  }
+  add(empty.length === 0, empty.length === 0
+    ? "No MODEL block is empty."
+    : "The MODEL block for " + empty.join(", ") + " has no statement.");
+  var wrongName = [];
+  for (i = 1; i < models.length; i++) {
+    if (!models[i].group || up(models[i].group) !== up(ctx.groups[i])) {
+      wrongName.push(String(models[i].group));
+    }
+  }
+  add(wrongName.length === 0, wrongName.length === 0
+    ? "Each group after the first has a MODEL block named after it."
+    : "A MODEL block names a group that is not in GROUPING: " + wrongName.join(", ") + ".");
+
+  /* variables named in MODEL must be declared */
+  var allowed = {}, key;
+  for (i = 0; i < ctx.usevariables.length; i++) allowed[up(ctx.usevariables[i])] = 1;
+  for (i = 0; i < ctx.latent.length; i++) allowed[up(ctx.latent[i])] = 1;
+  var KEYWORDS = { BY: 1, WITH: 1, ON: 1, AND: 1, IS: 1, ARE: 1, AT: 1 };
+  var unknown = {};
+  for (i = 0; i < models.length; i++) {
+    var t = stripComments(models[i].text).replace(/\([^)]*\)/g, " ");
+    var toks = t.match(/[A-Za-z_][A-Za-z0-9_]*/g) || [];
+    for (j = 0; j < toks.length; j++) {
+      if (KEYWORDS[up(toks[j])]) continue;
+      if (!allowed[up(toks[j])]) unknown[toks[j]] = 1;
+    }
+  }
+  var unknownList = [];
+  for (key in unknown) if (Object.prototype.hasOwnProperty.call(unknown, key)) unknownList.push(key);
+  add(unknownList.length === 0, unknownList.length === 0
+    ? "Every variable named in a MODEL block is in USEVARIABLES or is a latent variable the model defines."
+    : "These names appear in a MODEL block but are neither in USEVARIABLES nor latent: " +
+      unknownList.join(", ") + ".");
+
+  /* labels: unique inside a block, repeated across blocks only where a
+     constraint is meant, and always on the same statement */
+  var seenIn = {}, byLabel = {}, twice = [], mismatch = [];
+  for (i = 0; i < models.length; i++) {
+    var st = modelStatements(models[i].text), here = {};
+    for (j = 0; j < st.length; j++) {
+      if (!st[j].label) continue;
+      var lab = up(st[j].label);
+      if (here[lab]) twice.push(st[j].label + " in " + (models[i].group || "the reference group"));
+      here[lab] = 1;
+      if (!byLabel[lab]) byLabel[lab] = [];
+      byLabel[lab].push(st[j].text);
+      seenIn[lab] = (seenIn[lab] || 0) + 1;
+    }
+  }
+  add(twice.length === 0, twice.length === 0
+    ? "No label is used twice inside one MODEL block."
+    : "A label is used twice inside one block: " + twice.join(", ") + ".");
+  var wrongCount = [];
+  for (key in seenIn) {
+    if (!Object.prototype.hasOwnProperty.call(seenIn, key)) continue;
+    if (seenIn[key] !== ctx.nGroups) wrongCount.push(key + " (" + seenIn[key] + ")");
+    var texts = byLabel[key];
+    for (j = 1; j < texts.length; j++) if (texts[j] !== texts[0]) mismatch.push(key);
+  }
+  add(wrongCount.length === 0, wrongCount.length === 0
+    ? "Every label appears once in each of the " + ctx.nGroups + " blocks, which is what makes it a " +
+      "constraint across groups."
+    : "These labels do not appear once per group: " + wrongCount.join(", ") + ".");
+  add(mismatch.length === 0, mismatch.length === 0
+    ? "Each label is attached to the same parameter in every block."
+    : "These labels sit on different parameters in different blocks: " + mismatch.join(", ") + ".");
+
+  var nLabels = 0;
+  for (key in seenIn) if (Object.prototype.hasOwnProperty.call(seenIn, key)) nLabels++;
+  if (ctx.expectLabels !== undefined) {
+    add(nLabels === ctx.expectLabels, "The input carries " + nLabels + " distinct labels; " +
+      ctx.expectLabels + " constraints were intended.");
+  }
+  if (ctx.expectThresholds !== undefined) {
+    var nT = 0;
+    for (key in seenIn) if (Object.prototype.hasOwnProperty.call(seenIn, key) && key.charAt(0) === "T") nT++;
+    add(nT === ctx.expectThresholds, "The input constrains " + nT + " thresholds; " +
+      ctx.expectThresholds + " were intended.");
+  }
+  return checks;
+}
+
+/* The difference-test files of a sequence: the less restricted model
+   saves the file the more restricted one reads, and the pairing has to
+   follow the levels that ended up next to each other. */
+/* The DIFFTEST file named inside one command section. The section has to
+   be cut out first: a pattern that runs from ANALYSIS to the next
+   DIFFTEST would otherwise find the one in SAVEDATA. */
+function difftestIn(text, command) {
+  var secs = sections(text), i;
+  for (i = 0; i < secs.length; i++) {
+    if (secs[i].name !== command) continue;
+    var m = stripComments(secs[i].text).match(/DIFFTEST\s*=\s*([^;\s]+)\s*;/i);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function checkDifftest(levels) {
+  var checks = [], i;
+  for (i = 0; i < levels.length; i++) {
+    levels[i].saveFile = difftestIn(levels[i].text, "SAVEDATA");
+    levels[i].readFile = difftestIn(levels[i].text, "ANALYSIS");
+  }
+  for (i = 0; i + 1 < levels.length; i++) {
+    var a = levels[i], b = levels[i + 1];
+    if (a.difOut === null) {
+      checks.push({ ok: a.saveFile === null && b.readFile === null,
+        msg: "No difference-test file is written between " + a.name + " and " + b.name +
+             ", which is right for this estimator." });
+    } else {
+      checks.push({ ok: !!a.saveFile && a.saveFile === b.readFile,
+        msg: a.saveFile === b.readFile
+          ? "The file " + a.saveFile + " is saved by " + a.name + " and read by " + b.name + "."
+          : "The file saved by " + a.name + " is not the file read by " + b.name + "." });
+    }
+  }
+  if (levels.length) {
+    checks.push({ ok: !levels[0].readFile,
+      msg: "The first model reads no difference-test file, because nothing less restricted comes before it." });
+    checks.push({ ok: !levels[levels.length - 1].saveFile,
+      msg: "The last model writes no difference-test file, because nothing more restricted follows it." });
+  }
+  return checks;
+}
+
+/* ==================================================================
+   What each level says
+   ================================================================== */
+
+function refName(S) { return esc(S.groups[0].name); }
+function otherNames(S) {
+  var a = [], i;
+  for (i = 1; i < S.groups.length; i++) a.push(esc(S.groups[i].name));
+  if (a.length === 1) return a[0];
+  return a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+}
+
+function levelProse(cfg, S, lv) {
+  var marker = (cfg.ident === "marker"), B = (cfg.family === "B");
+  var ref = refName(S), oth = otherNames(S), p = [];
+  var scaleWord = (cfg.param === "DELTA") ? "scale factors" : "residual variances of the latent responses";
+  var idSentence = marker
+    ? "The scale of each factor comes from its first item, whose loading is fixed at one in every group."
+    : "The scale of each factor comes from fixing its variance at one in " + ref + ".";
+
+  if (lv.key === "configural" || lv.key === "baseline") {
+    if (B) {
+      p.push("Nothing is held equal across groups. Thresholds and loadings are free in every group, the " +
+        "intercepts of the latent responses are fixed at zero and the " + scaleWord + " are fixed at one " +
+        "in every group, and the factor " + (marker ? "means are fixed at zero" :
+        "variances are fixed at one and the factor means at zero") + " in every group. " +
+        "This is identification condition " + (cfg.param === "DELTA" ? "7" : "8") +
+        " of Wu and Estabrook (2016), applied group by group: 2(<em>p</em> + <em>m</em>) constraints per " +
+        "group, which is exactly the number of arbitrary constants the model has.");
+      p.push("The level says that the same items load on the same factors everywhere. Nothing may be " +
+        "compared across groups yet, and the fit of this model is the precondition for everything below it.");
+    } else {
+      p.push("Nothing is held equal across groups. Every loading, every intercept and every residual " +
+        "variance is estimated separately in each group. " + idSentence + " The factor means are fixed at " +
+        "zero in every group, which they must be while all the intercepts are free.");
+      p.push("The level says only that the same items load on the same factors everywhere. Nothing may be " +
+        "compared across groups yet.");
+    }
+    return p;
+  }
+
+  if (lv.key === "thresholds") {
+    p.push("The thresholds are held equal across groups by the labels " + code("T1_1") + " onwards. " +
+      "Because the thresholds now fix the metric of each latent response in " + oth + ", the intercepts " +
+      "and the " + scaleWord + " of those groups can be freed: they stay at zero and one in " + ref +
+      " only. The factor " + (marker ? "means stay at zero in every group" :
+      "variances stay at one and the factor means at zero in every group") + ". " +
+      "This is condition 15 of Wu and Estabrook (2016), the model Svetina, Rutkowski and Rutkowski (2020) " +
+      "call Proposition 4.");
+    p.push("An item with <em>C</em> categories contributes <em>C</em> − 3 degrees of freedom per extra group " +
+      "at this step, because a shift and a rescaling of one latent response can always be chosen to match " +
+      "two of its thresholds. The level licenses no comparison of its own; it is the step that makes the " +
+      "invariance of the other three parameter types testable at all.");
+    return p;
+  }
+
+  if (lv.key === "loadings") {
+    p.push("The loadings join the thresholds under equality constraints, with the labels " + code("L1") +
+      " onwards. " + (marker
+        ? "The marker loading is fixed at one in every group, so the remaining loadings are what the " +
+          "constraints bind, and the factor variances stay free in every group."
+        : "The factor variance is fixed at one in " + ref + " and freed in " + oth +
+          ", because the common loadings now carry the scale of the factor.") +
+      " The factor means stay at zero in every group. This is condition 19 of Wu and Estabrook (2016), the " +
+      "model Svetina, Rutkowski and Rutkowski (2020) call Proposition 7.");
+    p.push("A unit of the factor now means the same thing in every group, so factor variances, factor " +
+      "covariances and regressions among factors may be compared. Means may not.");
+    return p;
+  }
+
+  if (lv.key === "intercepts") {
+    p.push("The intercepts of the latent responses are held invariant as well, which under this " +
+      "identification means fixing them at zero in every group. The factor mean is then freed in " + oth +
+      " and stays at zero in " + ref + ", so a difference between the groups in where the items sit is " +
+      "carried by the factor mean rather than by an item-specific intercept. This is condition 27 of Wu " +
+      "and Estabrook (2016).");
+    p.push("The level licenses the comparison of factor means as well as of factor variances and " +
+      "covariances. Wu and Estabrook show that with binary items this model is not identified on the part " +
+      "of the parameter space where the ratio of threshold to loading is the same for every item of a " +
+      "factor; that subset has lower dimension, so it does not affect ordinary use, but a model that will " +
+      "not converge with binary items is worth reading in that light.");
+    return p;
+  }
+
+  if (lv.key === "residuals") {
+    p.push("The residual variances of the latent responses are held invariant as well, which here means " +
+      "fixing them at one in every group instead of in " + ref + " only. Fixing an invariant residual " +
+      "variance is the same choice of metric as fixing the variance of the latent response in the first " +
+      "group, and it uses the same number of parameters, so it identifies the model of condition 9 of Wu " +
+      "and Estabrook (2016) without restricting it.");
+    p.push("Every item now carries the same amount of measurement error in every group, which is what " +
+      "justifies comparing sums of the observed items rather than the factors behind them.");
+    return p;
+  }
+
+  if (lv.key === "metric") {
+    p.push("The loadings are held equal across groups by the labels " + code("L1") + " onwards. " +
+      (marker
+        ? "The marker loading stays at one in every group and the factor variances stay free everywhere."
+        : "The factor variance is fixed at one in " + ref + " and freed in " + oth +
+          ", because the common loadings now carry the scale of the factor.") +
+      " The intercepts and residual variances stay free in every group and the factor means stay at zero.");
+    p.push("A unit of the factor means the same thing in every group, so factor variances, covariances and " +
+      "regressions among factors may be compared. Means may not, because a group difference in the item " +
+      "means can still be absorbed by the intercepts.");
+    return p;
+  }
+
+  if (lv.key === "scalar") {
+    p.push("The intercepts are held equal as well, with the labels " + code("N1") + " onwards. The factor " +
+      "mean is freed in " + oth + " and stays at zero in " + ref + ", so the group difference in the item " +
+      "means is now carried by the factor mean.");
+    p.push("The level licenses the comparison of factor means. Meredith (1993) calls the corresponding " +
+      "property strong factorial invariance.");
+    return p;
+  }
+
+  if (lv.key === "strict") {
+    p.push("The residual variances are held equal too, with the labels " + code("E1") + " onwards. Each " +
+      "item then carries the same amount of measurement error in every group.");
+    p.push("This is the strict factorial invariance of Meredith (1993). It is what a comparison of " +
+      "observed sum scores needs, since the reliability of the sum is then the same in every group. " +
+      "Vandenberg and Lance (2000) report that applied work often stops at the scalar level; the step is " +
+      "reported here so that the decision to stop is a decision and not an omission.");
+    return p;
+  }
+
+  if (lv.key === "fvar") {
+    p.push("The factor variances, and with more than one factor the factor covariances, are held equal " +
+      "across groups. " + (marker
+        ? "The variances are free but carry the labels " + code("V1") + " onwards."
+        : "Since the reference group already has its variances at one, equality means fixing them at one " +
+          "everywhere.") +
+      " This is a hypothesis about the groups rather than about the measure: it says that the groups are " +
+      "equally variable on the construct and equally related among the constructs.");
+    return p;
+  }
+
+  if (lv.key === "fmean") {
+    p.push("The factor means are fixed at zero in every group, which tests the hypothesis that the groups " +
+      "do not differ on the construct. A significant worsening of fit at this step is the multivariate " +
+      "counterpart of a mean difference, and the size of the difference is read from the factor means of " +
+      "the preceding model rather than from this one.");
+    return p;
+  }
+  return p;
+}
+
+function testProse(cfg) {
+  var e = up(cfg.estimator);
+  if (needsDifftest(e)) {
+    return "The " + e + " chi-square is adjusted for its mean and its variance, and the adjustment is not " +
+      "a single multiplier, so the difference between two of these statistics is not itself a chi-square. " +
+      "The less restricted model writes its derivatives with " + code("SAVEDATA: DIFFTEST = file;") +
+      " and the more restricted model reads them with " + code("ANALYSIS: DIFFTEST = file;") +
+      " Both file names are filled in below, paired to the levels that follow one another.";
+  }
+  if (isScaled(e)) {
+    return "The " + e + " chi-square is a single multiple of the usual statistic, so the two models are " +
+      "compared with the scaled chi-square difference test, computed from the two chi-squares, the two " +
+      "degrees of freedom and the two scaling correction factors printed with them. No DIFFTEST file is " +
+      "needed and none is written.";
+  }
+  return "The " + e + " chi-square is the ordinary statistic, so the two models are compared by " +
+    "subtracting the chi-squares and the degrees of freedom. No DIFFTEST file is needed and none is written.";
+}
+
+return {
+  MP: MP, RESERVED: RESERVED, esc: esc, nameProblem: nameProblem,
+  expandRange: expandRange, splitStatements: splitStatements, parseFactors: parseFactors,
+  parseGroups: parseGroups, buildStructure: buildStructure, availableLevels: availableLevels,
+  levelsFor: levelsFor, stepDf: stepDf, paramCount: paramCount,
+  EST_A: EST_A, EST_B: EST_B, needsDifftest: needsDifftest, isScaled: isScaled,
+  modelBlock: modelBlock, buildInput: buildInput, buildSequence: buildSequence,
+  fileNames: fileNames, wrapList: wrapList,
+  sections: sections, modelStatements: modelStatements, checkInput: checkInput,
+  checkDifftest: checkDifftest, stripComments: stripComments, difftestIn: difftestIn,
+  levelProse: levelProse, testProse: testProse, code: code
+};
+})();
+
+/* ==================================================================
+   Self-test
+
+   Run the page with ?selftest=1 to see the result as a banner at the
+   top; the individual checks are written to the console.
+   ================================================================== */
+
+(function () {
+  var checks, failed;
+
+  function ok(name, got, want) {
+    var good;
+    if (typeof want === "number") good = (got === want);
+    else if (typeof want === "boolean") good = (got === want);
+    else good = (got === want);
+    if (!good) failed++;
+    checks.push({ name: name, got: got, want: want, ok: good });
+  }
+  function okTrue(name, cond, detail) {
+    if (!cond) failed++;
+    checks.push({ name: name, got: cond ? "true" : (detail === undefined ? "false" : detail),
+                  want: "true", ok: !!cond });
+  }
+  function hasCode(res, codeWanted) {
+    var i, list = res.errors.concat(res.warnings || []);
+    for (i = 0; i < list.length; i++) if (list[i].code === codeWanted) return true;
+    return false;
+  }
+  function itemsOf(res) {
+    var out = [], i, j;
+    for (i = 0; i < res.factors.length; i++)
+      for (j = 0; j < res.factors[i].items.length; j++) out.push(res.factors[i].items[j]);
+    return out;
+  }
+  function baseCfg(over) {
+    var c = {
+      family: "A", defs: "F1 BY x1-x4;", nGroups: 2, groupVar: "grp",
+      groupNames: "1 = G1, 2 = G2", ident: "fixed", estimator: "MLR", param: "DELTA",
+      catAll: 4, cats: {}, title: "T", dataFile: "data.dat", namesList: [], missing: "",
+      prefix: "mi",
+      include: { configural: 1, metric: 1, scalar: 1, strict: 1, fvar: 1, fmean: 1,
+                 baseline: 1, thresholds: 1, loadings: 1, intercepts: 1, residuals: 1 }
+    }, k;
+    for (k in over) if (Object.prototype.hasOwnProperty.call(over, k)) c[k] = over[k];
+    return c;
+  }
+  /* statements of one MODEL block, comments and labels kept, normalized */
+  function blockStatements(text, groupName) {
+    var secs = IS.sections(text), i;
+    for (i = 0; i < secs.length; i++) {
+      if (secs[i].name !== "MODEL") continue;
+      var g = secs[i].group || null;
+      if ((groupName === null && g === null) ||
+          (groupName !== null && g !== null && g.toUpperCase() === groupName.toUpperCase())) {
+        var parts = IS.stripComments(secs[i].text).split(";"), out = [], j;
+        for (j = 0; j < parts.length; j++) {
+          var s = parts[j].replace(/\s+/g, " ").trim();
+          if (s !== "") out.push(s);
+        }
+        return out;
+      }
+    }
+    return null;
+  }
+
+  function selfTest() {
+    checks = []; failed = 0;
+    var i, j, k, r, seq, cfg, S, lv;
+
+    /* ---------------------------------------------------------------
+       Parsing
+       --------------------------------------------------------------- */
+
+    r = IS.parseFactors("F1 BY x1 x2 x3;");
+    ok("plain definition, factors", r.factors.length, 1);
+    ok("plain definition, items", r.factors[0].items.length, 3);
+    ok("plain definition, no errors", r.errors.length, 0);
+
+    r = IS.parseFactors("x1 x2 x3;");
+    okTrue("a line without BY is refused", hasCode(r, "notadef"));
+
+    r = IS.parseFactors("F1 BY x1 x2\nF2 BY x3 x4");
+    ok("missing semicolons, factors", r.factors.length, 2);
+    ok("missing semicolons, items on F2", r.factors[1].items.length, 2);
+
+    r = IS.parseFactors("f1 by X1 x2;");
+    ok("lower-case by is read", r.factors.length, 1);
+    ok("lower-case by, items", r.factors[0].items.length, 2);
+
+    r = IS.parseFactors("  F1\tBY\t x1   x2  ;  ");
+    ok("tabs and extra spaces, items", r.factors[0].items.length, 2);
+
+    r = IS.parseFactors("F1 BY x1-x10;");
+    ok("range x1-x10 expands", r.factors[0].items.length, 10);
+    ok("range x1-x10 first", r.factors[0].items[0], "x1");
+    ok("range x1-x10 last", r.factors[0].items[9], "x10");
+
+    r = IS.parseFactors("F1 BY x1 - x4;");
+    ok("range with spaces around the hyphen", r.factors[0].items.length, 4);
+
+    r = IS.parseFactors("F1 BY x10-x1;");
+    okTrue("a reversed range is refused", hasCode(r, "revrange"));
+
+    r = IS.parseFactors("F1 BY x1-y4;");
+    okTrue("a range whose ends differ is refused", hasCode(r, "badrange"));
+
+    r = IS.parseFactors("F1 BY x01-x04;");
+    ok("a padded range keeps its zeros", r.factors[0].items[0], "x01");
+    ok("a padded range keeps its zeros at the end", r.factors[0].items[3], "x04");
+
+    r = IS.parseFactors("F1 BY x1 F2 x3;\nF2 BY x4 x5;");
+    okTrue("a factor named like an item is refused", hasCode(r, "dupname"));
+
+    r = IS.parseFactors("F1 BY a_1 a_2 b3c;");
+    ok("digits and underscores in names", r.errors.length, 0);
+    ok("digits and underscores, items", r.factors[0].items.length, 3);
+
+    r = IS.parseFactors("F1 BY x1 x2 x1;");
+    okTrue("an item listed twice in one factor is reported", hasCode(r, "dupitem"));
+    ok("an item listed twice is kept once", r.factors[0].items.length, 2);
+
+    r = IS.parseFactors("F1 BY x1 x2;\nF2 BY x2 x3;");
+    okTrue("an item on two factors is refused", hasCode(r, "crossload"));
+
+    r = IS.parseFactors("F1 BY x1-x600;");
+    ok("more than 500 items parse", itemsOf(r).length, 600);
+    seq = IS.buildSequence(baseCfg({ defs: "F1 BY x1-x600;" }));
+    okTrue("more than 500 items are refused when writing", !seq.ok);
+
+    r = IS.parseFactors("   \n  ");
+    okTrue("no factor at all is refused", hasCode(r, "nofactors"));
+
+    r = IS.parseFactors("F1 BY x1;");
+    okTrue("a factor with one item is reported", hasCode(r, "onefactoritem"));
+
+    r = IS.parseFactors("F1 BY ;");
+    okTrue("an empty factor is refused", hasCode(r, "emptyfactor"));
+
+    r = IS.parseFactors("F1 BY abcdefgh x2;");
+    ok("a name of exactly eight characters is accepted", r.errors.length, 0);
+    r = IS.parseFactors("F1 BY abcdefghi x2;");
+    okTrue("a name of nine characters is refused", hasCode(r, "toolong"));
+
+    r = IS.parseFactors("F1 BY with x2;");
+    okTrue("a reserved word is refused", hasCode(r, "reserved"));
+    r = IS.parseFactors("F1 BY WITH x2;");
+    okTrue("a reserved word in capitals is refused", hasCode(r, "reserved"));
+
+    r = IS.parseFactors("F1 BY xé1 x2;");
+    okTrue("a name outside ASCII is refused", hasCode(r, "nonascii"));
+
+    r = IS.parseFactors("F1 BY 1x x2;");
+    okTrue("a name beginning with a digit is refused", hasCode(r, "badstart"));
+
+    r = IS.parseFactors("F1 BY x.1 x2;");
+    okTrue("a name with a full stop is refused", hasCode(r, "badchar"));
+
+    r = IS.parseFactors("F1 BY x1 x2; ! a comment with BY in it\nF2 BY x3 x4;");
+    ok("comments are removed", r.factors.length, 2);
+
+    r = IS.parseFactors("F1 BY x1, x2, x3;");
+    ok("commas separate items", r.factors[0].items.length, 3);
+
+    r = IS.parseFactors("F1 BY x1 x2;\nF1 BY x3;");
+    okTrue("two definitions of one factor are put together", hasCode(r, "dupfactor"));
+    ok("two definitions of one factor, items", r.factors[0].items.length, 3);
+
+    /* group names */
+    var gp = IS.parseGroups("31 = AZE, 40 = AUT, 246 = FIN", 3);
+    ok("group codes are read", gp.groups[2].value, "246");
+    ok("group names are read", gp.groups[2].name, "FIN");
+    gp = IS.parseGroups("male, female", 2);
+    ok("bare group names take their position as code", gp.groups[1].value, "2");
+    gp = IS.parseGroups("1 = a, 2 = a", 2);
+    okTrue("a repeated group name is refused", gp.errors.length > 0);
+    gp = IS.parseGroups("1 = with, 2 = b", 2);
+    okTrue("a reserved word as a group name is refused", gp.errors.length > 0);
+
+    /* a name clash with the latent response variables */
+    seq = IS.buildSequence(baseCfg({ family: "B", defs: "F1 BY yy1 yy2 yy3 yy4;", catAll: 4 }));
+    okTrue("items called yy1 do not collide with the latent responses", seq.ok);
+    if (seq.ok) {
+      okTrue("a different stem is used for the latent responses",
+        seq.structure.phantom[0].indexOf("yy") !== 0, seq.structure.phantom[0]);
+    }
+
+    /* ---------------------------------------------------------------
+       Degrees of freedom, against the published example
+       --------------------------------------------------------------- */
+
+    cfg = baseCfg({ family: "B", defs: "F1 BY R09A R09B R09C R09D;", nGroups: 3,
+      groupVar: "IDCNTRY", groupNames: "31 = AZE, 40 = AUT, 246 = FIN",
+      estimator: "WLSMV", catAll: 4 });
+    seq = IS.buildSequence(cfg);
+    okTrue("the three-group four-category example builds", seq.ok);
+    if (seq.ok) {
+      var sampleStats = 3 * (4 * 3 / 2 + 4 * 3);   /* correlations plus thresholds, per group */
+      ok("sample statistics in the published example", sampleStats, 54);
+      ok("free parameters of the baseline model", seq.levels[0].params, 48);
+      ok("degrees of freedom of the baseline model", sampleStats - seq.levels[0].params, 6);
+      ok("degrees of freedom of the threshold model", sampleStats - seq.levels[1].params, 14);
+      ok("degrees of freedom of the threshold and loading model",
+         sampleStats - seq.levels[2].params, 20);
+      ok("the threshold step spends", seq.levels[1].df, 8);
+      ok("the loading step spends", seq.levels[2].df, 6);
+      ok("the intercept step spends", seq.levels[3].df, 6);
+    }
+
+    cfg = baseCfg({ family: "A", defs: "F1 BY x1-x4;", nGroups: 2 });
+    seq = IS.buildSequence(cfg);
+    ok("continuous metric step", seq.levels[1].df, 3);
+    ok("continuous scalar step", seq.levels[2].df, 3);
+    ok("continuous strict step", seq.levels[3].df, 4);
+    ok("continuous equal variances step", seq.levels[4].df, 1);
+    ok("continuous equal means step", seq.levels[5].df, 1);
+    var seqM = IS.buildSequence(baseCfg({ ident: "marker" }));
+    for (i = 1; i < seq.levels.length; i++) {
+      ok("the identification method does not change the step to " + seq.levels[i].key,
+         seqM.levels[i].df, seq.levels[i].df);
+    }
+
+    /* binary items: the two untestable levels are dropped */
+    cfg = baseCfg({ family: "B", defs: "F1 BY x1-x4;", catAll: 2, param: "THETA",
+      estimator: "WLSMV", nGroups: 2,
+      include: { baseline: 1, thresholds: 1, loadings: 1, intercepts: 1, residuals: 1 } });
+    seq = IS.buildSequence(cfg);
+    ok("with binary items the sequence has three levels", seq.levels.length, 3);
+    ok("with binary items the second level is the one with invariant intercepts",
+       seq.levels[1].key, "intercepts");
+    ok("with binary items the step from the baseline spends", seq.levels[1].df, 2);
+    ok("with binary items the residual step spends", seq.levels[2].df, 4);
+
+    /* three categories: threshold invariance is identified but empty */
+    cfg = baseCfg({ family: "B", defs: "F1 BY x1-x4;", catAll: 3, estimator: "WLSMV", nGroups: 2 });
+    seq = IS.buildSequence(cfg);
+    ok("with three categories the threshold step spends", seq.levels[1].df, 0);
+    ok("with three categories the loading step spends", seq.levels[2].df, 3);
+
+    /* five and seven categories */
+    cfg = baseCfg({ family: "B", defs: "F1 BY x1-x4;", catAll: 5, estimator: "WLSMV", nGroups: 2 });
+    ok("with five categories the threshold step spends", IS.buildSequence(cfg).levels[1].df, 8);
+    cfg = baseCfg({ family: "B", defs: "F1 BY x1-x4;", catAll: 7, estimator: "WLSMV", nGroups: 4 });
+    ok("with seven categories and four groups the threshold step spends",
+       IS.buildSequence(cfg).levels[1].df, 48);
+
+    /* mixed numbers of categories */
+    cfg = baseCfg({ family: "B", defs: "F1 BY x1-x4;", estimator: "WLSMV", nGroups: 2,
+      catAll: 4, cats: { X1: 3, X2: 4, X3: 5, X4: 6 } });
+    seq = IS.buildSequence(cfg);
+    ok("mixed categories, the threshold step spends", seq.levels[1].df, 0 + 1 + 2 + 3);
+    if (seq.ok) {
+      var nThr = 0;
+      for (i = 0; i < seq.structure.items.length; i++) nThr += seq.structure.items[i].cat - 1;
+      ok("mixed categories, thresholds in the model", nThr, 2 + 3 + 4 + 5);
+    }
+
+    /* ---------------------------------------------------------------
+       Every generated input is read back and checked
+       --------------------------------------------------------------- */
+
+    var grid = [], fams = ["A", "B"], gcounts = [2, 6], idents = ["fixed", "marker"];
+    var defsList = ["F1 BY x1-x4;", "F1 BY x1-x3;\nF2 BY x4-x6;\nF3 BY x7-x9;"];
+    var catList = [2, 3, 5, 7];
+    for (i = 0; i < fams.length; i++) {
+      for (j = 0; j < gcounts.length; j++) {
+        for (k = 0; k < idents.length; k++) {
+          var d, e, pm, c;
+          for (d = 0; d < defsList.length; d++) {
+            if (fams[i] === "A") {
+              var estA = IS.EST_A;
+              for (e = 0; e < estA.length; e++) {
+                grid.push({ family: "A", nGroups: gcounts[j], ident: idents[k],
+                  defs: defsList[d], estimator: estA[e] });
+              }
+            } else {
+              var estB = IS.EST_B;
+              for (e = 0; e < estB.length; e++) {
+                for (pm = 0; pm < 2; pm++) {
+                  for (c = 0; c < catList.length; c++) {
+                    grid.push({ family: "B", nGroups: gcounts[j], ident: idents[k],
+                      defs: defsList[d], estimator: estB[e],
+                      param: pm ? "THETA" : "DELTA", catAll: catList[c] });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    var gridBad = 0, gridChecks = 0, gridBuilt = 0, firstBad = "";
+    for (i = 0; i < grid.length; i++) {
+      var over = grid[i];
+      var names = [], gi;
+      for (gi = 0; gi < over.nGroups; gi++) names.push((gi + 1) + " = G" + (gi + 1));
+      over.groupNames = names.join(", ");
+      seq = IS.buildSequence(baseCfg(over));
+      if (!seq.ok) { gridBad++; if (!firstBad) firstBad = "did not build: " + JSON.stringify(over); continue; }
+      gridBuilt++;
+      S = seq.structure;
+      var latent = [], usev = [], gnames = [];
+      for (j = 0; j < S.factors.length; j++) latent.push(S.factors[j].name);
+      if (S.phantom) for (j = 0; j < S.phantom.length; j++) latent.push(S.phantom[j]);
+      for (j = 0; j < S.items.length; j++) usev.push(S.items[j].name);
+      for (j = 0; j < S.groups.length; j++) gnames.push(S.groups[j].name);
+      for (j = 0; j < seq.levels.length; j++) {
+        lv = seq.levels[j];
+        var ctx = { nGroups: S.groups.length, groups: gnames, usevariables: usev, latent: latent };
+        if (over.family === "B" && lv.flags.eqThr) {
+          var nt = 0;
+          for (k = 0; k < S.items.length; k++) nt += S.items[k].cat - 1;
+          ctx.expectThresholds = nt;
+        }
+        var cs = IS.checkInput(lv.text, ctx);
+        for (k = 0; k < cs.length; k++) {
+          gridChecks++;
+          if (!cs[k].ok) {
+            gridBad++;
+            if (!firstBad) firstBad = lv.key + ": " + cs[k].msg;
+          }
+        }
+        if (lv.df !== null && lv.df < 0) {
+          gridBad++;
+          if (!firstBad) firstBad = "negative degrees of freedom at " + lv.key;
+        }
+      }
+      var dc = IS.checkDifftest(seq.levels);
+      for (k = 0; k < dc.length; k++) {
+        gridChecks++;
+        if (!dc[k].ok) { gridBad++; if (!firstBad) firstBad = "difftest: " + dc[k].msg; }
+      }
+    }
+    ok("every configuration in the grid was written (" + gridBuilt + " of " + grid.length + ")",
+       gridBuilt, grid.length);
+    okTrue("the " + gridChecks + " checks over the grid all passed", gridBad === 0, firstBad);
+
+    /* difftest files appear only for the estimators that need them */
+    seq = IS.buildSequence(baseCfg({ estimator: "MLR" }));
+    okTrue("MLR writes no DIFFTEST file", seq.levels[0].text.indexOf("DIFFTEST") < 0);
+    seq = IS.buildSequence(baseCfg({ estimator: "MLMV" }));
+    okTrue("MLMV writes a DIFFTEST file", seq.levels[0].text.indexOf("SAVEDATA") > 0);
+    okTrue("MLMV reads a DIFFTEST file in the second model",
+      !!IS.difftestIn(seq.levels[1].text, "ANALYSIS"));
+    okTrue("the first model reads no DIFFTEST file",
+      IS.difftestIn(seq.levels[0].text, "ANALYSIS") === null);
+    ok("the file saved first is the file read second",
+       IS.difftestIn(seq.levels[0].text, "SAVEDATA"),
+       IS.difftestIn(seq.levels[1].text, "ANALYSIS"));
+
+    /* dropping a level in the middle still pairs the files correctly */
+    seq = IS.buildSequence(baseCfg({ estimator: "MLMV",
+      include: { configural: 1, scalar: 1, strict: 1 } }));
+    ok("a sequence with a level left out has three models", seq.levels.length, 3);
+    ok("the file saved by the first is read by the second",
+       IS.difftestIn(seq.levels[0].text, "SAVEDATA"),
+       IS.difftestIn(seq.levels[1].text, "ANALYSIS"));
+    ok("the step that skips the metric level spends", seq.levels[1].df, 6);
+
+    /* ---------------------------------------------------------------
+       The written syntax against the articles
+       --------------------------------------------------------------- */
+
+    cfg = baseCfg({ family: "B", defs: "F1 BY R09A R09B R09C R09D;", nGroups: 2,
+      groupVar: "IDCNTRY", groupNames: "31 = AZE, 40 = AUT", estimator: "WLSMV",
+      catAll: 4, param: "DELTA", ident: "fixed" });
+    seq = IS.buildSequence(cfg);
+    var items4 = ["R09A", "R09B", "R09C", "R09D"], ph = ["yy1", "yy2", "yy3", "yy4"];
+
+    function expectBlock(opts) {
+      var out = [], a, b;
+      for (a = 0; a < 4; a++) out.push(ph[a] + " BY " + items4[a] + "@1");
+      for (a = 0; a < 4; a++) out.push(ph[a] + "@0");
+      for (a = 0; a < 4; a++) {
+        out.push("F1 BY " + ph[a] + "*" + (opts.loadLabels ? " (L" + (a + 1) + ")" : ""));
+      }
+      for (a = 0; a < 4; a++) {
+        for (b = 1; b <= opts.thr; b++) {
+          out.push("[" + items4[a] + "$" + b + "*]" +
+            (opts.thrLabels ? " (T" + (a + 1) + "_" + b + ")" : ""));
+        }
+      }
+      for (a = 0; a < 4; a++) out.push("[" + ph[a] + (opts.nuFree ? "*" : "@0") + "]");
+      for (a = 0; a < 4; a++) out.push("{" + items4[a] + (opts.scaleFree ? "*" : "@1") + "}");
+      out.push("F1" + (opts.varFree ? "*" : "@1"));
+      out.push("[F1" + (opts.meanFree ? "*" : "@0") + "]");
+      return out;
+    }
+    function sameList(a, b) {
+      var s;
+      if (!a || !b || a.length !== b.length) return false;
+      for (s = 0; s < a.length; s++) if (a[s] !== b[s]) return false;
+      return true;
+    }
+
+    var want1 = expectBlock({ thr: 3 });
+    okTrue("the configural block for the reference group is the one in the articles",
+      sameList(blockStatements(seq.levels[0].text, null), want1),
+      (blockStatements(seq.levels[0].text, null) || []).join(" | "));
+    okTrue("the configural block for the second group is the same",
+      sameList(blockStatements(seq.levels[0].text, "AUT"), want1));
+
+    var want2ref = expectBlock({ thr: 3, thrLabels: true });
+    var want2oth = expectBlock({ thr: 3, thrLabels: true, nuFree: true, scaleFree: true });
+    okTrue("the threshold block for the reference group matches Proposition 4",
+      sameList(blockStatements(seq.levels[1].text, null), want2ref),
+      (blockStatements(seq.levels[1].text, null) || []).join(" | "));
+    okTrue("the threshold block for the second group matches Proposition 4",
+      sameList(blockStatements(seq.levels[1].text, "AUT"), want2oth));
+
+    var want3ref = expectBlock({ thr: 3, thrLabels: true, loadLabels: true });
+    var want3oth = expectBlock({ thr: 3, thrLabels: true, loadLabels: true,
+      nuFree: true, scaleFree: true, varFree: true });
+    okTrue("the threshold and loading block for the reference group matches Proposition 7",
+      sameList(blockStatements(seq.levels[2].text, null), want3ref),
+      (blockStatements(seq.levels[2].text, null) || []).join(" | "));
+    okTrue("the threshold and loading block for the second group matches Proposition 7",
+      sameList(blockStatements(seq.levels[2].text, "AUT"), want3oth));
+
+    /* binary items, written by hand from condition 27 */
+    cfg = baseCfg({ family: "B", defs: "F1 BY b1-b4;", nGroups: 2, groupVar: "grp",
+      groupNames: "1 = G1, 2 = G2", estimator: "WLSMV", catAll: 2, param: "THETA",
+      ident: "fixed" });
+    seq = IS.buildSequence(cfg);
+    var bItems = ["b1", "b2", "b3", "b4"];
+    function expectBinary(opts) {
+      var out = [], a;
+      for (a = 0; a < 4; a++) out.push(ph[a] + " BY " + bItems[a] + "@1");
+      for (a = 0; a < 4; a++) out.push(ph[a] + "@0");
+      for (a = 0; a < 4; a++) out.push("F1 BY " + ph[a] + "* (L" + (a + 1) + ")");
+      for (a = 0; a < 4; a++) out.push("[" + bItems[a] + "$1*] (T" + (a + 1) + "_1)");
+      for (a = 0; a < 4; a++) out.push("[" + ph[a] + "@0]");
+      for (a = 0; a < 4; a++) out.push(bItems[a] + (opts.resFree ? "*" : "@1"));
+      out.push("F1" + (opts.varFree ? "*" : "@1"));
+      out.push("[F1" + (opts.meanFree ? "*" : "@0") + "]");
+      return out;
+    }
+    okTrue("the binary block for the reference group matches condition 27",
+      sameList(blockStatements(seq.levels[1].text, null), expectBinary({})),
+      (blockStatements(seq.levels[1].text, null) || []).join(" | "));
+    okTrue("the binary block for the second group matches condition 27",
+      sameList(blockStatements(seq.levels[1].text, "G2"),
+        expectBinary({ resFree: true, varFree: true, meanFree: true })));
+    okTrue("the full binary model fixes the residual variances in every group",
+      sameList(blockStatements(seq.levels[2].text, "G2"),
+        expectBinary({ varFree: true, meanFree: true })));
+
+    /* continuous, written by hand */
+    cfg = baseCfg({ family: "A", defs: "F1 BY x1-x4;", nGroups: 2, estimator: "MLR",
+      ident: "fixed" });
+    seq = IS.buildSequence(cfg);
+    function expectCont(opts) {
+      var out = [], a;
+      for (a = 0; a < 4; a++) {
+        out.push("F1 BY x" + (a + 1) + "*" + (opts.loadLabels ? " (L" + (a + 1) + ")" : ""));
+      }
+      for (a = 0; a < 4; a++) {
+        out.push("[x" + (a + 1) + "*]" + (opts.intLabels ? " (N" + (a + 1) + ")" : ""));
+      }
+      for (a = 0; a < 4; a++) {
+        out.push("x" + (a + 1) + "*" + (opts.resLabels ? " (E" + (a + 1) + ")" : ""));
+      }
+      out.push("F1" + (opts.varFree ? "*" : "@1"));
+      out.push("[F1" + (opts.meanFree ? "*" : "@0") + "]");
+      return out;
+    }
+    okTrue("the continuous configural block is written as expected",
+      sameList(blockStatements(seq.levels[0].text, null), expectCont({})),
+      (blockStatements(seq.levels[0].text, null) || []).join(" | "));
+    okTrue("the continuous metric block frees the factor variance in the second group",
+      sameList(blockStatements(seq.levels[1].text, "G2"),
+        expectCont({ loadLabels: true, varFree: true })));
+    okTrue("the continuous scalar block frees the factor mean in the second group",
+      sameList(blockStatements(seq.levels[2].text, "G2"),
+        expectCont({ loadLabels: true, intLabels: true, varFree: true, meanFree: true })));
+    okTrue("the continuous strict block labels the residual variances",
+      sameList(blockStatements(seq.levels[3].text, "G2"),
+        expectCont({ loadLabels: true, intLabels: true, resLabels: true,
+                     varFree: true, meanFree: true })));
+
+    /* the structural steps take their constraints from the level above
+       them rather than from a fixed list, so leaving a measurement level
+       out does not silently put its constraints back */
+    seq = IS.buildSequence(baseCfg({ family: "A", defs: "F1 BY x1-x4;", nGroups: 2,
+      include: { configural: 1, metric: 1, fvar: 1 } }));
+    ok("equal factor variances after the metric level, models", seq.levels.length, 3);
+    ok("equal factor variances after the metric level spends", seq.levels[2].df, 1);
+    okTrue("that model does not constrain the intercepts",
+      seq.levels[2].text.indexOf("(N1)") < 0 && seq.levels[2].text.indexOf("(E1)") < 0);
+    seq = IS.buildSequence(baseCfg({ family: "A", defs: "F1 BY x1-x4;", nGroups: 2,
+      include: { configural: 1, metric: 1, fmean: 1 } }));
+    ok("equal factor means without equal intercepts is dropped", seq.levels.length, 2);
+    okTrue("and the reason is given", seq.dropped.length === 1);
+    seq = IS.buildSequence(baseCfg({ family: "A", defs: "F1 BY x1-x4;", nGroups: 2,
+      ident: "marker", include: { configural: 1, fvar: 1 } }));
+    ok("with a marker item the factor variances can be equated at once",
+       seq.levels.length, 2);
+    ok("and that step spends", seq.levels[1].df, 1);
+    seq = IS.buildSequence(baseCfg({ family: "B", estimator: "WLSMV", param: "THETA", catAll: 4,
+      nGroups: 3, include: { baseline: 1, thresholds: 1, loadings: 1, intercepts: 1,
+        residuals: 1, fvar: 1, fmean: 1 } }));
+    ok("the categorical sequence with both structural steps has seven models",
+       seq.levels.length, 7);
+    okTrue("no step in it is negative",
+      seq.levels[1].df > 0 && seq.levels[4].df > 0 && seq.levels[5].df > 0 && seq.levels[6].df > 0);
+    ok("the equal-variance step after full invariance spends", seq.levels[5].df, 2);
+    ok("the equal-mean step spends", seq.levels[6].df, 2);
+    okTrue("the equal-variance model keeps the residual variances fixed",
+      seq.levels[5].text.indexOf("\n  x1@1;") > 0);
+
+    /* the marker method fixes one loading and frees the factor variance */
+    seq = IS.buildSequence(baseCfg({ ident: "marker" }));
+    okTrue("the marker method fixes the first loading at one",
+      seq.levels[0].text.indexOf("F1 BY x1@1;") > 0);
+    okTrue("the marker method leaves the factor variance free in the reference group",
+      blockStatements(seq.levels[0].text, null).indexOf("F1*") >= 0);
+    okTrue("the marker method does not label the fixed loading",
+      seq.levels[1].text.indexOf("F1 BY x1@1;") > 0 &&
+      seq.levels[1].text.indexOf("(L1)") < 0);
+
+    /* the number of labels is the number of constraints intended */
+    cfg = baseCfg({ family: "A", defs: "F1 BY x1-x4;", nGroups: 3 });
+    seq = IS.buildSequence(cfg);
+    function labelCount(t) {
+      var m = IS.stripComments(t).match(/\(([A-Za-z][A-Za-z0-9_]*)\)/g) || [], seen = {}, n = 0, q;
+      for (q = 0; q < m.length; q++) { if (!seen[m[q]]) { seen[m[q]] = 1; n++; } }
+      return n;
+    }
+    ok("the configural model carries no labels", labelCount(seq.levels[0].text), 0);
+    ok("the metric model labels four loadings", labelCount(seq.levels[1].text), 4);
+    ok("the scalar model labels four loadings and four intercepts",
+       labelCount(seq.levels[2].text), 8);
+    ok("the strict model labels twelve parameters", labelCount(seq.levels[3].text), 12);
+
+    /* three correlated factors */
+    seq = IS.buildSequence(baseCfg({ defs: "F1 BY x1-x3;\nF2 BY x4-x6;\nF3 BY x7-x9;", nGroups: 2 }));
+    okTrue("three factors are correlated in the syntax",
+      seq.levels[0].text.indexOf("F1 WITH F2*;") > 0 &&
+      seq.levels[0].text.indexOf("F2 WITH F3*;") > 0);
+    ok("with three factors the metric step spends", seq.levels[1].df, 6);
+    ok("with three factors the equal-variance step spends", seq.levels[4].df, 6);
+    okTrue("the equal-variance model labels the three covariances",
+      seq.levels[4].text.indexOf("(C1_2)") > 0 && seq.levels[4].text.indexOf("(C2_3)") > 0);
+
+    /* one item per factor still writes, with a warning */
+    seq = IS.buildSequence(baseCfg({ defs: "F1 BY x1;\nF2 BY x2;" }));
+    okTrue("one item per factor is written with a warning",
+      seq.ok && seq.warnings.length > 0);
+
+    /* a long variable list is wrapped inside the 90 characters Mplus reads */
+    seq = IS.buildSequence(baseCfg({ defs: "F1 BY verylong-verylong40;" }));
+    if (seq.ok) {
+      var lines = seq.levels[0].text.split("\n"), maxLen = 0;
+      for (i = 0; i < lines.length; i++) if (lines[i].length > maxLen) maxLen = lines[i].length;
+      okTrue("a forty-item list stays inside 90 characters a line", maxLen <= 90, maxLen);
+    }
+
+    /* the parameterization reaches the ANALYSIS command */
+    seq = IS.buildSequence(baseCfg({ family: "B", estimator: "WLSMV", param: "THETA", catAll: 4 }));
+    okTrue("the theta parameterization is declared",
+      seq.levels[0].text.indexOf("PARAMETERIZATION = THETA;") > 0);
+    okTrue("under theta the residual variances are fixed rather than the scale factors",
+      seq.levels[0].text.indexOf("{x1") < 0 && seq.levels[0].text.indexOf("\n  x1@1;") > 0);
+    seq = IS.buildSequence(baseCfg({ family: "B", estimator: "WLSMV", param: "DELTA", catAll: 4 }));
+    okTrue("under delta the scale factors are fixed",
+      seq.levels[0].text.indexOf("{x1@1};") > 0);
+    okTrue("the full measurement invariance level is not offered under delta",
+      seq.dropped.length > 0);
+
+    /* the reader has to fail on syntax that is wrong, or its passes on
+       the generated syntax would mean nothing */
+    var goodCtx = { nGroups: 2, groups: ["G1", "G2"], usevariables: ["x1", "x2"], latent: ["F1"] };
+    function nFailed(t, c) {
+      var cs = IS.checkInput(t, c || goodCtx), q, n = 0;
+      for (q = 0; q < cs.length; q++) if (!cs[q].ok) n++;
+      return n;
+    }
+    var goodInput =
+      "TITLE:\n  t\n\nDATA:\n  FILE = \"d.dat\";\n\nVARIABLE:\n  NAMES =\n    grp x1 x2;\n" +
+      "  USEVARIABLES =\n    x1 x2;\n  GROUPING = grp (1 = G1 2 = G2);\n\nANALYSIS:\n" +
+      "  ESTIMATOR = MLR;\n\nMODEL:\n  F1 BY x1* (L1);\n  F1 BY x2*;\n  F1@1;\n  [F1@0];\n\n" +
+      "MODEL G2:\n  F1 BY x1* (L1);\n  F1 BY x2*;\n  F1@1;\n  [F1@0];\n\nOUTPUT:\n  TECH1;\n";
+    ok("the reader passes an input written by hand", nFailed(goodInput), 0);
+    ok("an unterminated statement is caught",
+       nFailed(goodInput.replace("  [F1@0];\n\nOUTPUT:", "  [F1@0]\n\nOUTPUT:")) > 0, true);
+    ok("an empty MODEL block is caught",
+       nFailed(goodInput.replace(/MODEL G2:\n[\s\S]*?\n\nOUTPUT:/, "MODEL G2:\n\nOUTPUT:")) > 0, true);
+    ok("an unbalanced bracket is caught",
+       nFailed(goodInput.replace("[F1@0];", "[F1@0;")) > 0, true);
+    ok("a variable that is not declared is caught",
+       nFailed(goodInput.replace("F1 BY x2*;", "F1 BY x9*;")) > 0, true);
+    ok("a label used in one group only is caught",
+       nFailed(goodInput.replace("MODEL G2:\n  F1 BY x1* (L1);", "MODEL G2:\n  F1 BY x1*;")) > 0, true);
+    ok("a label sitting on two different parameters is caught",
+       nFailed(goodInput.replace("MODEL G2:\n  F1 BY x1* (L1);", "MODEL G2:\n  F1 BY x2* (L1);")) > 0, true);
+    ok("a label used twice inside one block is caught",
+       nFailed(goodInput.replace("MODEL:\n  F1 BY x1* (L1);\n  F1 BY x2*;",
+         "MODEL:\n  F1 BY x1* (L1);\n  F1 BY x2* (L1);")) > 0, true);
+    ok("a line past ninety characters is caught",
+       nFailed(goodInput.replace("  ESTIMATOR = MLR;", "  ESTIMATOR = MLR; ! " +
+         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")) > 0, true);
+    ok("a missing OUTPUT section is caught",
+       nFailed(goodInput.replace("OUTPUT:\n  TECH1;\n", "")) > 0, true);
+    ok("sections out of order are caught",
+       nFailed("TITLE:\n  t\n\nMODEL:\n  F1 BY x1*;\n\nDATA:\n  FILE = \"d.dat\";\n" +
+         "\nVARIABLE:\n  NAMES = x1;\n\nANALYSIS:\n  ESTIMATOR = ML;\n\nOUTPUT:\n  TECH1;\n") > 0, true);
+    ok("a MODEL block naming a group that is not in GROUPING is caught",
+       nFailed(goodInput.replace("MODEL G2:", "MODEL G3:")) > 0, true);
+    ok("the wrong number of MODEL blocks is caught",
+       nFailed(goodInput, { nGroups: 3, groups: ["G1", "G2", "G3"],
+         usevariables: ["x1", "x2"], latent: ["F1"] }) > 0, true);
+    ok("a threshold count that does not match is caught",
+       nFailed(goodInput, { nGroups: 2, groups: ["G1", "G2"], usevariables: ["x1", "x2"],
+         latent: ["F1"], expectThresholds: 4 }) > 0, true);
+    ok("a difference-test file that is not paired is caught",
+       (function () {
+         var fake = [{ name: "a", difOut: "f.dat", text: goodInput + "\nSAVEDATA:\n  DIFFTEST = f.dat;\n" },
+                     { name: "b", difOut: null, text: goodInput }];
+         var cs = IS.checkDifftest(fake), q, n = 0;
+         for (q = 0; q < cs.length; q++) if (!cs[q].ok) n++;
+         return n > 0;
+       })(), true);
+
+    /* the variable list given by the user is used */
+    seq = IS.buildSequence(baseCfg({ namesList: ["id", "grp", "x1", "x2", "x3", "x4"] }));
+    okTrue("the given variable list is written into NAMES",
+      /NAMES =\s*\n\s*id grp x1 x2 x3 x4;/.test(seq.levels[0].text));
+    okTrue("USEVARIABLES holds the items only",
+      /USEVARIABLES =\s*\n\s*x1 x2 x3 x4;/.test(seq.levels[0].text));
+    seq = IS.buildSequence(baseCfg({ missing: "-999" }));
+    okTrue("the missing value code is written",
+      seq.levels[0].text.indexOf("MISSING = ALL (-999);") > 0);
+
+    return { checks: checks, failed: failed };
+  }
+
+  function show(banner) {
+    var out = selfTest(), i, b;
+    for (i = 0; i < out.checks.length; i++) {
+      var c = out.checks[i];
+      if (typeof console !== "undefined" && console.log) {
+        console.log((c.ok ? "pass  " : "FAIL  ") + c.name + "  got " + c.got + "  expected " + c.want);
+      }
+    }
+    if (typeof console !== "undefined" && console.log) {
+      console.log(out.failed === 0 ? "self-test passed" : "self-test failed");
+    }
+    if (banner) {
+      b = document.getElementById("selftest-banner");
+      if (b) {
+        b.hidden = false;
+        b.className = "status " + (out.failed === 0 ? "ok" : "bad");
+        b.innerHTML = "<p><span aria-hidden=\"true\">" + (out.failed === 0 ? "✓" : "✗") +
+          "</span> <span class=\"tag\">" + (out.failed === 0 ? "Self-test passed." : "Self-test failed.") +
+          "</span> " + out.checks.length + " checks, " + out.failed +
+          " failed. Details in the browser console.</p>";
+      }
+    }
+    return out;
+  }
+
+  window.invarianceSelfTest = show;
+})();
+
+/* ==================================================================
+   The page
+   ================================================================== */
+
+(function () {
+  var esc = IS.esc, MP = IS.MP;
+  function $(id) { return document.getElementById(id); }
+
+  var st = { cats: {}, include: {}, levels: [], lastItems: [] };
+
+  function status(kind, tag, html) {
+    var glyph = kind === "ok" ? "✓" : kind === "bad" ? "✗" : kind === "warn" ? "!" : "i";
+    return '<div class="status ' + kind + '"><p><span class="tag"><span aria-hidden="true">' + glyph +
+      "</span> " + tag + "</span> " + html + "</p></div>";
+  }
+
+  function family() { return $("fam-b").checked ? "B" : "A"; }
+
+  function fillEstimators() {
+    var list = family() === "A" ? IS.EST_A : IS.EST_B, sel = $("estimator"), cur = sel.value, i;
+    sel.innerHTML = "";
+    for (i = 0; i < list.length; i++) {
+      var o = document.createElement("option");
+      o.value = list[i];
+      o.textContent = list[i] + (i === 0 ? " (default)" : "");
+      sel.appendChild(o);
+    }
+    sel.value = (list.indexOf(cur) >= 0) ? cur : list[0];
+  }
+
+  function readConfig() {
+    var f = family();
+    return {
+      family: f,
+      defs: $("defs").value,
+      nGroups: Math.max(1, Math.min(12, parseInt($("ngroups").value, 10) || 2)),
+      groupVar: $("groupvar").value.trim(),
+      groupNames: $("groupnames").value,
+      ident: $("ident").value,
+      estimator: $("estimator").value,
+      param: $("param").value,
+      catAll: parseInt($("catall").value, 10) || 4,
+      cats: st.cats,
+      title: $("title").value.trim(),
+      dataFile: $("datafile").value.trim(),
+      namesList: readNames(),
+      missing: $("missing").value,
+      prefix: $("prefix").value.trim(),
+      include: st.include
+    };
+  }
+
+  /* the NAMES field takes the same range notation as the definitions */
+  function readNames() {
+    var raw = $("names").value.replace(/;/g, " ").replace(/,/g, " ")
+      .replace(/!.*$/gm, "").replace(/\s*-\s*/g, "-").trim();
+    if (raw === "") return [];
+    var toks = raw.split(/\s+/), out = [], i, k;
+    for (i = 0; i < toks.length; i++) {
+      if (toks[i] === "") continue;
+      if (toks[i].indexOf("-") >= 0) {
+        var r = IS.expandRange(toks[i]);
+        if (r.error) { out.push(toks[i]); continue; }
+        for (k = 0; k < r.items.length; k++) out.push(r.items[k]);
+      } else out.push(toks[i]);
+    }
+    return out;
+  }
+
+  /* ---- the per-item table of response categories ------------------ */
+
+  function renderCats(parsed) {
+    var body = $("cats-body"), rows = "", i, j;
+    var items = [];
+    for (i = 0; i < parsed.factors.length; i++) {
+      for (j = 0; j < parsed.factors[i].items.length; j++) {
+        items.push({ name: parsed.factors[i].items[j], fac: parsed.factors[i].name });
+      }
+    }
+    st.lastItems = items;
+    var all = parseInt($("catall").value, 10) || 4;
+    for (i = 0; i < items.length; i++) {
+      var key = items[i].name.toUpperCase();
+      if (!Object.prototype.hasOwnProperty.call(st.cats, key)) st.cats[key] = all;
+      var c = st.cats[key];
+      rows += "<tr><th scope=\"row\">" + esc(items[i].name) + "</th><td>" + esc(items[i].fac) +
+        "</td><td class=\"num\"><label class=\"visually-hidden\" for=\"cat-" + i +
+        "\">Categories of " + esc(items[i].name) + "</label>" +
+        "<input type=\"number\" id=\"cat-" + i + "\" data-item=\"" + esc(key) +
+        "\" min=\"2\" max=\"12\" step=\"1\" value=\"" + c + "\"></td>" +
+        "<td class=\"num\">" + (c - 1) + "</td></tr>";
+    }
+    body.innerHTML = rows;
+    var inputs = body.querySelectorAll("input[type=number]");
+    for (i = 0; i < inputs.length; i++) {
+      inputs[i].addEventListener("change", function (ev) {
+        st.cats[ev.target.getAttribute("data-item")] = parseInt(ev.target.value, 10);
+        build();
+      });
+    }
+  }
+
+  /* ---- the list of levels ----------------------------------------- */
+
+  function renderLevels() {
+    var defs = IS.levelsFor(family()), box = $("levels-box"), html = "", i;
+    for (i = 0; i < defs.length; i++) {
+      var k = defs[i].key;
+      if (!Object.prototype.hasOwnProperty.call(st.include, k)) {
+        st.include[k] = (k !== "fvar" && k !== "fmean");
+      }
+      html += "<label class=\"check\"><input type=\"checkbox\" data-level=\"" + k + "\"" +
+        (st.include[k] ? " checked" : "") + (i === 0 ? " disabled" : "") + "> " + esc(defs[i].name) +
+        (i === 0 ? " (always written)" : "") + "</label>";
+    }
+    box.innerHTML = html;
+    if (defs.length) st.include[defs[0].key] = true;
+    var boxes = box.querySelectorAll("input[type=checkbox]");
+    for (i = 0; i < boxes.length; i++) {
+      boxes[i].addEventListener("change", function (ev) {
+        st.include[ev.target.getAttribute("data-level")] = ev.target.checked;
+        build();
+      });
+    }
+  }
+
+  /* ---- building and showing ---------------------------------------- */
+
+  function messageList(kind, list) {
+    if (!list || !list.length) return "";
+    var html = "<ul>", i;
+    for (i = 0; i < list.length; i++) html += "<li>" + list[i].html + "</li>";
+    return html + "</ul>";
+  }
+
+  function build() {
+    var cfg = readConfig();
+    var parsed = IS.parseFactors(cfg.defs);
+    if (cfg.family === "B") renderCats(parsed);
+    $("param-field").hidden = (cfg.family !== "B");
+    $("cat-fieldset").hidden = (cfg.family !== "B");
+
+    var seq = IS.buildSequence(cfg);
+    var rep = "";
+    if (seq.errors && seq.errors.length) {
+      rep += status("bad", "The model could not be read.",
+        "Nothing was written. " + seq.errors.length + " problem" + (seq.errors.length > 1 ? "s were" : " was") +
+        " found:") + messageList("bad", seq.errors);
+    }
+    if (seq.warnings && seq.warnings.length) {
+      rep += status("warn", "Read with changes.", "") + messageList("warn", seq.warnings);
+    }
+    if (seq.ok) {
+      var S = seq.structure;
+      rep += status("ok", "Read.", S.items.length + " item" + (S.items.length === 1 ? "" : "s") + " on " +
+        S.factors.length + " factor" + (S.factors.length === 1 ? "" : "s") + " in " + S.groups.length +
+        " groups; " + seq.levels.length + " input" + (seq.levels.length === 1 ? "" : "s") + " written.");
+    }
+    $("defs-report").innerHTML = rep;
+
+    if (!seq.ok) { $("out").innerHTML = ""; st.levels = []; renderMethods(cfg, null); return; }
+    st.levels = seq.levels;
+    renderOutput(cfg, seq);
+    renderMethods(cfg, seq);
+  }
+
+  function renderOutput(cfg, seq) {
+    var S = seq.structure, html = "", i, j, k;
+    var latent = [], usev = [];
+    for (i = 0; i < S.factors.length; i++) latent.push(S.factors[i].name);
+    if (S.phantom) for (i = 0; i < S.phantom.length; i++) latent.push(S.phantom[i]);
+    for (i = 0; i < S.items.length; i++) usev.push(S.items[i].name);
+    var gnames = [];
+    for (i = 0; i < S.groups.length; i++) gnames.push(S.groups[i].name);
+
+    if (seq.dropped && seq.dropped.length) {
+      var dl = "";
+      for (i = 0; i < seq.dropped.length; i++) {
+        dl += "<li>" + esc(seq.dropped[i].def.name) + ": " + seq.dropped[i].why + "</li>";
+      }
+      html += '<div class="status info"><p><span class="tag"><span aria-hidden="true">i</span> ' +
+        'Levels that were asked for and not written.</span></p><ul>' + dl + "</ul></div>";
+    }
+
+    html += "<p>" + IS.testProse(cfg) + "</p>";
+
+    /* the summary table of the sequence */
+    html += "<p class=\"table-note\" id=\"seq-note\">The sequence, with the number of freely estimated " +
+      "parameters of each model and the degrees of freedom the step from the model above spends.</p>" +
+      "<div class=\"table-wrap fit\"><table aria-labelledby=\"seq-note\"><thead><tr>" +
+      "<th scope=\"col\">Level</th><th scope=\"col\">File</th><th scope=\"col\" class=\"num\">Parameters</th>" +
+      "<th scope=\"col\" class=\"num\">&Delta;df</th></tr></thead><tbody>";
+    for (i = 0; i < seq.levels.length; i++) {
+      var lv = seq.levels[i];
+      html += "<tr><td>" + esc(lv.name) + "</td><td class=\"mono\">" + esc(lv.file) +
+        "</td><td class=\"num\">" + lv.params + "</td><td class=\"num\">" +
+        (lv.df === null ? "&mdash;" : lv.df) + "</td></tr>";
+    }
+    html += "</tbody></table></div>";
+
+    var zero = [];
+    for (i = 0; i < seq.levels.length; i++) {
+      if (seq.levels[i].df === 0) zero.push(seq.levels[i].name);
+    }
+    if (zero.length) {
+      html += status("warn", "A step with no degrees of freedom.", "The step to " + esc(zero.join(", ")) +
+        " spends no degrees of freedom, so the model it produces is statistically equivalent to the one " +
+        "above it and the difference test has nothing to test. With ordered-categorical items this happens " +
+        "when no item has four or more categories, since a shift and a rescaling of a latent response can " +
+        "always be chosen to match two thresholds (Wu &amp; Estabrook, 2016, Proposition 2).");
+    }
+    var neg = false;
+    for (i = 0; i < seq.levels.length; i++) if (seq.levels[i].df !== null && seq.levels[i].df < 0) neg = true;
+    if (neg) {
+      html += status("bad", "A step that frees more than it constrains.",
+        "One step has a negative number of degrees of freedom, which means the two models are not nested " +
+        "as written. Check the levels that were selected.");
+    }
+
+    html += "<div class=\"actions\"><button type=\"button\" id=\"dl-all\">Download every input as a " +
+      "separate .inp file</button><span id=\"dl-note\" aria-live=\"polite\"></span></div>";
+
+    var allChecks = 0, allBad = 0;
+    for (i = 0; i < seq.levels.length; i++) {
+      var L = seq.levels[i];
+      var expectLabels = countLabels(L.text);
+      var ctx = { nGroups: S.groups.length, groups: gnames, usevariables: usev, latent: latent };
+      if (cfg.family === "B" && L.flags.eqThr) {
+        var nThr = 0;
+        for (j = 0; j < S.items.length; j++) nThr += S.items[j].cat - 1;
+        ctx.expectThresholds = nThr;
+      }
+      var checks = IS.checkInput(L.text, ctx);
+      var bad = 0;
+      for (j = 0; j < checks.length; j++) if (!checks[j].ok) bad++;
+      allChecks += checks.length; allBad += bad;
+
+      html += "<div class=\"level panel\"><div class=\"block-head\"><h3 id=\"lv-" + esc(L.key) + "\">" +
+        (i + 1) + ". " + esc(L.name) + "</h3><div class=\"actions\">" +
+        "<button type=\"button\" class=\"secondary\" data-copy=\"" + i + "\">Copy this input</button>" +
+        "<span class=\"pill\" id=\"copy-note-" + i + "\" aria-live=\"polite\"></span></div></div>";
+      html += "<div class=\"level-text\">";
+      var prose = IS.levelProse(cfg, S, L);
+      for (j = 0; j < prose.length; j++) html += "<p>" + prose[j] + "</p>";
+      if (L.df !== null) {
+        html += "<p>The step from " + esc(L.prev) + " to this model spends " + L.df +
+          " degree" + (L.df === 1 ? "" : "s") + " of freedom" +
+          (L.difIn ? ", tested by reading " + IS.code(L.difIn) + " in the ANALYSIS command" : "") + ".</p>";
+      }
+      html += "</div><div class=\"level-syntax\">";
+      html += "<p class=\"pill\">" + esc(L.file) + "</p>";
+      html += "<pre class=\"syntax\" tabindex=\"0\" role=\"region\" aria-label=\"Input file for " +
+        esc(L.name) + "\"><code>" + esc(L.text) + "</code></pre>";
+      html += "</div>";
+      html += "<details><summary>What was checked in this input (" + checks.length + " checks, " +
+        bad + " failed)</summary><ul class=\"checks\">";
+      for (j = 0; j < checks.length; j++) {
+        html += "<li class=\"" + (checks[j].ok ? "ok" : "bad") + "\"><span class=\"glyph\" aria-hidden=\"true\">" +
+          (checks[j].ok ? "✓" : "✗") + "</span><span><span class=\"visually-hidden\">" +
+          (checks[j].ok ? "Passed: " : "Failed: ") + "</span>" + checks[j].msg + "</span></li>";
+      }
+      html += "</ul></details></div>";
+    }
+
+    var dchecks = IS.checkDifftest(seq.levels), dbad = 0;
+    for (j = 0; j < dchecks.length; j++) if (!dchecks[j].ok) dbad++;
+    allChecks += dchecks.length; allBad += dbad;
+    html += "<details><summary>How the difference tests are wired (" + dchecks.length + " checks, " +
+      dbad + " failed)</summary><ul class=\"checks\">";
+    for (j = 0; j < dchecks.length; j++) {
+      html += "<li class=\"" + (dchecks[j].ok ? "ok" : "bad") + "\"><span class=\"glyph\" aria-hidden=\"true\">" +
+        (dchecks[j].ok ? "✓" : "✗") + "</span><span><span class=\"visually-hidden\">" +
+        (dchecks[j].ok ? "Passed: " : "Failed: ") + "</span>" + esc(dchecks[j].msg) + "</span></li>";
+    }
+    html += "</ul></details>";
+
+    var head = (allBad === 0)
+      ? status("ok", "The written syntax passed every check.", allChecks + " checks on " +
+          seq.levels.length + " inputs.")
+      : status("bad", "The written syntax failed " + allBad + " check" + (allBad > 1 ? "s" : "") + ".",
+          "The failures are listed under the input they belong to.");
+    $("out").innerHTML = head + html;
+
+    var btns = $("out").querySelectorAll("button[data-copy]");
+    for (i = 0; i < btns.length; i++) {
+      btns[i].addEventListener("click", function (ev) {
+        var n = parseInt(ev.target.getAttribute("data-copy"), 10);
+        copyText(st.levels[n].text, $("copy-note-" + n));
+      });
+    }
+    var dl = $("dl-all");
+    if (dl) dl.addEventListener("click", downloadAll);
+  }
+
+  function countLabels(text) {
+    var m = IS.stripComments(text).match(/\(([A-Za-z][A-Za-z0-9_]*)\)/g) || [], seen = {}, n = 0, i;
+    for (i = 0; i < m.length; i++) {
+      var k = m[i].toUpperCase();
+      if (!seen[k]) { seen[k] = 1; n++; }
+    }
+    return n;
+  }
+
+  function copyText(text, note) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { note.textContent = "Copied."; },
+        function () { note.textContent = "The clipboard is not available; select the text and copy it."; });
+    } else {
+      note.textContent = "The clipboard is not available; select the text and copy it.";
+    }
+  }
+
+  /* One file at a time, each through its own object URL, so that the
+     downloads work from a page opened straight from the file system. */
+  function downloadAll() {
+    var note = $("dl-note"), i = 0, levels = st.levels;
+    if (!levels.length) return;
+    note.textContent = "";
+    function step() {
+      if (i >= levels.length) {
+        note.textContent = levels.length + " files offered; the browser may ask for permission to save " +
+          "more than one.";
+        return;
+      }
+      var lv = levels[i]; i++;
+      var blob = new Blob([lv.text], { type: "text/plain;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url; a.download = lv.file; a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 8000);
+      setTimeout(step, 350);
+    }
+    step();
+  }
+
+  /* ---- the methods section ---------------------------------------- */
+
+  function renderMethods(cfg, seq) {
+    var html = "", i;
+    html += "<p>Write <em>p</em> for the number of items, <em>m</em> for the number of factors and " +
+      "<em>G</em> for the number of groups. &Lambda; collects the loadings, &nu; the item intercepts, " +
+      "&Theta; the residual variances, &kappa; the factor means and &Phi; the factor covariance matrix. " +
+      "With ordered-categorical items <strong>T</strong> collects the thresholds and &Sigma;* is the " +
+      "covariance matrix of the latent responses, whose diagonal the delta parameterization fixes through " +
+      "the scale factors.</p>";
+
+    html += "<h3>Continuous indicators</h3>";
+    html += "<p>The model is <em>y</em><sup>(g)</sup> = &nu;<sup>(g)</sup> + &Lambda;<sup>(g)</sup>" +
+      "&eta;<sup>(g)</sup> + &epsilon;<sup>(g)</sup> in each group, with " +
+      "&Sigma;<sup>(g)</sup> = &Lambda;<sup>(g)</sup>&Phi;<sup>(g)</sup>&Lambda;<sup>(g)&prime;</sup> + " +
+      "&Theta;<sup>(g)</sup> and &mu;<sup>(g)</sup> = &nu;<sup>(g)</sup> + &Lambda;<sup>(g)</sup>" +
+      "&kappa;<sup>(g)</sup>. The levels are:</p><ul>";
+    html += "<li><strong>Configural.</strong> Nothing equal across groups. Identified in each group by " +
+      "diag(&Phi;<sup>(g)</sup>) = <strong>I</strong> and &kappa;<sup>(g)</sup> = 0 under the fixed-factor " +
+      "method, or by one loading per factor fixed at one together with &kappa;<sup>(g)</sup> = 0 under the " +
+      "marker method.</li>";
+    html += "<li><strong>Metric.</strong> &Lambda;<sup>(g)</sup> = &Lambda;. The factor variances are " +
+      "freed in the <em>G</em> &minus; 1 groups after the first under the fixed-factor method and stay " +
+      "free everywhere under the marker method. Spends (<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) " +
+      "degrees of freedom.</li>";
+    html += "<li><strong>Scalar.</strong> &Lambda;<sup>(g)</sup> = &Lambda; and &nu;<sup>(g)</sup> = &nu;. " +
+      "The factor means are freed in the <em>G</em> &minus; 1 groups after the first. Spends " +
+      "(<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) degrees of freedom.</li>";
+    html += "<li><strong>Strict.</strong> &Theta;<sup>(g)</sup> = &Theta; as well. Spends " +
+      "<em>p</em>(<em>G</em> &minus; 1) degrees of freedom.</li>";
+    html += "<li><strong>Equal factor variances and covariances.</strong> &Phi;<sup>(g)</sup> = &Phi;. " +
+      "Spends [<em>m</em> + <em>m</em>(<em>m</em> &minus; 1)/2](<em>G</em> &minus; 1) degrees of freedom.</li>";
+    html += "<li><strong>Equal factor means.</strong> &kappa;<sup>(g)</sup> = 0 in every group. Spends " +
+      "<em>m</em>(<em>G</em> &minus; 1) degrees of freedom.</li></ul>";
+    html += "<p>The two identification methods give the same fit and the same degrees of freedom at every " +
+      "level; they differ in what is assumed rather than tested. The marker method takes the metric of the " +
+      "factor from one item, so that item's loading, and from the scalar level its intercept, are held " +
+      "invariant by construction and never enter a test. The fixed-factor method standardizes the factor " +
+      "in the reference group instead, so every loading and every intercept is free to be tested, at the " +
+      "cost of a factor whose scale is defined by a group rather than by an item.</p>";
+
+    html += "<h3>Ordered-categorical indicators</h3>";
+    html += "<p>An item with <em>C</em> categories has <em>K</em> = <em>C</em> &minus; 1 thresholds cutting " +
+      "a latent response <em>y</em>*. Wu and Estabrook (2016) show that the parameters may be changed by a " +
+      "shift and a positive rescaling of every latent response and of every factor without changing the " +
+      "probability of any response pattern, so 2(<em>p</em> + <em>m</em>) constraints per group are needed. " +
+      "Their conditions, in the order this page writes them, are:</p><ul>";
+    html += "<li><strong>Configural.</strong> Condition 7 in each group under the delta parameterization: " +
+      "diag(&Phi;) = <strong>I</strong>, &kappa; = 0, &nu; = 0 and diag(&Sigma;*) = <strong>I</strong>. " +
+      "Under the theta parameterization it is condition 8, with &Theta; = <strong>I</strong> in place of " +
+      "the last constraint.</li>";
+    html += "<li><strong>Equal thresholds</strong> (condition 15, Proposition 4). " +
+      "<strong>T</strong><sup>(g)</sup> = <strong>T</strong>; &nu;<sup>(1)</sup> = 0 and " +
+      "diag(&Sigma;*<sup>(1)</sup>) = <strong>I</strong> in the first group only, with the intercepts and " +
+      "scales free elsewhere; &kappa;<sup>(g)</sup> = 0 and diag(&Phi;<sup>(g)</sup>) = <strong>I</strong> " +
+      "in every group. Spends &Sigma;<sub>j</sub>(<em>C<sub>j</sub></em> &minus; 3)(<em>G</em> &minus; 1) " +
+      "degrees of freedom, so an item with fewer than four categories contributes none.</li>";
+    html += "<li><strong>Equal thresholds and loadings</strong> (condition 19, Proposition 7). Also " +
+      "&Lambda;<sup>(g)</sup> = &Lambda;; diag(&Phi;<sup>(1)</sup>) = <strong>I</strong> in the first group " +
+      "only, so factor variances are free elsewhere; &kappa;<sup>(g)</sup> = 0 in every group. Spends " +
+      "(<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) degrees of freedom.</li>";
+    html += "<li><strong>Equal thresholds, loadings and intercepts</strong> (condition 27). Also " +
+      "&nu; = 0 in every group, with &kappa;<sup>(1)</sup> = 0 and factor means free elsewhere. Spends " +
+      "(<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) degrees of freedom when it follows the previous " +
+      "level, and (<em>p</em> &minus; 2<em>m</em>)(<em>G</em> &minus; 1) when it follows the configural " +
+      "model directly, which is the route taken with binary items.</li>";
+    html += "<li><strong>Full measurement invariance</strong> (condition 9). Also &Theta;<sup>(g)</sup> = " +
+      "&Theta;, written by fixing the residual variances of the latent responses at one in every group " +
+      "rather than in the first only. Fixing an invariant &Theta; and standardizing &Sigma;* in the first " +
+      "group are two ways of choosing the same metric and use the same number of parameters. Spends " +
+      "<em>p</em>(<em>G</em> &minus; 1) degrees of freedom. It needs the theta parameterization, because " +
+      "&Theta; is not a parameter under delta.</li></ul>";
+    html += "<p>Millsap and Yun-Tein (2004) identify the baseline model differently: they set " +
+      "&nu;<sup>(g)</sup> = 0 and one loading per factor to one in every group, &kappa;<sup>(1)</sup> = 0 " +
+      "and diag(&Phi;<sup>(1)</sup>) = <strong>I</strong> in the first group, and hold invariant one " +
+      "threshold per item together with a second threshold in the reference item of each factor. Wu and " +
+      "Estabrook keep that parameterization as one of three equivalent ways of identifying the baseline " +
+      "and show that which one is chosen changes the result of the invariance tests built on top of it, " +
+      "which is why each level here is identified on its own instead.</p>";
+
+    html += "<h3>What the page checks in what it wrote</h3>";
+    html += "<p>Each input is read back as text before it is shown. The reader takes the input apart into " +
+      "its command sections and checks that they are present and in the order the program expects, that " +
+      "every statement outside TITLE ends with a semicolon, that round, square and curly brackets are " +
+      "balanced, that no line exceeds the 90 characters " + MP + " reads, that there is one MODEL block " +
+      "per group and that none of them is empty, that every name used in a MODEL block is either in " +
+      "USEVARIABLES or a latent variable the model defines, and that every parameter label appears once " +
+      "in each group block and always on the same statement, which is what makes it an equality constraint " +
+      "and nothing else. The pairing of the DIFFTEST files is checked against the order of the levels.</p>";
+
+    $("methods").innerHTML = html;
+  }
+
+  /* ---- examples and wiring ----------------------------------------- */
+
+  function exampleContinuous() {
+    $("fam-a").checked = true;
+    $("defs").value = "F1 BY x1-x4;";
+    $("ngroups").value = "2";
+    $("groupvar").value = "grp";
+    $("groupnames").value = "1 = male, 2 = female";
+    $("ident").value = "fixed";
+    fillEstimators();
+    $("estimator").value = "MLR";
+    st.include = {}; renderLevels(); build();
+  }
+
+  function exampleCategorical() {
+    $("fam-b").checked = true;
+    $("defs").value = "F1 BY R09A R09B R09C R09D;";
+    $("ngroups").value = "3";
+    $("groupvar").value = "IDCNTRY";
+    $("groupnames").value = "31 = AZE, 40 = AUT, 246 = FIN";
+    $("ident").value = "fixed";
+    $("catall").value = "4";
+    st.cats = {};
+    fillEstimators();
+    $("estimator").value = "WLSMV";
+    $("param").value = "DELTA";
+    st.include = {}; renderLevels(); build();
+  }
+
+  function wire() {
+    var ids = ["defs", "ngroups", "groupvar", "groupnames", "ident", "estimator", "param",
+               "title", "datafile", "names", "missing", "prefix"];
+    var i;
+    for (i = 0; i < ids.length; i++) {
+      $(ids[i]).addEventListener("change", build);
+      $(ids[i]).addEventListener("input", build);
+    }
+    $("fam-a").addEventListener("change", function () { fillEstimators(); st.include = {}; renderLevels(); build(); });
+    $("fam-b").addEventListener("change", function () { fillEstimators(); st.include = {}; renderLevels(); build(); });
+    $("catall").addEventListener("change", build);
+    $("catapply").addEventListener("click", function () {
+      var all = parseInt($("catall").value, 10) || 4, i;
+      for (i = 0; i < st.lastItems.length; i++) st.cats[st.lastItems[i].name.toUpperCase()] = all;
+      build();
+    });
+    $("build").addEventListener("click", build);
+    $("ex-cont").addEventListener("click", exampleContinuous);
+    $("ex-cat").addEventListener("click", exampleCategorical);
+  }
+
+  function start() {
+    fillEstimators();
+    renderLevels();
+    wire();
+    build();
+    if (/[?&]selftest=1(&|$)/.test(window.location.search) && window.invarianceSelfTest) {
+      window.invarianceSelfTest(true);
+    }
+  }
+
+  window.invariancePage = { build: build, state: st };
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
+  else start();
+})();
+</script>
+<script>
+/* A table wider than the box that holds it scrolls inside that box. The shadow
+   at the edge of the box is a colour cue on its own, so the same thing is said
+   in a line under the box, and the box is made focusable and given the name of
+   the table, so that it can also be scrolled from the keyboard. */
+(function(){
+  "use strict";
+  var TEXT = "Wider than the space it has: scroll the table sideways for the remaining columns.";
+  function mark(w){
+    var over = w.scrollWidth - w.clientWidth > 2;
+    var next = w.nextElementSibling;
+    var has = !!(next && next.className === "scroll-hint");
+    if(over === has) return;
+    if(over){
+      var hint = document.createElement("p");
+      hint.className = "scroll-hint";
+      hint.textContent = TEXT;
+      w.parentNode.insertBefore(hint, w.nextSibling);
+      var cap = w.querySelector("caption");
+      w.setAttribute("tabindex", "0");
+      w.setAttribute("role", "region");
+      w.setAttribute("aria-label", cap ? cap.textContent : "Table");
+    }else{
+      next.parentNode.removeChild(next);
+      w.removeAttribute("tabindex"); w.removeAttribute("role"); w.removeAttribute("aria-label");
+    }
+  }
+  var timer = 0;
+  function scan(){
+    var list = document.querySelectorAll(".table-wrap");
+    for(var i = 0; i < list.length; i++) mark(list[i]);
+  }
+  function later(){ window.clearTimeout(timer); timer = window.setTimeout(scan, 80); }
+  scan();
+  window.addEventListener("resize", later);
+  if(window.MutationObserver){
+    new MutationObserver(later).observe(document.getElementById("main") || document.body,
+      { childList: true, subtree: true });
+  }
+})();
+</script>
+</body>
+</html>

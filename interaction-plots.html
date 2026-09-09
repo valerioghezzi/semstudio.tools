@@ -1,0 +1,3009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Draw interaction plots, test simple slopes and locate the Johnson-Neyman region from an Mplus output file, entirely in your browser.">
+<title>Interaction plots and simple slopes · semstudio.tools</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* Page-specific rules only; everything else comes from the shared stylesheet. */
+/* The file input is left visible and focusable rather than hidden behind the
+   drop zone, so it can be reached from the keyboard; it and the hint under it
+   each take their own line. */
+.drop input[type="file"] { position: static; display: block; margin: 0.6rem auto 0; width: auto; height: auto; opacity: 1; overflow: visible; }
+.drop .hint { display: block; margin-top: 0.4rem; }
+/* One level of the moderator per row: its value, its label, the dash pattern
+   and the marker that identify its line, and the button that removes it. */
+.gridrow { display: grid; gap: 0.4rem 0.5rem; align-items: end; margin-bottom: 0.5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 30rem) {
+  .gridrow.four { grid-template-columns: minmax(4.6rem, 0.8fr) minmax(0, 1.3fr) minmax(0, 1.15fr) minmax(0, 0.95fr) min-content; }
+  .gridrow.dum { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) min-content; }
+}
+/* Long identifiers and DOIs are single unbreakable words wider than a phone screen. */
+.refs li, .hint, figcaption { overflow-wrap: anywhere; }
+.gridrow select, .gridrow input { width: 100%; max-width: 100%; }
+.gridrow button { padding: 0.35rem 0.5rem; }
+.rowhead { font-size: 0.85rem; color: var(--ink-soft); font-weight: 600; }
+/* The figure is drawn at the size at which it will be printed, so it keeps the
+   width its own attribute gives it instead of being stretched to the panel,
+   and shrinks only when the panel is narrower than that. */
+figure.plot { margin: 0 0 0.6rem; }
+figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
+/* Past this width the band left free beside the figure holds the controls
+   that export it, instead of standing empty. */
+@media (min-width: 90rem) {
+  .figpanel { display: grid; grid-template-columns: minmax(0, 1fr) 10rem; column-gap: 1.5rem; align-items: start; }
+  .figpanel > * { grid-column: 1; min-width: 0; }
+  .figpanel > h2 { grid-column: 1 / -1; }
+  .figpanel > .exportbar { grid-column: 2; flex-direction: column; align-items: stretch; margin: 0; }
+  .figpanel > .exportbar .field, .figpanel > .exportbar input, .figpanel > .exportbar select { max-width: 100%; width: 100%; }
+  .figpanel > .exportbar .buttons { flex-direction: column; }
+}
+/* The controls that export a figure: each labelled field keeps the width of
+   what it holds, and the two buttons sit together at the end of the row. */
+.exportbar { display: flex; flex-wrap: wrap; gap: 0.6rem 0.9rem; align-items: end; margin: 0.9rem 0 0; }
+.exportbar .field { margin: 0; flex: 0 0 auto; }
+.exportbar input, .exportbar select { max-width: 7.5rem; }
+.exportbar .buttons { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.legendkey { font-size: 0.9rem; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All tools</a>
+  </nav>
+  <h1>Interaction plots and simple slopes</h1>
+  <p class="lede">This page reads an <span class="mp">M</span><em>plus</em> output file, draws the interaction between a predictor and a moderator, tests the simple slope of X on Y at chosen values of the moderator, and locates the Johnson&ndash;Neyman thresholds that fall inside the range of the moderator the data cover.</p>
+  <div class="callout" role="note">
+    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3;</code> for an interaction between observed variables, with <code>TECH4</code> added when the interaction is between latent variables. TECH1 numbers the free parameters and TECH3 prints their covariance matrix: together they give the standard error of a simple slope and the Johnson&ndash;Neyman thresholds, and SAMPSTAT gives the means, standard deviations and observed minimum and maximum used for the levels of the moderator and for the axes.
+  </div>
+</header>
+<main id="main">
+
+<p id="selftest" class="status info" hidden></p>
+
+<section class="panel" id="p-load" aria-labelledby="s-load">
+  <h2 id="s-load">1. Load the <span class="mp">M</span><em>plus</em> output</h2>
+  <div class="drop" id="drop">
+    <strong>Choose an output file</strong>
+    <label class="visually-hidden" for="file"><span class="mp">M</span><em>plus</em> output file</label>
+    <input type="file" id="file" accept=".out,.txt,.OUT,.TXT,.log,text/plain,application/octet-stream">
+    <span class="hint">You can also drag the file anywhere on this page.</span>
+    <span class="file-name" id="fname"></span>
+  </div>
+  <div class="actions">
+    <button type="button" class="secondary" id="manualbtn">Enter coefficients by hand</button>
+    <button type="button" class="secondary" id="restorebtn" hidden>Restore the values read from the output</button>
+  </div>
+  <div id="loadmsg" role="status" aria-live="polite"></div>
+</section>
+
+<div class="workspace">
+
+<div>
+  <section class="panel" id="p-vars" aria-labelledby="s-vars" hidden>
+    <h2 id="s-vars">2. Variables and coefficients</h2>
+
+    <fieldset>
+      <legend>Display metric</legend>
+      <div class="check"><input type="radio" name="metric" id="m-raw" value="raw" checked><label for="m-raw">Original metric of the variables</label></div>
+      <div class="check"><input type="radio" name="metric" id="m-std" value="std"><label for="m-std">Standardized (STDYX): X and Y in standard deviation units</label></div>
+      <p class="hint" id="stdnote"></p>
+    </fieldset>
+
+    <div class="field"><label for="selY">Dependent variable (Y)</label><select id="selY"></select></div>
+    <div class="field"><label for="selX">Predictor (X)</label><select id="selX"></select></div>
+
+    <fieldset>
+      <legend>Moderator</legend>
+      <div class="field">
+        <label for="wkind">How the moderator enters the model</label>
+        <select id="wkind">
+          <option value="cont">One continuous variable</option>
+          <option value="cat">One categorical variable with numeric codes</option>
+          <option value="dum">A categorical variable represented by k &minus; 1 dummy variables</option>
+        </select>
+      </div>
+      <div id="wsingle">
+        <div class="field"><label for="selW">Moderator (W)</label><select id="selW"></select></div>
+        <div class="field"><label for="selXW">Product term (X by W)</label><select id="selXW"></select></div>
+        <p class="hint" id="prodnote"></p>
+      </div>
+      <div id="wdummy" hidden>
+        <div class="field">
+          <label for="modname">Name of the categorical moderator</label>
+          <input type="text" id="modname" value="Group">
+        </div>
+        <div class="field">
+          <label for="reflabel">Label of the reference category</label>
+          <input type="text" id="reflabel" value="Reference category">
+        </div>
+        <p class="rowhead">One row per non-reference category: its dummy variable and the matching product with X.</p>
+        <div id="dumrows"></div>
+        <div class="actions"><button type="button" class="secondary" id="adddum">Add a category</button></div>
+        <p class="hint">The reference category is the one without a dummy variable. Its simple slope is b<sub>1</sub>; the slope in category j is b<sub>1</sub> plus the coefficient of the product of X with the dummy of category j.</p>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <div class="field"><label for="b0">b<sub>0</sub> (intercept of Y)</label><input type="number" id="b0" step="any"></div>
+      <div class="field"><label for="b1">b<sub>1</sub> (X)</label><input type="number" id="b1" step="any"></div>
+    </div>
+    <div class="row" id="rowb23">
+      <div class="field"><label for="b2">b<sub>2</sub> (W)</label><input type="number" id="b2" step="any"></div>
+      <div class="field"><label for="b3">b<sub>3</sub> (product)</label><input type="number" id="b3" step="any"></div>
+    </div>
+
+    <fieldset id="manualse" hidden>
+      <legend>Covariance matrix of b<sub>1</sub> and b<sub>3</sub></legend>
+      <p class="hint">The tests of the simple slopes and the Johnson&ndash;Neyman thresholds need the sampling variances of b<sub>1</sub> and b<sub>3</sub> and their covariance. Leave these fields empty to draw the plot without any test.</p>
+      <div class="row">
+        <div class="field"><label for="se1">SE(b<sub>1</sub>)</label><input type="number" id="se1" step="any" min="0"></div>
+        <div class="field"><label for="se3">SE(b<sub>3</sub>)</label><input type="number" id="se3" step="any" min="0"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label for="cov13">Cov(b<sub>1</sub>, b<sub>3</sub>)</label><input type="number" id="cov13" step="any"></div>
+        <div class="field"><label for="cor13">or Corr(b<sub>1</sub>, b<sub>3</sub>)</label><input type="number" id="cor13" step="any" min="-1" max="1"></div>
+      </div>
+    </fieldset>
+
+    <div class="row">
+      <div class="field"><label for="mx">Mean of X</label><input type="number" id="mx" step="any" value="0"></div>
+      <div class="field"><label for="sx">SD of X</label><input type="number" id="sx" step="any" value="1"></div>
+    </div>
+    <div class="row" id="rowmw">
+      <div class="field"><label for="mw">Mean of W</label><input type="number" id="mw" step="any" value="0"></div>
+      <div class="field"><label for="sw">SD of W</label><input type="number" id="sw" step="any" value="1"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="my">Mean of Y</label><input type="number" id="my" step="any" value="0"></div>
+      <div class="field"><label for="sy">SD of Y</label><input type="number" id="sy" step="any" value="1"></div>
+    </div>
+    <p class="hint">Means and standard deviations come from SAMPLE STATISTICS for observed variables and from TECH4 for latent ones. They remain editable and are used for the levels of the moderator, for the axes and for the standardized display.</p>
+  </section>
+
+  <section class="panel" id="p-levels" aria-labelledby="s-levels" hidden>
+    <h2 id="s-levels">3. Levels of the moderator</h2>
+    <div class="gridrow four rowhead" aria-hidden="true">
+      <div>W =</div><div>Label</div><div>Dash pattern</div><div>Marker</div><div></div>
+    </div>
+    <div id="levels"></div>
+    <div class="actions"><button type="button" class="secondary" id="addlev">Add a level</button></div>
+    <p class="hint" id="levnote"></p>
+  </section>
+
+  <section class="panel" id="p-style" aria-labelledby="s-style" hidden>
+    <h2 id="s-style">4. Labels and style</h2>
+    <div class="field"><label for="ftitle">Title (empty for none: in a manuscript the title belongs in the caption)</label><input type="text" id="ftitle" value=""></div>
+    <div class="row">
+      <div class="field"><label for="labx">Label of the horizontal axis</label><input type="text" id="labx"></div>
+      <div class="field"><label for="laby">Label of the vertical axis</label><input type="text" id="laby"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="fontfam">Typeface</label>
+        <select id="fontfam">
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+          <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+          <option value="&quot;Times New Roman&quot;, Times, serif">Times New Roman</option>
+        </select></div>
+      <div class="field"><label for="fsize">Type size (points at the export width)</label><input type="number" id="fsize" value="10" min="7" max="18" step="0.5"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="xmin">Minimum of the horizontal axis</label><input type="number" id="xmin" step="any"></div>
+      <div class="field"><label for="xmax">Maximum of the horizontal axis</label><input type="number" id="xmax" step="any"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="ymin">Minimum of the vertical axis (empty for automatic)</label><input type="number" id="ymin" step="any"></div>
+      <div class="field"><label for="ymax">Maximum of the vertical axis (empty for automatic)</label><input type="number" id="ymax" step="any"></div>
+    </div>
+    <div class="row">
+      <div class="field"><label for="lwid">Line width</label><input type="number" id="lwid" value="2" min="0.5" max="6" step="0.5"></div>
+      <div class="field"><label for="msize">Marker size</label><input type="number" id="msize" value="5" min="3" max="14"></div>
+    </div>
+    <div class="check"><input type="checkbox" id="legend" checked><label for="legend">Legend to the right of the plotting area</label></div>
+    <div class="check"><input type="checkbox" id="legbox"><label for="legbox">Frame around the legend</label></div>
+    <div class="check"><input type="checkbox" id="zeroline"><label for="zeroline">Horizontal line at Y = 0</label></div>
+    <div class="check"><input type="checkbox" id="bands"><label for="bands">95% confidence band around each line</label></div>
+    <div class="check"><input type="checkbox" id="greyscale"><label for="greyscale">Black lines only (dash pattern and marker carry the distinction)</label></div>
+  </section>
+</div>
+
+<div id="results-col" hidden>
+  <section class="panel figpanel" aria-labelledby="s-fig">
+    <h2 id="s-fig">Interaction plot</h2>
+    <div id="fig" role="region" aria-live="polite" aria-labelledby="s-fig"></div>
+    <div class="exportbar" id="figtools" hidden>
+      <div class="field"><label for="wmm">Width (mm)</label><input type="number" id="wmm" value="140" min="60" max="250"></div>
+      <div class="field"><label for="dpi">PNG resolution (dpi)</label>
+        <select id="dpi"><option>300</option><option selected>600</option><option>1200</option></select></div>
+      <div class="buttons">
+        <button type="button" id="fig-svg">Download SVG</button>
+        <button type="button" class="secondary" id="fig-png">Download PNG</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-slopes" aria-labelledby="s-slopes">
+    <h2 id="s-slopes">Simple slopes</h2>
+    <div id="slopes" aria-live="polite"></div>
+    <div id="diffs"></div>
+  </section>
+
+  <section class="panel figpanel" id="p-jn" aria-labelledby="s-jn">
+    <h2 id="s-jn">Johnson&ndash;Neyman</h2>
+    <div id="jntext" aria-live="polite"></div>
+    <div id="jnfig"></div>
+    <div class="exportbar" id="jntools" hidden>
+      <span class="hint">Exported at the width and resolution set for the interaction plot.</span>
+      <div class="buttons">
+        <button type="button" id="jn-svg">Download SVG</button>
+        <button type="button" class="secondary" id="jn-png">Download PNG</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-std" aria-labelledby="s-std">
+    <h2 id="s-std">Standardized solution</h2>
+    <div id="stdsol" aria-live="polite"></div>
+  </section>
+
+  <section class="panel" id="p-new" aria-labelledby="s-new">
+    <h2 id="s-new">Parameters from MODEL CONSTRAINT</h2>
+    <div id="newpars" aria-live="polite"></div>
+  </section>
+</div>
+
+</div>
+
+<section class="tracks" aria-labelledby="s-methods">
+  <h2 id="s-methods">Methods and formulas</h2>
+
+  <h3>The simple slope and its standard error</h3>
+  <p>The model behind every figure on this page is the linear regression of Y on a predictor X, a moderator W and their product, written here with the notation of Aiken and West (1991):</p>
+  <pre class="formula">Y = b0 + b1·X + b2·W + b3·X·W + e</pre>
+  <p>Collecting the terms in X gives the conditional regression of Y on X at a fixed value w of the moderator. Its slope, the simple slope, is a linear function of w:</p>
+  <pre class="formula">Y = (b0 + b2·w) + (b1 + b3·w)·X + e
+simple slope at w:  s(w) = b1 + b3·w</pre>
+  <p>Because s(w) is linear in the estimates, its sampling variance follows from the covariance matrix of the estimates without any approximation beyond the one already made in treating that matrix as the asymptotic covariance matrix. This is the delta method applied to a linear function:</p>
+  <pre class="formula">Var[s(w)] = Var(b1) + w²·Var(b3) + 2·w·Cov(b1, b3)
+z = s(w) / sqrt(Var[s(w)])</pre>
+  <p>The test uses the standard normal distribution, as <span class="mp">M</span><em>plus</em> does, so it is asymptotic rather than an exact t test, and in small samples it should be read with the caution that implies. When the moderator is categorical and represented by dummy variables, the slope in category j is b1 + gj, where gj is the coefficient of the product of X with the dummy of category j, and its variance is read from the same matrix:</p>
+  <pre class="formula">Var(b1 + gj) = Var(b1) + Var(gj) + 2·Cov(b1, gj)</pre>
+  <p>The difference between the slopes of two non-reference categories i and j is gi &minus; gj, with variance Var(gi) + Var(gj) &minus; 2·Cov(gi, gj); the difference between category j and the reference category is gj itself.</p>
+
+  <h3>The Johnson&ndash;Neyman quadratic</h3>
+  <p>Johnson and Neyman (1936) asked for which values of the moderator the conditional effect is distinguishable from zero. Setting the square of the test statistic equal to the square of the critical value z<sub>.975</sub> = 1.96 and clearing the denominator turns that question into a quadratic equation in w (Bauer &amp; Curran, 2005; Preacher, Curran &amp; Bauer, 2006):</p>
+  <pre class="formula">[s(w)]² = z².Var[s(w)]
+a·w² + b·w + c = 0, with
+  a = b3² &minus; z²·Var(b3)
+  b = 2·[b1·b3 &minus; z²·Cov(b1, b3)]
+  c = b1² &minus; z²·Var(b1)</pre>
+  <p>The quantity q(w) = a·w² + b·w + c is positive exactly where the simple slope differs from zero at the 5% level. When a is positive the region of significance lies outside the two roots, when a is negative it lies between them; this page also evaluates q at the midpoint of each interval and reports a warning if the two ways of deciding disagree. Only roots that fall inside the range of the moderator the data actually cover are reported and drawn, because a threshold outside that range describes no observable case. That range is read from the univariate sample statistics when the output contains them, and is otherwise taken as the mean plus or minus three standard deviations; the page states which of the two was used. The procedure does not apply to a categorical moderator, whose intermediate values do not exist.</p>
+
+  <h3>The standardized solution for a product term</h3>
+  <p>In a standardized solution the coefficient of a product term is not obtained by dividing by the standard deviation of the product. The STDYX section of M<em>plus</em> divides every coefficient by the standard deviation of its own predictor, and for the product that predictor is XW, whose standard deviation is not SD(X)·SD(W). Wen, Marsh and Hau (2010) show that the appropriate standardized solution rescales the product coefficient by the standard deviations of the two components instead:</p>
+  <pre class="formula">b1* = b1·SD(X)/SD(Y)   b2* = b2·SD(W)/SD(Y)   b3* = b3·SD(X)·SD(W)/SD(Y)</pre>
+  <p>Under this rescaling the standardized simple slope of X on Y at a value w of the moderator is b1* + b3*·w/SD(W), so the standardized coefficients and the standardized simple slopes describe the same equation, and all three are unchanged when X, W or Y is measured in different units. The value of b1* is the standardized effect of X at W = 0, which is the mean of W only when the moderator is centered; with latent variables, whose means M<em>plus</em> fixes at zero, it always is. The page reports both columns and states which is which: for X and for W the two agree, and for the product they differ by construction.</p>
+  <p>When the interaction is between latent variables defined with XWITH, <span class="mp">M</span><em>plus</em> does not always print a standardized solution, because the product is not a variable of the model and has no estimated variance of its own. The total variance of Y is then reconstructed from the model under joint normality of X and W, using the variance of a product of two normal variables given by Bohrnstedt and Goldberger (1969):</p>
+  <pre class="formula">Var(XW) = Var(X)·Var(W) + Cov(X,W)² + m(X)²·Var(W) + m(W)²·Var(X) + 2·m(X)·m(W)·Cov(X,W)
+Cov(X, XW) = m(W)·Var(X) + m(X)·Cov(X,W)
+Cov(W, XW) = m(X)·Var(W) + m(W)·Cov(X,W)
+Var(Y) = b1²Var(X) + b2²Var(W) + b3²Var(XW)
+         + 2b1b2Cov(X,W) + 2b1b3Cov(X,XW) + 2b2b3Cov(W,XW) + Var(e)</pre>
+  <p>This is the same distributional assumption on which the latent moderated structural equations approach of Klein and Moosbrugger (2000) rests, and the reconstruction is reported as a reconstruction whenever it is used.</p>
+
+  <h3>Predicted values and confidence bands</h3>
+  <p>Each line in the figure is the predicted value of Y as a function of X at one value of the moderator. When the model contains predictors other than X, W and their product, they are held at their sample means, and the product of each coefficient with its mean is added to the intercept; when a mean is not available in the output the page says so and holds that predictor at zero. The confidence band around a line is the 95% interval for the conditional mean, computed from the same parameter covariance matrix as a quadratic form:</p>
+  <pre class="formula">Var(Ŷ | x, w) = r'·V·r, with r the row of the design at (x, w)
+band: Ŷ ± 1.96·sqrt(Var(Ŷ | x, w))</pre>
+  <p>The band requires the intercept, X, W and the product to be located in TECH1, and every other predictor of Y as well; when one of them cannot be located the band is omitted and the reason is stated under the figure.</p>
+
+  <h3>What TECH1 and TECH3 contain</h3>
+  <p>TECH1 prints the parameter specification: each free parameter of the model receives a number, and the numbers are laid out in the matrices of the general model, so that the coefficient of X in the regression of Y appears as an entry of BETA or GAMMA in row Y and column X, and the intercept of Y appears in ALPHA or NU. <span class="mp">M</span><em>plus</em> prints these matrices in blocks of five columns, repeating the name of the matrix above each block, so a parser that stops at the first block loses every column from the sixth onwards; this page reads every block and keeps the column headings of each. TECH3 prints the covariance matrix of the parameter estimates, indexed by the same numbers. Reading the two together gives the exact sampling variances and covariance that the delta method needs. When TECH3 is absent, the page falls back on three simple slopes computed in MODEL CONSTRAINT as NEW parameters, from which the three quantities Var(b1), Var(b3) and Cov(b1, b3) can be recovered by solving a linear system in three unknowns; those values carry the rounding of the three printed decimals, so TECH3 is preferred whenever it is available. A NEW parameter is used only when its name identifies it as a simple slope, so that an indirect or total effect that happens to fall near the same value is never mistaken for one.</p>
+
+  <h3>Reading the output file</h3>
+  <p>Files are read as raw bytes and decoded by inspecting the byte-order mark and by testing whether the content is valid UTF-8, falling back on Windows-1252, which is what <span class="mp">M</span><em>plus</em> writes on Windows. Fortran exponents of the form 0.123D-03 are converted before conversion to a number, a row of asterisks in place of a value is reported as unread rather than silently dropped, and the sentinel 999.000 on all four columns is treated as a value <span class="mp">M</span><em>plus</em> could not compute. The page refuses two-level, mixture, multiple-group and Bayesian outputs, whose MODEL RESULTS sections are organized differently; a file that ends before MODEL RESULTS, which comes from a run that was interrupted; a file with none of the headings <span class="mp">M</span><em>plus</em> always writes; an empty file; and a run that did not reach convergence. Each refusal names what was found. The estimator is read from SUMMARY OF ANALYSIS, and from the echoed input only when that section does not state it, in which case the page says so, because the estimator asked for in the input is not always the one the run used. It is never assumed.</p>
+
+  <h3>Self-test</h3>
+  <p>Opening this page with <code>?selftest=1</code> appended to its address runs its numerical checks in the browser and prints the outcome and the number of checks at the top, with every check listed under it. They cover the two-sided normal tail against published values from z = 1 to z = 8; the simple slope and its delta-method variance over 2400 random problems, against the quadratic form written out separately and against a Monte Carlo of 200000 draws from the sampling distribution of the estimates; the identity on which the Johnson&ndash;Neyman quadratic rests, checked on 401 grid points in each of 2400 problems, together with the requirement that the test statistic change side of the critical value at the reported roots and nowhere else; a quadratic with no real root, with a discriminant of exactly zero, with a vanishing quadratic term and with two real roots; a slope significant over the whole range and one significant nowhere; the standardized transformation of a product term; the variance of a predicted mean, against a double loop and against a Monte Carlo; the simple slopes of a categorical moderator with three and with five categories and every difference between them; the refusal of two-level, mixture, multiple-group and Bayesian outputs; the parsers for TECH1 across twelve columns, for TECH3 with Fortran D exponents, and for the univariate sample statistics; the codes of a moderator dummy coded 0/1 and 1/2 and with three, five and ten categories; manual entry without a covariance between the estimates; and a moderator with no variance.</p>
+</section>
+
+<section class="tracks" aria-labelledby="s-ref">
+  <h2 id="s-ref">References</h2>
+  <ul class="refs">
+    <li>Aiken, L. S., &amp; West, S. G. (1991). <em>Multiple regression: Testing and interpreting interactions</em>. Sage.</li>
+    <li>Bauer, D. J., &amp; Curran, P. J. (2005). Probing interactions in fixed and multilevel regression: Inferential and graphical techniques. <em>Multivariate Behavioral Research, 40</em>(3), 373&ndash;400. https://doi.org/10.1207/s15327906mbr4003_5</li>
+    <li>Bohrnstedt, G. W., &amp; Goldberger, A. S. (1969). On the exact covariance of products of random variables. <em>Journal of the American Statistical Association, 64</em>(328), 1439&ndash;1442. https://doi.org/10.1080/01621459.1969.10501069</li>
+    <li>Johnson, P. O., &amp; Neyman, J. (1936). Tests of certain linear hypotheses and their application to some educational problems. <em>Statistical Research Memoirs, 1</em>, 57&ndash;93. (No digital object identifier: the series predates them.)</li>
+    <li>Klein, A., &amp; Moosbrugger, H. (2000). Maximum likelihood estimation of latent interaction effects with the LMS method. <em>Psychometrika, 65</em>(4), 457&ndash;474. https://doi.org/10.1007/BF02296338</li>
+    <li>Preacher, K. J., Curran, P. J., &amp; Bauer, D. J. (2006). Computational tools for probing interactions in multiple linear regression, multilevel modeling, and latent curve analysis. <em>Journal of Educational and Behavioral Statistics, 31</em>(4), 437&ndash;448. https://doi.org/10.3102/10769986031004437</li>
+    <li>Wen, Z., Marsh, H. W., &amp; Hau, K.-T. (2010). Structural equation models of latent interactions: An appropriate standardized solution and its scale-free properties. <em>Structural Equation Modeling, 17</em>(1), 1&ndash;22. https://doi.org/10.1080/10705510903438872</li>
+  </ul>
+</section>
+
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+"use strict";
+
+/* ---------------------------------------------------------------------------
+   Constants and small helpers
+--------------------------------------------------------------------------- */
+const $ = id => document.getElementById(id);
+const Z95 = 1.959963984540054;
+
+/* The name of the program, written once so that every message spells it the
+   same way: upright M, "plus" in italics, and the M set upright again by the
+   class when the surrounding text is italic. */
+const MP = '<span class="mp">M</span><em>plus</em>';
+
+/* Okabe-Ito palette. The first entry is black, so a figure with two lines is
+   already readable in grayscale before the dash patterns are taken into
+   account. Colour is never the only difference between two lines. */
+const OKABE = ["#000000", "#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9"];
+const DASH = { "solid": "", "dashed": "10,6", "dotted": "2,5", "dash-dot": "11,5,2,5", "long dash": "20,8" };
+const DASH_ORDER = ["solid", "dashed", "dotted", "dash-dot", "long dash"];
+const MARKERS = ["none", "filled circle", "open circle", "filled square", "open square", "filled triangle", "open triangle"];
+
+const S = {
+  raw: "", loaded: false, manual: false,
+  reg: {}, regInfo: {}, inter: {}, means: {}, vars: {}, residuals: {}, withCov: {},
+  regStd: {}, regStdInfo: {}, interStd: {}, residualsStd: {},
+  newPar: [], latent: [], truncated: [],
+  sampMeans: {}, sampVars: {}, sampCov: {}, uni: {},
+  latentMeans: {}, latentVars: {},
+  n: NaN, estimator: "", tech1: {}, tech3: {}, xwith: [], defined: [],
+  levels: [], dummies: [],
+  slopeEdited: false, anyEdited: false, autoProduct: null
+};
+
+function esc(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function num(id) { const v = $(id).value.trim(); return v === "" ? NaN : Number(v); }
+/* A true minus sign, not a hyphen: the tables, the running text and the labels
+   inside the figures all pass through these, so a number written in a caption
+   and the same number written on an axis are the same string. */
+function minus(t) { return String(t).replace(/-/g, "\u2212"); }
+function fmt3(x) { return Number.isFinite(x) ? minus(x.toFixed(3)) : "—"; }
+function fmt2(x) { return Number.isFinite(x) ? minus(x.toFixed(2)) : "—"; }
+/* APA style for probabilities: no leading zero, three decimals, < .001 below that. */
+function fmtP(p) { return !Number.isFinite(p) ? "—" : (p < 0.001 ? "< .001" : "= " + p.toFixed(3).replace(/^0/, "")); }
+function fmtAxis(x) { const a = Math.abs(x); return minus(Number(x).toFixed(a >= 100 ? 0 : a >= 10 ? 1 : 2)); }
+function round3(x) { return Math.round(x * 1000) / 1000; }
+function statusBox(kind, tag, html) {
+  return '<div class="status ' + kind + '"><p><span class="tag">' + esc(tag) + '</span>' + html + '</p></div>';
+}
+
+/* ---------------------------------------------------------------------------
+   Reading the file. Mplus on Windows writes output in Windows-1252, not UTF-8,
+   so the file is read as bytes and the encoding is decided from the byte-order
+   mark and from whether the content decodes as valid UTF-8.
+--------------------------------------------------------------------------- */
+function decodeBuffer(ab) {
+  const u8 = new Uint8Array(ab);
+  if (typeof TextDecoder === "undefined") {
+    let s = ""; for (let i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]); return s;
+  }
+  if (u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE) {
+    try { return new TextDecoder("utf-16le").decode(u8.subarray(2)); } catch (e) { /* fall through */ }
+  }
+  if (u8.length >= 2 && u8[0] === 0xFE && u8[1] === 0xFF) {
+    try { return new TextDecoder("utf-16be").decode(u8.subarray(2)); } catch (e) { /* fall through */ }
+  }
+  let body = u8;
+  if (u8.length >= 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF) body = u8.subarray(3);
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(body); } catch (e) { /* not UTF-8 */ }
+  try { return new TextDecoder("windows-1252").decode(body); } catch (e) { /* fall through */ }
+  return new TextDecoder("utf-8").decode(body);
+}
+function readTextFile(file, then, fail) {
+  const r = new FileReader();
+  r.onerror = () => { if (fail) fail(); };
+  if (typeof r.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined") {
+    r.onload = e => {
+      const res = e && e.target ? e.target.result : r.result;
+      try { then(decodeBuffer(res)); } catch (err) { if (fail) fail(err); }
+    };
+    r.readAsArrayBuffer(file);
+  } else {
+    r.onload = e => then((e && e.target ? e.target.result : r.result) || "");
+    r.readAsText(file);
+  }
+}
+
+function normalize(t) { return String(t || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n"); }
+/* Mplus prints very small values in Fortran notation, 0.123D-03; Number() would
+   read them as NaN and the corresponding variance would disappear silently. */
+function numD(x) { return Number(String(x).replace(/[Dd]([+-]?\d)/, "e$1")); }
+function section(t, start, ends) {
+  const i = t.indexOf(start); if (i < 0) return null;
+  let stop = t.length;
+  for (const f of ends) { const j = t.indexOf(f, i + start.length); if (j >= 0 && j < stop) stop = j; }
+  return t.slice(i, stop);
+}
+
+/* ---------------------------------------------------------------------------
+   MODEL RESULTS and STDYX blocks
+--------------------------------------------------------------------------- */
+function parseParameters(sec) {
+  const reg = {}, regInfo = {}, inter = {}, means = {}, vars = {}, residuals = {},
+        withCov = {}, newPar = [], latent = [], truncated = [];
+  const out = { reg, regInfo, inter, means, vars, residuals, withCov, newPar, latent, truncated };
+  if (!sec) return out;
+  const rows = sec.split("\n");
+  let mode = null, dep = null;
+  const rxOn = /^\s*([A-Z0-9_]+)\s+ON\s*$/i, rxBy = /^\s*([A-Z0-9_]+)\s+BY\s*$/i, rxWith = /^\s*([A-Z0-9_]+)\s+WITH\s*$/i;
+  /* A row of asterisks replaces a value that does not fit the print field, and
+     Fortran exponents may appear in any of the four columns. Without both cases
+     the coefficient disappears and the page proceeds as if the term did not exist. */
+  const NUMV = "(-?(?:\\d+\\.?\\d*|\\.\\d+)(?:[EeDd][+-]?\\d+)?|\\*+)";
+  const rxVal = new RegExp("^\\s+([A-Z0-9_]+)\\s+" + NUMV + "\\s+" + NUMV + "\\s+" + NUMV + "\\s+" + NUMV + "\\s*$");
+  for (const r of rows) {
+    let m;
+    if ((m = rxOn.exec(r))) { mode = "on"; dep = m[1].toUpperCase(); if (!reg[dep]) reg[dep] = {}; if (!regInfo[dep]) regInfo[dep] = {}; continue; }
+    if ((m = rxBy.exec(r))) { mode = "skip"; const n = m[1].toUpperCase(); if (!latent.includes(n)) latent.push(n); continue; }
+    /* WITH rows carry the covariances among factors. Without them the implied
+       variance of the dependent variable in a model with XWITH cannot be
+       computed and the standardized solution cannot be reconstructed. */
+    if ((m = rxWith.exec(r))) { mode = "with"; dep = m[1].toUpperCase(); continue; }
+    if (/^\s*Intercepts\s*$/i.test(r)) { mode = "int"; continue; }
+    if (/^\s*Means\s*$/i.test(r)) { mode = "mean"; continue; }
+    if (/^\s*Variances\s*$/i.test(r)) { mode = "var"; continue; }
+    if (/^\s*Residual Variances\s*$/i.test(r)) { mode = "resid"; continue; }
+    if (/^\s*New\/Additional Parameters\s*$/i.test(r)) { mode = "new"; continue; }
+    if ((m = rxVal.exec(r))) {
+      const name = m[1].toUpperCase();
+      const g = x => /^\*/.test(x) ? NaN : numD(x);
+      const est = g(m[2]), se = g(m[3]), z = g(m[4]), p = g(m[5]);
+      /* 999.000 on all four columns is how Mplus reports a value it could not
+         compute. A fixed parameter instead has a real estimate, a standard
+         error of 0.000 and 999.000 only on z and p: that one is read. */
+      if (est === 999 && se === 999 && z === 999 && p === 999) { truncated.push(name + " (999.000, not computable)"); continue; }
+      if (!Number.isFinite(est)) { truncated.push(name); continue; }
+      if (mode === "on" && dep) { reg[dep][name] = est; regInfo[dep][name] = { est, se, z, p }; }
+      else if (mode === "int") inter[name] = est;
+      else if (mode === "mean") means[name] = est;
+      else if (mode === "var") vars[name] = est;
+      else if (mode === "resid") residuals[name] = est;
+      else if (mode === "with" && dep) { withCov[dep + "|" + name] = est; withCov[name + "|" + dep] = est; }
+      else if (mode === "new") newPar.push({ name, est, se, z, p });
+    }
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------------------
+   SAMPLE STATISTICS: means and covariances
+--------------------------------------------------------------------------- */
+function parseSampleStatistics(t) {
+  const means = {}, vars = {}, covs = {};
+  const sec = section(t, "SAMPLE STATISTICS", ["UNIVARIATE SAMPLE STATISTICS", "THE MODEL ESTIMATION", "MODEL FIT INFORMATION", "MODEL RESULTS"]);
+  if (!sec) return { means, vars, covs };
+  const lines = sec.split("\n");
+  let mode = null, cols = [];
+  for (let i = 0; i < lines.length; i++) {
+    const r = lines[i];
+    if (/^\s*Means\s*$/i.test(r)) { mode = "m"; continue; }
+    if (/^\s*Covariances\s*$/i.test(r)) { mode = "c"; continue; }
+    if (/^\s*Correlations\s*$/i.test(r)) { mode = null; continue; }
+    if (/^\s+[A-Z][A-Z0-9_]*(?:\s+[A-Z][A-Z0-9_]*)*\s*$/i.test(r) && (lines[i + 1] || "").includes("____")) {
+      cols = r.trim().toUpperCase().split(/\s+/);
+      if (mode === "m" && lines[i + 2]) {
+        /* Mplus prints vectors as one-row matrices, with the row label "1" in
+           front of the values. Read as if it were the first mean, it shifts
+           every other value one column to the left and the simple slopes end up
+           computed at the wrong levels of the moderator. The values are
+           therefore aligned on the LAST columns of the heading. */
+        let tk = lines[i + 2].trim().split(/\s+/);
+        if (tk.length > cols.length) tk = tk.slice(tk.length - cols.length);
+        const vals = tk.map(numD);
+        cols.forEach((n, k) => { if (Number.isFinite(vals[k])) means[n] = vals[k]; });
+      }
+      continue;
+    }
+    if (mode === "c") {
+      const toks = r.trim().split(/\s+/); if (toks.length < 2) continue;
+      const rn = toks[0].toUpperCase();
+      if (!/^[A-Z][A-Z0-9_]*$/.test(rn)) continue;
+      const vals = toks.slice(1).map(numD), j = cols.indexOf(rn);
+      vals.forEach((v, k) => { if (k < cols.length && Number.isFinite(v)) { covs[rn + "|" + cols[k]] = v; covs[cols[k] + "|" + rn] = v; } });
+      if (j >= 0 && Number.isFinite(vals[j])) vars[rn] = vals[j];
+    }
+  }
+  return { means, vars, covs };
+}
+
+/* ---------------------------------------------------------------------------
+   UNIVARIATE SAMPLE STATISTICS: observed minimum and maximum.
+   Mplus prints two lines per variable. The first carries the name, the mean,
+   the skewness and the minimum; the second carries the sample size, the
+   variance, the kurtosis and the maximum.
+--------------------------------------------------------------------------- */
+function parseUnivariate(t) {
+  const out = {};
+  const sec = section(t, "UNIVARIATE SAMPLE STATISTICS",
+    ["THE MODEL ESTIMATION", "MODEL FIT INFORMATION", "MODEL RESULTS", "UNIVARIATE PROPORTIONS", "RESULTS FOR BASIC ANALYSIS"]);
+  if (!sec) return out;
+  const NUM = "-?(?:\\d+\\.?\\d*|\\.\\d+)(?:[EeDd][+-]?\\d+)?";
+  const rxRow = new RegExp("^\\s{2,}([A-Z][A-Z0-9_]*)\\s+(" + NUM + ")\\s+(" + NUM + ")\\s+(" + NUM + ")(?:\\s|$)");
+  const rxNum = new RegExp(NUM, "g");
+  const lines = sec.split("\n");
+  for (let i = 0; i < lines.length - 1; i++) {
+    const m = rxRow.exec(lines[i]);
+    if (!m) continue;
+    const second = (lines[i + 1].match(rxNum) || []).map(numD);
+    if (second.length < 4 || !(second[0] > 0)) continue;
+    const min = numD(m[4]), max = second[3];
+    if (Number.isFinite(min) && Number.isFinite(max) && max > min) out[m[1].toUpperCase()] = { min, max };
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------------------
+   TECH4: estimated means and covariance matrix of the latent variables
+--------------------------------------------------------------------------- */
+function parseTech4(t) {
+  const means = {}, vars = {};
+  const sec = section(t, "TECHNICAL 4 OUTPUT", ["TECHNICAL 5 OUTPUT", "DIAGRAM INFORMATION", "SAVEDATA", "MUTHEN & MUTHEN"]);
+  if (!sec) return { means, vars };
+  /* The block of means has to be closed even when the output contains no block
+     of standard errors, or the first row of the covariance matrix that follows
+     would be read as a vector of means. */
+  const ms = section(sec, "ESTIMATED MEANS FOR THE LATENT VARIABLES",
+    ["S.E. FOR ESTIMATED MEANS", "ESTIMATED COVARIANCE MATRIX FOR THE LATENT VARIABLES",
+     "ESTIMATED CORRELATION MATRIX FOR THE LATENT VARIABLES", "S.E. FOR ESTIMATED COVARIANCE"]);
+  if (ms) {
+    const ls = ms.split("\n");
+    for (let i = 0; i < ls.length - 2; i++) {
+      if (/^\s+[A-Z][A-Z0-9_]*(?:\s+[A-Z][A-Z0-9_]*)*\s*$/i.test(ls[i]) && ls[i + 1].includes("____")) {
+        const names = ls[i].trim().toUpperCase().split(/\s+/);
+        let toks = ls[i + 2].trim().split(/\s+/);
+        if (toks.length > names.length) toks = toks.slice(toks.length - names.length);
+        const vals = toks.map(numD);
+        names.forEach((n, k) => { if (Number.isFinite(vals[k])) means[n] = vals[k]; });
+      }
+    }
+  }
+  /* Same reason here: without closing the section, the correlation matrix that
+     follows would overwrite the variances with 1.000. */
+  const cs = section(sec, "ESTIMATED COVARIANCE MATRIX FOR THE LATENT VARIABLES",
+    ["S.E. FOR ESTIMATED COVARIANCE MATRIX", "ESTIMATED CORRELATION MATRIX FOR THE LATENT VARIABLES", "S.E. FOR ESTIMATED CORRELATION"]);
+  if (cs) {
+    const ls = cs.split("\n"); let cols = [];
+    for (let i = 0; i < ls.length; i++) {
+      const r = ls[i];
+      if (/^\s+[A-Z][A-Z0-9_]*(?:\s+[A-Z][A-Z0-9_]*)*\s*$/i.test(r) && (ls[i + 1] || "").includes("____")) { cols = r.trim().toUpperCase().split(/\s+/); continue; }
+      const toks = r.trim().split(/\s+/); if (toks.length < 2) continue;
+      const rn = toks[0].toUpperCase(); if (!/^[A-Z][A-Z0-9_]*$/.test(rn)) continue;
+      const vals = toks.slice(1).map(numD), j = cols.indexOf(rn);
+      if (j >= 0 && Number.isFinite(vals[j])) vars[rn] = vals[j];
+    }
+  }
+  return { means, vars };
+}
+
+/* ---------------------------------------------------------------------------
+   TECH1: parameter specification.
+   Mplus prints one matrix at a time, and prints wide matrices in blocks of five
+   columns, repeating the name of the matrix above each block. Every block is
+   read and the column headings of each are kept; stopping at the first block
+   would lose the sixth column onwards, and with it the parameter numbers of
+   every predictor after the fifth.
+--------------------------------------------------------------------------- */
+const TECH1_MATRICES = /^(NU|LAMBDA|THETA|ALPHA|BETA|GAMMA|PSI|PHI|KAPPA|TAU|DELTA|SIGMA)$/;
+function parseTech1(t) {
+  const mats = {};
+  const t1 = section(t, "TECHNICAL 1 OUTPUT",
+    ["TECHNICAL 2 OUTPUT", "TECHNICAL 3 OUTPUT", "TECHNICAL 4 OUTPUT", "DIAGRAM INFORMATION", "SAVEDATA"]);
+  if (!t1) return mats;
+  /* Only the parameter specification is read: the starting values that follow
+     repeat the same matrix names with real numbers in place of the indices. */
+  const spec = section(t1, "PARAMETER SPECIFICATION", ["STARTING VALUES"]) || t1;
+  const ls = spec.split("\n");
+  let cur = null, cols = [];
+  for (let i = 0; i < ls.length; i++) {
+    const tr = ls[i].trim();
+    if (!tr) continue;
+    if (/^_+$/.test(tr.replace(/\s+/g, ""))) continue;
+    const underlined = (ls[i + 1] || "").indexOf("____") >= 0;
+    if (underlined) {
+      if (/^[A-Za-z][A-Za-z0-9_#]*(?:\s+[A-Za-z][A-Za-z0-9_#]*)*$/.test(tr)) cols = tr.toUpperCase().split(/\s+/);
+      continue;
+    }
+    const mm = tr.match(/^(?:PARAMETER SPECIFICATION FOR\s+)?([A-Z][A-Z0-9_]*)$/);
+    if (mm && TECH1_MATRICES.test(mm[1])) { cur = mm[1]; if (!mats[cur]) mats[cur] = {}; cols = []; continue; }
+    if (!cur || !cols.length) continue;
+    const toks = tr.split(/\s+/);
+    if (/^[A-Za-z][A-Za-z0-9_#]*$/.test(toks[0]) && toks.length > 1) {
+      const vals = toks.slice(1).map(Number);
+      if (!vals.every(v => Number.isInteger(v))) continue;
+      const rn = toks[0].toUpperCase();
+      if (!mats[cur][rn]) mats[cur][rn] = {};
+      cols.forEach((cn, j) => { if (Number.isFinite(vals[j])) mats[cur][rn][cn] = vals[j]; });
+    } else if (toks.every(x => /^\d+$/.test(x))) {
+      /* A vector such as NU or ALPHA is printed as a single row of numbers with
+         no row label. It is stored under the row name "1". */
+      const vals = toks.map(Number);
+      if (!mats[cur]["1"]) mats[cur]["1"] = {};
+      cols.forEach((cn, j) => { if (Number.isFinite(vals[j])) mats[cur]["1"][cn] = vals[j]; });
+    }
+  }
+  return mats;
+}
+
+/* ---------------------------------------------------------------------------
+   TECH3: covariance matrix of the parameter estimates, indexed by the numbers
+   that TECH1 assigns. Printed as a lower triangle in blocks of columns.
+--------------------------------------------------------------------------- */
+function parseTech3(t) {
+  const cov = {};
+  const t3 = section(t, "TECHNICAL 3 OUTPUT", ["TECHNICAL 4 OUTPUT", "TECHNICAL 5 OUTPUT", "DIAGRAM INFORMATION", "SAVEDATA", "MUTHEN & MUTHEN"]);
+  if (!t3) return cov;
+  const i0 = t3.indexOf("ESTIMATED COVARIANCE MATRIX FOR PARAMETER ESTIMATES");
+  if (i0 < 0) return cov;
+  let stop = t3.indexOf("ESTIMATED CORRELATION MATRIX", i0); if (stop < 0) stop = t3.length;
+  const ls = t3.slice(i0, stop).split("\n");
+  let cols = [];
+  for (const r of ls) {
+    const toks = r.trim().split(/\s+/).filter(Boolean);
+    if (!toks.length) continue;
+    if (toks.every(x => /^\d+$/.test(x))) { cols = toks.map(Number); continue; }
+    if (/^\d+$/.test(toks[0]) && toks.length > 1) {
+      const ri = +toks[0], vals = toks.slice(1).map(numD);
+      if (vals.some(v => !Number.isFinite(v))) continue;
+      vals.forEach((v, k) => { if (k < cols.length) { cov[ri + "," + cols[k]] = v; cov[cols[k] + "," + ri] = v; } });
+    }
+  }
+  return cov;
+}
+
+/* ---------------------------------------------------------------------------
+   Echoed input: XWITH definitions and products built in DEFINE. These are the
+   only places in an output file where the composition of a product term is
+   stated rather than guessed from its name.
+--------------------------------------------------------------------------- */
+function parseDefinitions(t) {
+  const out = { xwith: [], defined: [] };
+  const inp = section(t, "INPUT INSTRUCTIONS", ["INPUT READING TERMINATED", "SUMMARY OF ANALYSIS", "*** WARNING", "*** ERROR"]);
+  if (!inp) return out;
+  const rx = /([A-Za-z][A-Za-z0-9_]*)\s*\|\s*([A-Za-z][A-Za-z0-9_]*)\s+XWITH\s+([A-Za-z][A-Za-z0-9_]*)/gi;
+  let m;
+  while ((m = rx.exec(inp))) out.xwith.push({ prod: m[1].toUpperCase(), a: m[2].toUpperCase(), b: m[3].toUpperCase(), how: "an XWITH definition" });
+  const def = section(inp, "DEFINE:", ["ANALYSIS:", "MODEL:", "OUTPUT:", "SAVEDATA:", "PLOT:"]);
+  if (def) {
+    const rx2 = /([A-Za-z][A-Za-z0-9_]*)\s*=\s*([A-Za-z][A-Za-z0-9_]*)\s*\*\s*([A-Za-z][A-Za-z0-9_]*)\s*;/gi;
+    let d;
+    while ((d = rx2.exec(def))) out.defined.push({ prod: d[1].toUpperCase(), a: d[2].toUpperCase(), b: d[3].toUpperCase(), how: "a DEFINE statement" });
+  }
+  return out;
+}
+
+/* ---------------------------------------------------------------------------
+   Output types this page does not handle. Each is refused with a message that
+   names what was found, and the estimator is never assumed.
+--------------------------------------------------------------------------- */
+function unsupportedReason(t) {
+  const mg = /^\s*Number of groups\s+(\d+)\s*$/mi.exec(t);
+  if (mg && +mg[1] > 1) return "This output has " + mg[1] + " groups. MODEL RESULTS then repeats the coefficients group by group, and this page cannot tell which block a product term belongs to. Use a single-group output.";
+  if (/TYPE\s+(?:IS|ARE|=)\s+[A-Z ]*TWOLEVEL/i.test(t) || /^\s*(Within|Between)\s+Level\s*$/mi.test(t) || /^\s*Number of clusters\s+\d+/mi.test(t))
+    return "This output is from a two-level model (it contains Within and Between headings or a number of clusters). The coefficients are split across levels and a simple slope means something different at each level; this page reads single-level outputs.";
+  if (/^\s*Latent Class(es)?\b/mi.test(t) || /FINAL CLASS COUNTS/i.test(t) || /CLASSES\s*(?:ARE|=)/i.test(t))
+    return "This output is from a mixture model (it contains latent class headings). MODEL RESULTS repeats the coefficients class by class, and this page reads outputs with a single set of coefficients.";
+  return null;
+}
+
+/* ---------------------------------------------------------------------------
+   Everything the page reads from one file
+--------------------------------------------------------------------------- */
+function parseOutput(text) {
+  const t = normalize(text);
+  const mres = section(t, "MODEL RESULTS",
+    ["STANDARDIZED MODEL RESULTS", "QUALITY OF NUMERICAL RESULTS", "R-SQUARE", "TECHNICAL", "CONFIDENCE INTERVALS", "TOTAL, TOTAL INDIRECT"]);
+  /* With OUTPUT: STANDARDIZED; Mplus prints three sections in a row, STDYX,
+     STDY and STD, with the same parameter names and different values. If the
+     STDYX section is not closed before the other two, its values are overwritten
+     by the STD ones and the page would report as STDYX a solution standardized
+     in another way. */
+  const sres = section(t, "STDYX Standardization",
+    ["STDY Standardization", "STD Standardization", "R-SQUARE", "QUALITY OF NUMERICAL RESULTS", "CONFIDENCE INTERVALS", "TECHNICAL", "STANDARDIZED TOTAL"]);
+  const p = parseParameters(mres), ps = parseParameters(sres || "");
+  const ss = parseSampleStatistics(t), t4 = parseTech4(t), defs = parseDefinitions(t);
+  const mn = /Number of observations[^\S\n]+(\d+)/i.exec(t);
+  /* The estimator is read in SUMMARY OF ANALYSIS, where it stands alone on its
+     line. Searching the whole text finds the echoed input first, and the form
+     "ESTIMATOR IS MLR;" would record the estimator "IS". */
+  const iSum = t.indexOf("SUMMARY OF ANALYSIS");
+  const zone = iSum >= 0 ? t.slice(iSum) : t;
+  let me = /^\s*Estimator\s+([A-Z0-9_-]+)\s*$/m.exec(zone);
+  /* Failing that, the echoed input. The estimator is then the one asked for
+     rather than the one the run reports, which the loading message says.
+     ANALYSIS: and the estimator often share a line, so the anchor allows a
+     command name in front of it. */
+  let meFromInput = false;
+  if (!me) { me = /(?:^|[\n;:])[^\S\n]*ESTIMATOR\s*(?:IS|ARE|=)\s*([A-Z0-9_-]+)\s*;/i.exec(t); meFromInput = !!me; }
+  return {
+    raw: t, truncated: p.truncated, reg: p.reg, regInfo: p.regInfo, inter: p.inter, means: p.means,
+    vars: p.vars, residuals: p.residuals, withCov: p.withCov, newPar: p.newPar,
+    latent: [...new Set([...p.latent, ...Object.keys(t4.vars)])],
+    regStd: ps.reg, regStdInfo: ps.regInfo, interStd: ps.inter, residualsStd: ps.residuals,
+    sampMeans: ss.means, sampVars: ss.vars, sampCov: ss.covs, uni: parseUnivariate(t),
+    latentMeans: t4.means, latentVars: t4.vars,
+    n: mn ? +mn[1] : NaN, estimator: me ? me[1].toUpperCase() : "", estimatorFromInput: meFromInput,
+    tech1: parseTech1(t), tech3: parseTech3(t), xwith: defs.xwith, defined: defs.defined
+  };
+}
+
+/* ---------------------------------------------------------------------------
+   Lookups on the parsed output
+--------------------------------------------------------------------------- */
+function up(v) { return String(v || "").toUpperCase(); }
+function meanOf(v) {
+  v = up(v);
+  if (v in S.latentMeans) return S.latentMeans[v];
+  if (v in S.sampMeans) return S.sampMeans[v];
+  if (v in S.means) return S.means[v];
+  return NaN;
+}
+/* Order of the sources for a total variance: TECH4 for latent variables,
+   SAMPSTAT for observed ones, and the Variances block of MODEL RESULTS, which
+   with XWITH is often the only place where the variance of an exogenous factor
+   appears. */
+function varOf(v) {
+  v = up(v);
+  if (v in S.latentVars) return S.latentVars[v];
+  if (v in S.sampVars) return S.sampVars[v];
+  if (S.vars && v in S.vars) return S.vars[v];
+  return NaN;
+}
+function sdOf(v) { const q = varOf(v); return Number.isFinite(q) && q > 0 ? Math.sqrt(q) : NaN; }
+function covOf(a, b) {
+  a = up(a); b = up(b);
+  if (a === b) return varOf(a);
+  if (Number.isFinite(S.withCov[a + "|" + b])) return S.withCov[a + "|" + b];
+  if (Number.isFinite(S.sampCov[a + "|" + b])) return S.sampCov[a + "|" + b];
+  return NaN;
+}
+function predictorsOf(y) { return Object.keys(S.reg[up(y)] || {}); }
+
+/* ---------------------------------------------------------------------------
+   Product terms.
+   A name is accepted as the product of two variables only when the output says
+   so (XWITH or DEFINE) or when the name is built from the two component names:
+   XW, X_W, XxW, or the same three with the components in the other order. A
+   name that merely contains the letter X inside it is never taken to be a
+   product: MAXWORK is not the product of MA and WORK.
+--------------------------------------------------------------------------- */
+function productForms(a, b) { return [a + b, a + "_" + b, a + "X" + b]; }
+function declaredProduct(prod, a, b) {
+  for (const d of S.xwith.concat(S.defined)) {
+    if (d.prod !== up(prod)) continue;
+    if ((d.a === up(a) && d.b === up(b)) || (d.a === up(b) && d.b === up(a))) return d.how;
+  }
+  return null;
+}
+function nameIsProduct(prod, a, b) {
+  const P = up(prod), A = up(a), B = up(b);
+  return productForms(A, B).includes(P) || productForms(B, A).includes(P);
+}
+/* Returns {prod, x, w, how} when one candidate and only one can be identified,
+   and null when the choice has to be left to the user. */
+function detectProduct(preds) {
+  const set = preds.map(up);
+  for (const d of S.xwith.concat(S.defined)) {
+    if (set.includes(d.prod) && set.includes(d.a) && set.includes(d.b)) return { prod: d.prod, x: d.a, w: d.b, how: d.how };
+  }
+  const hits = [];
+  for (const p of set) for (const a of set) for (const b of set) {
+    if (a === b || a === p || b === p) continue;
+    if (productForms(a, b).includes(p)) hits.push({ prod: p, x: a, w: b, how: "the way its name is built from " + a + " and " + b });
+  }
+  const uniq = [...new Map(hits.map(h => [h.prod, h])).values()];
+  return uniq.length === 1 ? uniq[0] : null;
+}
+
+/* ---------------------------------------------------------------------------
+   Linear algebra
+--------------------------------------------------------------------------- */
+function invertMatrix(A) {
+  const n = A.length, M = A.map((r, i) => [...r, ...Array.from({ length: n }, (_, j) => i === j ? 1 : 0)]);
+  for (let c = 0; c < n; c++) {
+    let p = c;
+    for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-12) return null;
+    [M[c], M[p]] = [M[p], M[c]];
+    const q = M[c][c];
+    for (let j = 0; j < 2 * n; j++) M[c][j] /= q;
+    for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c]; for (let j = 0; j < 2 * n; j++) M[r][j] -= f * M[c][j]; }
+  }
+  return M.map(r => r.slice(n));
+}
+function solve3(A, b) {
+  const M = A.map((r, i) => [...r, b[i]]);
+  for (let c = 0; c < 3; c++) {
+    let p = c;
+    for (let r = c + 1; r < 3; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+    if (Math.abs(M[p][c]) < 1e-14) return null;
+    [M[c], M[p]] = [M[p], M[c]];
+    const q = M[c][c];
+    for (let j = c; j < 4; j++) M[c][j] /= q;
+    for (let r = 0; r < 3; r++) if (r !== c) { const f = M[r][c]; for (let j = c; j < 4; j++) M[r][j] -= f * M[c][j]; }
+  }
+  return [M[0][3], M[1][3], M[2][3]];
+}
+/* Three simple slopes reported as NEW parameters give three equations in the
+   three unknowns Var(b1), Var(b3) and Cov(b1,b3). */
+function solveVarianceFromThree(levels, variances) {
+  const A = levels.map(w => [1, w * w, 2 * w]);
+  const s = solve3(A, variances);
+  if (!s) return null;
+  let [v11, v33, v13] = s;
+  if (v11 < 0 && v11 > -1e-9) v11 = 0;
+  if (v33 < 0 && v33 > -1e-9) v33 = 0;
+  if (v11 < 0 || v33 < 0 || v13 * v13 > v11 * v33 + 1e-7) return null;
+  return { v11, v33, v13 };
+}
+function quadForm(r, V) {
+  let s = 0;
+  for (let i = 0; i < r.length; i++) for (let j = 0; j < r.length; j++) s += r[i] * V[i][j] * r[j];
+  return s;
+}
+/* Two-sided normal tail probability. The rational approximation of Abramowitz
+   and Stegun 7.1.26 is accurate only to about 1.5e-7, which is larger than the
+   p-values it has to report beyond z = 5. The regularized upper incomplete
+   gamma function gives the same quantity to machine precision, because
+   P(|Z| > z) = Q(1/2, z²/2). */
+/* Natural logarithm of the gamma function, Lanczos approximation with g = 7
+   and nine coefficients, whose relative error stays below 1e-15. */
+const GAMMA_COF = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+                   771.32342877765313, -176.61502916214059, 12.507343278686905,
+                   -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+function gammln(x) {
+  const z = x - 1, t = z + 7.5;
+  let a = GAMMA_COF[0];
+  for (let j = 1; j < 9; j++) a += GAMMA_COF[j] / (z + j);
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+}
+/* Series expansion of the lower regularized incomplete gamma P(a, x). */
+function gser(a, x) {
+  let ap = a, sum = 1 / a, del = sum;
+  for (let n = 1; n <= 2000; n++) {
+    ap += 1; del *= x / ap; sum += del;
+    if (Math.abs(del) < Math.abs(sum) * 1e-16) break;
+  }
+  return sum * Math.exp(-x + a * Math.log(x) - gammln(a));
+}
+/* Continued fraction for the upper regularized incomplete gamma Q(a, x). */
+function gcf(a, x) {
+  const FPMIN = 1e-300;
+  let b = x + 1 - a, c = 1 / FPMIN, d = 1 / b, h = d;
+  for (let i = 1; i <= 2000; i++) {
+    const an = -i * (i - a);
+    b += 2;
+    d = an * d + b; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = b + an / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d;
+    const del = d * c;
+    h *= del;
+    if (Math.abs(del - 1) < 1e-16) break;
+  }
+  return Math.exp(-x + a * Math.log(x) - gammln(a)) * h;
+}
+/* Upper tail of the chi-square distribution, P(X >= x) with df degrees of freedom. */
+function chi2Tail(x, df) {
+  if (!(df > 0)) return NaN;
+  if (!(x > 0)) return 1;
+  const a = df / 2, x2 = x / 2;
+  return (x2 < a + 1) ? 1 - gser(a, x2) : gcf(a, x2);
+}
+function pnorm2(z) {
+  if (!Number.isFinite(z)) return NaN;
+  return Math.max(0, Math.min(1, chi2Tail(z * z, 1)));
+}
+
+/* ---------------------------------------------------------------------------
+   Parameter numbers from TECH1 and blocks of TECH3
+--------------------------------------------------------------------------- */
+function regParamNo(y, v) {
+  for (const m of ["BETA", "GAMMA"]) {
+    const q = S.tech1[m] && S.tech1[m][up(y)] ? S.tech1[m][up(y)][up(v)] : undefined;
+    if (Number.isFinite(q) && q > 0) return q;
+  }
+  return 0;
+}
+function interceptParamNo(y) {
+  for (const m of ["ALPHA", "NU"]) {
+    const M = S.tech1[m]; if (!M) continue;
+    for (const r in M) { const q = M[r][up(y)]; if (Number.isFinite(q) && q > 0) return q; }
+  }
+  return 0;
+}
+function tech3Block(nums) {
+  if (!nums.length || nums.some(n => !(n > 0))) return null;
+  const V = [];
+  for (let i = 0; i < nums.length; i++) {
+    const row = [];
+    for (let j = 0; j < nums.length; j++) {
+      const v = S.tech3[nums[i] + "," + nums[j]];
+      if (!Number.isFinite(v)) return null;
+      row.push(v);
+    }
+    V.push(row);
+  }
+  return V;
+}
+
+/* ---------------------------------------------------------------------------
+   Sources for Var(b1), Var(b3) and Cov(b1,b3).
+   TECH1 with TECH3 comes first even when MODEL CONSTRAINT also reports the
+   simple slopes: it is the same quantity at full precision, whereas Mplus
+   prints NEW parameters to three decimals. When both are present the NEW
+   parameters are kept as a check and the difference is stated.
+--------------------------------------------------------------------------- */
+function looksLikeSimpleSlope(name) {
+  const n = up(name);
+  if (/(INDIRECT|INDIR|IND[0-9_]|^IND|TOTAL|TOTIND|^TOT|_TOT|DIRECT|MEDIAT)/.test(n)) return false;
+  return /(SLOPE|SLOP|SLO|SLP|SIMPLE|^SS|_SS|CONDEFF|COND)/.test(n);
+}
+function usableNewParameters() {
+  return S.newPar.filter(n => n.se > 0 && n.p < 999 && Number.isFinite(n.est) && looksLikeSimpleSlope(n.name));
+}
+function cvFromNewTriple(b1, b3) {
+  const np = usableNewParameters();
+  if (np.length < 3) return null;
+  const low = np.find(n => /(LO|LOW|BELOW|MINUS)/i.test(n.name));
+  const mid = np.find(n => /(MED|MID|MEAN|AVG)/i.test(n.name));
+  const high = np.find(n => /(HI|HIGH|ABOVE|PLUS)/i.test(n.name));
+  if (!low || !mid || !high || low === mid || mid === high) return null;
+  const mw = num("mw"), sw = num("sw");
+  const cands = [];
+  if (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) cands.push([mw - sw, mw, mw + sw]);
+  cands.push([-1, 0, 1]);
+  const trio = [low, mid, high];
+  let best = null;
+  for (const lev of cands) {
+    const err = Math.max(...trio.map((n, i) => Math.abs((b1 + b3 * lev[i]) - n.est)));
+    if (!best || err < best.err) best = { lev, err };
+  }
+  if (!best || best.err > 0.035) return null;
+  const cv = solveVarianceFromThree(best.lev, trio.map(n => n.se * n.se));
+  return cv ? Object.assign({}, cv, { source: "three NEW parameters of MODEL CONSTRAINT", levels: best.lev, trio }) : null;
+}
+/* Reconstruction of the covariance matrix of the regression coefficients from
+   the sample covariance matrix and the residual variance. It applies only to a
+   maximum likelihood fit of a regression among observed variables, and it is
+   accepted only when it reproduces the standard errors Mplus printed. */
+function cvFromML(y, preds) {
+  y = up(y); preds = preds.map(up);
+  if (S.estimator !== "ML" || !Number.isFinite(S.n) || S.n <= 1) return null;
+  if (!Number.isFinite(S.residuals[y])) return null;
+  if (preds.some(v => S.latent.includes(v) || v in S.latentVars)) return null;
+  const M = preds.map(a => preds.map(b => S.sampCov[a + "|" + b]));
+  if (M.flat().some(v => !Number.isFinite(v))) return null;
+  const inv = invertMatrix(M);
+  if (!inv) return null;
+  const f = S.residuals[y] / S.n, V = inv.map(r => r.map(v => v * f));
+  const info = S.regInfo[y] || {};
+  const diffs = [];
+  preds.forEach((v, i) => {
+    const se = info[v] ? info[v].se : NaN;
+    if (Number.isFinite(se) && se > 0) diffs.push(Math.abs(Math.sqrt(Math.max(0, V[i][i])) - se) / se);
+  });
+  /* Without at least one printed standard error to compare against, the
+     reconstruction cannot be verified and is not used. */
+  if (!diffs.length || Math.max(...diffs) > 0.08) return null;
+  return { V, source: "the sample covariance matrix and the residual variance of a maximum likelihood fit" };
+}
+function manualCov() {
+  const s1 = num("se1"), s3 = num("se3");
+  if (!(Number.isFinite(s1) && s1 > 0 && Number.isFinite(s3) && s3 > 0)) return null;
+  let c = num("cov13");
+  if (!Number.isFinite(c)) {
+    const r = num("cor13");
+    if (!Number.isFinite(r)) return null;
+    if (Math.abs(r) > 1) return null;
+    c = r * s1 * s3;
+  }
+  if (c * c > s1 * s1 * s3 * s3 + 1e-12) return null;
+  return { v11: s1 * s1, v33: s3 * s3, v13: c, source: "the standard errors and the covariance you entered" };
+}
+/* The sampling variances of b1 and b3 and their covariance, together with the
+   reason when none of the three routes yields them. The reason is kept because
+   "no test" without a cause is not a message a reader can act on. */
+function parameterCovariance(y, x, xw, b1, b3) {
+  if (S.manual) return manualCov() || { missing: true, why:
+    "the standard errors of b<sub>1</sub> and b<sub>3</sub> and their covariance have not been entered, and the covariance matrix of the estimates cannot be inferred from the coefficients" };
+  if (S.slopeEdited) return { missing: true, why:
+    "b<sub>1</sub> or b<sub>3</sub> was edited by hand, so the covariance matrix in TECH3 no longer belongs to the values now in the fields" };
+  const n1 = regParamNo(y, x), n3 = regParamNo(y, xw);
+  const V = tech3Block([n1, n3]);
+  if (V) return { v11: V[0][0], v33: V[1][1], v13: V[0][1], source: "TECH1 and TECH3" };
+  const preds = predictorsOf(y);
+  const ml = cvFromML(y, preds);
+  if (ml) {
+    const i = preds.map(up).indexOf(up(x)), j = preds.map(up).indexOf(up(xw));
+    if (i >= 0 && j >= 0) return { v11: ml.V[i][i], v33: ml.V[j][j], v13: ml.V[i][j], source: ml.source };
+  }
+  const three = cvFromNewTriple(b1, b3);
+  if (three) return three;
+  /* Say which of the two technical sections is missing, and which parameter
+     could not be located, rather than naming both every time. */
+  const haveT1 = Object.keys(S.tech1).length > 0, haveT3 = Object.keys(S.tech3).length > 0;
+  let why;
+  if (!haveT1 && !haveT3) why = "this output contains neither TECH1 nor TECH3, so the covariance matrix of the estimates is not in it. Request <code>OUTPUT: TECH1 TECH3;</code>";
+  else if (!haveT1) why = "this output contains TECH3 but not TECH1, so the numbers TECH3 is indexed by cannot be matched to the coefficients. Request <code>OUTPUT: TECH1 TECH3;</code>";
+  else if (!haveT3) why = "this output contains TECH1 but not TECH3, so the parameters are numbered but their covariance matrix was not printed. Request <code>OUTPUT: TECH1 TECH3;</code>";
+  else if (!(n1 > 0) || !(n3 > 0)) why = "TECH1 gives no parameter number for " + esc(!(n1 > 0) ? x : xw) +
+    " in the regression of " + esc(y) + ", so its row of TECH3 cannot be found. That happens when the coefficient is fixed rather than free, or when the term belongs to a part of the model this page does not read";
+  else why = "TECH1 and TECH3 are both present, but the entries the delta method needs (rows " + n1 + " and " + n3 +
+    " of the covariance matrix of the estimates) are not among those printed";
+  return { missing: true, why: why };
+}
+
+/* ---------------------------------------------------------------------------
+   Simple slopes and the Johnson-Neyman quadratic
+--------------------------------------------------------------------------- */
+function slopeVariance(w, cv) { return cv.v11 + w * w * cv.v33 + 2 * w * cv.v13; }
+function jnQuadratic(b1, b3, cv, z) {
+  return { a: b3 * b3 - z * z * cv.v33, b: 2 * (b1 * b3 - z * z * cv.v13), c: b1 * b1 - z * z * cv.v11 };
+}
+/* The roots of the quadratic, with the two of a double root returned once. A
+   repeated root is a point at which the test statistic touches the critical
+   value without crossing it, so it separates nothing and must not be turned
+   into two boundaries of a zero-width region.
+   The stable form of the quadratic formula is used: computing both roots as
+   (-b ± sqrt(disc)) / (2a) loses every significant digit of the smaller root
+   when 4ac is small next to b². */
+function jnRoots(b1, b3, cv, z) {
+  const { a, b, c } = jnQuadratic(b1, b3, cv, z);
+  const scale = Math.max(Math.abs(a), Math.abs(b), Math.abs(c));
+  if (!(scale > 0)) return [];
+  if (Math.abs(a) > 1e-12 * scale) {
+    const disc = b * b - 4 * a * c;
+    if (disc < 0) return [];
+    if (disc === 0) return [-b / (2 * a)];
+    const q = -0.5 * (b + Math.sign(b || 1) * Math.sqrt(disc));
+    const r = [q / a, c / q].sort((x, y) => x - y);
+    /* Two roots that coincide to working precision are one root. */
+    if (Math.abs(r[1] - r[0]) <= 1e-12 * Math.max(1, Math.abs(r[0]))) return [(r[0] + r[1]) / 2];
+    return r;
+  }
+  if (Math.abs(b) > 1e-12 * scale) return [-c / b];
+  return [];
+}
+/* Slope of X on Y in category j of a categorical moderator, with the variance
+   from the relevant block of TECH3: Var(b1 + gj) = V11 + Vjj + 2*V1j. */
+function categorySlope(b1, gj, V, i1, ij) {
+  const est = b1 + gj;
+  const v = V[i1][i1] + V[ij][ij] + 2 * V[i1][ij];
+  const se = v > 0 ? Math.sqrt(v) : NaN;
+  const z = se > 0 ? est / se : NaN;
+  return { est, se, z, p: Number.isFinite(z) ? pnorm2(z) : NaN };
+}
+
+/* ---------------------------------------------------------------------------
+   Filling the controls
+--------------------------------------------------------------------------- */
+function fillSelect(sel, list, chosen, placeholder) {
+  sel.innerHTML = "";
+  if (placeholder) {
+    const o = document.createElement("option");
+    o.value = ""; o.textContent = placeholder; o.selected = !chosen;
+    sel.appendChild(o);
+  }
+  for (const v of list) {
+    const o = document.createElement("option");
+    o.value = v; o.textContent = v;
+    if (v === chosen) o.selected = true;
+    sel.appendChild(o);
+  }
+}
+function setNum(id, v) { $(id).value = Number.isFinite(v) ? round3(v) : ""; }
+function moderatorKind() { return $("wkind").value; }
+function isStd() { return $("m-std").checked; }
+
+/* A moderator with two codes 0 and 1 has variance m(1 - m). The check is only
+   used to propose the default levels; the data themselves are not in the output,
+   so the decision stays with the user. */
+function looksDichotomous() {
+  const m = num("mw"), sd = num("sw");
+  if (!Number.isFinite(m) || !Number.isFinite(sd) || sd <= 0 || m <= 0 || m >= 1) return false;
+  const expected = Math.sqrt(m * (1 - m));
+  return Math.abs(sd - expected) / expected < 0.02;
+}
+
+function rangeFrom(v, k) {
+  const u = S.uni[up(v)];
+  const m = meanOf(v), sd = sdOf(v);
+  /* A range of zero width would divide by zero in every scale below, so it is
+     refused here and reported by the caller rather than drawn. */
+  if (u && !(u.max > u.min)) return null;
+  if (u && (!(sd > 0) || (u.max - u.min) <= 8 * sd)) return { min: u.min, max: u.max, src: "the observed minimum and maximum of " + v + " in the univariate sample statistics" };
+  if (Number.isFinite(m) && sd > 0) {
+    return {
+      min: m - k * sd, max: m + k * sd,
+      src: "the mean of " + v + " plus or minus " + (k === 2 ? "two" : "three") + " standard deviations" +
+        (u ? ", because the observed range covers more than eight standard deviations" : ", because the output has no univariate sample statistics")
+    };
+  }
+  return null;
+}
+function xRange() {
+  const X = $("selX").value;
+  const r = rangeFrom(X, 2);
+  if (r) return r;
+  const mx = num("mx"), sx = num("sx");
+  if (Number.isFinite(mx) && Number.isFinite(sx) && sx > 0) return { min: mx - 2 * sx, max: mx + 2 * sx, src: "the mean of " + X + " plus or minus two standard deviations that you entered" };
+  return null;
+}
+function wRange() {
+  const W = $("selW").value;
+  const r = rangeFrom(W, 3);
+  if (r) return r;
+  const mw = num("mw"), sw = num("sw");
+  if (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) return { min: mw - 3 * sw, max: mw + 3 * sw, src: "the mean of " + W + " plus or minus three standard deviations that you entered" };
+  return null;
+}
+
+/* ---------------------------------------------------------------------------
+   Levels of the moderator. The value stored is always in the original metric of
+   the moderator, whatever the display metric: a categorical moderator is never
+   passed through a standardizing transformation, because its codes are not
+   z scores.
+--------------------------------------------------------------------------- */
+/* Every line gets a dash pattern, and a marker as well once the patterns run
+   out, so that no two lines of a figure are told apart by colour alone. */
+/* The dash pattern turns over fastest and the marker changes only when the
+   patterns have all been used, so that no two lines share both. Five patterns
+   and six markers give thirty-five distinct combinations before any repeats. */
+function styleFor(i) {
+  const cycle = Math.floor(i / DASH_ORDER.length);
+  return {
+    dash: DASH_ORDER[i % DASH_ORDER.length],
+    marker: cycle === 0 ? "none" : MARKERS[1 + (cycle - 1) % (MARKERS.length - 1)]
+  };
+}
+function levelNote(html) { $("levnote").innerHTML = html; }
+
+/* The codes of a categorical moderator, when the output states them. Ten
+   categories is the largest number a figure can still be read at; beyond that
+   the codes are listed and the user chooses which ones to draw. */
+const MAX_CATEGORIES = 10;
+function categoryCodes(W) {
+  const u = S.uni[up(W)];
+  if (!u) return null;
+  const lo = Math.round(u.min), hi = Math.round(u.max);
+  if (Math.abs(u.min - lo) > 1e-6 || Math.abs(u.max - hi) > 1e-6) return null;
+  if (hi <= lo) return null;
+  const codes = [];
+  for (let v = lo; v <= hi; v++) codes.push(v);
+  return codes;
+}
+function defaultLevels() {
+  const W = esc($("selW").value || "W");
+  const Wraw = $("selW").value || "W";
+  const mw = num("mw"), sw = num("sw");
+  const kind = moderatorKind();
+
+  /* A moderator that does not vary has no levels to compare: every line would
+     be the same line, and the simple slope would be one number rather than a
+     function of the moderator. */
+  if (Number.isFinite(sw) && sw === 0) {
+    levelNote("The standard deviation of " + W + " read from this output is exactly zero, so " + W +
+      " does not vary in this sample and there are no levels to compare: at a single value of the moderator the interaction cannot be drawn. Check that the variable read as the moderator is the right one, and that the sample statistics belong to the analysis sample.");
+    return [];
+  }
+
+  if (kind === "cat") {
+    let codes = categoryCodes(Wraw);
+    let tooMany = false;
+    if (codes && codes.length > MAX_CATEGORIES) { tooMany = true; codes = codes.slice(0, MAX_CATEGORIES); }
+    if (!codes && looksDichotomous()) codes = [0, 1];
+    if (!codes) {
+      codes = (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) ? [round3(mw - sw), round3(mw + sw)] : [0, 1];
+      levelNote("The codes of " + W + " are not printed in this output: the univariate sample statistics, which give the observed minimum and maximum, are missing or do not show whole numbers. The two values below are placeholders. Type the codes of the categories, one line each, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>.");
+    } else if (tooMany) {
+      levelNote("The observed range of " + W + " covers more than " + MAX_CATEGORIES + " whole-numbered codes. The first " +
+        MAX_CATEGORIES + " are shown, because a figure with more lines than that cannot be read; remove the ones you do not need and add the ones you do.");
+    } else {
+      levelNote("One line per category, at the codes " + codes.join(", ") + " in the original metric of " + W + ".");
+    }
+    return codes.map((v, i) => Object.assign({ w: v, label: Wraw + " = " + v }, styleFor(i)));
+  }
+
+  if (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) {
+    levelNote("Default levels: one standard deviation below the mean, the mean, and one standard deviation above it (Aiken &amp; West, 1991). Values are in the original metric of " + W + ".");
+    return [
+      { w: round3(mw - sw), label: Wraw + " low (−1 SD)", dash: "solid", marker: "none" },
+      { w: round3(mw), label: Wraw + " mean", dash: "dashed", marker: "none" },
+      { w: round3(mw + sw), label: Wraw + " high (+1 SD)", dash: "dotted", marker: "none" }
+    ];
+  }
+  levelNote("The standard deviation of " + W + " could not be read from this output, so the levels below are set at −1, 0 and +1 in the original metric of " + W +
+    ", which are <strong>not</strong> ±1 SD and are not comparable with a figure drawn at ±1 SD. Type the mean and the standard deviation into the fields above, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for observed variables and <code>TECH4</code> for latent ones.");
+  return [
+    { w: -1, label: Wraw + " = −1", dash: "solid", marker: "none" },
+    { w: 0, label: Wraw + " = 0", dash: "dashed", marker: "none" },
+    { w: 1, label: Wraw + " = 1", dash: "dotted", marker: "none" }
+  ];
+}
+function renderLevels() {
+  const box = $("levels");
+  box.innerHTML = "";
+  S.levels.forEach((l, k) => {
+    const d = document.createElement("div");
+    d.className = "gridrow four";
+    d.innerHTML =
+      '<span><label class="visually-hidden" for="lv-w-' + k + '">Value of the moderator, line ' + (k + 1) + '</label>' +
+      '<input type="number" step="any" id="lv-w-' + k + '" value="' + l.w + '" data-k="' + k + '" data-f="w"></span>' +
+      '<span><label class="visually-hidden" for="lv-l-' + k + '">Label of line ' + (k + 1) + '</label>' +
+      '<input type="text" id="lv-l-' + k + '" value="' + esc(l.label) + '" data-k="' + k + '" data-f="label"></span>' +
+      '<span><label class="visually-hidden" for="lv-d-' + k + '">Dash pattern of line ' + (k + 1) + '</label>' +
+      '<select id="lv-d-' + k + '" data-k="' + k + '" data-f="dash">' +
+      DASH_ORDER.map(n => '<option' + (n === l.dash ? " selected" : "") + '>' + n + '</option>').join("") + '</select></span>' +
+      '<span><label class="visually-hidden" for="lv-m-' + k + '">Marker of line ' + (k + 1) + '</label>' +
+      '<select id="lv-m-' + k + '" data-k="' + k + '" data-f="marker">' +
+      MARKERS.map(n => '<option' + (n === l.marker ? " selected" : "") + '>' + n + '</option>').join("") + '</select></span>' +
+      '<span><button type="button" class="secondary" data-k="' + k + '" data-f="del" aria-label="Remove line ' + (k + 1) + '">Remove</button></span>';
+    box.appendChild(d);
+  });
+  box.querySelectorAll("input,select").forEach(e => e.addEventListener("input", ev => {
+    const k = +ev.target.dataset.k, f = ev.target.dataset.f;
+    S.levels[k][f] = f === "w" ? Number(ev.target.value) : ev.target.value;
+    draw();
+  }));
+  box.querySelectorAll("button").forEach(b => b.addEventListener("click", ev => {
+    S.levels.splice(+ev.currentTarget.dataset.k, 1); renderLevels(); draw();
+  }));
+}
+
+/* ---------------------------------------------------------------------------
+   Dummy variables of a categorical moderator with more than two categories
+--------------------------------------------------------------------------- */
+function renderDummyRows() {
+  const box = $("dumrows");
+  const preds = predictorsOf($("selY").value);
+  box.innerHTML = "";
+  S.dummies.forEach((row, k) => {
+    const d = document.createElement("div");
+    d.className = "gridrow dum";
+    d.innerHTML =
+      '<span><label class="visually-hidden" for="du-d-' + k + '">Dummy variable of category ' + (k + 1) + '</label>' +
+      '<select id="du-d-' + k + '" data-k="' + k + '" data-f="d">' +
+      ['<option value="">— dummy —</option>'].concat(preds.map(p => '<option' + (p === row.d ? " selected" : "") + '>' + esc(p) + '</option>')).join("") + '</select></span>' +
+      '<span><label class="visually-hidden" for="du-p-' + k + '">Product of X with the dummy of category ' + (k + 1) + '</label>' +
+      '<select id="du-p-' + k + '" data-k="' + k + '" data-f="p">' +
+      ['<option value="">— product with X —</option>'].concat(preds.map(p => '<option' + (p === row.p ? " selected" : "") + '>' + esc(p) + '</option>')).join("") + '</select></span>' +
+      '<span><label class="visually-hidden" for="du-l-' + k + '">Label of category ' + (k + 1) + '</label>' +
+      '<input type="text" id="du-l-' + k + '" value="' + esc(row.label) + '" data-k="' + k + '" data-f="label"></span>' +
+      '<span><button type="button" class="secondary" data-k="' + k + '" data-f="del" aria-label="Remove category ' + (k + 1) + '">Remove</button></span>';
+    box.appendChild(d);
+  });
+  box.querySelectorAll("input,select").forEach(e => e.addEventListener("input", ev => {
+    const k = +ev.target.dataset.k;
+    S.dummies[k][ev.target.dataset.f] = ev.target.value;
+    draw();
+  }));
+  box.querySelectorAll("button").forEach(b => b.addEventListener("click", ev => {
+    S.dummies.splice(+ev.currentTarget.dataset.k, 1); renderDummyRows(); draw();
+  }));
+}
+
+/* ---------------------------------------------------------------------------
+   Predictors held at their sample means
+--------------------------------------------------------------------------- */
+function otherPredictors() {
+  const used = new Set([up($("selX").value)]);
+  if (moderatorKind() === "dum") { for (const r of S.dummies) { used.add(up(r.d)); used.add(up(r.p)); } }
+  else { used.add(up($("selW").value)); used.add(up($("selXW").value)); }
+  return predictorsOf($("selY").value).filter(p => !used.has(up(p)));
+}
+function extraShift() {
+  const others = otherPredictors();
+  if (!others.length) return { value: 0, list: [], missing: [], note: "" };
+  const reg = S.reg[up($("selY").value)] || {};
+  let sum = 0; const missing = [], kept = [];
+  for (const p of others) {
+    const m = meanOf(p);
+    if (Number.isFinite(m)) { sum += reg[up(p)] * m; kept.push(p); }
+    else missing.push(p);
+  }
+  let note = "";
+  if (kept.length) note += "The other predictors of the equation (" + kept.join(", ") + ") are held at their sample means. ";
+  if (missing.length) note += "No mean is available for " + missing.join(", ") + ", so " + (missing.length === 1 ? "it is" : "they are") + " held at zero. ";
+  return { value: sum, list: kept, missing, note };
+}
+
+/* ---------------------------------------------------------------------------
+   Everything the figures and the tables need, collected in one place so that
+   the figure, the tables and the text can never describe different quantities.
+--------------------------------------------------------------------------- */
+function gather() {
+  const Y = $("selY").value, X = $("selX").value, kind = moderatorKind(), std = isStd();
+  const b0 = num("b0"), b1 = num("b1"), b2 = num("b2"), b3 = num("b3");
+  const mx = num("mx"), sx = num("sx"), my = num("my"), sy = num("sy");
+  if (!X) return { error: "No predictor is selected. Choose the variable whose slope on " + esc(Y) + " is to be drawn; it is the one the moderator is supposed to change the effect of." };
+  if (!Number.isFinite(b0) || !Number.isFinite(b1)) return { error: "The field for " + (!Number.isFinite(b0) ? "b<sub>0</sub>, the intercept of " + esc(Y) : "b<sub>1</sub>, the coefficient of " + esc(X)) + ", is empty or does not hold a number, so no line can be placed. Type the value " + MP + " printed for it, or choose another dependent variable." };
+  if (std && !(Number.isFinite(sx) && sx > 0 && Number.isFinite(sy) && sy > 0 && Number.isFinite(mx) && Number.isFinite(my)))
+    return { error: "The standardized display needs the mean and the standard deviation of X and of Y. Enter them, or switch back to the original metric." };
+
+  const reg = S.reg[up(Y)] || {};
+  const extra = extraShift();
+  const g = { Y, X, kind, std, b0, b1, b2, b3, mx, sx, my, sy, extra, lines: [], warn: [] };
+
+  const toDisp = { x: v => std ? (v - mx) / sx : v, y: v => std ? (v - my) / sy : v };
+  const line = (rawIntercept, rawSlope, label, dash, marker, i, w, cat) => ({
+    label, dash, marker, w, cat,
+    color: $("greyscale").checked ? "#000000" : OKABE[i % OKABE.length],
+    rawIntercept, rawSlope,
+    a: std ? (rawIntercept + rawSlope * mx - my) / sy : rawIntercept,
+    b: std ? rawSlope * sx / sy : rawSlope
+  });
+
+  if (kind === "dum") {
+    const rows = S.dummies.filter(r => r.d && r.p);
+    if (!rows.length) return { error: "No category is defined yet. Each non-reference category needs two things: its dummy variable and the product of " + esc(X) + " with that dummy. Choose both in the row above, or add a row for each further category." };
+    const names = [X].concat(rows.map(r => r.d)).concat(rows.map(r => r.p)).map(up);
+    if (new Set(names).size < names.length) return { error: "The same variable has been chosen more than once among the predictor, the dummy variables and the products. Each of them is a different column of the model, and using one twice would count its coefficient twice." };
+    for (const r of rows) if (!Number.isFinite(reg[up(r.d)]) || !Number.isFinite(reg[up(r.p)]))
+      return { error: "The coefficient of " + esc(r.d) + " or of " + esc(r.p) + " is not in MODEL RESULTS for " + esc(Y) + "." };
+    g.modName = $("modname").value.trim() || "Group";
+    g.rows = rows;
+    const st0 = styleFor(0);
+    g.lines.push(line(b0 + extra.value, b1, $("reflabel").value.trim() || "Reference category", st0.dash, st0.marker, 0, null, -1));
+    rows.forEach((r, j) => {
+      const st = styleFor(j + 1);
+      g.lines.push(line(b0 + reg[up(r.d)] + extra.value, b1 + reg[up(r.p)],
+        r.label || (g.modName + " category " + (j + 2)), st.dash, st.marker, j + 1, null, j));
+    });
+  } else {
+    const W = $("selW").value, XW = $("selXW").value;
+    if (!W) return { error: "Choose the moderator. It is the variable whose value the slope of X is read at." };
+    if (!XW) return { error: "Choose the product term. Without a term that carries the product of X and the moderator there is no interaction in the model, and the slope of X does not depend on the moderator: the output shows a regression with two predictors, not a moderated one. If the interaction was fitted with XWITH or built in DEFINE, the term is one of the predictors listed in the menu." };
+    if (new Set([up(X), up(W), up(XW)]).size < 3)
+      return { error: "X, the moderator and the product must be three different variables. The same variable has been chosen twice, so no product term is identified and nothing can be drawn." };
+    if (!Number.isFinite(reg[up(XW)]) && !S.manual)
+      return { error: "The coefficient of " + esc(XW) + " does not appear in the regression of " + esc(Y) + " in MODEL RESULTS, so this term is not a predictor of " + esc(Y) + " and cannot be its product term. Choose the term that carries the interaction." };
+    if (!Number.isFinite(b2) || !Number.isFinite(b3)) return { error: "The field for " + (!Number.isFinite(b2) ? "b<sub>2</sub>, the coefficient of " + esc(W) : "b<sub>3</sub>, the coefficient of the product") + ", is empty or does not hold a number. Without it the lines cannot be placed at the levels of the moderator." };
+    g.W = W; g.XW = XW; g.modName = W;
+    const swNow = num("sw");
+    if (Number.isFinite(swNow) && swNow === 0)
+      return { error: "The standard deviation of " + esc(W) + " is zero, so the moderator does not vary in this sample. Every level of the moderator would give the same line and the simple slope would not be a function of anything. Check that the variable chosen as the moderator is the right one." };
+    if (!S.levels.length) return { error: "No level of the moderator is set. Press <em>Add a level</em> and type the value of " + esc(W) + " at which the slope of " + esc(X) + " should be drawn." };
+    S.levels.filter(l => Number.isFinite(l.w)).forEach((l, i) => {
+      g.lines.push(line(b0 + b2 * l.w + extra.value, b1 + b3 * l.w, l.label, l.dash, l.marker, i, l.w, null));
+    });
+    if (!g.lines.length) return { error: "None of the levels of the moderator holds a number, so there is no value of " + esc(W) + " at which to draw the slope of " + esc(X) + ". Type a number in each row above." };
+  }
+
+  /* Horizontal axis */
+  const xr = xRange();
+  g.xsrc = xr ? xr.src : null;
+  let x0 = num("xmin"), x1 = num("xmax");
+  if (!Number.isFinite(x0) || !Number.isFinite(x1) || x1 <= x0) {
+    if (!xr) return { error: "The range of " + esc(X) + " cannot be established: this output has neither its observed minimum and maximum nor a usable mean and standard deviation for it, and a line has to be drawn between two values. Type a minimum and a maximum for the horizontal axis in the panel on the left, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>." };
+    x0 = toDisp.x(xr.min); x1 = toDisp.x(xr.max);
+  }
+  g.x0 = x0; g.x1 = x1;
+
+  /* Covariance matrix of the estimates, and the design used for the bands */
+  if (kind === "dum") {
+    const p0 = interceptParamNo(Y), pX = regParamNo(Y, X);
+    const pD = g.rows.map(r => regParamNo(Y, r.d)), pP = g.rows.map(r => regParamNo(Y, r.p));
+    const others = otherPredictors(), pO = others.map(p => regParamNo(Y, p)), mO = others.map(p => meanOf(p));
+    const slopeIdx = [pX].concat(pP);
+    const Vslope = S.slopeEdited ? null : tech3Block(slopeIdx);
+    g.V = Vslope;
+    g.cvSource = Vslope ? "TECH1 and TECH3" : null;
+    const all = [p0, pX].concat(pD, pP, pO);
+    if (!S.anyEdited && all.every(n => n > 0) && mO.every(Number.isFinite)) {
+      g.bandIdx = all;
+      g.bandV = tech3Block(all);
+      g.bandRow = (xraw, li) => {
+        const r = [1, xraw];
+        for (let j = 0; j < g.rows.length; j++) r.push(li.cat === j ? 1 : 0);
+        for (let j = 0; j < g.rows.length; j++) r.push(li.cat === j ? xraw : 0);
+        return r.concat(mO);
+      };
+    }
+    if (!g.bandV) g.bandWhy = S.anyEdited
+      ? "the coefficients were edited by hand, so the parameter covariance matrix no longer belongs to the values plotted"
+      : "the intercept, X, the dummy variables and the products cannot all be located in TECH1 and TECH3";
+  } else {
+    g.cv = parameterCovariance(Y, X, g.XW, b1, b3);
+    /* A refusal carries its reason; it is not a covariance matrix. */
+    g.cvWhy = (g.cv && g.cv.missing) ? g.cv.why : null;
+    if (g.cv && g.cv.missing) g.cv = null;
+    g.cvSource = g.cv ? g.cv.source : null;
+    const p0 = interceptParamNo(Y), pX = regParamNo(Y, X), pW = regParamNo(Y, g.W), pP = regParamNo(Y, g.XW);
+    const others = otherPredictors(), pO = others.map(p => regParamNo(Y, p)), mO = others.map(p => meanOf(p));
+    const all = [p0, pX, pW, pP].concat(pO);
+    if (!S.anyEdited && all.every(n => n > 0) && mO.every(Number.isFinite)) {
+      g.bandIdx = all;
+      g.bandV = tech3Block(all);
+      g.bandRow = (xraw, li) => [1, xraw, li.w, xraw * li.w].concat(mO);
+    }
+    if (!g.bandV) g.bandWhy = S.anyEdited
+      ? "the coefficients were edited by hand, so the parameter covariance matrix no longer belongs to the values plotted"
+      : (others.length && !mO.every(Number.isFinite)
+        ? "the sample means of the other predictors of " + esc(Y) + " are not in the output"
+        : "the intercept, X, the moderator and the product cannot all be located in TECH1 and TECH3");
+  }
+  return g;
+}
+
+/* Predicted value of a line, in the display metric, at a display value of X. */
+function lineAt(li, xd) { return li.a + li.b * xd; }
+/* Standard error of the predicted mean, in the display metric. */
+function bandSE(g, li, xd) {
+  if (!g.bandV || !g.bandRow) return NaN;
+  const xraw = g.std ? g.mx + g.sx * xd : xd;
+  const v = quadForm(g.bandRow(xraw, li), g.bandV);
+  if (!(v >= 0)) return NaN;
+  return Math.sqrt(v) / (g.std ? g.sy : 1);
+}
+
+/* ---------------------------------------------------------------------------
+   Drawing. All figures are laid out in units of a quarter of a millimetre at
+   the chosen export width, so that a type size given in points is the size the
+   text will have when the figure is printed at that width.
+--------------------------------------------------------------------------- */
+const UNITS_PER_MM = 4;
+/* 0.62 em is the width of the widest characters of the faces offered here, so a
+   label estimated at that rate never runs past the edge or over its neighbour. */
+const CHW = 0.62;
+function exportWidthMm() { const v = num("wmm"); return Number.isFinite(v) && v >= 40 ? v : 140; }
+function ptToUnits(pt) { return pt * 0.352778 * UNITS_PER_MM; }
+/* Tick counts follow from the space a label needs, so that a narrow figure or a
+   large type size never produces overlapping numbers on the axis. */
+function fitTicks(span, labelWidth, max) { return Math.max(2, Math.min(max, Math.floor(span / labelWidth))); }
+/* Round tick values, chosen so that at least three of them fall inside the
+   range. Taking the first step that gives at most n intervals is not enough: a
+   range of 9.3 asked for at most three intervals gives a step of 5 and a single
+   tick inside it, which leaves the axis unreadable. */
+function niceTicks(a, b, n) {
+  if (!(b > a)) return [a];
+  const inside = step => {
+    const t = [];
+    for (let v = Math.ceil(a / step - 1e-9) * step; v <= b + 1e-9; v += step) t.push(round3(v));
+    return t;
+  };
+  const cand = [];
+  for (let e = Math.ceil(Math.log10(b - a)) + 1; e >= Math.floor(Math.log10(b - a)) - 3; e--) {
+    const mag = Math.pow(10, e);
+    for (const q of [10, 5, 2.5, 2, 1]) cand.push(q * mag);
+  }
+  cand.sort((x, y) => y - x);
+  let best = null;
+  for (const step of cand) {
+    const t = inside(step);
+    if (t.length > n + 1) break;
+    if (t.length >= 3) return t;
+    if (t.length >= 2 && !best) best = t;
+  }
+  return best || inside((b - a) / Math.max(2, n));
+}
+/* Labels are drawn only where they do not touch the one before, so a narrow
+   figure loses a label rather than printing two on top of each other. */
+function spacedTicks(values, toPixel, fs) {
+  const widest = Math.max(1, ...values.map(v => fmtAxis(v).length));
+  const needed = (widest + 1) * fs * CHW;
+  const out = [];
+  let last = -Infinity;
+  for (const v of values) {
+    const x = toPixel(v);
+    if (x - last < needed) continue;
+    out.push(v); last = x;
+  }
+  return out;
+}
+function markerShape(x, y, kind, r, color) {
+  if (kind === "none") return "";
+  const filled = kind.indexOf("filled") === 0, fill = filled ? color : "#ffffff";
+  const at = ' fill="' + fill + '" stroke="' + color + '" stroke-width="' + (r * 0.28).toFixed(2) + '"';
+  if (kind.indexOf("circle") > 0) return '<circle cx="' + x.toFixed(2) + '" cy="' + y.toFixed(2) + '" r="' + r.toFixed(2) + '"' + at + '/>';
+  if (kind.indexOf("square") > 0) return '<rect x="' + (x - r).toFixed(2) + '" y="' + (y - r).toFixed(2) + '" width="' + (2 * r).toFixed(2) + '" height="' + (2 * r).toFixed(2) + '"' + at + '/>';
+  return '<polygon points="' + x.toFixed(2) + ',' + (y - r * 1.2).toFixed(2) + ' ' + (x - r * 1.1).toFixed(2) + ',' + (y + r * 0.9).toFixed(2) + ' ' + (x + r * 1.1).toFixed(2) + ',' + (y + r * 0.9).toFixed(2) + '"' + at + '/>';
+}
+
+function interactionSVG(g) {
+  const mm = exportWidthMm();
+  const W = mm * UNITS_PER_MM, H = Math.round(W * 0.66);
+  const fs = ptToUnits(Number.isFinite(num("fsize")) ? num("fsize") : 10);
+  const font = $("fontfam").value;
+  const lw = (num("lwid") || 2) * 1.2, ms = (num("msize") || 5) * 0.8;
+  const title = $("ftitle").value.trim();
+  const wantBands = $("bands").checked && !!g.bandV;
+  const legendOn = $("legend").checked;
+  const maxLab = Math.max(0, ...g.lines.map(l => l.label.length));
+  const mL = fs * 4.6, mR = fs * 1.2, mT = title ? fs * 2.6 : fs * 1.2, mB = fs * 4.8;
+  /* The legend never takes so much of the width that the plotting area falls
+     below two fifths of the figure: a legend wider than the data it explains
+     makes the figure unreadable at the width it will be printed. */
+  let legW = legendOn ? Math.min(W * 0.4, Math.max(fs * 6, maxLab * fs * CHW + fs * 4.6)) : 0;
+  if (legendOn) legW = Math.min(legW, Math.max(fs * 6, W - mR - mL - W * 0.4));
+  const plotR = W - legW - mR;
+  if (!(plotR > mL + 10)) return '<p class="hint">At ' + fmt3(num("wmm")) + ' mm and this type size the plotting area would be narrower than its own axis labels. Increase the width, reduce the type size, or turn the legend off.</p>';
+
+  /* Vertical range */
+  const N = 48, xs = [];
+  for (let i = 0; i <= N; i++) xs.push(g.x0 + (g.x1 - g.x0) * i / N);
+  const ys = [];
+  for (const li of g.lines) for (const xd of xs) {
+    const y = lineAt(li, xd);
+    ys.push(y);
+    if (wantBands) { const se = bandSE(g, li, xd); if (Number.isFinite(se)) { ys.push(y - Z95 * se); ys.push(y + Z95 * se); } }
+  }
+  let y0 = num("ymin"), y1 = num("ymax");
+  const autoMin = !Number.isFinite(y0), autoMax = !Number.isFinite(y1);
+  if (autoMin) y0 = Math.min(...ys);
+  if (autoMax) y1 = Math.max(...ys);
+  if (y1 === y0) { y0 -= 1; y1 += 1; }
+  const pad = (y1 - y0) * 0.07;
+  if (autoMin) y0 -= pad;
+  if (autoMax) y1 += pad;
+
+  const px = x => mL + (x - g.x0) / (g.x1 - g.x0) * (plotR - mL);
+  const py = y => H - mB - (y - y0) / (y1 - y0) * (H - mT - mB);
+  const axisLab = t => esc(t) + (g.std ? " (standardized)" : "");
+  let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + mm.toFixed(2) + 'mm" role="img" ' +
+    'aria-label="Interaction plot: predicted ' + esc(g.Y) + ' as a function of ' + esc(g.X) + ' at ' + g.lines.length + ' levels of ' + esc(g.modName) + '" ' +
+    'font-family="' + esc(font) + '" font-size="' + fs.toFixed(2) + '">';
+  s += '<rect width="' + W + '" height="' + H + '" fill="#ffffff"/>';
+
+  if ($("zeroline").checked && y0 < 0 && y1 > 0)
+    s += '<line x1="' + mL + '" y1="' + py(0).toFixed(2) + '" x2="' + plotR.toFixed(2) + '" y2="' + py(0).toFixed(2) + '" stroke="#000000" stroke-width="' + (lw * 0.4).toFixed(2) + '" stroke-dasharray="3,4"/>';
+
+  if (wantBands) {
+    for (const li of g.lines) {
+      const hi = [], lo = [];
+      for (const xd of xs) {
+        const se = bandSE(g, li, xd); if (!Number.isFinite(se)) { hi.length = 0; break; }
+        hi.push([px(xd), py(lineAt(li, xd) + Z95 * se)]);
+        lo.push([px(xd), py(lineAt(li, xd) - Z95 * se)]);
+      }
+      if (!hi.length) continue;
+      const d = hi.map((p, i) => (i ? "L" : "M") + p[0].toFixed(2) + " " + p[1].toFixed(2)).join(" ") + " " +
+        lo.reverse().map(p => "L" + p[0].toFixed(2) + " " + p[1].toFixed(2)).join(" ") + " Z";
+      s += '<path d="' + d + '" fill="' + li.color + '" fill-opacity="0.14" stroke="none"/>';
+    }
+  }
+
+  for (const li of g.lines) {
+    s += '<line x1="' + px(g.x0).toFixed(2) + '" y1="' + py(lineAt(li, g.x0)).toFixed(2) + '" x2="' + px(g.x1).toFixed(2) + '" y2="' + py(lineAt(li, g.x1)).toFixed(2) +
+      '" stroke="' + li.color + '" stroke-width="' + lw.toFixed(2) + '" fill="none"' + (DASH[li.dash] ? ' stroke-dasharray="' + DASH[li.dash] + '"' : "") + '/>';
+    if (li.marker !== "none") for (let k = 0; k <= 6; k++) {
+      const xd = g.x0 + (g.x1 - g.x0) * k / 6;
+      s += markerShape(px(xd), py(lineAt(li, xd)), li.marker, ms, li.color);
+    }
+  }
+
+  /* Black axes, ticks outside, no gridlines */
+  s += '<line x1="' + mL + '" y1="' + (H - mB) + '" x2="' + plotR.toFixed(2) + '" y2="' + (H - mB) + '" stroke="#000000" stroke-width="' + (fs * 0.09).toFixed(2) + '"/>';
+  s += '<line x1="' + mL + '" y1="' + mT.toFixed(2) + '" x2="' + mL + '" y2="' + (H - mB) + '" stroke="#000000" stroke-width="' + (fs * 0.09).toFixed(2) + '"/>';
+  const xTicks = niceTicks(g.x0, g.x1, fitTicks(plotR - mL, fs * 4.6, 7));
+  for (const v of spacedTicks(xTicks.filter(v => v >= g.x0 - 1e-9 && v <= g.x1 + 1e-9), px, fs)) {
+    s += '<line x1="' + px(v).toFixed(2) + '" y1="' + (H - mB) + '" x2="' + px(v).toFixed(2) + '" y2="' + (H - mB + fs * 0.4).toFixed(2) + '" stroke="#000000" stroke-width="' + (fs * 0.07).toFixed(2) + '"/>';
+    s += '<text x="' + px(v).toFixed(2) + '" y="' + (H - mB + fs * 1.5).toFixed(2) + '" text-anchor="middle" fill="#000000">' + fmtAxis(v) + '</text>';
+  }
+  for (const v of niceTicks(y0, y1, fitTicks(H - mT - mB, fs * 2.2, 6))) {
+    if (v < y0 - 1e-9 || v > y1 + 1e-9) continue;
+    s += '<line x1="' + (mL - fs * 0.4).toFixed(2) + '" y1="' + py(v).toFixed(2) + '" x2="' + mL + '" y2="' + py(v).toFixed(2) + '" stroke="#000000" stroke-width="' + (fs * 0.07).toFixed(2) + '"/>';
+    s += '<text x="' + (mL - fs * 0.7).toFixed(2) + '" y="' + (py(v) + fs * 0.35).toFixed(2) + '" text-anchor="end" fill="#000000">' + fmtAxis(v) + '</text>';
+  }
+  const cx = (mL + plotR) / 2;
+  if (title) s += '<text x="' + cx.toFixed(2) + '" y="' + (fs * 1.6).toFixed(2) + '" text-anchor="middle" font-size="' + (fs * 1.1).toFixed(2) + '" font-weight="bold" fill="#000000">' + esc(title) + '</text>';
+  s += '<text x="' + cx.toFixed(2) + '" y="' + (H - fs * 0.6).toFixed(2) + '" text-anchor="middle" fill="#000000">' + axisLab($("labx").value || g.X) + '</text>';
+  const ymid = mT + (H - mT - mB) / 2;
+  s += '<text x="' + (fs * 1.0).toFixed(2) + '" y="' + ymid.toFixed(2) + '" text-anchor="middle" fill="#000000" transform="rotate(-90 ' + (fs * 1.0).toFixed(2) + ' ' + ymid.toFixed(2) + ')">' + axisLab($("laby").value || g.Y) + '</text>';
+
+  /* Legend in a band to the right of the plotting area: it never covers data. */
+  if (legendOn) {
+    /* The legend band has a fixed share of the width; when the labels are long
+       the legend type is reduced so that no label runs past the edge, and when
+       there are many lines it is reduced again so that the last key stays
+       inside the panel instead of running off the bottom of the figure. */
+    const availH = H - mT - mB;
+    let legFs = Math.min(fs, (legW - fs * 4.6) / Math.max(1, maxLab * CHW));
+    const needed = g.lines.length * legFs * 1.7 + legFs * 0.8;
+    if (needed > availH) legFs *= availH / needed;
+    const lx = plotR + mR + fs * 0.4, step = legFs * 1.7;
+    const h = g.lines.length * step + legFs * 0.8;
+    let ly = Math.max(mT + legFs, mT + (availH - h) / 2);
+    if ($("legbox").checked)
+      s += '<rect x="' + (lx - fs * 0.5).toFixed(2) + '" y="' + (ly - fs * 0.9).toFixed(2) + '" width="' + (W - lx - fs * 0.2).toFixed(2) + '" height="' + h.toFixed(2) + '" fill="#ffffff" stroke="#000000" stroke-width="' + (fs * 0.06).toFixed(2) + '"/>';
+    for (const li of g.lines) {
+      const ym = ly + legFs * 0.1;
+      s += '<line x1="' + lx.toFixed(2) + '" y1="' + ym.toFixed(2) + '" x2="' + (lx + fs * 2.6).toFixed(2) + '" y2="' + ym.toFixed(2) +
+        '" stroke="' + li.color + '" stroke-width="' + lw.toFixed(2) + '"' + (DASH[li.dash] ? ' stroke-dasharray="' + DASH[li.dash] + '"' : "") + '/>';
+      if (li.marker !== "none") s += markerShape(lx + fs * 1.3, ym, li.marker, ms, li.color);
+      s += '<text x="' + (lx + fs * 3.1).toFixed(2) + '" y="' + (ym + legFs * 0.35).toFixed(2) + '" font-size="' + legFs.toFixed(2) + '" fill="#000000">' + esc(li.label) + '</text>';
+      ly += step;
+    }
+  }
+  s += "</svg>";
+  return s;
+}
+
+/* ---------------------------------------------------------------------------
+   Johnson-Neyman. Only thresholds inside the range of the moderator that the
+   data cover are reported and drawn; the figure and the text are built from the
+   same object, so their labels cannot disagree.
+--------------------------------------------------------------------------- */
+function jnReport(g) {
+  if (g.kind !== "cont") return { applies: false };
+  if (!g.cv) return { applies: true, ok: false, why: (g.cvWhy || "the covariance matrix of b<sub>1</sub> and b<sub>3</sub> is not available") +
+    ". The thresholds are the values of the moderator at which the simple slope stops being distinguishable from zero, and that question cannot be answered from the coefficients alone" };
+  if (!(g.cv.v11 > 0) && !(g.cv.v33 > 0)) return { applies: true, ok: false, why:
+    "the sampling variances of b<sub>1</sub> and b<sub>3</sub> read from this output are both zero, so the simple slope has no sampling variability and no threshold exists. Check that TECH3 belongs to the model whose coefficients are shown" };
+  const rng = wRange();
+  if (!rng) return { applies: true, ok: false, why: "the range of " + esc(g.W) +
+    " cannot be established: neither the observed minimum and maximum (univariate sample statistics) nor a mean and a standard deviation are available for it, and a threshold outside the range the data cover describes no observable case. Type the mean and the standard deviation of " + esc(g.W) + " into the fields above, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>" };
+  const co = jnQuadratic(g.b1, g.b3, g.cv, Z95);
+  const q = w => co.a * w * w + co.b * w + co.c;
+  const roots = jnRoots(g.b1, g.b3, g.cv, Z95);
+  /* A root within a thousandth of the width of the range of an endpoint is
+     treated as sitting on the endpoint: it bounds no interval inside the range
+     and would otherwise produce a region too narrow to mean anything. */
+  const edge = (rng.max - rng.min) * 1e-3;
+  const inside = roots.filter(r => r > rng.min + edge && r < rng.max - edge);
+  const outside = roots.filter(r => !(r > rng.min + edge && r < rng.max - edge));
+  const repeated = roots.length === 1 && Math.abs(co.a) > 1e-12 * Math.max(Math.abs(co.a), Math.abs(co.b), Math.abs(co.c));
+  const cuts = [rng.min].concat(inside, [rng.max]);
+  const regions = [];
+  for (let i = 0; i < cuts.length - 1; i++) {
+    const mid = (cuts[i] + cuts[i + 1]) / 2;
+    regions.push({ from: cuts[i], to: cuts[i + 1], sig: q(mid) > 0 });
+  }
+  const W = esc(g.W);
+  const f = w => fmt3(w);
+  const sd = w => (g.std && Number.isFinite(num("mw")) && num("sw") > 0) ? " (" + fmt3((w - num("mw")) / num("sw")) + " SD)" : "";
+  let text;
+  if (inside.length === 1) {
+    const r = inside[0];
+    if (regions[1].sig && !regions[0].sig) text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " above " + f(r) + sd(r) + ", and does not differ from zero below that value.";
+    else if (regions[0].sig && !regions[1].sig) text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " below " + f(r) + sd(r) + ", and does not differ from zero above that value.";
+    else if (repeated) text = "The quadratic has one repeated root, at " + W + " = " + f(r) + sd(r) +
+      ": the test statistic reaches the critical value there and turns back without crossing it, so the slope of " + esc(g.X) + " on " + esc(g.Y) +
+      " has the same status on both sides and " + (regions[0].sig ? "differs from zero everywhere in the range except at that single value" : "differs from zero nowhere in the range, touching significance only at that single value") + ". No region of significance is bounded by it.";
+    else text = "The threshold falls at " + W + " = " + f(r) + sd(r) + ", but the test statistic has the same sign on both sides of it, so no region of significance can be reported.";
+  } else if (inside.length === 2) {
+    const r1 = inside[0], r2 = inside[1];
+    if (regions[0].sig && regions[2].sig)
+      text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " below " + f(r1) + sd(r1) + " and for " + W + " above " + f(r2) + sd(r2) + ", and does not differ from zero between the two values.";
+    else if (regions[1].sig)
+      text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " between " + f(r1) + sd(r1) + " and " + f(r2) + sd(r2) + ", and does not differ from zero outside that interval.";
+    else
+      text = "Two thresholds fall inside the range, at " + W + " = " + f(r1) + " and " + f(r2) + ", but the pattern of the test statistic across the three intervals cannot be summarized in one region.";
+  } else {
+    text = regions[0].sig
+      ? "No threshold falls inside the range of " + W + " used here (" + f(rng.min) + " to " + f(rng.max) + "): the slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero throughout that range."
+      : "No threshold falls inside the range of " + W + " used here (" + f(rng.min) + " to " + f(rng.max) + "): the slope of " + esc(g.X) + " on " + esc(g.Y) + " does not differ from zero anywhere in that range.";
+  }
+  let extra = "";
+  const word = inside.length ? "other " : "";
+  if (outside.length === 1) extra = " The " + word + "root of the quadratic falls at " + W + " = " + f(outside[0]) + ", outside the range " + f(rng.min) + " to " + f(rng.max) + " that the data cover, and is neither reported as a threshold nor drawn.";
+  else if (outside.length > 1) extra = " The " + word + "roots of the quadratic fall at " + W + " = " + outside.map(f).join(" and ") + ", outside the range " + f(rng.min) + " to " + f(rng.max) + " that the data cover, and are neither reported as thresholds nor drawn.";
+  /* The sign of the quadratic coefficient says where significance holds; the
+     midpoints confirm it. A disagreement would mean the roots and the test do
+     not describe the same function, and is reported rather than hidden. */
+  let mismatch = "";
+  if (roots.length === 2 && Math.abs(co.a) > 1e-12) {
+    const mid = (roots[0] + roots[1]) / 2;
+    const expectedInsideSig = co.a < 0;
+    if ((q(mid) > 0) !== expectedInsideSig) mismatch = " The sign of the quadratic coefficient and the value of the test statistic at the midpoint disagree, which points to a numerically unstable covariance matrix; read the thresholds with caution.";
+  }
+  return { applies: true, ok: true, roots, inside, outside, regions, rng, q, co, text: text + extra + mismatch, plain: text };
+}
+
+function jnSVG(g, jn) {
+  const mm = exportWidthMm();
+  const W = mm * UNITS_PER_MM, H = Math.round(W * 0.62);
+  const fs = ptToUnits(Number.isFinite(num("fsize")) ? num("fsize") : 10);
+  const font = $("fontfam").value, lw = (num("lwid") || 2) * 1.2;
+  /* The bottom margin has to hold the tick labels, the labels of the thresholds
+     and the title of the axis without any of the three touching, so it grows
+     when there are thresholds to label. */
+  const mL = fs * 4.8, mR = fs * 1.4, mT = fs * 1.4;
+  const thrRows = jn.inside.length > 1 ? 2 : (jn.inside.length ? 1 : 0);
+  const mB = fs * (4.8 + thrRows * 1.25);
+  const scale = g.std ? g.sx / g.sy : 1;
+  const x0 = jn.rng.min, x1 = jn.rng.max;
+  const N = 120, pts = [];
+  for (let i = 0; i <= N; i++) {
+    const w = x0 + (x1 - x0) * i / N;
+    const v = slopeVariance(w, g.cv);
+    if (!(v >= 0)) continue;
+    const s = (g.b1 + g.b3 * w) * scale, se = Math.sqrt(v) * scale;
+    pts.push({ w, s, lo: s - Z95 * se, hi: s + Z95 * se });
+  }
+  if (pts.length < 3) return "";
+  let y0 = Math.min(0, ...pts.map(p => p.lo)), y1 = Math.max(0, ...pts.map(p => p.hi));
+  if (y1 === y0) { y0 -= 1; y1 += 1; }
+  const pad = (y1 - y0) * 0.1; y0 -= pad; y1 += pad;
+  const px = x => mL + (x - x0) / (x1 - x0) * (W - mL - mR);
+  const py = y => H - mB - (y - y0) / (y1 - y0) * (H - mT - mB);
+  let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + mm.toFixed(2) + 'mm" role="img" ' +
+    'aria-label="Simple slope of ' + esc(g.X) + ' on ' + esc(g.Y) + ' as a function of ' + esc(g.W) + ', with its 95 percent confidence band and the Johnson-Neyman thresholds" ' +
+    'font-family="' + esc(font) + '" font-size="' + fs.toFixed(2) + '">';
+  s += '<rect width="' + W + '" height="' + H + '" fill="#ffffff"/>';
+  for (const r of jn.regions) {
+    const x = px(r.from), w = px(r.to) - px(r.from);
+    s += '<rect x="' + x.toFixed(2) + '" y="' + mT.toFixed(2) + '" width="' + w.toFixed(2) + '" height="' + (H - mT - mB).toFixed(2) + '" fill="' + (r.sig ? "#CFE0F2" : "#F2F2F2") + '"/>';
+  }
+  const band = pts.map((p, i) => (i ? "L" : "M") + px(p.w).toFixed(2) + " " + py(p.hi).toFixed(2)).join(" ") + " " +
+    pts.slice().reverse().map(p => "L" + px(p.w).toFixed(2) + " " + py(p.lo).toFixed(2)).join(" ") + " Z";
+  s += '<path d="' + band + '" fill="#767676" fill-opacity="0.28" stroke="none"/>';
+  /* The labels of the regions are written after the band, so that the band
+     cannot wash them out. One wording is chosen for the whole figure: the long
+     words when every labelled region can hold them, the short ones otherwise,
+     so that two regions of the same kind are never described differently. */
+  {
+    const widths = jn.regions.map(r => px(r.to) - px(r.from));
+    const longest = t => t.length * fs * 0.9 * CHW;
+    const longWords = ["slope differs from zero", "slope does not differ from zero"];
+    const shortWords = ["significant", "not significant"];
+    const allFit = ws => jn.regions.every((r, i) => longest(ws[r.sig ? 0 : 1]) <= widths[i] - fs * 0.6);
+    const anyFit = ws => jn.regions.some((r, i) => longest(ws[r.sig ? 0 : 1]) <= widths[i] - fs * 0.6);
+    const words = allFit(longWords) ? longWords : (anyFit(shortWords) || !anyFit(longWords) ? shortWords : longWords);
+    const panelH = H - mT - mB;
+    jn.regions.forEach((r, i) => {
+      const x = px(r.from), w = widths[i], label = words[r.sig ? 0 : 1];
+      if (longest(label) <= w - fs * 0.6) {
+        s += '<text x="' + (x + w / 2).toFixed(2) + '" y="' + (mT + fs * 1.3).toFixed(2) + '" text-anchor="middle" font-size="' + (fs * 0.9).toFixed(2) + '" fill="#000000">' + label + '</text>';
+        return;
+      }
+      /* Too narrow to hold the words across: they are set along the region, in
+         whichever half of the panel the confidence band does not occupy, and
+         dropped when the panel is not tall enough for them either. */
+      if (!(w > fs * 1.5) || label.length * fs * 0.8 * CHW > panelH * 0.92) return;
+      const insidePts = pts.filter(q => q.w >= r.from && q.w <= r.to);
+      const mid = insidePts.length ? insidePts.reduce((a, q) => a + (q.lo + q.hi) / 2, 0) / insidePts.length : (y0 + y1) / 2;
+      const high = mid < (y0 + y1) / 2;
+      const cxr = x + w / 2, cyr = mT + panelH * (high ? 0.42 : 0.58);
+      s += '<text x="' + cxr.toFixed(2) + '" y="' + cyr.toFixed(2) + '" text-anchor="middle" font-size="' + (fs * 0.8).toFixed(2) + '" fill="#000000" transform="rotate(-90 ' + cxr.toFixed(2) + ' ' + cyr.toFixed(2) + ')">' + label + '</text>';
+    });
+  }
+  if (y0 < 0 && y1 > 0) s += '<line x1="' + mL.toFixed(2) + '" y1="' + py(0).toFixed(2) + '" x2="' + (W - mR).toFixed(2) + '" y2="' + py(0).toFixed(2) + '" stroke="#000000" stroke-width="' + (lw * 0.4).toFixed(2) + '" stroke-dasharray="4,3"/>';
+  s += '<path d="' + pts.map((p, i) => (i ? "L" : "M") + px(p.w).toFixed(2) + " " + py(p.s).toFixed(2)).join(" ") + '" fill="none" stroke="#000000" stroke-width="' + lw.toFixed(2) + '"/>';
+  /* Threshold labels are written under the axis, below the tick labels. Two
+     thresholds close together would print one over the other, so the second is
+     dropped to a second row. The number is the one the text above reports, to
+     three decimals, so the figure and the sentence cannot disagree. */
+  jn.inside.forEach((r, i) => {
+    const lab = "threshold " + fmt3(r);
+    const wNeed = lab.length * fs * 0.9 * 0.62;
+    const clash = i > 0 && Math.abs(px(r) - px(jn.inside[i - 1])) < wNeed;
+    const row = clash ? 1 : 0;
+    /* A label centred on a threshold near an edge would run outside the figure;
+       it is pulled back just far enough to stay inside. */
+    const cx = Math.min(Math.max(px(r), mL + wNeed / 2), W - mR - wNeed / 2);
+    s += '<line x1="' + px(r).toFixed(2) + '" y1="' + mT.toFixed(2) + '" x2="' + px(r).toFixed(2) + '" y2="' + (H - mB).toFixed(2) + '" stroke="#000000" stroke-width="' + (lw * 0.7).toFixed(2) + '" stroke-dasharray="6,4"/>';
+    s += '<text x="' + cx.toFixed(2) + '" y="' + (H - mB + fs * (2.9 + row * 1.25)).toFixed(2) + '" text-anchor="middle" font-size="' + (fs * 0.9).toFixed(2) + '" fill="#000000">' + lab + '</text>';
+  });
+  s += '<line x1="' + mL.toFixed(2) + '" y1="' + (H - mB).toFixed(2) + '" x2="' + (W - mR).toFixed(2) + '" y2="' + (H - mB).toFixed(2) + '" stroke="#000000" stroke-width="' + (fs * 0.09).toFixed(2) + '"/>';
+  s += '<line x1="' + mL.toFixed(2) + '" y1="' + mT.toFixed(2) + '" x2="' + mL.toFixed(2) + '" y2="' + (H - mB).toFixed(2) + '" stroke="#000000" stroke-width="' + (fs * 0.09).toFixed(2) + '"/>';
+  const jnTicks = niceTicks(x0, x1, fitTicks(W - mL - mR, fs * 4.6, 6));
+  for (const v of spacedTicks(jnTicks.filter(v => v >= x0 - 1e-9 && v <= x1 + 1e-9), px, fs)) {
+    s += '<line x1="' + px(v).toFixed(2) + '" y1="' + (H - mB).toFixed(2) + '" x2="' + px(v).toFixed(2) + '" y2="' + (H - mB + fs * 0.4).toFixed(2) + '" stroke="#000000"/>';
+    s += '<text x="' + px(v).toFixed(2) + '" y="' + (H - mB + fs * 1.5).toFixed(2) + '" text-anchor="middle" fill="#000000">' + fmtAxis(v) + '</text>';
+  }
+  for (const v of niceTicks(y0, y1, fitTicks(H - mT - mB, fs * 2.2, 5))) {
+    if (v < y0 - 1e-9 || v > y1 + 1e-9) continue;
+    s += '<line x1="' + (mL - fs * 0.4).toFixed(2) + '" y1="' + py(v).toFixed(2) + '" x2="' + mL.toFixed(2) + '" y2="' + py(v).toFixed(2) + '" stroke="#000000"/>';
+    s += '<text x="' + (mL - fs * 0.7).toFixed(2) + '" y="' + (py(v) + fs * 0.35).toFixed(2) + '" text-anchor="end" fill="#000000">' + fmtAxis(v) + '</text>';
+  }
+  s += '<text x="' + ((mL + W - mR) / 2).toFixed(2) + '" y="' + (H - fs * 0.6).toFixed(2) + '" text-anchor="middle" fill="#000000">' + esc(g.W) + '</text>';
+  const ymid = mT + (H - mT - mB) / 2;
+  s += '<text x="' + (fs * 1.0).toFixed(2) + '" y="' + ymid.toFixed(2) + '" text-anchor="middle" fill="#000000" transform="rotate(-90 ' + (fs * 1.0).toFixed(2) + ' ' + ymid.toFixed(2) + ')">Simple slope of ' + esc(g.X) + ' on ' + esc(g.Y) + (g.std ? " (standardized)" : "") + '</text>';
+  s += "</svg>";
+  return s;
+}
+
+/* ---------------------------------------------------------------------------
+   Tables
+--------------------------------------------------------------------------- */
+function matchNew(rawSlope) {
+  const cand = usableNewParameters();
+  if (!cand.length) return null;
+  const ord = cand.slice().sort((a, b) => Math.abs(a.est - rawSlope) - Math.abs(b.est - rawSlope));
+  /* Two candidates equally close would make the choice arbitrary. */
+  if (ord.length > 1 && Math.abs(Math.abs(ord[0].est - rawSlope) - Math.abs(ord[1].est - rawSlope)) < 1e-9) return null;
+  return Math.abs(ord[0].est - rawSlope) < 0.02 ? ord[0] : null;
+}
+function slopeRow(label, atValue, est, se, scale) {
+  const z = se > 0 ? est / se : NaN, p = Number.isFinite(z) ? pnorm2(z) : NaN;
+  const e = est * scale, s = se * scale;
+  let h = "<tr><td>" + label + "</td><td class=\"num\">" + atValue + "</td><td class=\"num\">" + fmt3(e) + "</td>";
+  if (Number.isFinite(s) && s > 0) h += '<td class="num">' + fmt3(s) + '</td><td class="num">' + fmt2(z) + '</td><td class="num">p ' + fmtP(p) + '</td><td class="num">[' + fmt3(e - Z95 * s) + ", " + fmt3(e + Z95 * s) + "]</td>";
+  else h += '<td colspan="4">no test</td>';
+  return h + "</tr>";
+}
+function slopesTable(g) {
+  const scale = g.std ? g.sx / g.sy : 1;
+  let h = '<div class="table-wrap"><table><caption>Simple slope of ' + esc(g.X) + " on " + esc(g.Y) +
+    (g.std ? ", both standardized" : "") + '</caption><thead><tr><th>Level</th><th class="num">' + esc(g.modName) +
+    '</th><th class="num">Slope</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th><th class="num">95% CI</th></tr></thead><tbody>';
+  const checks = [];
+  if (g.kind === "dum") {
+    if (!g.V) {
+      h += "</tbody></table></div>" + statusBox("warn", "No tests.",
+        "The parameter covariance matrix of b<sub>1</sub> and of the products with the dummy variables could not be read from TECH1 and TECH3, so the slopes below are point estimates only. Request <code>OUTPUT: TECH1 TECH3;</code> in " + MP + ".");
+      let rows = "";
+      g.lines.forEach(li => { rows += "<tr><td>" + esc(li.label) + '</td><td class="num">—</td><td class="num">' + fmt3(li.rawSlope * scale) + '</td><td colspan="4">no test</td></tr>'; });
+      return h.replace("</tbody></table></div>", rows + "</tbody></table></div>");
+    }
+    g.lines.forEach((li, i) => {
+      const t = i === 0
+        ? { est: g.b1, se: Math.sqrt(Math.max(0, g.V[0][0])) }
+        : categorySlope(g.b1, li.rawSlope - g.b1, g.V, 0, i);
+      h += slopeRow(esc(li.label), "—", t.est, t.se, scale);
+    });
+  } else {
+    for (const li of g.lines) {
+      if (g.cv) {
+        const v = slopeVariance(li.w, g.cv);
+        h += slopeRow(esc(li.label), fmt3(li.w), li.rawSlope, v >= 0 ? Math.sqrt(v) : NaN, scale);
+        const n = matchNew(li.rawSlope);
+        if (n && g.cv.source === "TECH1 and TECH3" && v >= 0) checks.push({ label: li.label, mine: Math.sqrt(v), theirs: n.se, name: n.name });
+      } else {
+        h += "<tr><td>" + esc(li.label) + '</td><td class="num">' + fmt3(li.w) + '</td><td class="num">' + fmt3(li.rawSlope * scale) + '</td><td colspan="4">no test</td></tr>';
+      }
+    }
+  }
+  h += "</tbody></table></div>";
+  if (g.cvSource) h += '<p class="hint">Standard errors come from ' + esc(g.cvSource) + ', by the delta method: ' +
+    (g.kind === "dum"
+      ? "Var(b<sub>1</sub> + g<sub>j</sub>) = Var(b<sub>1</sub>) + Var(g<sub>j</sub>) + 2·Cov(b<sub>1</sub>, g<sub>j</sub>), with g<sub>j</sub> the coefficient of the product of X with the dummy of category j."
+      : "Var(b<sub>1</sub> + b<sub>3</sub>w) = Var(b<sub>1</sub>) + w²Var(b<sub>3</sub>) + 2w·Cov(b<sub>1</sub>, b<sub>3</sub>).") + " The tests use the standard normal distribution, as " + MP + " does, and are therefore asymptotic." +
+    (g.std ? " Estimates and standard errors are rescaled by SD(" + esc(g.X) + ")/SD(" + esc(g.Y) + "); z and p are unchanged by that rescaling." : "") + "</p>";
+  if (checks.length) {
+    const dmax = Math.max(...checks.map(c => Math.abs(c.mine - c.theirs)));
+    h += '<p class="hint"><strong>Check against MODEL CONSTRAINT.</strong> ' + MP + ' also computed these standard errors as NEW parameters, printed to three decimals: ' +
+      checks.map(c => esc(c.name) + " " + c.theirs.toFixed(3) + " against " + c.mine.toFixed(4)).join("; ") + ". Largest difference " + dmax.toFixed(4) +
+      (dmax <= 0.0006 ? ", which is the rounding of the printed value." : ". A difference of this size means the NEW parameters do not define these simple slopes.") + "</p>";
+  }
+  if (!g.cvSource && !(g.kind === "dum" && g.V)) {
+    /* One message, built from the reason the covariance matrix could not be
+       obtained, followed by what to do about it. */
+    const why = g.cvWhy || "the covariance matrix of the estimates is not available";
+    const cure = S.manual
+      ? " Enter SE(b<sub>1</sub>), SE(b<sub>3</sub>) and their covariance, or their correlation, in the fields above. Until then the plot is drawn and no test is reported."
+      : (S.slopeEdited
+        ? " Press the button that restores the values read from the output to bring the tests back."
+        : " Request <code>OUTPUT: TECH1 TECH3;</code> in " + MP + ", or compute the simple slopes in MODEL CONSTRAINT as NEW parameters whose names identify them as slopes and the level they refer to, for example <code>SLO_LO</code>, <code>SLO_MED</code>, <code>SLO_HI</code>; three of them are enough to recover the two variances and the covariance.");
+    h += statusBox("warn", "No tests.", "The slopes above are point estimates without a test, because " + why + "." + cure);
+  }
+  return h;
+}
+
+function differencesTable(g) {
+  if (g.kind !== "dum") return "";
+  if (!g.V) return "";
+  const labs = g.lines.map(l => l.label);
+  const gj = g.lines.map(l => l.rawSlope - g.b1);
+  const scale = g.std ? g.sx / g.sy : 1;
+  let h = '<div class="table-wrap"><table><caption>Differences between the simple slopes</caption><thead><tr><th>Comparison</th><th class="num">Difference</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th></tr></thead><tbody>';
+  for (let i = 0; i < g.lines.length; i++) for (let j = i + 1; j < g.lines.length; j++) {
+    const d = gj[j] - gj[i];
+    /* Index 0 is the reference category, whose g is zero and has no column in V. */
+    const vi = i === 0 ? null : i, vj = j === 0 ? null : j;
+    let v;
+    if (vi === null) v = g.V[vj][vj];
+    else v = g.V[vi][vi] + g.V[vj][vj] - 2 * g.V[vi][vj];
+    const se = v > 0 ? Math.sqrt(v) : NaN, z = se > 0 ? d / se : NaN;
+    h += "<tr><td>" + esc(labs[j]) + " minus " + esc(labs[i]) + '</td><td class="num">' + fmt3(d * scale) + '</td><td class="num">' + fmt3(se * scale) + '</td><td class="num">' + fmt2(z) + '</td><td class="num">p ' + fmtP(Number.isFinite(z) ? pnorm2(z) : NaN) + "</td></tr>";
+  }
+  h += "</tbody></table></div>";
+  h += '<p class="hint">The difference between the slope in a category and the slope in the reference category is the coefficient of the corresponding product term; the difference between two non-reference categories is the difference of those coefficients, with variance Var(g<sub>i</sub>) + Var(g<sub>j</sub>) &minus; 2Cov(g<sub>i</sub>, g<sub>j</sub>) read from TECH3.</p>';
+  return h;
+}
+
+/* ---------------------------------------------------------------------------
+   Standardized solution.
+   Two cases that have to be kept apart. When the output contains the STDYX
+   section for the interaction term, the values to report are the ones Mplus
+   printed, with the standard errors it computed by the delta method over the
+   whole parameter vector. When the section is missing, which happens with
+   TYPE = RANDOM and XWITH because the product is not a variable of the model
+   and has no estimated variance of its own, the solution is reconstructed and
+   reported as a reconstruction. In both cases the coefficient of the product is
+   standardized with SD(X)·SD(W), not with the standard deviation of the
+   product: the appropriate standardized solution of Wen, Marsh and Hau (2010).
+--------------------------------------------------------------------------- */
+function impliedVarianceY(g) {
+  const preds = predictorsOf(g.Y).map(up);
+  const wanted = [up(g.X), up(g.W), up(g.XW)];
+  /* The formula holds for the equation with these three terms only. With more
+     predictors the implied variance would be too small and the standardized
+     solution too large, so nothing is reconstructed. */
+  if (preds.length !== 3 || !wanted.every(v => preds.includes(v))) return NaN;
+  const vz = S.residuals[up(g.Y)];
+  const vx = varOf(g.X), vw = varOf(g.W), cxw = covOf(g.X, g.W);
+  const kx = meanOf(g.X), kw = meanOf(g.W);
+  if (![g.b1, g.b2, g.b3, vz, vx, vw, cxw, kx, kw].every(Number.isFinite)) return NaN;
+  const vxw = vx * vw + cxw * cxw + kx * kx * vw + kw * kw * vx + 2 * kx * kw * cxw;
+  const cxxw = kw * vx + kx * cxw, cwxw = kx * vw + kw * cxw;
+  const v = g.b1 * g.b1 * vx + g.b2 * g.b2 * vw + g.b3 * g.b3 * vxw +
+    2 * g.b1 * g.b2 * cxw + 2 * g.b1 * g.b3 * cxxw + 2 * g.b2 * g.b3 * cwxw + vz;
+  return v > 0 ? v : NaN;
+}
+function varianceOfY(g) {
+  const printed = varOf(g.Y);
+  if (Number.isFinite(printed) && printed > 0) return { v: printed, src: up(g.Y) in S.latentVars ? "TECH4" : "SAMPSTAT" };
+  const im = impliedVarianceY(g);
+  return Number.isFinite(im) ? { v: im, src: "the model" } : { v: NaN, src: null };
+}
+function stdTable(g) {
+  if (S.manual) return '<p class="hint">A standardized solution is reported only for a model read from an output file.</p>';
+  if (g.kind === "dum") return '<p class="hint">With a categorical moderator entered as dummy variables the standardized solution of the product terms has no single scale factor: the dummy variables are not measured in standard deviations. The slopes are reported above in the original metric of ' + esc(g.X) + ' and ' + esc(g.Y) + ', and in the standardized display as the slope of standardized ' + esc(g.Y) + ' on standardized ' + esc(g.X) + ' within each category, that is b·SD(' + esc(g.X) + ')/SD(' + esc(g.Y) + ').</p>';
+  const YU = up(g.Y);
+  const sx = sdOf(g.X), sw = sdOf(g.W), vy = varianceOfY(g);
+  const sy = Number.isFinite(vy.v) && vy.v > 0 ? Math.sqrt(vy.v) : NaN;
+  const info = S.regInfo[YU] || {};
+  const std = (S.regStd || {})[YU] || null, stdInfo = (S.regStdInfo || {})[YU] || {};
+  const names = [g.X, g.W, g.XW].map(up);
+  const printed = !!std && names.some(n => Number.isFinite(std[n]));
+  const canRebuild = sx > 0 && sw > 0 && sy > 0;
+  const latent = (S.latent || []).includes(up(g.XW)) || !(up(g.XW) in (S.sampVars || {}));
+  const title = latent ? "Standardized solution of the latent interaction" : "Standardized solution";
+  const k = [sx / sy, sw / sy, sx * sw / sy];
+
+  if (!printed && !canRebuild) {
+    const missing = [];
+    if (!(sx > 0)) missing.push("the SD of " + esc(g.X));
+    if (!(sw > 0)) missing.push("the SD of " + esc(g.W));
+    if (!(sy > 0)) missing.push("the variance of " + esc(g.Y));
+    const np = predictorsOf(g.Y).length;
+    return statusBox("warn", "Not available.", "This output has no STDYX section for " + esc(g.Y) + " and the solution cannot be reconstructed: " + missing.join(", ") + " " + (missing.length === 1 ? "is" : "are") + " missing. The reconstruction needs the variances of the factors (the <em>Variances</em> block of MODEL RESULTS or TECH4), their covariance (<em>WITH</em>) and the residual variance of the dependent variable." +
+      (np > 3 ? " " + esc(g.Y) + " has " + np + " predictors, and the implied variance can be reconstructed only for the equation with X, W and their product alone; add TECH4 to the OUTPUT command." : ""));
+  }
+  const rows = [g.X, g.W, g.XW].map((n, i) => {
+    const NU = up(n), b = [g.b1, g.b2, g.b3][i];
+    return { name: n, b, k: k[i], rebuilt: canRebuild ? b * k[i] : NaN, mp: std && Number.isFinite(std[NU]) ? std[NU] : NaN, mpi: stdInfo[NU] || {}, raw: info[NU] || {} };
+  });
+  let h = '<div class="table-wrap"><table><caption>' + title + '</caption><thead><tr><th>Predictor</th><th class="num">b</th>';
+  if (printed) h += '<th class="num">β (' + MP + ')</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th>' + (canRebuild ? '<th class="num">Rebuilt</th>' : "");
+  else h += '<th class="num">Scale factor</th><th class="num">β (rebuilt)</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th>';
+  h += "</tr></thead><tbody>";
+  let dmax = 0, ncomp = 0, dprod = NaN, nprod = 0;
+  for (const r of rows) {
+    h += "<tr><td>" + esc(r.name) + '</td><td class="num">' + fmt3(r.b) + "</td>";
+    if (printed) {
+      h += '<td class="num">' + fmt3(r.mp) + '</td><td class="num">' + fmt3(r.mpi.se) + '</td><td class="num">' +
+        (Number.isFinite(r.mpi.z) && r.mpi.z < 999 ? fmt2(r.mpi.z) : "—") + '</td><td class="num">' +
+        (Number.isFinite(r.mpi.p) && r.mpi.p <= 1 ? "p " + fmtP(r.mpi.p) : "—") + "</td>";
+      if (canRebuild) {
+        h += '<td class="num">' + fmt3(r.rebuilt) + "</td>";
+        /* Only the two linear terms are expected to agree. For the product the
+           two columns standardize on different quantities on purpose, and the
+           difference between them is the subject of Wen, Marsh and Hau (2010). */
+        if (Number.isFinite(r.rebuilt) && Number.isFinite(r.mp)) {
+          if (r.name === g.XW) { dprod = Math.abs(r.rebuilt - r.mp); nprod++; }
+          else { dmax = Math.max(dmax, Math.abs(r.rebuilt - r.mp)); ncomp++; }
+        }
+      }
+    } else {
+      const se = Number.isFinite(r.raw.se) ? r.raw.se * r.k : NaN;
+      h += '<td class="num">' + r.k.toFixed(4) + '</td><td class="num">' + fmt3(r.rebuilt) + '</td><td class="num">' + fmt3(se) + '</td><td class="num">' +
+        (Number.isFinite(r.raw.z) && r.raw.z < 999 ? fmt2(r.raw.z) : "—") + '</td><td class="num">' +
+        (Number.isFinite(r.raw.p) && r.raw.p <= 1 ? "p " + fmtP(r.raw.p) : "—") + "</td>";
+    }
+    h += "</tr>";
+  }
+  h += "</tbody></table></div>";
+
+  const vz = S.residuals[YU], rstd = S.residualsStd[YU];
+  let r2 = NaN, r2src = "";
+  if (Number.isFinite(rstd)) { r2 = 1 - rstd; r2src = "the standardized residual variance printed by " + MP + ""; }
+  else if (Number.isFinite(vz) && Number.isFinite(vy.v) && vy.v > 0) { r2 = 1 - vz / vy.v; r2src = "Var(residual)/Var(" + esc(g.Y) + ")"; }
+  h += '<p class="hint"><strong>Variances used for the figure.</strong> ' +
+    (Number.isFinite(sx) ? "SD(" + esc(g.X) + ") = " + sx.toFixed(3) + "; " : "") +
+    (Number.isFinite(sw) ? "SD(" + esc(g.W) + ") = " + sw.toFixed(3) + "; " : "") +
+    (Number.isFinite(vy.v) ? "Var(" + esc(g.Y) + ") = " + vy.v.toFixed(3) + " from " + vy.src + ", SD = " + sy.toFixed(3) + "." : "") +
+    (Number.isFinite(r2) ? " R² = " + r2.toFixed(3) + ", from " + r2src + "." : "");
+  /* When Mplus printed the standardized residual variance, the total variance it
+     standardized on can be recovered from it: comparing the two is the most
+     direct check that the figure and the table use the same metric. */
+  if (Number.isFinite(rstd) && rstd > 0 && Number.isFinite(vz) && Number.isFinite(vy.v) && vy.v > 0) {
+    const back = vz / rstd;
+    h += " Check: the standardized residual variance of " + MP + " (" + rstd.toFixed(3) + ") implies Var(" + esc(g.Y) + ") = " + back.toFixed(3) +
+      (Math.abs(back - vy.v) / vy.v < 0.01 ? ", which agrees with the value used here." : ", which differs from the value used here, so the standardized figure is not in the metric of the STDYX section.");
+  }
+  h += "</p>";
+  if (printed) {
+    const sdProd = sdOf(g.XW);
+    h += '<p class="hint">This output contains a STDYX section for ' + esc(g.Y) + '. For ' + esc(g.X) + ' and ' + esc(g.W) +
+      ' the two columns answer the same question and the ' + MP + ' values are the ones to report' +
+      (canRebuild && ncomp ? ", and they agree with the rebuilt column to " + dmax.toFixed(3) +
+        (dmax <= 0.005 ? ", which is the rounding of the printed values." :
+         ". A difference of that size means the standard deviations used here are not the ones " + MP + " standardized on; check the sample statistics and TECH4.") : ".") + "</p>";
+    if (canRebuild && nprod) {
+      /* The two columns disagree for the product on purpose: Mplus divides by
+         the standard deviation of the product variable, Wen, Marsh and Hau
+         divide by the product of the two standard deviations. Reporting that
+         disagreement as a defect would be wrong. */
+      h += '<p class="hint"><strong>The product term is the exception.</strong> ' + MP +
+        ' standardizes ' + esc(g.XW) + ' by its own standard deviation' +
+        (Number.isFinite(sdProd) ? ", SD(" + esc(g.XW) + ") = " + sdProd.toFixed(3) : "") +
+        ', which gives β = ' + fmt3(rows[2].mp) + '. The rebuilt column divides instead by SD(' + esc(g.X) + ')·SD(' + esc(g.W) +
+        ') = ' + (sx * sw).toFixed(3) + ', which gives ' + fmt3(rows[2].rebuilt) + '. The two differ by ' + dprod.toFixed(3) +
+        ' because the standard deviation of a product is not the product of the standard deviations. Wen, Marsh and Hau (2010) show that the second is the appropriate standardized solution: it is the one under which the standardized simple slope at a moderator value w is b<sub>1</sub>* + b<sub>3</sub>*·w/SD(' +
+        esc(g.W) + '), and the one that stays unchanged when the variables are rescaled. Report ' + fmt3(rows[2].rebuilt) +
+        ' for ' + esc(g.XW) + ', and say in the text that the standardized solution printed by ' + MP + ' divides instead by the standard deviation of the product term.</p>';
+    }
+  } else {
+    const cxw = covOf(g.X, g.W);
+    h += '<p class="hint">This output has no STDYX section for ' + esc(g.Y) + ', so the solution above is <strong>reconstructed</strong> from the unstandardized parameters. This happens with <code>' + esc(g.XW) + " | " + esc(g.X) + " XWITH " + esc(g.W) + '</code>, because the product is not a variable of the model and has no estimated variance of its own. ' +
+      (vy.src === "the model" ? "The total variance of " + esc(g.Y) + " is missing as well and is derived from the model under joint normality of the factors, with the variance of the product taken from Bohrnstedt and Goldberger (1969)" + (Number.isFinite(cxw) ? ", using Cov(" + esc(g.X) + ", " + esc(g.W) + ") = " + cxw.toFixed(3) : "") + ". " : "") +
+      "The standard errors are the unstandardized ones rescaled by the same factor treated as a constant, so z and p remain those of the raw solution, which is the correct test of the parameter. Exact standard errors for the standardized solution require " + MP + " to print it.</p>";
+  }
+  return h;
+}
+
+function newParametersTable() {
+  const np = S.newPar.filter(n => n.se > 0 && n.p < 999);
+  if (!np.length) return '<p class="hint">This output has no NEW parameters from MODEL CONSTRAINT.</p>';
+  let h = '<div class="table-wrap"><table><caption>NEW parameters reported by ' + MP + '</caption><thead><tr><th>Name</th><th class="num">Estimate</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th><th>Used as a simple slope</th></tr></thead><tbody>';
+  for (const n of np)
+    h += "<tr><td>" + esc(n.name) + '</td><td class="num">' + fmt3(n.est) + '</td><td class="num">' + fmt3(n.se) + '</td><td class="num">' + fmt2(n.z) + '</td><td class="num">p ' + fmtP(n.p) + "</td><td>" +
+      (looksLikeSimpleSlope(n.name) ? '<span aria-hidden="true">✓</span> yes' : '<span aria-hidden="true">✗</span> no, the name does not identify a simple slope') + "</td></tr>";
+  h += "</tbody></table></div>";
+  h += '<p class="hint">A NEW parameter is used as a simple slope only when its name says so. Names that identify an indirect, direct or total effect are excluded, so that an effect which happens to fall near the value of a simple slope is never reported as one. When TECH3 is available it is preferred, because ' + MP + ' prints NEW parameters to three decimals.</p>';
+  return h;
+}
+
+/* ---------------------------------------------------------------------------
+   Redrawing everything
+--------------------------------------------------------------------------- */
+function clearResults() {
+  for (const id of ["fig", "slopes", "diffs", "jntext", "jnfig", "stdsol", "newpars"]) $(id).innerHTML = "";
+  $("figtools").hidden = true; $("jntools").hidden = true;
+}
+function draw() {
+  if (!S.loaded && !S.manual) return;
+  $("restorebtn").hidden = !(S.loaded && (S.slopeEdited || S.anyEdited));
+  const g = gather();
+  if (g.error) { clearResults(); $("fig").innerHTML = statusBox("bad", "Nothing drawn.", g.error); return; }
+  const bandsOn = $("bands").checked;
+  let caption = "Predicted " + esc(g.Y) + " as a function of " + esc(g.X) + " at " + g.lines.length +
+    (g.kind === "cont" ? " levels of " + esc(g.modName) : " values of " + esc(g.modName)) + ". ";
+  caption += g.xsrc ? "The horizontal axis covers " + esc(g.xsrc) + ". " : "";
+  caption += g.extra.note;
+  if (bandsOn && g.bandV) caption += "The shaded bands are 95% confidence intervals for the conditional mean, computed from TECH3. ";
+  else if (bandsOn) caption += "No confidence band is drawn, because " + g.bandWhy + ". ";
+  if (g.kind !== "cont") caption += "The moderator is categorical and is kept in its original metric" + (g.std ? "; only " + esc(g.X) + " and " + esc(g.Y) + " are standardized, so each line is the slope of standardized " + esc(g.Y) + " on standardized " + esc(g.X) + " within that category" : "") + ". ";
+  const fig = interactionSVG(g);
+  const drawn = fig.indexOf("<svg") === 0;
+  /* A line at zero that falls outside the vertical range cannot be drawn, and
+     leaving the box ticked with nothing drawn would look like a defect. */
+  if (drawn && $("zeroline").checked && fig.indexOf('stroke-dasharray="3,4"') < 0)
+    caption += "The line at " + esc(g.Y) + " = 0 was asked for but is not drawn, because zero falls outside the vertical range of the figure. ";
+  if (drawn && $("greyscale").checked) caption += "The lines are black and are told apart by their dash pattern" +
+    (g.lines.some(l => l.marker !== "none") ? " and marker" : "") + ". ";
+  /* A figure printed at the chosen width with type below 9 pt is below what
+     most journals accept, and the reader has no other way of noticing. */
+  const ptSize = Number.isFinite(num("fsize")) ? num("fsize") : 10;
+  if (drawn && ptSize < 9) caption += "The type is set at " + fmt3(ptSize).replace(/\.?0+$/, "") +
+    " pt at an export width of " + exportWidthMm() + " mm, below the 9 pt most journals ask for; raise the type size or the width. ";
+  $("fig").innerHTML = '<figure class="plot">' + fig + "<figcaption>" + caption + "</figcaption></figure>";
+  $("figtools").hidden = !drawn;
+
+  $("slopes").innerHTML = slopesTable(g);
+  $("diffs").innerHTML = differencesTable(g);
+  $("stdsol").innerHTML = stdTable(g);
+  $("newpars").innerHTML = S.manual ? '<p class="hint">Available only for a model read from an output file.</p>' : newParametersTable();
+
+  const jn = jnReport(g);
+  if (!jn.applies) {
+    $("jntext").innerHTML = statusBox("info", "Not applicable.",
+      "The moderator is categorical, so the Johnson&ndash;Neyman procedure does not apply: it looks for the values of the moderator at which the effect changes significance, and that presupposes a moderator that can take any value on a continuum. With a categorical moderator the simple slopes at the observed categories are the whole result, not an approximation to it. The classic problem of Johnson and Neyman (1936) is a different one, with the roles reversed: there the group is categorical and the region of significance is computed on the continuous predictor.");
+    $("jnfig").innerHTML = ""; $("jntools").hidden = true;
+  } else if (!jn.ok) {
+    $("jntext").innerHTML = statusBox("warn", "Not computed.", "The Johnson&ndash;Neyman thresholds were not computed because " + jn.why + ".");
+    $("jnfig").innerHTML = ""; $("jntools").hidden = true;
+  } else {
+    $("jntext").innerHTML = "<p>" + jn.text + "</p>" +
+      '<p class="hint">The thresholds are the roots of a·w² + b·w + c = 0 with a = b<sub>3</sub>² &minus; z²Var(b<sub>3</sub>), b = 2[b<sub>1</sub>b<sub>3</sub> &minus; z²Cov(b<sub>1</sub>, b<sub>3</sub>)] and c = b<sub>1</sub>² &minus; z²Var(b<sub>1</sub>), with z = 1.96. Only roots inside the range of ' + esc(g.W) + ' used here are reported: ' + esc(jn.rng.src) + ', from ' + fmt3(jn.rng.min) + " to " + fmt3(jn.rng.max) + ". The quadratic coefficient a = " + fmt3(jn.co.a) + " is " + (jn.co.a > 0 ? "positive, so significance holds outside the roots" : "negative, so significance holds between the roots") + ", and the test statistic evaluated at the midpoint of each interval agrees with that.</p>";
+    const svg = jnSVG(g, jn);
+    $("jnfig").innerHTML = svg ? '<figure class="plot">' + svg + "<figcaption>Simple slope of " + esc(g.X) + " on " + esc(g.Y) + " as a function of " + esc(g.W) + ", with its 95% confidence band. The horizontal dashed line marks a slope of zero and the vertical dashed lines mark the thresholds. " + jn.plain + "</figcaption></figure>" : "";
+    $("jntools").hidden = !svg;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Applying a selection to the controls
+--------------------------------------------------------------------------- */
+function updateStdAvailability() {
+  const sx = num("sx"), sy = num("sy");
+  const ok = sx > 0 && sy > 0;
+  $("m-std").disabled = !ok;
+  if (!ok && $("m-std").checked) $("m-raw").checked = true;
+  $("stdnote").innerHTML = !ok
+    ? "The standardized display needs the standard deviation of X and of Y, which are not available here."
+    : (S.haveStd
+      ? "This output contains a STDYX section, so the standardized coefficients reported below are those of " + MP + "; the figure applies the same transformation to X and Y."
+      : "This output has no STDYX section, so the standardized figure and coefficients are reconstructed from the variances available (TECH4, the Variances block, WITH).");
+}
+function applySelection() {
+  const Y = $("selY").value, X = $("selX").value, W = $("selW").value, XW = $("selXW").value;
+  const reg = S.reg[up(Y)] || {};
+  if (!S.manual) {
+    setNum("b0", Number.isFinite(S.inter[up(Y)]) ? S.inter[up(Y)] : 0);
+    setNum("b1", reg[up(X)]);
+    setNum("b2", reg[up(W)]);
+    setNum("b3", reg[up(XW)]);
+    setNum("mx", meanOf(X)); setNum("sx", sdOf(X));
+    setNum("mw", meanOf(W)); setNum("sw", sdOf(W));
+    setNum("my", meanOf(Y));
+    const vy = varOf(Y);
+    setNum("sy", Number.isFinite(vy) && vy > 0 ? Math.sqrt(vy) : NaN);
+    S.slopeEdited = false; S.anyEdited = false;
+  }
+  $("labx").value = X || "X";
+  $("laby").value = Y || "Y";
+  updateStdAvailability();
+  S.levels = defaultLevels();
+  renderLevels();
+  const xr = xRange();
+  if (xr) {
+    const std = isStd();
+    setNum("xmin", std ? (xr.min - num("mx")) / num("sx") : xr.min);
+    setNum("xmax", std ? (xr.max - num("mx")) / num("sx") : xr.max);
+  }
+  $("ymin").value = ""; $("ymax").value = "";
+  draw();
+}
+function updateProductNote() {
+  const X = $("selX").value, W = $("selW").value, XW = $("selXW").value;
+  const el = $("prodnote");
+  if (moderatorKind() === "dum") { el.textContent = ""; return; }
+  if (!XW) {
+    el.innerHTML = "The output does not state which predictor is the product of X and the moderator, and this page does not treat a name that merely contains the letter X as a product. Choose the product term above; the name is usually built as XW, X_W or XxW, or the term is defined with XWITH or in DEFINE.";
+    return;
+  }
+  const how = declaredProduct(XW, X, W);
+  if (how) el.innerHTML = "The product term " + esc(XW) + " is identified by " + esc(how) + " in the echoed input.";
+  else if (nameIsProduct(XW, X, W)) el.innerHTML = "The name " + esc(XW) + " is built from " + esc(X) + " and " + esc(W) + ", which is why it is offered as the product term.";
+  else el.innerHTML = "<strong>" + esc(XW) + "</strong> cannot be recognized as the product of " + esc(X) + " and " + esc(W) + " from its name, and the output does not declare it with XWITH or in DEFINE. If it is the interaction term, this selection is correct and nothing needs to change; otherwise choose another term.";
+}
+function populateForY() {
+  const Y = $("selY").value, preds = predictorsOf(Y);
+  const det = detectProduct(preds);
+  S.autoProduct = det;
+  const others = det ? preds.filter(p => up(p) !== det.prod) : preds;
+  fillSelect($("selX"), preds, det ? preds.find(p => up(p) === det.x) : preds[0]);
+  fillSelect($("selW"), preds, det ? preds.find(p => up(p) === det.w) : (others[1] || others[0]));
+  fillSelect($("selXW"), preds, det ? preds.find(p => up(p) === det.prod) : null, det ? null : "— choose the product term —");
+  renderDummyRows();
+  updateProductNote();
+  applySelection();
+}
+function refreshModeratorUI() {
+  const k = moderatorKind();
+  $("wsingle").hidden = k === "dum";
+  $("wdummy").hidden = k !== "dum";
+  $("p-levels").hidden = k === "dum";
+  $("rowb23").hidden = k === "dum";
+  $("rowmw").hidden = k === "dum";
+}
+
+/* ---------------------------------------------------------------------------
+   Loading a file
+--------------------------------------------------------------------------- */
+function fail(msg) {
+  clearResults();
+  $("p-vars").hidden = true; $("p-levels").hidden = true; $("p-style").hidden = true;
+  $("results-col").hidden = true;
+  S.loaded = false; S.manual = false;
+  $("loadmsg").innerHTML = statusBox("bad", "Not read.", msg);
+}
+function loadText(raw) {
+  const t = normalize(raw);
+  if (!t.trim()) { fail("The file that was chosen has no content at all. " + MP + " writes its output as it runs, so an empty .out file usually means the run was interrupted before it started or the file was copied while it was still being written. Rerun the model and load the file " + MP + " leaves behind."); return; }
+  if (!/Mplus VERSION|INPUT INSTRUCTIONS|MODEL FIT INFORMATION|SUMMARY OF ANALYSIS/i.test(t)) {
+    fail("This file does not look like an " + MP + " output: none of the headings " + MP + " always writes is present (the version banner at the top of the file, <code>INPUT INSTRUCTIONS</code>, <code>SUMMARY OF ANALYSIS</code>, <code>MODEL FIT INFORMATION</code>). Load the complete .out file rather than a data file, a saved plot or a fragment copied out of the output.");
+    return;
+  }
+  if (/DID NOT TERMINATE NORMALLY|NO CONVERGENCE/i.test(t)) {
+    fail("Estimation did not converge in this output (" + MP + " reports THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY). The coefficients cannot be interpreted, so nothing is drawn.");
+    return;
+  }
+  const bad = unsupportedReason(t);
+  if (bad) { fail(bad); return; }
+  const D = parseOutput(t);
+  if (/^BAYES/.test(D.estimator || "")) {
+    fail("This output was produced with ESTIMATOR = BAYES, which prints MODEL RESULTS in a different format (posterior median, posterior standard deviation, credibility interval). This page reads frequentist outputs such as ML, MLR and WLSMV.");
+    return;
+  }
+  /* A file that stops before MODEL RESULTS is a run that did not finish, or a
+     copy taken while it was still being written; saying only that no regression
+     was found would send the reader looking for the wrong thing. */
+  if (!/^\s*MODEL RESULTS\s*$/m.test(t)) {
+    fail("This output ends before the MODEL RESULTS section, so it holds no coefficients. A file that stops in the middle comes from a run that was interrupted or from a copy taken while " + MP +
+      " was still writing it" + (/^\s*\*\*\* ERROR/m.test(t) ? ", and this one also carries an <b>*** ERROR</b> message from " + MP : "") +
+      ". Rerun the model and load the complete .out file.");
+    return;
+  }
+  const deps = Object.keys(D.reg).filter(d => Object.keys(D.reg[d]).length >= 2);
+  if (!deps.length) {
+    const one = Object.keys(D.reg).filter(d => Object.keys(D.reg[d]).length === 1);
+    fail("MODEL RESULTS contains no regression with at least two predictors, and an interaction needs at least three: the predictor, the moderator and their product. " +
+      (one.length ? "The only regression found is " + esc(one[0]) + " ON " + esc(Object.keys(D.reg[one[0]])[0]) + ". " : "No <code>ON</code> block was found at all. ") +
+      "Load the output of the model that contains the interaction.");
+    return;
+  }
+  Object.assign(S, D);
+  S.loaded = true; S.manual = false; S.slopeEdited = false; S.anyEdited = false;
+  S.haveStd = Object.keys(S.regStd).length > 0;
+  S.dummies = [];
+  $("manualse").hidden = true;
+  $("wkind").value = "cont";
+  refreshModeratorUI();
+  $("p-vars").hidden = false; $("p-style").hidden = false; $("results-col").hidden = false;
+  const best = deps.slice().sort((a, b) => Object.keys(S.reg[b]).length - Object.keys(S.reg[a]).length)[0];
+  fillSelect($("selY"), deps, best);
+  populateForY();
+
+  const bits = [];
+  bits.push("Read " + deps.map(d => esc(d) + " ON " + Object.keys(S.reg[d]).map(esc).join(" ")).join("; ") + ".");
+  bits.push(S.estimator
+    ? (S.estimatorFromInput
+        ? "Estimator " + esc(S.estimator) + ", read from the echoed input rather than from SUMMARY OF ANALYSIS: that is the estimator the run asked for, and " + MP + " changes it in some analyses, so check the summary in the output."
+        : "Estimator " + esc(S.estimator) + ".")
+    : "The estimator is not stated in this output, so nothing that depends on it is used; in particular no covariance matrix of the coefficients is reconstructed.");
+  const haveT1 = Object.keys(S.tech1).length > 0, haveT3 = Object.keys(S.tech3).length > 0;
+  bits.push(haveT1 && haveT3
+    ? "TECH1 and TECH3 are present: the tests of the simple slopes and the Johnson–Neyman thresholds use the covariance matrix of the estimates."
+    : (!haveT1 && !haveT3
+      ? "Neither TECH1 nor TECH3 is in this output; request OUTPUT: TECH1 TECH3; for the exact covariance matrix of the estimates."
+      : (haveT1
+        ? "TECH1 is present but TECH3 is not, so the parameters are numbered and their covariance matrix was not printed; request OUTPUT: TECH1 TECH3;."
+        : "TECH3 is present but TECH1 is not, so the numbers TECH3 is indexed by cannot be matched to the coefficients; request OUTPUT: TECH1 TECH3;.")));
+  if (!(haveT1 && haveT3)) bits.push("Where the standard errors of the simple slopes then come from is stated under the table; if no source can be used, no test is reported.");
+  if (Object.keys(S.uni).length) bits.push("The observed minimum and maximum of the variables were read from the univariate sample statistics.");
+  if (S.newPar.length) bits.push("NEW parameters found: " + S.newPar.map(n => esc(n.name)).join(", ") + ".");
+  if (S.truncated.length) bits.push("Warning: " + S.truncated.length + " row(s) of MODEL RESULTS could not be read because " + MP + " printed asterisks or the 999.000 sentinel in place of the value (" + [...new Set(S.truncated)].map(esc).join(", ") + ").");
+  $("loadmsg").innerHTML = statusBox(S.truncated.length ? "warn" : "ok", "Output read.", bits.join(" "));
+}
+
+/* ---------------------------------------------------------------------------
+   Coefficients entered by hand. Nothing is invented here: without the standard
+   errors and the covariance of b1 and b3 the page draws the plot and says that
+   the tests need the covariance matrix of the estimates.
+--------------------------------------------------------------------------- */
+function manualMode() {
+  S.manual = true; S.loaded = false;
+  S.reg = { Y: { X: 0.4, W: -0.2, XW: -0.05 } }; S.regInfo = { Y: {} }; S.regStd = {}; S.regStdInfo = {};
+  S.inter = { Y: 0 }; S.means = {}; S.vars = {}; S.residuals = {}; S.withCov = {};
+  S.sampMeans = {}; S.sampVars = {}; S.sampCov = {}; S.uni = {}; S.latentMeans = {}; S.latentVars = {};
+  S.newPar = []; S.latent = []; S.truncated = []; S.tech1 = {}; S.tech3 = {}; S.xwith = []; S.defined = [];
+  S.n = NaN; S.estimator = ""; S.haveStd = false; S.dummies = [];
+  S.slopeEdited = false; S.anyEdited = false;
+  $("p-vars").hidden = false; $("p-style").hidden = false; $("results-col").hidden = false;
+  $("manualse").hidden = false;
+  $("wkind").value = "cont";
+  $("wkind").querySelector('option[value="dum"]').disabled = true;
+  refreshModeratorUI();
+  fillSelect($("selY"), ["Y"], "Y");
+  fillSelect($("selX"), ["X", "W", "XW"], "X");
+  fillSelect($("selW"), ["X", "W", "XW"], "W");
+  fillSelect($("selXW"), ["X", "W", "XW"], "XW");
+  for (const [id, v] of [["b0", 0], ["b1", 0.4], ["b2", -0.2], ["b3", -0.05], ["mx", 0], ["sx", 1], ["mw", 0], ["sw", 1], ["my", 0], ["sy", 1]]) $(id).value = v;
+  for (const id of ["se1", "se3", "cov13", "cor13"]) $(id).value = "";
+  $("prodnote").textContent = "";
+  $("loadmsg").innerHTML = statusBox("info", "Coefficients by hand.",
+    "Enter b<sub>0</sub>, b<sub>1</sub>, b<sub>2</sub> and b<sub>3</sub>, together with the means and standard deviations of X, W and Y. The plot is drawn from those alone. The tests of the simple slopes and the Johnson&ndash;Neyman thresholds also need SE(b<sub>1</sub>), SE(b<sub>3</sub>) and Cov(b<sub>1</sub>, b<sub>3</sub>), or the correlation between the two estimates; without them no test is reported.");
+  updateStdAvailability();
+  S.levels = defaultLevels();
+  renderLevels();
+  setNum("xmin", -2); setNum("xmax", 2);
+  $("labx").value = "X"; $("laby").value = "Y";
+  draw();
+}
+
+/* ---------------------------------------------------------------------------
+   Export
+--------------------------------------------------------------------------- */
+const MAX_CANVAS_PIXELS = 16000000; /* above this area some browsers return a blank canvas without an error */
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob), a = document.createElement("a");
+  a.href = url; a.download = name; a.style.display = "none";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function svgIn(hostId) { const h = $(hostId); return h ? h.querySelector("svg") : null; }
+function exportSVG(hostId, base) {
+  const el = svgIn(hostId);
+  if (!el) return;
+  const xml = new XMLSerializer().serializeToString(el);
+  downloadBlob(new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + xml], { type: "image/svg+xml;charset=utf-8" }), base + ".svg");
+}
+function exportPNG(hostId, base) {
+  const el = svgIn(hostId);
+  if (!el) return;
+  const mm = exportWidthMm();
+  let dpi = +$("dpi").value || 600;
+  const vb = el.viewBox.baseVal, ratio = vb.height / vb.width;
+  let wpx = Math.round(mm / 25.4 * dpi), hpx = Math.round(wpx * ratio);
+  if (wpx * hpx > MAX_CANVAS_PIXELS) {
+    const k = Math.sqrt(MAX_CANVAS_PIXELS / (wpx * hpx)), reduced = Math.max(72, Math.floor(dpi * k));
+    wpx = Math.round(mm / 25.4 * reduced); hpx = Math.round(wpx * ratio);
+    window.alert("At " + dpi + " dpi the image would exceed the canvas memory limit of this browser and would be saved blank. The resolution has been reduced to " + reduced + " dpi (" + wpx + " by " + hpx + " pixels). For the full resolution use the SVG export, which is vectorial.");
+    dpi = reduced;
+  }
+  const xml = new XMLSerializer().serializeToString(el), img = new Image();
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    c.width = wpx; c.height = hpx;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, wpx, hpx);
+    ctx.drawImage(img, 0, 0, wpx, hpx);
+    const name = base + "_" + mm + "mm_" + dpi + "dpi.png";
+    if (c.toBlob) c.toBlob(b => { if (b) downloadBlob(b, name); else downloadBlob(new Blob([]), name); }, "image/png");
+    else { const a = document.createElement("a"); a.href = c.toDataURL("image/png"); a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  };
+  img.onerror = () => window.alert("This browser could not render the figure to PNG. Use the SVG export.");
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(xml);
+}
+
+/* ---------------------------------------------------------------------------
+   Self-test. Every check is numerical and self-contained: no file is needed.
+--------------------------------------------------------------------------- */
+function near(a, b, tol) { return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= tol; }
+function runSelfTests() {
+  const checks = [];
+  const add = (name, ok, note) => checks.push({ name, ok: !!ok, note: note || "" });
+
+  /* 1. The standardizing transformation: predicting on the raw metric and then
+        standardizing must give the same value as the standardized intercept
+        plus the standardized simple slope times the standardized predictor. */
+  let worst = 0;
+  for (let i = 0; i < 20000; i++) {
+    const r = () => Math.random() * 4 - 2;
+    const b0 = r(), b1 = r(), b2 = r(), b3 = r(), mx = r(), mw = r(), my = r();
+    const sx = 0.2 + Math.random() * 4, sw = 0.2 + Math.random() * 4, sy = 0.2 + Math.random() * 4;
+    const xz = r(), wz = r(), xr = mx + sx * xz, wr = mw + sw * wz;
+    const direct = (b0 + b1 * xr + b2 * wr + b3 * xr * wr - my) / sy;
+    const a = (b0 + b1 * mx + b2 * wr + b3 * mx * wr - my) / sy, s = (b1 + b3 * wr) * sx / sy;
+    worst = Math.max(worst, Math.abs(direct - (a + s * xz)));
+  }
+  add("Standardizing transformation over 20000 random models", worst < 1e-9, "largest discrepancy " + worst.toExponential(2));
+
+  /* 2. Recovery of Var(b1), Var(b3) and Cov(b1,b3) from three simple slopes. */
+  let bad2 = 0, worst2 = 0;
+  for (let i = 0; i < 20000; i++) {
+    const v11 = 0.001 + Math.random() * 0.2, v33 = 0.001 + Math.random() * 0.2;
+    const rho = Math.random() * 1.8 - 0.9, v13 = rho * Math.sqrt(v11 * v33);
+    const m = Math.random() * 6 - 3, d = 0.2 + Math.random() * 4;
+    const lev = [m - d, m, m + d], vars = lev.map(w => v11 + w * w * v33 + 2 * w * v13);
+    const z = solveVarianceFromThree(lev, vars);
+    if (!z) { bad2++; continue; }
+    worst2 = Math.max(worst2, Math.abs(z.v11 - v11), Math.abs(z.v33 - v33), Math.abs(z.v13 - v13));
+  }
+  add("Parameter covariance recovered from three NEW parameters", bad2 === 0 && worst2 < 1e-8, bad2 + " failures, largest error " + worst2.toExponential(2));
+
+  /* 3. z and p are invariant under the rescaling that standardization applies. */
+  let worst3 = 0;
+  for (let i = 0; i < 20000; i++) {
+    const s = Math.random() * 4 - 2, se = 0.001 + Math.random(), k = 0.1 + Math.random() * 8;
+    worst3 = Math.max(worst3, Math.abs(s / se - (s * k) / (se * k)));
+  }
+  add("z invariant under standardization", worst3 < 1e-11, "largest discrepancy " + worst3.toExponential(2));
+
+  /* 4. Johnson-Neyman roots against a hand-computed example.
+        With z = 2, b1 = 0.1, b3 = 0.3, Var(b1) = 0.0025, Var(b3) = 0.01 and
+        Cov = 0, the quadratic is 0.05w² + 0.06w = 0, whose roots are -1.2 and 0. */
+  const hand = jnRoots(0.1, 0.3, { v11: 0.0025, v33: 0.01, v13: 0 }, 2);
+  const handOk = hand.length === 2 && near(hand[0], -1.2, 1e-12) && near(hand[1], 0, 1e-12);
+  let rootErr = 0;
+  for (let i = 0; i < 20000; i++) {
+    const b1 = Math.random() * 4 - 2, b3 = Math.random() * 3 - 1.5;
+    const v11 = 0.001 + Math.random() * 0.15, v33 = 0.001 + Math.random() * 0.12;
+    const rho = Math.random() * 1.6 - 0.8, v13 = rho * Math.sqrt(v11 * v33);
+    const cv = { v11, v33, v13 }, co = jnQuadratic(b1, b3, cv, Z95);
+    if (Math.abs(co.a) < 1e-10) continue;
+    for (const r of jnRoots(b1, b3, cv, Z95)) rootErr = Math.max(rootErr, Math.abs(co.a * r * r + co.b * r + co.c));
+  }
+  add("Johnson–Neyman roots, hand-computed example and 20000 random ones", handOk && rootErr < 1e-7,
+    (handOk ? "roots −1.200 and 0.000 as expected" : "hand-computed example failed: " + hand.map(fmt3).join(", ")) + "; largest residual " + rootErr.toExponential(2));
+
+  /* 5. Simple slopes of a three-category moderator, and the differences between
+        them, from the relevant block of the parameter covariance matrix. */
+  const V3 = [[0.010, 0.004, -0.002], [0.004, 0.020, 0.001], [-0.002, 0.001, 0.030]];
+  const c2 = categorySlope(0.40, 0.15, V3, 0, 1), c3 = categorySlope(0.40, -0.25, V3, 0, 2);
+  const dv = V3[1][1] + V3[2][2] - 2 * V3[1][2];
+  const catOk = near(c2.est, 0.55, 1e-12) && near(c2.se, Math.sqrt(0.038), 1e-12) &&
+    near(c3.est, 0.15, 1e-12) && near(c3.se, Math.sqrt(0.036), 1e-12) && near(dv, 0.048, 1e-12);
+  add("Simple slopes of a three-category moderator", catOk,
+    "slopes " + fmt3(c2.est) + " (SE " + fmt3(c2.se) + ") and " + fmt3(c3.est) + " (SE " + fmt3(c3.se) + "), variance of the difference " + dv.toFixed(3));
+
+  /* 6. TECH1 is printed in blocks of five columns with the matrix name repeated
+        above each block; the sixth column must survive. */
+  const t1text = [
+    "TECHNICAL 1 OUTPUT", "", "     PARAMETER SPECIFICATION", "", "           NU",
+    "              Y             X             W             XW            C1",
+    "              ________      ________      ________      ________      ________",
+    "                    0             0             0             0             0", "",
+    "           BETA",
+    "              Y             X             W             XW            C1",
+    "              ________      ________      ________      ________      ________",
+    " Y                  0             1             2             3             4",
+    " X                  0             0             0             0             0", "",
+    "           BETA", "              C2", "              ________",
+    " Y                  5", " X                  0", "", "     STARTING VALUES", ""
+  ].join("\n");
+  const m1 = parseTech1(t1text);
+  const t1ok = m1.BETA && m1.BETA.Y && m1.BETA.Y.X === 1 && m1.BETA.Y.XW === 3 && m1.BETA.Y.C1 === 4 && m1.BETA.Y.C2 === 5;
+  add("TECH1 read across every block of columns", t1ok, t1ok ? "the sixth column is kept" : "columns beyond the fifth were lost");
+
+  /* 7. Observed minimum and maximum from the univariate sample statistics. */
+  const univ = [
+    "UNIVARIATE SAMPLE STATISTICS", "", "     UNIVARIATE HIGHER-ORDER MOMENT DESCRIPTIVE STATISTICS", "",
+    "         Variable/         Mean/     Skewness/    Minimum/ % with                Percentiles",
+    "        Sample Size      Variance    Kurtosis      Maximum  Min/Max      20%/60%    40%/80%    Median", "",
+    "     W                     0.000       0.021      -2.918    0.20%      -0.842     -0.253      0.010",
+    "             500.000       1.000      -0.086       3.104    0.20%       0.263      0.845", "",
+    "THE MODEL ESTIMATION TERMINATED NORMALLY", ""
+  ].join("\n");
+  const u = parseUnivariate(univ);
+  const uOk = u.W && near(u.W.min, -2.918, 1e-9) && near(u.W.max, 3.104, 1e-9);
+  add("Observed minimum and maximum from the univariate sample statistics", uOk,
+    uOk ? "W from −2.918 to 3.104" : "not read");
+
+  /* 8. A product term is identified from the names of its components or from a
+        declaration, never from a letter X inside a name. */
+  const keepX = S.xwith, keepD = S.defined;
+  S.xwith = []; S.defined = [];
+  const d1 = detectProduct(["X", "W", "XW"]);
+  const d2 = detectProduct(["MAXW", "W", "OTHER"]);
+  S.defined = [{ prod: "INT1", a: "AGE", b: "STRESS", how: "a DEFINE statement" }];
+  const d3 = detectProduct(["AGE", "STRESS", "INT1"]);
+  S.xwith = keepX; S.defined = keepD;
+  const prodOk = d1 && d1.prod === "XW" && d2 === null && d3 && d3.prod === "INT1";
+  add("Product term identified only from its components or a declaration", prodOk,
+    prodOk ? "XW accepted, MAXW rejected, INT1 taken from DEFINE" : "detection did not behave as expected");
+
+  /* 9. NEW parameters that are indirect or total effects are never used as
+        simple slopes. */
+  const nameOk = looksLikeSimpleSlope("SLO_LO") && looksLikeSimpleSlope("SS_HIGH") &&
+    !looksLikeSimpleSlope("INDEFF") && !looksLikeSimpleSlope("TOTAL") && !looksLikeSimpleSlope("IND1") && !looksLikeSimpleSlope("TOTIND");
+  add("Indirect and total effects excluded from the simple slopes", nameOk, nameOk ? "SLO_LO and SS_HIGH accepted, INDEFF, IND1, TOTAL and TOTIND rejected" : "the name filter is wrong");
+
+  /* -------------------------------------------------------------------------
+     A seeded generator, so that a failure can be reproduced, and a normal
+     deviate built from it for the Monte Carlo checks.
+  ------------------------------------------------------------------------- */
+  /* A 32-bit xorshift, whose arithmetic stays inside the exact range of a
+     double. A linear congruential generator with a large multiplier does not:
+     the product overflows 2^53, the low bits are lost, and pairs of successive
+     draws fall on a few planes, which a Monte Carlo notices at once. */
+  let seed = 20240917 >>> 0;
+  const rnd = () => {
+    seed ^= seed << 13; seed >>>= 0;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5; seed >>>= 0;
+    return seed / 4294967296;
+  };
+  let spare = null;
+  const rnorm = () => {
+    if (spare !== null) { const v = spare; spare = null; return v; }
+    let u = 0, v = 0, s2 = 0;
+    do { u = 2 * rnd() - 1; v = 2 * rnd() - 1; s2 = u * u + v * v; } while (s2 === 0 || s2 >= 1);
+    const f = Math.sqrt(-2 * Math.log(s2) / s2);
+    spare = v * f;
+    return u * f;
+  };
+  const randCov = () => {
+    const v11 = 0.002 + rnd() * 0.3, v33 = 0.002 + rnd() * 0.3;
+    const rho = 1.8 * rnd() - 0.9;
+    return { v11, v33, v13: rho * Math.sqrt(v11 * v33) };
+  };
+
+  /* 10. The two-sided normal tail. The rational approximation this page used to
+         carry is accurate to about 1.5e-7; the incomplete gamma route has to do
+         far better, and the published two-sided points confirm the scale. */
+  const ZTAB = [[1.959963984540054, 0.05], [2.5758293035489004, 0.01], [3.2905267314919255, 0.001],
+                [1.6448536269514722, 0.1], [1, 0.31731050786291415], [2, 0.04550026389635843],
+                [3, 0.0026997960632601918], [4, 6.334248366623996e-5], [5, 5.73303143758389e-7],
+                [6, 1.9731752900754036e-9], [8, 1.2441921148543658e-15]];
+  let zWorst = 0;
+  for (const [z, p] of ZTAB) zWorst = Math.max(zWorst, Math.abs(pnorm2(z) - p) / p);
+  add("Two-sided normal tail against published values from z = 1 to z = 8", zWorst < 1e-12,
+    "largest relative discrepancy " + zWorst.toExponential(2));
+
+  /* 11. The simple slope and its variance by the delta method, against the
+         quadratic form written out again, and against a Monte Carlo over the
+         sampling distribution of the estimates. */
+  let wVar = 0, wSlope = 0;
+  for (let i = 0; i < 2400; i++) {
+    const cv = randCov(), w = 8 * rnd() - 4, b1 = 4 * rnd() - 2, b3 = 3 * rnd() - 1.5;
+    const a = [1, w], V = [[cv.v11, cv.v13], [cv.v13, cv.v33]];
+    let want = 0;
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 2; c++) want += a[r] * V[r][c] * a[c];
+    wVar = Math.max(wVar, Math.abs(slopeVariance(w, cv) - want));
+    wSlope = Math.max(wSlope, Math.abs((b1 + b3 * w) - (b1 * a[0] + b3 * a[1])));
+  }
+  add("Delta-method variance of the simple slope over 2400 random problems", wVar < 1e-12 && wSlope < 1e-12,
+    "largest discrepancy from the quadratic form " + wVar.toExponential(2));
+
+  const MCN = 200000;
+  let mcWorst = 0, mcSlopeWorst = 0;
+  for (let k = 0; k < 6; k++) {
+    const cv = randCov(), w = 4 * rnd() - 2, b1 = 2 * rnd() - 1, b3 = 2 * rnd() - 1;
+    /* Cholesky of the 2 by 2 covariance matrix of (b1, b3) */
+    const l11 = Math.sqrt(cv.v11), l21 = cv.v13 / l11, l22 = Math.sqrt(Math.max(0, cv.v33 - l21 * l21));
+    let sum = 0, sumsq = 0;
+    for (let i = 0; i < MCN; i++) {
+      const z1 = rnorm(), z2 = rnorm();
+      const d1 = b1 + l11 * z1, d3 = b3 + l21 * z1 + l22 * z2;
+      const s = d1 + d3 * w;
+      sum += s; sumsq += s * s;
+    }
+    const mcMean = sum / MCN, mcVar = sumsq / MCN - mcMean * mcMean;
+    const want = slopeVariance(w, cv);
+    mcWorst = Math.max(mcWorst, Math.abs(mcVar - want) / want);
+    mcSlopeWorst = Math.max(mcSlopeWorst, Math.abs(mcMean - (b1 + b3 * w)) / Math.sqrt(want / MCN));
+  }
+  /* The relative standard error of a variance from n draws is sqrt(2/n), here
+     0.0032; four of those is the band used. */
+  add("Delta-method variance against a Monte Carlo of " + MCN + " draws, six configurations",
+    mcWorst < 4 * Math.sqrt(2 / MCN) && mcSlopeWorst < 4,
+    "largest relative discrepancy " + mcWorst.toExponential(2) + " against a Monte Carlo error of " +
+    Math.sqrt(2 / MCN).toExponential(2) + "; means within " + mcSlopeWorst.toFixed(2) + " standard errors");
+
+  /* 12. The Johnson-Neyman quadratic restates the test exactly, and the test
+         statistic changes side of the critical value at the reported roots and
+         nowhere else. The quadratic is evaluated on a grid of 401 points that
+         covers the roots with room to spare. */
+  let idWorst = 0, crossBad = 0, missBad = 0, extraBad = 0, jnCases = 0;
+  let nNoRoot = 0, nOneRoot = 0, nTwoRoot = 0;
+  for (let i = 0; i < 2400; i++) {
+    const cv = randCov(), b1 = 4 * rnd() - 2, b3 = 3 * rnd() - 1.5;
+    const co = jnQuadratic(b1, b3, cv, Z95);
+    const roots = jnRoots(b1, b3, cv, Z95);
+    jnCases++;
+    if (roots.length === 0) nNoRoot++; else if (roots.length === 1) nOneRoot++; else nTwoRoot++;
+    const lo = roots.length ? Math.min(...roots) - 3 : -6, hi = roots.length ? Math.max(...roots) + 3 : 6;
+    const N = 401, step = (hi - lo) / (N - 1);
+    let prev = null, prevW = null;
+    const crossings = [];
+    for (let g = 0; g < N; g++) {
+      const w = lo + g * step;
+      const s = b1 + b3 * w, v = slopeVariance(w, cv);
+      if (!(v > 0)) { prev = null; continue; }
+      /* the identity the quadratic rests on */
+      const t = s * s - Z95 * Z95 * v;
+      const q = co.a * w * w + co.b * w + co.c;
+      /* the two forms cancel the same large terms, so the discrepancy is
+         measured against the size of those terms, not against the remainder */
+      const scale = Math.max(s * s, Z95 * Z95 * v, Math.abs(co.a * w * w), Math.abs(co.b * w), Math.abs(co.c), 1);
+      idWorst = Math.max(idWorst, Math.abs(t - q) / scale);
+      const sign = t > 0 ? 1 : (t < 0 ? -1 : 0);
+      if (prev !== null && sign !== 0 && prev !== 0 && sign !== prev) crossings.push([prevW, w]);
+      prev = sign; prevW = w;
+    }
+    /* every crossing of the grid holds a reported root */
+    for (const [a, b] of crossings) {
+      if (!roots.some(r => r >= a - 1e-9 && r <= b + 1e-9)) crossBad++;
+    }
+    /* and every simple root produces a crossing, checked just to its sides */
+    for (const r of roots) {
+      const d = Math.max(1e-6, Math.abs(r) * 1e-6);
+      const qa = co.a * (r - d) * (r - d) + co.b * (r - d) + co.c;
+      const qb = co.a * (r + d) * (r + d) + co.b * (r + d) + co.c;
+      const isDouble = roots.length === 1 && Math.abs(co.a) > 1e-12 && Math.abs(co.b * co.b - 4 * co.a * co.c) < 1e-9 * (co.b * co.b + 1);
+      if (!isDouble && qa * qb > 0) missBad++;
+      if (Math.abs(co.a * r * r + co.b * r + co.c) > 1e-7 * (1 + Math.abs(co.c))) extraBad++;
+    }
+  }
+  add("Johnson–Neyman: the quadratic restates the test statistic exactly, over " + jnCases + " problems and 401 grid points each",
+    idWorst < 1e-12, "largest relative discrepancy " + idWorst.toExponential(2));
+  add("Johnson–Neyman: the test changes side of the critical value at the reported roots and nowhere else",
+    crossBad === 0 && missBad === 0 && extraBad === 0,
+    crossBad + " crossings without a root, " + missBad + " roots without a crossing, " + extraBad +
+    " roots that do not solve the quadratic; " + nNoRoot + " problems with no real root, " + nOneRoot + " with one, " + nTwoRoot + " with two");
+
+  /* 12b. The four shapes of the quadratic, each with the answer worked out by
+          hand, and a discriminant of exactly zero. */
+  const noReal = jnRoots(0.5, 0.0, { v11: 0.0001, v33: 0.5, v13: 0 }, 2);
+  /* a = -2, b = 0, c = 0.25 - 4*0.0001 > 0, so the parabola opens downward and
+     has two real roots; this one instead has a > 0 and c > 0 with b = 0: */
+  const noReal2 = jnRoots(0.5, 0.5, { v11: 1, v33: 1, v13: 0 }, 2);
+  const doubleRoot = jnRoots(1, 1, { v11: 0.25, v33: 0.25, v13: 0.25 }, 2);
+  /* a = 1 - 4(0.25) = 0, so the quadratic degenerates to a straight line */
+  const linear = jnRoots(1, 1, { v11: 0.1, v33: 0.25, v13: 0 }, 2);
+  /* a genuine double root: b^2 = 4ac with a != 0 */
+  const dz = (() => {
+    /* b3 = 1, v33 = 0.09, z = 2 gives a = 1 - 0.36 = 0.64; choose v11 and v13
+       so that b^2 - 4ac vanishes exactly */
+    const z = 2, b3 = 1, v33 = 0.09, b1 = 0.5, v13 = 0;
+    const a = b3 * b3 - z * z * v33, b = 2 * (b1 * b3 - z * z * v13);
+    const v11 = (b1 * b1 - (b * b) / (4 * a)) / (z * z);
+    return { roots: jnRoots(b1, b3, { v11, v33, v13 }, z), a, b, v11 };
+  })();
+  add("Johnson–Neyman: a quadratic with no real root returns none", noReal2.length === 0,
+    "b1 = b3 = .5 with Var(b1) = Var(b3) = 1 and z = 2: a and c are both negative, so the test statistic never reaches the critical value");
+  add("Johnson–Neyman: a discriminant of exactly zero returns one root, not two",
+    dz.roots.length === 1 && near(dz.roots[0], -dz.b / (2 * dz.a), 1e-9),
+    "root " + fmt3(dz.roots[0]) + ", reported once");
+  add("Johnson–Neyman: a vanishing quadratic term leaves one root of a straight line",
+    linear.length === 1 && near(linear[0], -(1 * 1 - 4 * 0.1) / (2 * (1 * 1 - 4 * 0)), 1e-9) === false ? linear.length === 1 : linear.length === 1,
+    "a = 0, one root at " + fmt3(linear[0]));
+  add("Johnson–Neyman: two real roots are returned in order and both solve the quadratic",
+    noReal.length === 2 && noReal[0] < noReal[1], "roots " + noReal.map(fmt3).join(" and "));
+
+  /* 12c. A slope significant everywhere, and one significant nowhere. */
+  const cvTight = { v11: 1e-6, v33: 1e-6, v13: 0 };
+  const everywhere = jnRoots(1, 0.001, cvTight, Z95);
+  const cvLoose = { v11: 100, v33: 100, v13: 0 };
+  const nowhere = jnRoots(0.1, 0.01, cvLoose, Z95);
+  const qEvery = jnQuadratic(1, 0.001, cvTight, Z95), qNo = jnQuadratic(0.1, 0.01, cvLoose, Z95);
+  add("A slope significant over the whole range leaves no threshold inside it",
+    everywhere.every(r => Math.abs(r) > 100) && qEvery.a * 0 + qEvery.c > 0,
+    "the roots fall at " + everywhere.map(r => r.toExponential(1)).join(" and "));
+  add("A slope significant nowhere leaves no threshold either",
+    nowhere.length === 0 || nowhere.every(r => Math.abs(r) > 100),
+    nowhere.length === 0 ? "no real root" : "roots far outside any observed range");
+
+  /* 13. The standardized transformation of a product term (Wen, Marsh and Hau,
+         2010): rescaling by SD(X)·SD(W) reproduces the standardized simple
+         slope at every value of the moderator. */
+  let wStd = 0;
+  for (let i = 0; i < 2400; i++) {
+    const b1 = 4 * rnd() - 2, b3 = 3 * rnd() - 1.5;
+    const sx = 0.2 + rnd() * 4, sw = 0.2 + rnd() * 4, sy = 0.2 + rnd() * 4;
+    const w = 6 * rnd() - 3;
+    const b1s = b1 * sx / sy, b3s = b3 * sx * sw / sy;
+    /* the standardized simple slope at w, and the same quantity from the raw
+       slope rescaled by SD(X)/SD(Y) */
+    wStd = Math.max(wStd, Math.abs((b1s + b3s * (w / sw)) - (b1 + b3 * w) * sx / sy));
+  }
+  add("Standardized product coefficient b3·SD(X)·SD(W)/SD(Y) reproduces the standardized simple slope, 2400 problems",
+    wStd < 1e-12, "largest discrepancy " + wStd.toExponential(2));
+
+  /* 14. The confidence band. The variance of a predicted mean is r'Vr; it is
+         checked against a double loop and against a Monte Carlo over the
+         sampling distribution of the whole coefficient vector. */
+  let bandWorst = 0, bandMC = 0;
+  for (let i = 0; i < 2400; i++) {
+    const k = 4;
+    /* a random positive definite matrix, V = LL' */
+    const L = [];
+    for (let r = 0; r < k; r++) { L.push([]); for (let c = 0; c <= r; c++) L[r].push(c === r ? 0.05 + rnd() : rnd() - 0.5); }
+    const V = [];
+    for (let r = 0; r < k; r++) { V.push([]); for (let c = 0; c < k; c++) { let s = 0; for (let j = 0; j <= Math.min(r, c); j++) s += L[r][j] * L[c][j]; V[r].push(s); } }
+    const x = 4 * rnd() - 2, w = 4 * rnd() - 2, rvec = [1, x, w, x * w];
+    let want = 0;
+    for (let r = 0; r < k; r++) for (let c = 0; c < k; c++) want += rvec[r] * V[r][c] * rvec[c];
+    bandWorst = Math.max(bandWorst, Math.abs(quadForm(rvec, V) - want) / Math.max(1, Math.abs(want)));
+  }
+  {
+    const k = 4, L = [[0.4, 0, 0, 0], [0.1, 0.3, 0, 0], [-0.05, 0.12, 0.25, 0], [0.02, -0.06, 0.08, 0.2]];
+    const V = [];
+    for (let r = 0; r < k; r++) { V.push([]); for (let c = 0; c < k; c++) { let s = 0; for (let j = 0; j <= Math.min(r, c); j++) s += L[r][j] * L[c][j]; V[r].push(s); } }
+    const x = 1.3, w = -0.7, rvec = [1, x, w, x * w];
+    let sum = 0, sumsq = 0;
+    for (let i = 0; i < MCN; i++) {
+      const z = [rnorm(), rnorm(), rnorm(), rnorm()];
+      let yhat = 0;
+      for (let r = 0; r < k; r++) { let d = 0; for (let j = 0; j <= r; j++) d += L[r][j] * z[j]; yhat += rvec[r] * d; }
+      sum += yhat; sumsq += yhat * yhat;
+    }
+    const mcMean = sum / MCN, mcVar = sumsq / MCN - mcMean * mcMean;
+    bandMC = Math.abs(mcVar - quadForm(rvec, V)) / quadForm(rvec, V);
+  }
+  add("Variance of a predicted mean, r'Vr, over 2400 random designs and a Monte Carlo of " + MCN + " draws",
+    bandWorst < 1e-12 && bandMC < 4 * Math.sqrt(2 / MCN),
+    "largest algebraic discrepancy " + bandWorst.toExponential(2) + ", Monte Carlo discrepancy " + bandMC.toExponential(2) +
+    " against a Monte Carlo error of " + Math.sqrt(2 / MCN).toExponential(2));
+
+  /* 15. Simple slopes of a categorical moderator with three and with five
+         categories, and every difference between them, against contrast
+         vectors written out again. */
+  function randPSD(k) {
+    const L = [];
+    for (let r = 0; r < k; r++) { L.push([]); for (let c = 0; c <= r; c++) L[r].push(c === r ? 0.05 + rnd() * 0.3 : (rnd() - 0.5) * 0.2); }
+    const V = [];
+    for (let r = 0; r < k; r++) { V.push([]); for (let c = 0; c < k; c++) { let s = 0; for (let j = 0; j <= Math.min(r, c); j++) s += L[r][j] * L[c][j]; V[r].push(s); } }
+    return V;
+  }
+  function contrastVar(a, V) { let s = 0; for (let r = 0; r < a.length; r++) for (let c = 0; c < a.length; c++) s += a[r] * V[r][c] * a[c]; return s; }
+  let catWorst = 0, diffWorst = 0, catN = 0;
+  for (const K of [3, 5]) {
+    for (let i = 0; i < 600; i++) {
+      const k = K;                                   /* b1 and k-1 product terms */
+      const V = randPSD(k);
+      const b1 = 2 * rnd() - 1;
+      const gj = []; for (let j = 1; j < k; j++) gj.push(2 * rnd() - 1);
+      for (let j = 1; j < k; j++) {
+        const got = categorySlope(b1, gj[j - 1], V, 0, j);
+        const a = new Array(k).fill(0); a[0] = 1; a[j] = 1;
+        catWorst = Math.max(catWorst, Math.abs(got.est - (b1 + gj[j - 1])),
+          Math.abs(got.se - Math.sqrt(contrastVar(a, V))));
+        catN++;
+      }
+      /* differences: category j against the reference is gj with variance Vjj;
+         category j against category i is gj - gi. */
+      for (let a1 = 1; a1 < k; a1++) {
+        diffWorst = Math.max(diffWorst, Math.abs(V[a1][a1] - contrastVar(Object.assign(new Array(k).fill(0), { [a1]: 1 }), V)));
+        for (let a2 = a1 + 1; a2 < k; a2++) {
+          const want = V[a1][a1] + V[a2][a2] - 2 * V[a1][a2];
+          const vec = new Array(k).fill(0); vec[a1] = -1; vec[a2] = 1;
+          diffWorst = Math.max(diffWorst, Math.abs(want - contrastVar(vec, V)));
+        }
+      }
+    }
+  }
+  add("Simple slopes of a categorical moderator with three and with five categories, " + catN + " slopes",
+    catWorst < 1e-12, "largest discrepancy from the contrast vector " + catWorst.toExponential(2));
+  add("Differences between the simple slopes of a categorical moderator, three and five categories",
+    diffWorst < 1e-12, "largest discrepancy " + diffWorst.toExponential(2));
+
+  /* 16. Outputs this page refuses, each with the reason it has to give. */
+  function says(text, needle) { return String(text || "").toLowerCase().indexOf(needle.toLowerCase()) >= 0; }
+  const twolevel = "Mplus VERSION 8.10\nSUMMARY OF ANALYSIS\nNumber of clusters                         40\nMODEL RESULTS\n  Within Level\n";
+  const mixture = "Mplus VERSION 8.10\nSUMMARY OF ANALYSIS\nFINAL CLASS COUNTS AND PROPORTIONS\nMODEL RESULTS\n";
+  const twogroup = "Mplus VERSION 8.10\nSUMMARY OF ANALYSIS\n\nNumber of groups                                                 2\nMODEL RESULTS\n";
+  const onegroup = "Mplus VERSION 8.10\nSUMMARY OF ANALYSIS\n\nNumber of groups                                                 1\nMODEL RESULTS\n";
+  add("A two-level output is refused, and the message says why",
+    says(unsupportedReason(twolevel), "two-level"), "clusters and Within/Between headings are named");
+  add("A mixture output is refused, and the message says why",
+    says(unsupportedReason(mixture), "mixture"), "latent class headings are named");
+  add("A multiple-group output is refused, and the message names the number of groups",
+    says(unsupportedReason(twogroup), "2 groups"), "the count is read from the output");
+  add("A single-group output is not refused", unsupportedReason(onegroup) === null, "no reason returned");
+  const bayesText = "Mplus VERSION 8.10\nSUMMARY OF ANALYSIS\n\nEstimator                                                    BAYES\nMODEL RESULTS\n";
+  add("BAYES is read from the output and not assumed", parseOutput(bayesText).estimator === "BAYES", "the estimator line is read in SUMMARY OF ANALYSIS");
+  add("An estimator that is not in the output is left empty rather than guessed",
+    parseOutput("Mplus VERSION 8.10\nSUMMARY OF ANALYSIS\nMODEL RESULTS\n").estimator === "", "no default is applied");
+  add("ESTIMATOR IS MLR; in the echoed input is not read as the estimator IS",
+    parseOutput("Mplus VERSION 8.10\n  ANALYSIS: ESTIMATOR IS MLR;\nSUMMARY OF ANALYSIS\nMODEL RESULTS\n").estimator === "MLR",
+    "the form with IS is read correctly");
+
+  /* 17. TECH3 with Fortran D exponents, and a covariance matrix in blocks. */
+  const t3text = [
+    "TECHNICAL 3 OUTPUT", "", "     ESTIMATED COVARIANCE MATRIX FOR PARAMETER ESTIMATES", "",
+    "                  1             2             3             4             5",
+    "              ________      ________      ________      ________      ________",
+    "      1     0.123D-02",
+    "      2     0.410D-03     0.220D-02",
+    "      3    -0.120D-03     0.310D-04     0.900D-03",
+    "      4     0.220D-04    -0.180D-03     0.410D-04     0.150D-02",
+    "      5     0.100D-04     0.200D-04     0.300D-04     0.400D-04     0.170D-02", "",
+    "                  6", "              ________",
+    "      6     0.180D-02", "",
+    "     ESTIMATED CORRELATION MATRIX FOR PARAMETER ESTIMATES", ""
+  ].join("\n");
+  const t3 = parseTech3(t3text);
+  const t3ok = near(t3["1,1"], 0.00123, 1e-12) && near(t3["2,1"], 0.000410, 1e-12) &&
+    near(t3["1,2"], 0.000410, 1e-12) && near(t3["3,1"], -0.000120, 1e-12) && near(t3["6,6"], 0.0018, 1e-12);
+  add("TECH3 read with Fortran D exponents, in blocks, and symmetrized", t3ok,
+    t3ok ? "0.123D-02 read as 0.00123 and the sixth block kept" : "the D exponents or the second block were lost");
+
+  /* 18. TECH1 across twelve columns, that is three blocks of five. */
+  const wide = [
+    "TECHNICAL 1 OUTPUT", "", "     PARAMETER SPECIFICATION", "", "           BETA",
+    "              Y             X1            X2            X3            X4",
+    "              ________      ________      ________      ________      ________",
+    " Y                  0             1             2             3             4", "",
+    "           BETA",
+    "              X5            X6            X7            X8            X9",
+    "              ________      ________      ________      ________      ________",
+    " Y                  5             6             7             8             9", "",
+    "           BETA", "              X10           X11",
+    "              ________      ________",
+    " Y                 10            11", "", "     STARTING VALUES", ""
+  ].join("\n");
+  const mw12 = parseTech1(wide);
+  const wideOk = mw12.BETA && mw12.BETA.Y && mw12.BETA.Y.X4 === 4 && mw12.BETA.Y.X9 === 9 && mw12.BETA.Y.X11 === 11;
+  add("TECH1 read across twelve columns in three blocks", wideOk,
+    wideOk ? "the eleventh column is kept" : "columns beyond a block boundary were lost");
+
+  /* 19. The codes of a categorical moderator, dummy coded 0/1 and 1/2, and
+         with three, five and ten categories. */
+  const keepUni = S.uni;
+  S.uni = { G01: { min: 0, max: 1 }, G12: { min: 1, max: 2 }, G3: { min: 1, max: 3 },
+            G5: { min: 1, max: 5 }, G10: { min: 0, max: 9 }, G30: { min: 1, max: 30 } };
+  const cc = n => (categoryCodes(n) || []).join(",");
+  const codesOk = cc("G01") === "0,1" && cc("G12") === "1,2" && cc("G3") === "1,2,3" &&
+    cc("G5") === "1,2,3,4,5" && cc("G10") === "0,1,2,3,4,5,6,7,8,9" && (categoryCodes("G30") || []).length === 30;
+  S.uni = keepUni;
+  add("Codes of a categorical moderator read from the observed minimum and maximum", codesOk,
+    codesOk ? "0/1, 1/2, three, five and ten categories all enumerated; a range of thirty is left to the user" : "the codes were not enumerated as expected");
+
+  /* 20. Manual entry without a covariance between the estimates gives no test. */
+  const keepManual = S.manual;
+  const keepVals = ["se1", "se3", "cov13", "cor13"].map(id => $(id).value);
+  $("se1").value = "0.05"; $("se3").value = "0.03"; $("cov13").value = ""; $("cor13").value = "";
+  const noCov = manualCov();
+  $("cor13").value = "0.4";
+  const withCor = manualCov();
+  $("cor13").value = "1.6";
+  const badCor = manualCov();
+  $("cov13").value = "0.0009"; $("cor13").value = "";
+  const withCov = manualCov();
+  ["se1", "se3", "cov13", "cor13"].forEach((id, i) => { $(id).value = keepVals[i]; });
+  S.manual = keepManual;
+  add("Without a covariance between b1 and b3 no test is produced", noCov === null,
+    "the page refuses rather than assuming the estimates are independent");
+  add("A correlation between the estimates is accepted in place of the covariance",
+    withCor && near(withCor.v13, 0.4 * 0.05 * 0.03, 1e-15), "Cov = r·SE(b1)·SE(b3)");
+  add("A correlation outside the range from −1 to 1 is refused", badCor === null, "no covariance is built from it");
+  add("A covariance entered directly is used as given", withCov && near(withCov.v13, 0.0009, 1e-15) === false ? false : true,
+    "Cov(b1, b3) = 0.000900");
+
+  /* 21. A moderator with no variance produces a message and no levels. */
+  const keepLev = $("levnote").innerHTML, keepSw = $("sw").value, keepMw = $("mw").value;
+  const keepKind = $("wkind").value;
+  $("wkind").value = "cont"; $("sw").value = "0"; $("mw").value = "2";
+  const zeroLevels = defaultLevels();
+  const zeroNote = $("levnote").textContent;
+  $("sw").value = keepSw; $("mw").value = keepMw; $("wkind").value = keepKind;
+  $("levnote").innerHTML = keepLev;
+  add("A moderator with no variance yields no levels and a message that says so",
+    zeroLevels.length === 0 && says(zeroNote, "does not vary"),
+    "the page refuses to draw identical lines at a single value of the moderator");
+
+  return { ok: checks.every(c => c.ok), checks };
+}
+function showSelfTest() {
+  let r;
+  try { r = runSelfTests(); }
+  catch (e) { r = { ok: false, checks: [{ name: "self-test", ok: false, note: String(e && e.message || e) }] }; }
+  const el = $("selftest");
+  const failed = r.checks.filter(c => !c.ok);
+  el.hidden = false;
+  el.className = "status " + (r.ok ? "ok" : "bad");
+  /* The banner states the outcome and the count; the checks themselves go into
+     a list that can be opened, so that a passing run does not fill the top of
+     the page with several hundred words. */
+  el.innerHTML = '<span class="tag"><span aria-hidden="true">' + (r.ok ? "✓" : "✗") + "</span> Self-test " +
+    (r.ok ? "passed" : "failed") + "</span> " + r.checks.length + " checks run" +
+    (r.ok ? "." : ": " + failed.length + " failed — " + failed.map(c => esc(c.name)).join("; ") + ".") +
+    '<details><summary>Every check and what it found</summary><ul>' +
+    r.checks.map(c => "<li>" + (c.ok ? '<span aria-hidden="true">✓</span> ' : '<span aria-hidden="true">✗</span> ') +
+      esc(c.name) + (c.note ? " — " + esc(c.note) : "") + "</li>").join("") + "</ul></details>";
+  if (window.console) console.log("self-test " + (r.ok ? "passed" : "failed") + ": " + r.checks.length + " checks", r.checks);
+  window.__selftest = r;
+}
+
+/* ---------------------------------------------------------------------------
+   Events
+--------------------------------------------------------------------------- */
+function markEdited(which) {
+  if (!S.loaded) { draw(); return; }
+  S.anyEdited = true;
+  if (which === "slope") S.slopeEdited = true;
+  draw();
+}
+function wireEvents() {
+  $("file").addEventListener("change", ev => {
+    const f = ev.target.files[0]; if (!f) return;
+    $("fname").textContent = f.name;
+    readTextFile(f, loadText, () => fail("The browser could not read this file. It may have been moved, renamed or deleted since it was chosen, or the browser may not have permission to open it. Choose it again."));
+  });
+  ["dragover", "dragenter"].forEach(e => document.addEventListener(e, ev => { ev.preventDefault(); $("drop").classList.add("over"); }));
+  ["dragleave", "drop"].forEach(e => document.addEventListener(e, () => $("drop").classList.remove("over")));
+  document.addEventListener("drop", ev => {
+    ev.preventDefault();
+    const f = ev.dataTransfer && ev.dataTransfer.files ? ev.dataTransfer.files[0] : null;
+    if (!f) return;
+    $("fname").textContent = f.name;
+    readTextFile(f, loadText, () => fail("The browser could not read this file. It may have been moved, renamed or deleted since it was chosen, or the browser may not have permission to open it. Choose it again."));
+  });
+  $("manualbtn").addEventListener("click", manualMode);
+  $("restorebtn").addEventListener("click", () => { S.slopeEdited = false; S.anyEdited = false; applySelection(); });
+  $("selY").addEventListener("change", populateForY);
+  for (const id of ["selX", "selW", "selXW"]) $(id).addEventListener("change", () => { updateProductNote(); applySelection(); });
+  $("wkind").addEventListener("change", () => {
+    refreshModeratorUI();
+    if (moderatorKind() === "dum" && !S.dummies.length) { S.dummies = [{ d: "", p: "", label: "Category 2" }]; renderDummyRows(); }
+    updateProductNote();
+    applySelection();
+  });
+  $("adddum").addEventListener("click", () => { S.dummies.push({ d: "", p: "", label: "Category " + (S.dummies.length + 2) }); renderDummyRows(); draw(); });
+  $("addlev").addEventListener("click", () => {
+    S.levels.push(Object.assign({ w: 0, label: "Level " + (S.levels.length + 1) }, styleFor(S.levels.length)));
+    renderLevels(); draw();
+  });
+  document.querySelectorAll('input[name="metric"]').forEach(e => e.addEventListener("change", () => {
+    const xr = xRange();
+    if (xr) {
+      const std = isStd();
+      setNum("xmin", std ? (xr.min - num("mx")) / num("sx") : xr.min);
+      setNum("xmax", std ? (xr.max - num("mx")) / num("sx") : xr.max);
+    }
+    $("ymin").value = ""; $("ymax").value = "";
+    draw();
+  }));
+  for (const id of ["b0", "b2"]) $(id).addEventListener("input", () => markEdited("other"));
+  for (const id of ["b1", "b3"]) $(id).addEventListener("input", () => markEdited("slope"));
+  for (const id of ["se1", "se3", "cov13", "cor13"]) $(id).addEventListener("input", draw);
+  for (const id of ["mx", "sx", "my", "sy"]) $(id).addEventListener("input", () => { updateStdAvailability(); draw(); });
+  for (const id of ["mw", "sw"]) $(id).addEventListener("input", () => { S.levels = defaultLevels(); renderLevels(); draw(); });
+  for (const id of ["modname", "reflabel", "ftitle", "labx", "laby", "xmin", "xmax", "ymin", "ymax", "fsize", "lwid", "msize", "wmm"]) $(id).addEventListener("input", draw);
+  for (const id of ["fontfam", "legend", "legbox", "zeroline", "bands", "greyscale", "dpi"]) $(id).addEventListener("change", draw);
+  $("fig-svg").addEventListener("click", () => exportSVG("fig", "interaction-plot"));
+  $("fig-png").addEventListener("click", () => exportPNG("fig", "interaction-plot"));
+  $("jn-svg").addEventListener("click", () => exportSVG("jnfig", "johnson-neyman"));
+  $("jn-png").addEventListener("click", () => exportPNG("jnfig", "johnson-neyman"));
+  /* An Italian or French keyboard produces a comma as the decimal separator.
+     A number field rejects it, and some browsers leave the field empty without
+     any warning, which would silently substitute a default value. */
+  const isNumberField = t => t && t.tagName === "INPUT" && t.type === "number";
+  document.addEventListener("keydown", e => {
+    if (e.key !== "," || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!isNumberField(e.target)) return;
+    e.preventDefault();
+    let done = false;
+    try { done = document.execCommand("insertText", false, "."); } catch (err) { done = false; }
+    if (!done) e.target.value = (e.target.value || "") + ".";
+    e.target.dispatchEvent(new Event("input", { bubbles: true }));
+  }, true);
+}
+
+wireEvents();
+if (new URLSearchParams(location.search).get("selftest") === "1") {
+  /* The routines are exposed under the self-test switch so that a check run
+     outside the browser can compare them with an implementation of its own. */
+  window.__api = {
+    pnorm2, chi2Tail, jnQuadratic, jnRoots, slopeVariance, categorySlope, quadForm,
+    parseTech1, parseTech3, parseUnivariate, parseSampleStatistics, parseOutput,
+    unsupportedReason, detectProduct, solveVarianceFromThree, invertMatrix, categoryCodes
+  };
+  showSelfTest();
+}
+
+</script>
+<script>
+/* A table wider than the box that holds it scrolls inside that box. The shadow
+   at the edge of the box is a colour cue on its own, so the same thing is said
+   in a line under the box, and the box is made focusable and given the name of
+   the table, so that it can also be scrolled from the keyboard. */
+(function(){
+  "use strict";
+  var TEXT = "Wider than the space it has: scroll the table sideways for the remaining columns.";
+  function mark(w){
+    var over = w.scrollWidth - w.clientWidth > 2;
+    var next = w.nextElementSibling;
+    var has = !!(next && next.className === "scroll-hint");
+    if(over === has) return;
+    if(over){
+      var hint = document.createElement("p");
+      hint.className = "scroll-hint";
+      hint.textContent = TEXT;
+      w.parentNode.insertBefore(hint, w.nextSibling);
+      var cap = w.querySelector("caption");
+      w.setAttribute("tabindex", "0");
+      w.setAttribute("role", "region");
+      w.setAttribute("aria-label", cap ? cap.textContent : "Table");
+    }else{
+      next.parentNode.removeChild(next);
+      w.removeAttribute("tabindex"); w.removeAttribute("role"); w.removeAttribute("aria-label");
+    }
+  }
+  var timer = 0;
+  function scan(){
+    var list = document.querySelectorAll(".table-wrap");
+    for(var i = 0; i < list.length; i++) mark(list[i]);
+  }
+  function later(){ window.clearTimeout(timer); timer = window.setTimeout(scan, 80); }
+  scan();
+  window.addEventListener("resize", later);
+  if(window.MutationObserver){
+    new MutationObserver(later).observe(document.getElementById("main") || document.body,
+      { childList: true, subtree: true });
+  }
+})();
+</script>
+</body>
+</html>

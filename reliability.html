@@ -1,0 +1,2588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Reliability coefficients from the output of a confirmatory factor analysis: omega, average variance extracted and Cronbach's alpha with continuous indicators; Green-Yang omega, omega on y*, ordinal alpha and AVE with ordered categorical indicators.">
+<title>Reliability coefficients · semstudio.tools</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All tools</a>
+  </nav>
+  <h1>Reliability coefficients</h1>
+  <p class="lede">This page reads the output file of a confirmatory factor analysis run in M<em>plus</em> and computes, for each factor, the reliability of the sum of its items. With continuous indicators it reports omega, average variance extracted and Cronbach's alpha; with ordered categorical indicators it reports the Green and Yang (2009) omega for the observed sum, omega on the underlying response variables y*, ordinal alpha and average variance extracted on y*.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX;</code> — <code>STDYX</code> supplies the standardized loadings, which are the loadings the ordinal coefficients are computed from, and <code>SAMPSTAT</code> supplies the matrix that alpha is computed from: the estimated covariance matrix with continuous items, the polychoric correlation matrix with items declared <code>CATEGORICAL</code>. Whatever is missing is named in the results.
+  </div>
+</header>
+
+<main id="main">
+
+<div class="split">
+
+<section aria-labelledby="load">
+  <h2 id="load">Load the M<em>plus</em> output</h2>
+  <p>The file stays on your computer: it is read in the browser and nothing is sent anywhere. Windows-1252, UTF-8 and UTF-16 files are all decoded.</p>
+  <div class="drop" id="drop">
+    <strong>M<em>plus</em> output file</strong>
+    <p id="drop-hint">Drag the <code>.out</code> file here, or choose it with the button.</p>
+    <p><label class="button secondary" for="file">Choose a file</label>
+    <input type="file" id="file" accept=".out,.txt,.log,text/plain" aria-describedby="drop-hint"></p>
+    <span class="file-name" id="file-name"></span>
+  </div>
+</section>
+
+<section aria-label="Results">
+  <div id="results" aria-live="polite"><div class="panel"><p class="hint">The coefficients of every factor in the file appear here once an output has been loaded.</p></div></div>
+</section>
+
+</div>
+
+<section class="tracks" aria-labelledby="methods">
+  <h2 id="methods">Methods and formulas</h2>
+
+  <h3>Omega with continuous indicators</h3>
+  <p>Omega (McDonald, 1999) is the reliability of the sum of the items implied by the estimated one-factor measurement model. It is computed from the unstandardized parameters printed under MODEL RESULTS:</p>
+  <pre class="formula">ω = (Σ λᵢ)² ψ / [ (Σ λᵢ)² ψ + Σ θᵢᵢ + 2 Σ θᵢⱼ ]</pre>
+  <p>λᵢ are the unstandardized loadings of the factor, ψ is its variance and θᵢᵢ are the residual variances. ψ is read from the output: it is 1.000 when the factor is identified by fixing its variance, and it is the value printed under <em>Variances</em> when the marker-variable method is used. For an endogenous factor M<em>plus</em> prints the residual variance instead, and the total variance is recovered as θ / (1 − R²) from the R-SQUARE section; when R-SQUARE is absent the page says so rather than substituting a value. θᵢⱼ are residual covariances between items of the same factor, summed over the pairs i &lt; j: they belong to the total variance of the sum and are added twice.</p>
+
+  <h3>Average variance extracted</h3>
+  <pre class="formula">AVE = Σ λᵢ² ψ / [ Σ λᵢ² ψ + Σ θᵢᵢ ]</pre>
+  <p>AVE (Fornell &amp; Larcker, 1981) is the mean proportion of item variance accounted for by the factor. It refers to the individual items rather than to the sum, so it is almost always lower than omega.</p>
+
+  <h3>Cronbach's alpha</h3>
+  <p>Alpha (Cronbach, 1951) is computed from the estimated covariance matrix that SAMPSTAT prints, restricted to the items of the factor:</p>
+  <pre class="formula">α = k/(k−1) · [ 1 − Σ σᵢᵢ / σ²_sum ]</pre>
+  <p>σ²_sum is the sum of all elements of that submatrix. Alpha is the value reliability takes when the items are tau-equivalent, that is when their unstandardized loadings are equal. When tau-equivalence does not hold, alpha is a lower bound and omega is the coefficient that matches the estimated model (Cho, 2016; Flora, 2020). The page prints the ratio between the largest and the smallest loading in absolute value as a descriptive indication; the formal comparison is a chi-square difference test between the congeneric and the tau-equivalent model.</p>
+
+  <h3>Ordered categorical indicators</h3>
+  <p>With <code>CATEGORICAL ARE</code> and a weighted least squares estimator, the loadings refer to the underlying response variables y*, not to the observed responses. Omega on that metric uses the standardized loadings λ*:</p>
+  <pre class="formula">ω_y* = (Σ λ*ᵢ)² / [ (Σ λ*ᵢ)² + Σ θ*ᵢᵢ + 2 Σ θ*ᵢⱼ ]</pre>
+  <p>θ*ᵢⱼ are residual correlations between items of the same factor, summed over the pairs i &lt; j. When M<em>plus</em> does not print residual variances in the standardized solution, which is the usual case under the delta parameterization, θ*ᵢᵢ = 1 − λ*ᵢ² is used. This coefficient describes the sum of the y*, a score nobody computes.</p>
+  <p>The average variance extracted on the same metric follows from θ*ᵢᵢ = 1 − λ*ᵢ², which makes the denominator equal to the number of items:</p>
+  <pre class="formula">AVE_y* = Σ λ*ᵢ² / [ Σ λ*ᵢ² + Σ θ*ᵢᵢ ] = (1/k) Σ λ*ᵢ²</pre>
+  <p>Ordinal alpha (Zumbo, Gadermann &amp; Zeisser, 2007) is alpha applied to the polychoric correlation matrix of the items, taken from SAMPSTAT. It is computed only when that matrix is positive definite: the polychoric correlations are estimated one pair at a time, so the assembled matrix need not be one that any set of variables could have produced, and alpha on an indefinite matrix is an arithmetic value rather than the reliability of a score.</p>
+  <pre class="formula">α_ordinal = k/(k−1) · [ 1 − k / Σᵢ Σⱼ rᵢⱼ ]</pre>
+  <p>It is also a coefficient on the y* metric and it is generally higher than the reliability of the observed sum.</p>
+
+  <h3>Green and Yang omega</h3>
+  <p>The Green and Yang (2009) coefficient is the reliability of the sum of the observed ordinal responses. It reconstructs the variances and covariances of the observed items from the thresholds τ and from the correlations between the underlying variables, using the bivariate normal distribution function Φ₂:</p>
+  <pre class="formula">Cov(Xᵢ, Xⱼ) = Σ_c Σ_d [ Φ₂(τᵢ_c, τⱼ_d; ρᵢⱼ) − Φ(τᵢ_c) Φ(τⱼ_d) ]</pre>
+  <p>The correlations ρᵢⱼ are the ones implied by the measurement model, not the entries of the polychoric matrix printed by M<em>plus</em>: for the numerator, which is the variance of the sum attributable to the common factor, ρᵢⱼ = λ*ᵢ λ*ⱼ including the diagonal, where ρᵢᵢ = λ*ᵢ²; for the denominator, which is the total variance of the observed sum, ρᵢⱼ = λ*ᵢ λ*ⱼ plus any residual correlation the model estimates between items i and j, and ρᵢᵢ = 1, which returns the variance of the observed item.</p>
+  <pre class="formula">ω_GY = Σᵢ Σⱼ Cov_common(Xᵢ, Xⱼ) / Σᵢ Σⱼ Cov_total(Xᵢ, Xⱼ)</pre>
+  <p>The diagonal of the denominator is the variance of the observed item, obtained from its thresholds alone. For an item scored 1 … C with thresholds τ₁ … τ_{C−1}, writing q_c = 1 − Φ(τ_c) for the probability of a response above the c-th threshold,</p>
+  <pre class="formula">E(X) − 1 = Σ_c q_c        Var(X) = Σ_c (2c − 1) q_c − ( Σ_c q_c )²</pre>
+  <p>which is the same quantity the double sum over thresholds returns with ρ = 1, and is used because it needs no quadrature.</p>
+  <p>Φ₂ is evaluated from the one-dimensional integral representation of the bivariate normal distribution function, with a 24-node Gauss–Legendre quadrature. The integral is first mapped by the substitution t = sin θ: in the direct form the factor 1 / √(1 − t²) has an integrable singularity at t = ±1 that polynomial quadrature approximates poorly, and the case of two equal arguments, which is exactly the diagonal of the numerator, is the one where the error is largest. After the substitution the integrand is smooth, and for |ρ| close to 1 the interval is split into subintervals that are packed geometrically toward the endpoint.</p>
+  <p>The formula assumes that the responses arise from normally distributed underlying variables, so it applies to a probit link. M<em>plus</em> reports the link on the <code>Link</code> line of SUMMARY OF ANALYSIS. Weighted least squares estimators use a probit link; maximum likelihood with categorical items uses a logit link unless <code>LINK = PROBIT</code> is requested, and in that case the thresholds are on the logistic metric and this page does not compute the coefficient.</p>
+
+  <h3>Confidence intervals</h3>
+  <p>The coefficients on this page are point estimates computed from the parameter estimates. A standard error and a confidence interval for omega are obtained by defining it as a model parameter with <code>MODEL CONSTRAINT</code> and requesting <code>CINTERVAL</code> (Raykov, 1997). The page writes that syntax for the factors and items of the file you loaded. Point estimates of λ and θ are the same under ML and MLR; what changes with MLR is the standard errors, and therefore the intervals.</p>
+
+  <h3>What these numbers do not settle</h3>
+  <p>Values near .70 are often quoted as a minimum for research on group means, and .80 or higher for decisions about individuals; these are conventions of the literature and are used here only as rough guidance, not as a threshold a scale passes or fails (Cho, 2016; Flora, 2020). A reliability coefficient does not by itself establish that a scale is adequate: it is conditional on the model that produced it, on the sample it was estimated in, and on the use the score is put to, and it says nothing about the validity of the interpretation. A coefficient computed from an inadmissible solution is not a reliability at all, and the page marks those cases instead of reporting the number.</p>
+  <p>Two coefficients cannot be recovered from an M<em>plus</em> output with categorical items: the classical alpha on Pearson correlations between the observed responses, and the omega variants that use the observed variance of the total score. Both need the raw data.</p>
+</section>
+
+<section class="tracks" aria-labelledby="refs">
+  <h2 id="refs">References</h2>
+  <ul class="refs">
+    <li>Cho, E. (2016). Making reliability reliable: A systematic approach to reliability coefficients. <em>Organizational Research Methods, 19</em>(4), 651–682. <a href="https://doi.org/10.1177/1094428116656239">https://doi.org/10.1177/1094428116656239</a></li>
+    <li>Cronbach, L. J. (1951). Coefficient alpha and the internal structure of tests. <em>Psychometrika, 16</em>(3), 297–334. <a href="https://doi.org/10.1007/BF02310555">https://doi.org/10.1007/BF02310555</a></li>
+    <li>Flora, D. B. (2020). Your coefficient alpha is probably wrong, but which coefficient omega is right? A tutorial on using R to obtain better reliability estimates. <em>Advances in Methods and Practices in Psychological Science, 3</em>(4), 484–501. <a href="https://doi.org/10.1177/2515245920951747">https://doi.org/10.1177/2515245920951747</a></li>
+    <li>Fornell, C., &amp; Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. <em>Journal of Marketing Research, 18</em>(1), 39–50. <a href="https://doi.org/10.1177/002224378101800104">https://doi.org/10.1177/002224378101800104</a></li>
+    <li>Green, S. B., &amp; Yang, Y. (2009). Reliability of summed item scores using structural equation modeling: An alternative to coefficient alpha. <em>Psychometrika, 74</em>(1), 155–167. <a href="https://doi.org/10.1007/s11336-008-9099-3">https://doi.org/10.1007/s11336-008-9099-3</a></li>
+    <li>McDonald, R. P. (1999). <em>Test theory: A unified treatment</em>. Erlbaum.</li>
+    <li>Raykov, T. (1997). Estimation of composite reliability for congeneric measures. <em>Applied Psychological Measurement, 21</em>(2), 173–184. <a href="https://doi.org/10.1177/01466216970212006">https://doi.org/10.1177/01466216970212006</a></li>
+    <li>Zumbo, B. D., Gadermann, A. M., &amp; Zeisser, C. (2007). Ordinal versions of coefficients alpha and theta for Likert rating scales. <em>Journal of Modern Applied Statistical Methods, 6</em>(1), 21–29. <a href="https://doi.org/10.22237/jmasm/1177992180">https://doi.org/10.22237/jmasm/1177992180</a></li>
+  </ul>
+</section>
+
+</main>
+
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+
+<script>
+"use strict";
+
+/* ===================== pure core: start ===================== */
+
+/* ---------- formatting helpers ---------- */
+function esc(s){
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+/* The name of the software: an upright capital M with "plus" in italics.
+   Every message on this page is written as HTML for this reason, so anything
+   read from the file is escaped where it is inserted, never afterwards. */
+var MP = "<span class=\"mp\">M<em>plus</em></span>";
+function names(list){ return list.map(esc).join(", "); }
+function fmt(x, digits){
+  if (typeof x !== "number" || !isFinite(x)) return "—";
+  return x.toFixed(digits === undefined ? 3 : digits);
+}
+function sum(values){
+  var s = 0;
+  for (var i = 0; i < values.length; i++) s += values[i];
+  return s;
+}
+/* Mplus can print Fortran D exponents; asterisks mark a value that overflowed the field. */
+function toNumber(text){
+  if (typeof text !== "string") return NaN;
+  if (/^\*+$/.test(text)) return NaN;
+  return parseFloat(text.replace(/[Dd]/, "e"));
+}
+
+/* ---------- normal distribution ---------- */
+/* Rational approximation of the standard normal distribution function, accurate to about
+   1e-15 in double precision. */
+function normalCdf(x){
+  var z = Math.abs(x), tail;
+  if (z > 37) tail = 0;
+  else {
+    var e = Math.exp(-z * z / 2);
+    if (z < 7.07106781186547) {
+      var b = 0.0352624965998911 * z + 0.700383064443688;
+      b = b * z + 6.37396220353165;  b = b * z + 33.912866078383;
+      b = b * z + 112.079291497871;  b = b * z + 221.213596169931;
+      b = b * z + 220.206867912376;
+      var d = 0.0883883476483184 * z + 1.75566716318264;
+      d = d * z + 16.064177579207;   d = d * z + 86.7807322029461;
+      d = d * z + 296.564248779674;  d = d * z + 637.333633378831;
+      d = d * z + 793.826512519948;  d = d * z + 440.413735824752;
+      tail = e * b / d;
+    } else {
+      var f = z + 1 / (z + 2 / (z + 3 / (z + 4 / (z + 0.65))));
+      tail = e / (f * 2.506628274631);
+    }
+  }
+  return x > 0 ? 1 - tail : tail;
+}
+
+/* 24-point Gauss-Legendre nodes and weights on [-1, 1], given as 12 symmetric pairs. */
+var GL_NODES = [0.0640568928626056, 0.1911188674736163, 0.3150426796961634, 0.4337935076260451,
+                0.5454214713888396, 0.6480936519369755, 0.7401241915785544, 0.8200019859739029,
+                0.8864155270044011, 0.9382745520027328, 0.9747285559713095, 0.9951872199970213];
+var GL_WEIGHTS = [0.1279381953467522, 0.1258374563468283, 0.1216704729278034, 0.1155056680537256,
+                  0.1074442701159656, 0.0976186521041139, 0.0861901615319533, 0.0733464814110803,
+                  0.0592985849154368, 0.0442774388174198, 0.0285313886289337, 0.0123412297999872];
+
+/* Phi2(a, b; rho) - Phi(a) Phi(b), the covariance contribution of one pair of thresholds.
+   The difference has the one-dimensional integral representation
+      (1/2pi) * integral from 0 to rho of exp(-(a^2 - 2 t a b + b^2)/(2(1 - t^2))) / sqrt(1 - t^2) dt.
+   The substitution t = sin(theta) cancels the factor 1/sqrt(1 - t^2) exactly. That factor has an
+   integrable singularity at t = +-1 which polynomial quadrature approximates poorly, and the case
+   a = b, the diagonal of the Green and Yang numerator, is where the error is largest. After the
+   substitution the integrand is smooth; for |rho| close to 1 it becomes narrow near the endpoint,
+   so the interval is split into subintervals packed geometrically toward that endpoint. */
+function bivariateNormalCov(a, b, rho){
+  if (Math.abs(rho) < 1e-14) return 0;
+  var r = rho > 1 ? 1 : (rho < -1 ? -1 : rho);
+  var limit = Math.asin(r), absR = Math.abs(r);
+  var panels = absR > 0.9999 ? 10 : (absR > 0.999 ? 7 : (absR > 0.99 ? 5 : (absR > 0.9 ? 3 : 1)));
+  var edges = [0], k, i, sign;
+  for (k = 1; k < panels; k++) edges.push(limit * (1 - Math.pow(2, -k)));
+  edges.push(limit);
+  var total = 0;
+  for (k = 0; k < panels; k++) {
+    var mid = (edges[k] + edges[k + 1]) / 2, half = (edges[k + 1] - edges[k]) / 2, part = 0;
+    if (half === 0) continue;
+    for (i = 0; i < GL_NODES.length; i++) {
+      for (sign = -1; sign <= 1; sign += 2) {
+        var theta = mid + half * sign * GL_NODES[i];
+        var cs = Math.cos(theta);
+        part += GL_WEIGHTS[i] * Math.exp(-(a * a - 2 * Math.sin(theta) * a * b + b * b) / (2 * cs * cs));
+      }
+    }
+    total += half * part;
+  }
+  return total / (2 * Math.PI);
+}
+
+/* ---------- coefficients ---------- */
+/* Variance of an ordinal item coded 1..C, from its C-1 thresholds. */
+function ordinalItemVariance(taus){
+  var mean = 0, second = 0;
+  for (var c = 0; c < taus.length; c++) {
+    var q = 1 - normalCdf(taus[c]);
+    mean += q;
+    second += (2 * (c + 1) - 1) * q;
+  }
+  return second - mean * mean;
+}
+
+function clampCorrelation(r){
+  return Math.max(-0.999999, Math.min(0.999999, r));
+}
+
+/* Green and Yang (2009) omega for the observed sum of k ordinal items.
+   lambdaStar: standardized loadings on y*. taus: one array of thresholds per item.
+   rhoTotal: k x k matrix of model-implied correlations between the y*, diagonal 1,
+   off-diagonal lambda_i lambda_j plus any residual correlation. */
+function greenYangOmega(lambdaStar, taus, rhoTotal){
+  var k = lambdaStar.length, numerator = 0, denominator = 0, i, j, a, b;
+  for (i = 0; i < k; i++) {
+    denominator += ordinalItemVariance(taus[i]);
+    var own = 0;
+    for (a = 0; a < taus[i].length; a++)
+      for (b = 0; b < taus[i].length; b++)
+        own += bivariateNormalCov(taus[i][a], taus[i][b], clampCorrelation(lambdaStar[i] * lambdaStar[i]));
+    numerator += own;
+  }
+  for (i = 0; i < k - 1; i++) {
+    for (j = i + 1; j < k; j++) {
+      var rhoCommon = clampCorrelation(lambdaStar[i] * lambdaStar[j]);
+      var rhoAll = clampCorrelation(rhoTotal ? rhoTotal[i][j] : lambdaStar[i] * lambdaStar[j]);
+      var pairCommon = 0, pairAll = 0;
+      for (a = 0; a < taus[i].length; a++) {
+        for (b = 0; b < taus[j].length; b++) {
+          pairCommon += bivariateNormalCov(taus[i][a], taus[j][b], rhoCommon);
+          pairAll += bivariateNormalCov(taus[i][a], taus[j][b], rhoAll);
+        }
+      }
+      numerator += 2 * pairCommon;
+      denominator += 2 * pairAll;
+    }
+  }
+  if (!isFinite(denominator) || Math.abs(denominator) < 1e-12) return undefined;
+  return numerator / denominator;
+}
+
+/* Ordinal alpha (Zumbo, Gadermann and Zeisser, 2007): alpha on the polychoric matrix. */
+function ordinalAlpha(matrix){
+  var k = matrix.length;
+  if (k < 2) return undefined;
+  var total = 0;
+  for (var i = 0; i < k; i++) for (var j = 0; j < k; j++) total += matrix[i][j];
+  if (!isFinite(total) || Math.abs(total) < 1e-12) return undefined;
+  return k / (k - 1) * (1 - k / total);
+}
+
+/* Omega on the y* metric. residuals may be missing under the delta parameterization,
+   in which case theta* = 1 - lambda*^2 is used. */
+function omegaYstar(lambdaStar, residuals, residualCovs){
+  var loadingSum = sum(lambdaStar);
+  var usable = residuals && residuals.length === lambdaStar.length &&
+    residuals.every(function(v){ return typeof v === "number" && isFinite(v); });
+  var residualSum = usable
+    ? sum(residuals)
+    : sum(lambdaStar.map(function(v){ return 1 - v * v; }));
+  var covPart = (residualCovs || []).reduce(function(acc, c){ return acc + 2 * c.est; }, 0);
+  var denominator = loadingSum * loadingSum + residualSum + covPart;
+  if (!isFinite(denominator) || Math.abs(denominator) < 1e-12) return undefined;
+  return loadingSum * loadingSum / denominator;
+}
+
+/* Cholesky factorization, used only as a test of positive definiteness: a
+   non-positive pivot means the matrix is not a covariance or correlation
+   matrix, and a coefficient computed from it is not a reliability. The pivot
+   is compared with the largest diagonal entry so the test is scale-free. */
+function isPositiveDefinite(matrix){
+  var n = matrix.length, L = [], i, j, k, s, big = 0;
+  if (!n) return false;
+  for (i = 0; i < n; i++) if (matrix[i][i] > big) big = matrix[i][i];
+  var tolerance = Math.max(big, 1) * 1e-12;
+  for (i = 0; i < n; i++) { L.push([]); for (j = 0; j < n; j++) L[i].push(0); }
+  for (i = 0; i < n; i++) {
+    for (j = 0; j <= i; j++) {
+      s = matrix[i][j];
+      for (k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+      if (i === j) {
+        if (!(s > tolerance)) return false;
+        L[i][i] = Math.sqrt(s);
+      } else L[i][j] = s / L[j][j];
+    }
+  }
+  return true;
+}
+
+/* Cronbach's alpha from a covariance matrix object {m: {row: {col: value}}}. */
+function alphaFromCovariance(matrix, items){
+  if (!matrix || items.length < 2) return undefined;
+  var diagonal = 0, total = 0;
+  for (var a = 0; a < items.length; a++) {
+    var row = matrix.m[items[a]];
+    if (!row) return undefined;
+    var self = row[items[a]];
+    if (typeof self !== "number" || !isFinite(self)) return undefined;
+    diagonal += self;
+    for (var b = 0; b < items.length; b++) {
+      var v = row[items[b]];
+      if (typeof v !== "number" || !isFinite(v)) return undefined;
+      total += v;
+    }
+  }
+  if (!isFinite(total) || Math.abs(total) < 1e-12) return undefined;
+  return items.length / (items.length - 1) * (1 - diagonal / total);
+}
+
+/* ---------- reading the Mplus output ---------- */
+
+/* With MODEL = CONFIGURAL METRIC SCALAR, Mplus estimates several models in one run and writes
+   one file in which every section carries the name of the model: "MODEL RESULTS FOR THE
+   CONFIGURAL MODEL", "MODEL FIT INFORMATION FOR THE METRIC MODEL", and so on. The usual headings
+   never appear. This restores the headings of the first model and returns the list of models
+   found, so that the choice can be stated to the reader. */
+function normalizeAbbreviatedSyntax(text){
+  var lines = String(text).replace(/\r\n/g, "\n").split("\n");
+  var heading = /^([A-Z][A-Z0-9 ]*?) FOR THE ([A-Z][A-Z ]*?) MODEL\s*$/;
+  var first = -1, i;
+  for (i = 0; i < lines.length; i++) if (heading.test(lines[i])) { first = i; break; }
+  if (first < 0) return null;
+  var order = [], parts = {}, current = null;
+  for (i = first; i < lines.length; i++) {
+    var m = heading.exec(lines[i]);
+    if (m) {
+      current = m[2].replace(/\s+$/, "");
+      if (!parts[current]) { parts[current] = []; order.push(current); }
+      parts[current].push(m[1].replace(/\s+$/, ""));
+      continue;
+    }
+    if (current) parts[current].push(lines[i]);
+  }
+  if (order.length < 2) return null;
+  /* The closing lines (convergence, warnings) apply to the whole run and would otherwise be
+     assigned to the last model only. */
+  var tail = "", j;
+  for (i = lines.length - 1; i > first; i--) {
+    if (/^THE MODEL ESTIMATION (TERMINATED NORMALLY|DID NOT TERMINATE)/.test(lines[i].trim())) {
+      j = i;
+      while (j > first && /^(THE MODEL ESTIMATION |\s*$|\*\*\*)/.test(lines[j - 1])) j--;
+      tail = "\n" + lines.slice(j).join("\n");
+      break;
+    }
+  }
+  return {
+    text: lines.slice(0, first).join("\n") + "\n" + parts[order[0]].join("\n") + tail,
+    models: order.map(function(n){ return n.toLowerCase(); }),
+    keys: order,
+    first: order[0].toLowerCase()
+  };
+}
+
+var VAR_LIST_HEADERS = /^(Observed dependent variables|Observed independent variables|Continuous latent variables|Categorical latent variables|Observed auxiliary variables|Variables with special functions)(?![A-Za-z])/i;
+var VAR_LIST_SUBHEADERS = /^(Continuous|Binary and ordered categorical \(ordinal\)|Unordered categorical \(nominal\)|Count|Censored|Censored-inflated|Count-inflated|Nominal|Time censored)(?![A-Za-z])/i;
+
+/* Reads a list of variable names printed under a heading of SUMMARY OF ANALYSIS. Names are
+   indented; a line starting in column 1 belongs to the next block and ends the list. */
+function readNameList(lines, headerIndex, maxBlanks){
+  var names = [], blanks = 0;
+  for (var k = headerIndex + 1; k < lines.length; k++) {
+    var line = lines[k], text = line.trim();
+    if (text === "") {
+      blanks++;
+      if (names.length && blanks >= maxBlanks) break;
+      if (blanks >= 4) break;
+      continue;
+    }
+    if (/^\S/.test(line)) break;
+    if (VAR_LIST_HEADERS.test(text)) break;
+    if (VAR_LIST_SUBHEADERS.test(text)) { blanks = 0; continue; }
+    var tokens = text.split(/\s+/);
+    var allNames = tokens.every(function(t){ return /^[A-Za-z][A-Za-z0-9_]*$/.test(t); });
+    if (!allNames) break;
+    names = names.concat(tokens.map(function(t){ return t.toUpperCase(); }));
+    blanks = 0;
+  }
+  return names;
+}
+
+function findNameList(lines, headerRegex, maxBlanks){
+  for (var i = 0; i < lines.length; i++) {
+    if (headerRegex.test(lines[i].trim())) return readNameList(lines, i, maxBlanks);
+  }
+  return [];
+}
+
+var NUMBER = "(-?\\d+\\.\\d+(?:[DdEe][-+]?\\d+)?|\\*+)";
+var PARAM_LINE = new RegExp("^\\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\\s+" + NUMBER + "\\s+" +
+                            NUMBER + "\\s+" + NUMBER + "\\s+" + NUMBER + "\\s*$");
+var END_OF_PARAMETERS = /^(STANDARDIZED MODEL RESULTS|STDYX Standardization|STDY Standardization|STD Standardization|R-SQUARE|QUALITY OF NUMERICAL RESULTS|MODEL MODIFICATION INDICES|CONFIDENCE INTERVALS|TOTAL, TOTAL INDIRECT|SAVEDATA INFORMATION|DIAGRAM INFORMATION|MUTHEN & MUTHEN|TECHNICAL \d+ OUTPUT|Beginning Time)/;
+
+function newParameterSegment(name){
+  return { group: name, order: [], by: {}, variances: {}, residuals: {}, residualCovs: [],
+           thresholds: {}, newParams: [], notComputable: [], skippedLines: 0 };
+}
+
+/* Reads the parameter table that follows MODEL RESULTS or STDYX Standardization and splits it
+   into one segment per group. A multiple-group output repeats every section for each group;
+   reading loadings from one group and thresholds from another is the mistake this avoids. */
+function readParameterSegments(lines, startIndex){
+  var segments = [], current = null, section = null, factor = null;
+  function segment(){
+    if (!current) { current = newParameterSegment(null); segments.push(current); }
+    return current;
+  }
+  for (var k = startIndex; k < lines.length; k++) {
+    var line = lines[k], text = line.trim();
+    if (END_OF_PARAMETERS.test(text)) break;
+
+    var groupLine = line.match(/^\s{0,4}Group\s+([A-Za-z0-9_.]+)\s*$/);
+    if (groupLine) {
+      current = newParameterSegment(groupLine[1].toUpperCase());
+      segments.push(current);
+      section = null; factor = null;
+      continue;
+    }
+    var by = line.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+BY\s*$/i);
+    if (by) {
+      factor = by[1].toUpperCase();
+      section = "by";
+      var seg = segment();
+      if (seg.order.indexOf(factor) < 0) { seg.order.push(factor); seg.by[factor] = []; }
+      continue;
+    }
+    var withHeader = line.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+WITH\s*$/i);
+    if (withHeader) { section = "with"; factor = withHeader[1].toUpperCase(); continue; }
+    /* "F1 ON X" and any unexpected heading must close the section in progress, or the
+       regression coefficients of a MIMIC or structural model land among the loadings. */
+    if (/^\s+[A-Za-z][A-Za-z0-9_]*\s+ON(\s+.*)?\s*$/i.test(line)) { section = "on"; factor = null; continue; }
+    if (/^\s*Intercepts\s*$/i.test(line)) { section = "intercepts"; factor = null; continue; }
+    if (/^\s*Means\s*$/i.test(line)) { section = "means"; factor = null; continue; }
+    if (/^\s*Thresholds\s*$/i.test(line)) { section = "thresholds"; factor = null; continue; }
+    if (/^\s*Scales\s*$/i.test(line)) { section = "scales"; factor = null; continue; }
+    if (/^\s*Variances\s*$/i.test(line)) { section = "variances"; factor = null; continue; }
+    if (/^\s*Residual Variances\s*$/i.test(line)) { section = "residuals"; factor = null; continue; }
+    if (/^\s*New\/Additional Parameters\s*$/i.test(line)) { section = "new"; factor = null; continue; }
+
+    var values = line.match(PARAM_LINE);
+    if (!values) {
+      if (text !== "" && !/\d/.test(line)) { section = null; factor = null; }
+      else if (text !== "" && /^\s{2,}\S/.test(line) && /\d/.test(line) &&
+               (section === "by" || section === "residuals" || section === "variances" ||
+                section === "thresholds")) segment().skippedLines++;
+      continue;
+    }
+    var name = values[1].toUpperCase();
+    var estimate = toNumber(values[2]);
+    var se = toNumber(values[3]);
+    var ratio = toNumber(values[4]);
+    var pValue = toNumber(values[5]);
+    /* 999.000 in all four columns is the sentinel for a quantity Mplus could not compute,
+       typically in the standardized solution when an estimated variance is negative. A fixed
+       parameter instead has a real estimate, a standard error of 0.000, and 999.000 only in the
+       last two columns. */
+    if (estimate === 999 && se === 999 && ratio === 999 && pValue === 999) {
+      var target = segment();
+      if (target.notComputable.indexOf(name) < 0) target.notComputable.push(name);
+      continue;
+    }
+    var into = segment();
+    if (section === "by" && factor) into.by[factor].push({ item: name, est: estimate, se: se });
+    else if (section === "with" && factor) into.residualCovs.push({ a: factor, b: name, est: estimate });
+    else if (section === "variances") into.variances[name] = estimate;
+    else if (section === "residuals") into.residuals[name] = estimate;
+    else if (section === "thresholds") {
+      var threshold = name.match(/^([A-Za-z][A-Za-z0-9_#.]*)\$(\d+)$/);
+      if (threshold) {
+        var item = threshold[1];
+        if (!into.thresholds[item]) into.thresholds[item] = [];
+        into.thresholds[item][parseInt(threshold[2], 10) - 1] = estimate;
+      }
+    }
+    else if (section === "new") into.newParams.push({ name: name, est: estimate, se: se, p: pValue });
+  }
+  if (!segments.length) segments.push(newParameterSegment(null));
+  return segments;
+}
+
+/* Reads one lower-triangular matrix printed by Mplus in blocks of five columns. Blocks after the
+   first do not repeat the label and are separated by blank lines, so a blank line does not end the
+   matrix. A column heading is recognized by the row of underscores below it. */
+function readMatrixAt(lines, labelIndex){
+  var matrix = {}, names = [], columns = null, last = labelIndex;
+  function isName(token){ return /^[A-Za-z][A-Za-z0-9_$#.]*$/.test(token); }
+  for (var k = labelIndex + 1; k < lines.length; k++) {
+    var line = lines[k], text = line.trim();
+    last = k;
+    if (text === "") continue;
+    if (/^_{4,}/.test(text)) continue;
+    if (text === lines[labelIndex].trim()) { columns = null; continue; }
+    if (/^\s{4,}\S/.test(line) && /_{4,}/.test(lines[k + 1] || "")) {
+      var candidate = text.split(/\s+/);
+      if (candidate.every(isName)) {
+        columns = candidate.map(function(c){ return c.toUpperCase(); });
+        continue;
+      }
+    }
+    /* In the polychoric matrix Mplus leaves the diagonal empty, because the variance of y* is
+       fixed at 1, so the first row of each block is a bare variable name with no numbers. */
+    var bare = line.match(/^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s*$/);
+    if (bare && columns) {
+      var bareName = bare[1].toUpperCase();
+      if (columns.indexOf(bareName) >= 0) {
+        if (names.indexOf(bareName) < 0) names.push(bareName);
+        if (!matrix[bareName]) matrix[bareName] = {};
+        continue;
+      }
+    }
+    var row = line.match(/^\s*([A-Za-z][A-Za-z0-9_$#.]*)\s+((?:-?\d+\.\d+(?:[DdEe][-+]?\d+)?\s*)+)$/);
+    if (row && columns) {
+      var rowName = row[1].toUpperCase();
+      var values = row[2].trim().split(/\s+/).map(toNumber);
+      if (names.indexOf(rowName) < 0) names.push(rowName);
+      for (var c = 0; c < values.length; c++) {
+        var columnName = columns[c];
+        if (!columnName) continue;
+        if (!matrix[rowName]) matrix[rowName] = {};
+        if (!matrix[columnName]) matrix[columnName] = {};
+        matrix[rowName][columnName] = values[c];
+        matrix[columnName][rowName] = values[c];
+      }
+      continue;
+    }
+    break;
+  }
+  return { m: matrix, names: names, endIndex: last };
+}
+
+/* Every occurrence of a matrix label, tagged with the group whose sample statistics it belongs to. */
+function readMatrices(lines, label){
+  var found = [], group = null;
+  for (var i = 0; i < lines.length; i++) {
+    var text = lines[i].trim();
+    var tag = text.match(/\bFOR GROUP\s+([A-Za-z0-9_.]+)$/i) ||
+              text.match(/^(?:ESTIMATED\s+)?SAMPLE STATISTICS FOR\s+([A-Za-z0-9_.]+)$/i);
+    if (tag) group = tag[1].toUpperCase();
+    if (text !== label) continue;
+    var result = readMatrixAt(lines, i);
+    if (result.names.length) {
+      found.push({ group: group, m: result.m, names: result.names });
+      /* The line that ended the matrix may itself be the heading of the next group, so the
+         scan resumes on it rather than after it. */
+      i = Math.max(i, result.endIndex - 1);
+    }
+  }
+  return found;
+}
+
+function matrixForGroup(matrices, groupName, groupCount){
+  if (!matrices.length) return null;
+  if (groupName) {
+    for (var i = 0; i < matrices.length; i++) if (matrices[i].group === groupName) return matrices[i];
+  }
+  if (groupCount <= 1 || matrices.length === 1 && !matrices[0].group) return matrices[0];
+  return null;
+}
+
+/* With ordinal items Mplus syntax sometimes writes the model in two layers:
+       Y1 BY SIC1;                 one pseudo-latent per item, loading fixed at 1, residual 0
+       SAFETY BY Y1 Y2 Y3 Y4;      the factor of interest, measured by the pseudo-latents
+   Read literally this produces four one-item scales and a factor whose residual variances are
+   zero, that is an omega of exactly 1. The layer is removed only when the numbers confirm the
+   structure: one indicator per pseudo-latent, its unstandardized loading fixed at 1, a zero
+   residual variance, and a standardized loading of the factor on the pseudo-latent equal to 1. */
+function collapseYstarLayer(segment, stdSegment){
+  if (!segment || segment.order.length < 2) return null;
+  var pseudo = {};
+  segment.order.forEach(function(f){
+    var rows = segment.by[f] || [];
+    if (rows.length !== 1) return;
+    if (!isFinite(rows[0].est) || Math.abs(rows[0].est - 1) > 1e-9) return;
+    var residual = segment.residuals[f];
+    if (residual !== undefined && residual !== null && Math.abs(residual) > 1e-9) return;
+    pseudo[f] = rows[0].item;
+  });
+  if (!Object.keys(pseudo).length) return null;
+  var collapsed = [];
+  segment.order.forEach(function(f){
+    if (pseudo[f] !== undefined) return;
+    var rows = segment.by[f] || [];
+    if (rows.length < 2) return;
+    if (!rows.every(function(r){ return pseudo[r.item] !== undefined; })) return;
+    var stdRows = stdSegment ? (stdSegment.by[f] || []) : [];
+    if (stdRows.length !== rows.length) return;
+    if (!stdRows.every(function(r){ return isFinite(r.est) && Math.abs(r.est - 1) <= 1e-6; })) return;
+    var newStd = [], ok = true;
+    rows.forEach(function(r){
+      var inner = stdSegment ? (stdSegment.by[r.item] || []) : [];
+      if (inner.length !== 1) { ok = false; return; }
+      newStd.push({ item: pseudo[r.item], est: inner[0].est, se: inner[0].se });
+    });
+    if (!ok) return;
+    var newRaw = rows.map(function(r){ return { item: pseudo[r.item], est: r.est, se: r.se }; });
+    segment.by[f] = newRaw;
+    if (stdSegment) stdSegment.by[f] = newStd;
+    collapsed.push({ factor: f,
+                     pseudo: rows.map(function(r){ return r.item; }),
+                     items: newRaw.map(function(r){ return r.item; }) });
+  });
+  if (!collapsed.length) return null;
+  var drop = {};
+  collapsed.forEach(function(c){ c.pseudo.forEach(function(p){ drop[p] = 1; }); });
+  segment.order = segment.order.filter(function(f){ return !drop[f]; });
+  if (stdSegment) stdSegment.order = stdSegment.order.filter(function(f){ return !drop[f]; });
+  return collapsed;
+}
+
+function buildStdIndex(stdSegment){
+  var index = {};
+  if (!stdSegment) return index;
+  Object.keys(stdSegment.by).forEach(function(f){
+    index[f] = {};
+    stdSegment.by[f].forEach(function(row){ index[f][row.item] = row; });
+  });
+  return index;
+}
+
+function matchSegments(rawSegments, otherSegments){
+  return rawSegments.map(function(raw, i){
+    if (!otherSegments || !otherSegments.length) return null;
+    if (raw.group) {
+      for (var j = 0; j < otherSegments.length; j++)
+        if (otherSegments[j].group === raw.group) return otherSegments[j];
+    }
+    if (otherSegments.length === rawSegments.length) return otherSegments[i];
+    if (otherSegments.length === 1 && rawSegments.length === 1) return otherSegments[0];
+    return null;
+  });
+}
+
+function readRSquare(lines){
+  var segments = [], current = null;
+  for (var i = 0; i < lines.length; i++) {
+    if (!/^R-SQUARE\s*$/.test(lines[i].trim())) continue;
+    for (var k = i + 1; k < lines.length; k++) {
+      var line = lines[k], text = line.trim();
+      if (/^(QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|CONFIDENCE INTERVALS|MODEL MODIFICATION INDICES|SAVEDATA INFORMATION|DIAGRAM INFORMATION|Beginning Time|MUTHEN & MUTHEN)/.test(text)) break;
+      var groupLine = line.match(/^\s{0,4}Group\s+([A-Za-z0-9_.]+)\s*$/);
+      if (groupLine) { current = { group: groupLine[1].toUpperCase(), values: {} }; segments.push(current); continue; }
+      var row = line.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+(?:[DdEe][-+]?\d+)?)\s+/);
+      if (row) {
+        if (!current) { current = { group: null, values: {} }; segments.push(current); }
+        current.values[row[1].toUpperCase()] = toNumber(row[2]);
+      }
+    }
+    break;
+  }
+  return segments;
+}
+
+function readConfidenceIntervals(lines){
+  var intervals = {};
+  for (var i = 0; i < lines.length; i++) {
+    if (!/CONFIDENCE INTERVALS OF MODEL RESULTS/.test(lines[i])) continue;
+    var inside = false;
+    for (var k = i + 1; k < lines.length; k++) {
+      if (/^\s*New\/Additional Parameters\s*$/i.test(lines[k])) { inside = true; continue; }
+      if (!inside) continue;
+      if (/^[A-Z]/.test(lines[k]) && lines[k].trim() !== "") break;
+      var row = lines[k].match(/^\s{2,}([A-Za-z][A-Za-z0-9_]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s*$/);
+      if (row) intervals[row[1].toUpperCase()] = { low: toNumber(row[3]), high: toNumber(row[7]) };
+    }
+    break;
+  }
+  return intervals;
+}
+
+/* Headings and lines that only an Mplus output contains. A file that has none
+   of them is some other file, and saying so is more use than a list of parts
+   that could not be found in it. */
+var MPLUS_SIGNATURE = /(^|\n)[ \t]*(Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION|THE MODEL ESTIMATION|TESTS OF MODEL FIT)/;
+/* Every completed run ends with the timing block and the address of the
+   publisher; a heading that only appears after the parameter tables serves the
+   same purpose. None of them after MODEL RESULTS means the file stops early. */
+var CLOSING_BLOCK = /(^|\n)[ \t]*(Beginning Time:|Ending Time:|Elapsed Time:|MUTHEN & MUTHEN|TECHNICAL \d+ OUTPUT|SAVEDATA INFORMATION|DIAGRAM INFORMATION|QUALITY OF NUMERICAL RESULTS)/;
+
+/* What kind of file this is, before any attempt to read parameters from it. */
+function diagnoseFile(text){
+  if (typeof text !== "string" || text.length === 0) return "empty";
+  if (!/\S/.test(text)) return "blank";
+  if (!MPLUS_SIGNATURE.test(text)) return "foreign";
+  return "mplus";
+}
+
+function parseMplusOutput(rawText){
+  var abbreviated = normalizeAbbreviatedSyntax(rawText);
+  var text = abbreviated ? abbreviated.text : String(rawText);
+  var lines = text.split(/\r?\n/);
+  var model = {
+    estimator: null, link: null, nObs: null, obsByGroup: {}, nGroups: 1,
+    observedVars: [], latentVars: [], categoricalVars: [],
+    chiSquare: null, df: null, converged: false, warnings: 0,
+    hasStdyx: false, hasSampstat: false, hasPolychoric: false, hasModelResults: false,
+    abbreviated: abbreviated, groups: [], newParams: [], intervals: {}
+  };
+  var i, match;
+
+  for (i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (!model.estimator) {
+      match = line.match(/^\s*Estimator\s+([A-Z]+)\s*$/);
+      if (match) model.estimator = match[1];
+    }
+    if (!model.link) {
+      match = line.match(/^\s*Link\s+([A-Z]+)\s*$/);
+      if (match) model.link = match[1];
+    }
+    match = line.match(/^\s*Number of groups\s+(\d+)\s*$/);
+    if (match) model.nGroups = parseInt(match[1], 10);
+    match = line.match(/^\s*Number of observations\s+(\d+)\s*$/);
+    if (match && model.nObs === null) model.nObs = parseInt(match[1], 10);
+    match = line.match(/^\s+Group\s+([A-Za-z0-9_.]+)\s+(\d+)\s*$/);
+    if (match) model.obsByGroup[match[1].toUpperCase()] = parseInt(match[2], 10);
+    if (/^STDYX Standardization\s*$/.test(line.trim())) model.hasStdyx = true;
+  }
+  if (model.nObs === null) {
+    var perGroup = Object.keys(model.obsByGroup);
+    if (perGroup.length) model.nObs = sum(perGroup.map(function(g){ return model.obsByGroup[g]; }));
+  }
+
+  model.observedVars = findNameList(lines, /^Observed dependent variables(?![A-Za-z])/i, 2);
+  model.latentVars = findNameList(lines, /^Continuous latent variables(?![A-Za-z])/i, 2);
+  model.categoricalVars = findNameList(lines, /^Binary and ordered categorical \(ordinal\)(?![A-Za-z])/i, 1);
+
+  for (i = 0; i < lines.length; i++) {
+    if (!/^Chi-Square Test of Model Fit\s*$/.test(lines[i].trim())) continue;
+    for (var k = i + 1; k < Math.min(i + 8, lines.length); k++) {
+      match = lines[k].match(/^\s*Value\s+(-?\d+\.\d+)\*?/);
+      if (match && model.chiSquare === null) model.chiSquare = toNumber(match[1]);
+      match = lines[k].match(/^\s*Degrees of Freedom\s+(\d+)/);
+      if (match && model.df === null) model.df = parseInt(match[1], 10);
+    }
+    break;
+  }
+  model.converged = /THE MODEL ESTIMATION TERMINATED NORMALLY/.test(text);
+  model.warnings = (text.match(/^\s*\*\*\* WARNING[^\n]*/gm) || []).length;
+
+  var rawSegments = null, stdSegments = null;
+  for (i = 0; i < lines.length; i++) {
+    if (!rawSegments && /^MODEL RESULTS\s*$/.test(lines[i].trim())) {
+      rawSegments = readParameterSegments(lines, i + 1);
+      model.hasModelResults = true;
+    }
+    if (!stdSegments && /^STDYX Standardization\s*$/.test(lines[i].trim())) stdSegments = readParameterSegments(lines, i + 1);
+  }
+  if (!rawSegments) rawSegments = [newParameterSegment(null)];
+  var stdMatched = matchSegments(rawSegments, stdSegments);
+  var rSquareSegments = readRSquare(lines);
+  var rSquareMatched = matchSegments(rawSegments, rSquareSegments);
+
+  var covariances = readMatrices(lines, "Covariances");
+  var polychoric = readMatrices(lines, "CORRELATION MATRIX (WITH VARIANCES ON THE DIAGONAL)");
+  model.hasSampstat = covariances.length > 0;
+  model.hasPolychoric = polychoric.length > 0;
+  if (rawSegments.length > model.nGroups) model.nGroups = rawSegments.length;
+
+  model.groups = rawSegments.map(function(raw, index){
+    var std = stdMatched[index];
+    var collapsed = collapseYstarLayer(raw, std);
+    var rSquare = rSquareMatched[index];
+    var thresholds = (std && Object.keys(std.thresholds).length) ? std.thresholds : raw.thresholds;
+    var name = raw.group || (rawSegments.length > 1 ? "Group " + (index + 1) : null);
+    return {
+      name: name,
+      raw: raw,
+      std: std || null,
+      stdIndex: buildStdIndex(std),
+      rSquare: rSquare ? rSquare.values : {},
+      thresholds: thresholds,
+      sampleCov: matrixForGroup(covariances, raw.group, rawSegments.length),
+      polychoric: matrixForGroup(polychoric, raw.group, rawSegments.length),
+      collapsed: collapsed,
+      nObs: raw.group ? model.obsByGroup[raw.group] : model.nObs
+    };
+  });
+
+  rawSegments.forEach(function(seg){ model.newParams = model.newParams.concat(seg.newParams); });
+  model.intervals = readConfidenceIntervals(lines);
+
+  /* A file that stops in the middle of a section has no closing block after
+     MODEL RESULTS, and the parameter tables it does contain may be partial. */
+  var resultsAt = text.indexOf("\nMODEL RESULTS");
+  model.truncated = model.hasModelResults
+    ? !CLOSING_BLOCK.test(text.slice(resultsAt < 0 ? 0 : resultsAt + 1))
+    : !CLOSING_BLOCK.test(text);
+
+  /* Item sets that differ between groups are legitimate under partial
+     invariance, and they change which sum each coefficient refers to. */
+  model.itemSets = model.groups.map(function(g){
+    var all = [];
+    g.raw.order.forEach(function(f){ (g.raw.by[f] || []).forEach(function(r){ all.push(f + ":" + r.item); }); });
+    return all.sort().join(" ");
+  });
+  model.groupsDiffer = model.itemSets.length > 1 &&
+    model.itemSets.some(function(s){ return s !== model.itemSets[0]; });
+  return model;
+}
+
+/* ---------- factor structure ---------- */
+
+/* Names that stand for latent variables: the SUMMARY OF ANALYSIS list when it was read, and in
+   any case every name that appears on the left of a BY statement. */
+function latentNames(model, group){
+  var set = {};
+  model.latentVars.forEach(function(n){ set[n] = 1; });
+  group.raw.order.forEach(function(f){ set[f] = 1; });
+  return set;
+}
+
+function categoricalSet(model, group){
+  var set = {}, declared = model.categoricalVars.length > 0;
+  model.categoricalVars.forEach(function(n){ set[n] = 1; });
+  if (!declared) {
+    /* The declaration list could not be read: fall back on the presence of thresholds, and say so. */
+    Object.keys(group.thresholds || {}).forEach(function(n){ set[n] = 1; });
+  }
+  return { set: set, declared: declared };
+}
+
+/* Decides, for one factor of one group, whether a coefficient can be computed at all and on
+   which branch. The omega formula assumes every observed indicator loads on a single factor. */
+function describeFactor(model, group, factor){
+  var rows = group.raw.by[factor] || [];
+  var items = rows.map(function(r){ return r.item; });
+  var latent = latentNames(model, group);
+  var counts = {};
+  group.raw.order.forEach(function(f){
+    (group.raw.by[f] || []).forEach(function(r){ counts[r.item] = (counts[r.item] || 0) + 1; });
+  });
+  var info = { factor: factor, items: items, k: items.length, kind: null, blocked: null };
+
+  if (items.length === 0) {
+    info.blocked = "No indicator of this factor could be read from MODEL RESULTS.";
+    return info;
+  }
+  if (items.length === 1) {
+    info.blocked = "The factor has a single indicator (" + esc(items[0]) + "). Internal consistency " +
+      "needs at least two items: what the formula would return here is the communality of that " +
+      "item, and with a residual variance fixed at zero it would be exactly 1.000.";
+    return info;
+  }
+  /* The same name printed twice under one BY heading is not a cross-loading:
+     the item would be added to the sum twice and every coefficient would be
+     computed for a scale that does not exist. */
+  var seen = {}, repeated = [];
+  items.forEach(function(it){
+    if (seen[it] && repeated.indexOf(it) < 0) repeated.push(it);
+    seen[it] = 1;
+  });
+  if (repeated.length) {
+    info.blocked = "The same item name appears more than once among the indicators of this factor (" +
+      names(repeated) + "). Read as it stands, that item would enter the sum twice and every " +
+      "coefficient would describe a scale with " + items.length + " entries rather than " +
+      Object.keys(seen).length + " items. Nothing is computed until the duplication is resolved: " +
+      "check whether two variables were given the same name in the NAMES list, or whether the " +
+      "output was assembled from two runs.";
+    return info;
+  }
+  var latentIndicators = items.filter(function(it){ return latent[it]; });
+  if (latentIndicators.length) {
+    info.blocked = "The indicators of this factor include latent variables (" +
+      names(latentIndicators) + "), so this is a second-order factor rather than a set of " +
+      "observed items. The omega formula on this page assumes that every indicator is an observed " +
+      "variable loading on a single factor, and it does not apply to a second-order structure. " +
+      "The first-order factors are reported separately above or below; a coefficient for the " +
+      "second-order factor needs the formula for a hierarchical model, which this page does not use.";
+    return info;
+  }
+  var crossLoaded = items.filter(function(it){ return counts[it] > 1; });
+  if (crossLoaded.length) {
+    info.blocked = "These items load on more than one factor: " + names(crossLoaded) + ". The " +
+      "omega formula assumes a congeneric structure in which each observed indicator loads on a " +
+      "single factor, so the reliability of the sum is not the quantity it would return here. " +
+      "Either drop the cross-loading, or compute the reliability of the composite with the " +
+      "formula for a multidimensional score.";
+    return info;
+  }
+  var categorical = categoricalSet(model, group);
+  var categoricalItems = items.filter(function(it){ return categorical.set[it]; });
+  info.categoricalDeclared = categorical.declared;
+  if (categoricalItems.length === items.length) info.kind = "categorical";
+  else if (categoricalItems.length === 0) info.kind = "continuous";
+  else {
+    info.blocked = "The indicators of this factor mix measurement levels: " +
+      names(categoricalItems) + " " + (categoricalItems.length === 1 ? "is" : "are") +
+      " declared as ordered categorical, the remaining items are treated as continuous. The two " +
+      "sets of coefficients are defined on different metrics and cannot be combined into one " +
+      "number for this sum.";
+  }
+  return info;
+}
+
+function linkOf(model, estimator){
+  if (model.link) return model.link;
+  if (/WLS|ULS/.test(estimator || "")) return "PROBIT";
+  return null;
+}
+
+/* ---------- coefficients for one factor of one group ---------- */
+
+function continuousCoefficients(model, group, factor, items){
+  var rows = group.raw.by[factor] || [];
+  var loadings = rows.map(function(r){ return r.est; });
+  var residuals = items.map(function(it){ return group.raw.residuals[it]; });
+  var out = { factor: factor, items: items, k: items.length, loadings: loadings,
+              residuals: residuals, notes: [] };
+  var withoutResidual = items.filter(function(it){
+    var v = group.raw.residuals[it];
+    return typeof v !== "number" || !isFinite(v);
+  });
+  if (withoutResidual.length) {
+    out.error = "No residual variance was printed for " + names(withoutResidual) +
+      " under Residual Variances, and the denominator of omega is the sum of the residual " +
+      "variances of every item. Treating the missing ones as zero would raise omega towards 1, " +
+      "so nothing is computed here. This usually means the item is not an indicator of this " +
+      "factor in the estimated model, that its residual variance was fixed and printed elsewhere, " +
+      "or that the section was cut short.";
+    return out;
+  }
+  /* An endogenous factor has its residual variance printed under Residual Variances, while omega
+     needs the total variance. It is recovered from R-SQUARE as theta / (1 - R^2). */
+  var psi, psiUnknown = false, psiSource = "";
+  if (group.raw.variances[factor] !== undefined) {
+    psi = group.raw.variances[factor];
+    psiSource = "read from the Variances section";
+  } else if (group.raw.residuals[factor] !== undefined) {
+    var r2 = group.rSquare[factor];
+    if (typeof r2 === "number" && isFinite(r2) && r2 >= 0 && r2 < 0.9999) {
+      psi = group.raw.residuals[factor] / (1 - r2);
+      psiSource = "recovered from the residual variance of the factor and its R² of " + fmt(r2);
+    } else {
+      psi = group.raw.residuals[factor];
+      psiUnknown = true;
+      psiSource = "residual";
+    }
+  } else {
+    psi = 1;
+    psiUnknown = true;
+    psiSource = "absent";
+  }
+  out.psi = psi;
+  out.psiUnknown = psiUnknown;
+  out.psiSource = psiSource;
+
+  var loadingSum = sum(loadings);
+  var squaredSum = sum(loadings.map(function(v){ return v * v; }));
+  var residualSum = sum(residuals);
+  var inFactor = {};
+  items.forEach(function(it){ inFactor[it] = 1; });
+  out.residualCovs = (group.raw.residualCovs || []).filter(function(c){
+    return inFactor[c.a] && inFactor[c.b] && c.a !== c.b;
+  });
+  var covPart = sum(out.residualCovs.map(function(c){ return 2 * c.est; }));
+
+  /* Both coefficients are proportional to the variance of the factor. When it
+     could not be read, a number computed from a stand-in would be wrong by an
+     unknown amount, so none is produced. */
+  if (!psiUnknown) {
+    var trueVariance = loadingSum * loadingSum * psi;
+    var totalVariance = trueVariance + residualSum + covPart;
+    out.omega = (isFinite(totalVariance) && Math.abs(totalVariance) > 1e-12)
+      ? trueVariance / totalVariance : undefined;
+    var aveDenominator = squaredSum * psi + residualSum;
+    out.ave = (isFinite(aveDenominator) && Math.abs(aveDenominator) > 1e-12)
+      ? squaredSum * psi / aveDenominator : undefined;
+  }
+
+  var stdRows = group.stdIndex[factor] || {};
+  if (items.every(function(it){ return stdRows[it] && isFinite(stdRows[it].est); })) {
+    out.stdLoadings = items.map(function(it){ return stdRows[it].est; });
+    out.communalities = out.stdLoadings.map(function(v){ return v * v; });
+    /* A standardized loading printed as 1.000 leaves the item no unique
+       variance on that metric, which the unstandardized solution may or may
+       not agree with; either way it is worth saying. */
+    var atBound = items.filter(function(it, i){
+      return Math.abs(out.stdLoadings[i]) >= 1 - 5e-4 && Math.abs(out.stdLoadings[i]) <= 1 + 1e-9;
+    });
+    if (atBound.length) {
+      out.notes.push("The standardized loading of " + names(atBound) + " is 1.000 to three decimals, " +
+        "so the factor accounts for the whole variance of " +
+        (atBound.length === 1 ? "that item" : "those items") + " on the standardized metric. That is " +
+        "either a Heywood case or an item that is nearly a copy of the factor; omega below is " +
+        "computed from the unstandardized solution and is unaffected by the rounding, but the " +
+        "solution is worth checking before the value is reported.");
+    }
+  }
+
+  out.alpha = alphaFromCovariance(group.sampleCov, items);
+  if (out.alpha === undefined) {
+    out.notes.push(!group.sampleCov
+      ? "No estimated covariance matrix was found for this group, so Cronbach's alpha was not computed. Add SAMPSTAT to the OUTPUT command."
+      : "The estimated covariance matrix does not contain every item of this factor, so Cronbach's alpha was not computed.");
+  } else if (out.alpha < 0) {
+    out.notes.push("Alpha is " + fmt(out.alpha) + ". A negative alpha is not a reliability: it " +
+      "means the average covariance between the items is negative, which normally comes from an " +
+      "item that was not recoded before the analysis. It is reported here as the arithmetic value " +
+      "of the formula, not as a coefficient to quote.");
+  }
+
+  var absolute = loadings.map(Math.abs);
+  var smallest = Math.min.apply(null, absolute), largest = Math.max.apply(null, absolute);
+  out.loadingRatio = smallest > 0 ? largest / smallest : Infinity;
+  out.mixedSigns = loadings.some(function(v){ return v < 0; }) && loadings.some(function(v){ return v > 0; });
+
+  var reasons = [];
+  if (isFinite(psi) && psi <= 0) reasons.push("the estimated factor variance is " + fmt(psi) + ", which is not positive");
+  var badResiduals = items.filter(function(it, i){ return residuals[i] <= 0; });
+  if (badResiduals.length) reasons.push("the residual variance of " + names(badResiduals) +
+    (badResiduals.length === 1 ? " is" : " are") + " zero or negative");
+  if (out.stdLoadings) {
+    var heywood = items.filter(function(it, i){ return Math.abs(out.stdLoadings[i]) > 1 + 1e-9; });
+    if (heywood.length) reasons.push("the standardized loading of " + names(heywood) +
+      (heywood.length === 1 ? " is" : " are") + " larger than one in absolute value");
+  }
+  if (!psiUnknown) {
+    if (out.omega === undefined || !isFinite(out.omega)) reasons.push("omega is not a finite number");
+    else if (out.omega < 0 || out.omega > 1) reasons.push("omega is " + fmt(out.omega) + ", outside the range 0 to 1");
+    if (out.ave !== undefined && (out.ave < 0 || out.ave > 1)) reasons.push("the average variance extracted is " + fmt(out.ave) + ", outside the range 0 to 1");
+  }
+  out.inadmissible = reasons;
+  /* An inadmissible solution has no reliability to report, so the values are
+     kept for the message and left out of the tables. */
+  if (reasons.length) {
+    out.omegaRaw = out.omega; out.aveRaw = out.ave;
+    out.omega = undefined; out.ave = undefined;
+  }
+  return out;
+}
+
+function categoricalCoefficients(model, group, factor, items, link){
+  var out = { factor: factor, items: items, k: items.length, notes: [] };
+  var stdRows = group.stdIndex[factor] || {};
+  var withoutStd = items.filter(function(it){ return !(stdRows[it] && isFinite(stdRows[it].est)); });
+  if (withoutStd.length) {
+    out.error = "No standardized loading was read for " + names(withoutStd) + ". With ordered " +
+      "categorical indicators every coefficient on this page is computed from the STDYX solution, " +
+      "so none is produced here. Add STDYX to the OUTPUT command and run the model again; if " +
+      "STDYX is already there, check whether " + MP + " printed 999.000 for these lines, which it " +
+      "does when a variance in the solution is negative.";
+    return out;
+  }
+  var lambda = items.map(function(it){ return stdRows[it].est; });
+  out.loadings = lambda;
+  var overOne = items.filter(function(it, i){ return Math.abs(lambda[i]) > 1 + 1e-9; });
+  if (overOne.length) {
+    out.error = "The standardized loading of " + names(overOne) + " is larger than one in absolute " +
+      "value, so the implied residual variance on the y* metric is negative. This is a Heywood " +
+      "case: the solution is inadmissible and the coefficients it would give are not reliabilities. " +
+      "Respecify the model, or check the data, before computing them.";
+    return out;
+  }
+
+  var inFactor = {};
+  items.forEach(function(it){ inFactor[it] = 1; });
+  var stdResidualCovs = group.std
+    ? (group.std.residualCovs || []).filter(function(c){ return inFactor[c.a] && inFactor[c.b] && c.a !== c.b; })
+    : [];
+  var rawResidualCovs = (group.raw.residualCovs || []).filter(function(c){
+    return inFactor[c.a] && inFactor[c.b] && c.a !== c.b;
+  });
+  out.residualCovs = stdResidualCovs;
+
+  var rhoTotal = [];
+  for (var a = 0; a < items.length; a++) {
+    rhoTotal[a] = [];
+    for (var b = 0; b < items.length; b++) rhoTotal[a][b] = (a === b) ? 1 : lambda[a] * lambda[b];
+  }
+  stdResidualCovs.forEach(function(c){
+    var ia = items.indexOf(c.a), ib = items.indexOf(c.b);
+    if (ia >= 0 && ib >= 0) {
+      rhoTotal[ia][ib] = lambda[ia] * lambda[ib] + c.est;
+      rhoTotal[ib][ia] = rhoTotal[ia][ib];
+    }
+  });
+
+  var taus = items.map(function(it){ return group.thresholds[it]; });
+  function completeThresholds(t){
+    if (!t || !t.length) return false;
+    for (var q = 0; q < t.length; q++) if (typeof t[q] !== "number" || !isFinite(t[q])) return false;
+    return true;
+  }
+  var thresholdsUsable = taus.every(completeThresholds);
+  var residualsMissing = rawResidualCovs.length > 0 && stdResidualCovs.length === 0;
+
+  if (link !== "PROBIT") {
+    out.notes.push(link === "LOGIT"
+      ? "The Link line of this output reports LOGIT, so the thresholds are on the logistic metric. " +
+        "The Green and Yang formula reconstructs the covariances of the observed responses from a " +
+        "normally distributed underlying variable, which is the probit case, and it was therefore " +
+        "not applied. Re-run with ESTIMATOR = WLSMV, or add LINK = PROBIT, to obtain it."
+      : "The Link line could not be read. With maximum likelihood and categorical items " + MP + " uses " +
+        "a logit link unless LINK = PROBIT is requested, and the Green and Yang formula assumes a " +
+        "normally distributed underlying variable, so it was not applied here. State the link in " +
+        "the ANALYSIS command, or use a weighted least squares estimator, to obtain it.");
+  } else if (!thresholdsUsable) {
+    out.notes.push("No complete set of thresholds was read for " +
+      names(items.filter(function(it, i){ return !completeThresholds(taus[i]); })) +
+      (group.name ? " in group " + esc(group.name) : "") + ". The Green and Yang formula rebuilds " +
+      "the variance of each observed response from its thresholds, so it was not applied to this " +
+      "factor. The thresholds are printed under Thresholds in MODEL RESULTS; they are missing when " +
+      "the item is binary and its threshold was fixed, or when the section was cut short.");
+  } else if (residualsMissing) {
+    out.notes.push("The model estimates residual correlations between these items, but the " +
+      "corresponding STDYX estimates are not in the output. Ignoring them would leave the " +
+      "denominator too small, so the Green and Yang omega was not computed.");
+  } else {
+    out.taus = taus;
+    out.categories = taus.map(function(t){ return t.length + 1; });
+    out.omegaGY = greenYangOmega(lambda, taus, rhoTotal);
+  }
+  if (thresholdsUsable && !out.categories) out.categories = taus.map(function(t){ return t.length + 1; });
+  if (thresholdsUsable) out.taus = taus;
+
+  var stdResiduals = items.map(function(it){ return group.std ? group.std.residuals[it] : undefined; });
+  if (residualsMissing) {
+    out.notes.push("Omega on the y* metric was not computed either: the residual correlations of the " +
+      "model do not appear in the STDYX section and ignoring them would overstate it.");
+  } else {
+    out.omegaYstar = omegaYstar(lambda, stdResiduals, stdResidualCovs);
+  }
+  out.ave = items.length ? sum(lambda.map(function(v){ return v * v; })) / items.length : undefined;
+
+  var polychoricUsable = false, polychoricDefinite = false;
+  if (group.polychoric) {
+    var matrix = [], usable = true;
+    for (var i = 0; i < items.length && usable; i++) {
+      var row = [];
+      for (var j = 0; j < items.length; j++) {
+        var value = (i === j) ? 1 : ((group.polychoric.m[items[i]] || {})[items[j]]);
+        if (typeof value !== "number" || !isFinite(value)) { usable = false; break; }
+        row.push(value);
+      }
+      if (usable) matrix.push(row);
+    }
+    polychoricUsable = usable;
+    /* A polychoric matrix is estimated one pair at a time, so the assembled
+       matrix need not be positive definite. Alpha on such a matrix is an
+       arithmetic value, not the reliability of anything. */
+    if (usable) {
+      polychoricDefinite = isPositiveDefinite(matrix);
+      if (polychoricDefinite) out.ordinalAlpha = ordinalAlpha(matrix);
+    }
+  }
+  if (out.ordinalAlpha === undefined) {
+    out.notes.push(!group.polychoric
+      ? "No polychoric correlation matrix was found for this group, so ordinal alpha was not computed. Add SAMPSTAT to the OUTPUT command."
+      : !polychoricUsable
+        ? "The polychoric correlation matrix does not contain every item of this factor, so ordinal alpha was not computed."
+        : "The polychoric correlations between these items do not form a positive definite matrix: " +
+          "there is a weighted sum of the items with a negative variance. Each polychoric " +
+          "correlation is estimated from one pair of items at a time, so the assembled matrix can " +
+          "fail to be one that any set of variables could have produced. Ordinal alpha is not " +
+          "computed from it, because the number would not be the reliability of any score. " + MP +
+          " prints a warning of its own when this happens; the usual causes are a small sample, a " +
+          "category held by very few cases, or a pair of items that are close to redundant.");
+  }
+  if (link === "LOGIT" || link === null) {
+    out.notes.push("Omega on y* and the average variance extracted below are computed from the " +
+      "standardized loadings; with a logit link the underlying variables are on the logistic metric.");
+  }
+  return out;
+}
+
+/* ---------- MODEL CONSTRAINT syntax for confidence intervals ---------- */
+
+/* Mplus reads at most 90 characters of a line and discards the rest, so a
+   statement over a hundred items long has to be broken. Pieces are joined by
+   the separator and every continuation line is indented; the statement ends
+   where the caller puts the semicolon. */
+var MPLUS_LINE_LIMIT = 80;
+function wrapStatement(first, pieces, separator, indent){
+  /* A separator made of spaces may be dropped at a line break; an operator
+     may not, so it stays at the end of the line it breaks. */
+  var breakTail = /^\s*$/.test(separator) ? "" : separator;
+  var lines = [], current = first, i;
+  for (i = 0; i < pieces.length; i++) {
+    var started = (i > 0);
+    var addition = (started ? separator : "") + pieces[i];
+    if (started && current.length + addition.length + breakTail.length > MPLUS_LINE_LIMIT) {
+      lines.push(current + breakTail);
+      current = indent + pieces[i];
+    } else current += addition;
+  }
+  lines.push(current);
+  return lines.join("\n");
+}
+
+function constraintSyntax(group, factors){
+  var syntax = "MODEL:\n", constraints = "", longNames = [];
+  factors.forEach(function(factor, index){
+    var items = (group.raw.by[factor] || []).map(function(r){ return r.item; });
+    if (items.length < 2) return;
+    items.forEach(function(it){ if (it.length > 8 && longNames.indexOf(it) < 0) longNames.push(it); });
+    /* Labels must still read as a range with ten or more items: with a numeric prefix such as L1,
+       the range L11-L110 would be read by Mplus as one hundred labels. One letter per factor. */
+    var letter = String.fromCharCode(65 + (index % 26));
+    var loadingLabel = "L" + letter, residualLabel = "E" + letter, covLabel = "C" + letter;
+    var name = "OM_" + letter + (index + 1);
+    var byItems = [items[0] + "*"].concat(items.slice(1));
+    syntax += wrapStatement("  " + factor + " BY ", byItems, " ", "         ") +
+              "\n         (" + loadingLabel + "1-" + loadingLabel + items.length + ");\n";
+    syntax += wrapStatement("  ", items, " ", "  ") +
+              "\n         (" + residualLabel + "1-" + residualLabel + items.length + ");\n";
+    syntax += "  " + factor + "@1;\n";
+    var covs = (group.raw.residualCovs || []).filter(function(c){
+      return items.indexOf(c.a) >= 0 && items.indexOf(c.b) >= 0;
+    });
+    var covNames = [];
+    covs.forEach(function(c, n){
+      covNames.push(covLabel + (n + 1));
+      syntax += "  " + c.a + " WITH " + c.b + " (" + covLabel + (n + 1) + ");\n";
+    });
+    var loadingNames = [], residualNames = [];
+    for (var q = 1; q <= items.length; q++) {
+      loadingNames.push(loadingLabel + q);
+      residualNames.push(residualLabel + q);
+    }
+    var loadingSum = wrapStatement("  TRUE" + letter + " = (", loadingNames, "+", "            ") + ")**2;";
+    var residualSum = wrapStatement("  ERR" + letter + " = ", residualNames, "+", "            ") +
+      (covNames.length
+        ? " +\n" + wrapStatement("            2*(", covNames, "+", "              ") + ")"
+        : "") + ";";
+    constraints += "  NEW(TRUE" + letter + " ERR" + letter + " " + name + ");   ! omega for " + factor + "\n";
+    constraints += loadingSum + "\n" + residualSum + "\n";
+    constraints += "  " + name + " = TRUE" + letter + " / (TRUE" + letter + " + ERR" + letter + ");\n";
+  });
+  if (!constraints) return null;
+  syntax += "\nMODEL CONSTRAINT:\n" + constraints;
+  syntax += "\nOUTPUT: SAMPSTAT STDYX CINTERVAL;";
+  return { syntax: syntax, longNames: longNames };
+}
+
+/* ===================== pure core: end ===================== */
+
+/* ---------- rendering ---------- */
+
+var state = { model: null, fileName: null, estimatorChoice: null };
+
+function checkRow(kind, label, body){
+  var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : "!");
+  return '<li class="' + kind + '"><span class="glyph" aria-hidden="true">' + glyph + '</span>' +
+         '<span><strong>' + esc(label) + '.</strong> ' + body + '</span></li>';
+}
+
+function fileChecklist(model, estimator){
+  var html = '<h2>What the file contained</h2><ul class="checks">';
+  var anyCategorical = model.categoricalVars.length > 0;
+
+  html += checkRow(estimator ? "ok" : "bad", estimator ? "Read" : "Missing",
+    estimator
+      ? "Estimator: <strong>" + esc(estimator) + "</strong>" +
+        (state.estimatorChoice ? " (chosen by you; the output did not state it)" : "") +
+        (model.nObs !== null ? " · observations: <strong>" + model.nObs + "</strong>" : "") +
+        (model.chiSquare !== null && model.df !== null
+          ? " · χ²(" + model.df + ") = " + fmt(model.chiSquare) : "")
+      : "The Estimator line of SUMMARY OF ANALYSIS could not be read, and nothing is computed until you state which estimator was used.");
+
+  html += checkRow(model.hasModelResults ? "ok" : "bad", model.hasModelResults ? "Read" : "Missing",
+    !model.hasModelResults
+      ? "No MODEL RESULTS section was found. The file carries " + MP + " headings, so it is an " +
+        MP + " output, but not one of an estimated model: a run that stopped on an error, an " +
+        "input echo, or a file that was cut short before the parameter tables were written. " +
+        "Nothing on this page can be computed from it."
+      : model.groups.length > 1
+        ? "The output contains <strong>" + model.groups.length + " groups</strong> (" +
+          esc(model.groups.map(function(g){ return g.name; }).join(", ")) +
+          "). Loadings, thresholds and sample statistics are read separately for each group, and there is one table per group below."
+        : "MODEL RESULTS was read; the output contains one group.");
+
+  var factorList = model.groups.length ? model.groups[0].raw.order : [];
+  html += checkRow(factorList.length ? "ok" : "bad", factorList.length ? "Read" : "Missing",
+    factorList.length
+      ? "Factors found: <strong>" + esc(factorList.join(", ")) + "</strong>."
+      : "No BY statement was found in MODEL RESULTS, so no factor could be identified.");
+
+  html += checkRow(model.observedVars.length && model.latentVars.length ? "ok" : "warn",
+    model.observedVars.length && model.latentVars.length ? "Read" : "Partial",
+    model.observedVars.length && model.latentVars.length
+      ? "The lists of observed and latent variables were read from SUMMARY OF ANALYSIS, so second-order factors are recognized."
+      : "The lists of observed and latent variables in SUMMARY OF ANALYSIS could not be read in full. Any name that appears on the left of a BY statement is treated as latent.");
+
+  if (anyCategorical || model.hasPolychoric) {
+    var link = linkOf(model, estimator);
+    html += checkRow(link === "PROBIT" ? "ok" : "warn", link === "PROBIT" ? "Read" : "Check",
+      "Ordered categorical items: <strong>" + esc(model.categoricalVars.join(", ") || "declared list not read") + "</strong>. " +
+      (link === "PROBIT"
+        ? "Link: PROBIT" + (model.link ? "" : " (implied by the estimator)") + ", so the Green and Yang formula applies."
+        : link === "LOGIT"
+          ? "Link: LOGIT. The thresholds are on the logistic metric and the Green and Yang omega is not computed."
+          : "The Link line is absent. With maximum likelihood and categorical items the default is a logit link, so the Green and Yang omega is not computed."));
+    html += checkRow(model.hasPolychoric ? "ok" : "warn", model.hasPolychoric ? "Read" : "Missing",
+      model.hasPolychoric
+        ? "The polychoric correlation matrix is present. Ordinal alpha is computed from it for each factor whose items form a positive definite submatrix, and the factor is told below when they do not."
+        : "No polychoric correlation matrix was found. Add SAMPSTAT to the OUTPUT command to obtain ordinal alpha.");
+  } else {
+    html += checkRow(model.hasSampstat ? "ok" : "warn", model.hasSampstat ? "Read" : "Missing",
+      model.hasSampstat
+        ? "The estimated covariance matrix is present, so Cronbach's alpha can be computed."
+        : "SAMPSTAT is absent. Without the estimated covariance matrix Cronbach's alpha is not computed; omega and the average variance extracted are unaffected.");
+  }
+
+  html += checkRow(model.hasStdyx ? "ok" : "warn", model.hasStdyx ? "Read" : "Missing",
+    model.hasStdyx
+      ? "The STDYX solution is present."
+      : "STDYX is absent. Omega is computed from the unstandardized solution; the standardized loadings and communalities are not shown, and no coefficient is available for ordered categorical items.");
+
+  if (model.abbreviated) {
+    html += checkRow("warn", "Check",
+      "This file was produced with the abbreviated invariance syntax (<code>MODEL = " +
+      esc(model.abbreviated.keys.join(" ")) + ";</code>) and contains <strong>" +
+      model.abbreviated.models.length + " models</strong> (" + esc(model.abbreviated.models.join(", ")) +
+      "). Only the first, the <strong>" + esc(model.abbreviated.first) + "</strong> model, is read here: " +
+      "it is the least constrained one. " + MP + " does not make STANDARDIZED available with this " +
+      "shortcut, so for reliability it is better to re-run the CFA one group at a time with SAMPSTAT and STDYX.");
+  }
+
+  if (model.truncated) {
+    html += checkRow("warn", "Check",
+      "The file ends without the closing block that " + MP + " writes after every run (the timing " +
+      "lines and the address of the publisher). It was cut short, and any section after the point " +
+      "where it stops is missing: the coefficients below may be computed from part of the model " +
+      "only. Save the output again from a completed run before reporting them.");
+  }
+
+  if (model.groupsDiffer) {
+    html += checkRow("warn", "Check",
+      "The groups do not have the same items on the same factors. That is what partial invariance " +
+      "or a planned missing design produces, and it is not an error, but each coefficient below " +
+      "then refers to a different sum, so the values are not comparable across groups as they stand.");
+  }
+
+  model.groups.forEach(function(group){
+    if (group.raw.notComputable.length) {
+      html += checkRow("warn", "Check",
+        (group.name ? "Group " + esc(group.name) + ": " : "") + MP + " printed <strong>999.000</strong> " +
+        "in all four columns of MODEL RESULTS for: <strong>" + names(group.raw.notComputable) +
+        "</strong>. That is the sentinel for a quantity it could not compute, not an estimate, so " +
+        "those lines were left out. Any factor whose loadings or residual variances are among them " +
+        "is reported below as not computable rather than with a coefficient based on the rest.");
+    }
+    if (group.collapsed && group.collapsed.length) {
+      html += checkRow("ok", "Adjusted",
+        (group.name ? "Group " + esc(group.name) + ": t" : "T") + "he model is written in the latent " +
+        "response variable parameterization, with an intermediate layer of pseudo-factors (" +
+        esc(group.collapsed.map(function(c){ return c.pseudo.join(", "); }).join("; ")) + "), one per item, " +
+        "each with a loading fixed at 1 and a zero residual variance. That layer was removed and " +
+        esc(group.collapsed.map(function(c){ return c.factor; }).join(", ")) + " put back on its observed items (" +
+        esc(group.collapsed.map(function(c){ return c.items.join(", "); }).join("; ")) + "). Read literally it " +
+        "would have produced one-item scales and an omega of exactly 1.000.");
+    }
+    var notComputable = (group.std && group.std.notComputable.length) ? group.std.notComputable : [];
+    if (notComputable.length) {
+      html += checkRow("warn", "Check",
+        (group.name ? "Group " + esc(group.name) + ": " : "") + MP + " printed <strong>999.000</strong> " +
+        "in the standardized solution for: <strong>" + names(notComputable) + "</strong>. Those lines " +
+        "were not read as numbers. This usually happens when an estimated variance is negative, and " +
+        "the coefficients that need the standardized solution are not computed for those items.");
+    }
+    if (group.raw.skippedLines) {
+      html += checkRow("warn", "Check",
+        (group.name ? "Group " + esc(group.name) + ": " : "") + "<strong>" + group.raw.skippedLines +
+        "</strong> line" + (group.raw.skippedLines === 1 ? " of the results section was" : "s of the results section were") +
+        " printed in an unexpected format and could not be read. The coefficients below may cover only part of the items.");
+    }
+  });
+
+  html += checkRow(model.converged ? "ok" : "warn", model.converged ? "Read" : "Check",
+    model.converged
+      ? "The output states that the model estimation terminated normally."
+      : "The line THE MODEL ESTIMATION TERMINATED NORMALLY does not appear in this output. Check that the model converged before using these coefficients.");
+
+  if (model.warnings) {
+    html += checkRow("warn", "Check",
+      MP + " printed <strong>" + model.warnings + "</strong> warning" + (model.warnings === 1 ? "" : "s") +
+      " (*** WARNING). They are worth reading before the coefficients are reported.");
+  }
+  html += '</ul>';
+  return html;
+}
+
+var ESTIMATORS = ["ML", "MLR", "MLM", "MLMV", "MLF", "WLSMV", "WLSM", "WLS", "ULSMV", "GLS", "BAYES"];
+
+function estimatorPicker(){
+  var options = ESTIMATORS.map(function(e){
+    return '<option value="' + e + '">' + e + '</option>';
+  }).join("");
+  return '<div class="status warn"><p><span class="tag">Estimator not read.</span> The Estimator line ' +
+    'of SUMMARY OF ANALYSIS could not be found in this file, and which estimator was used decides ' +
+    'which coefficients are defined. Nothing is computed until you state it.</p></div>' +
+    '<div class="panel"><div class="field">' +
+    '<label for="estimator-choice">Estimator used in this analysis</label>' +
+    '<select id="estimator-choice">' + options + '</select></div>' +
+    '<div class="actions"><button type="button" id="estimator-apply">Compute with this estimator</button></div></div>';
+}
+
+function loadingTable(coefficients){
+  var hasStd = !!coefficients.stdLoadings;
+  var html = '<div class="table-wrap narrow"><table><caption>Item parameters</caption><thead><tr>' +
+    '<th scope="col">Item</th><th scope="col" class="num">λ</th><th scope="col" class="num">θ</th>' +
+    (hasStd ? '<th scope="col" class="num">λ* (STDYX)</th><th scope="col" class="num">λ*²</th>' : '') +
+    '</tr></thead><tbody>';
+  for (var i = 0; i < coefficients.k; i++) {
+    html += '<tr><th scope="row">' + esc(coefficients.items[i]) + '</th>' +
+      '<td class="num">' + fmt(coefficients.loadings[i]) + '</td>' +
+      '<td class="num">' + fmt(coefficients.residuals[i]) + '</td>' +
+      (hasStd ? '<td class="num">' + fmt(coefficients.stdLoadings[i]) + '</td><td class="num">' +
+        fmt(coefficients.communalities[i]) + '</td>' : '') + '</tr>';
+  }
+  html += '<tr><th scope="row">Sum</th><td class="num">' + fmt(sum(coefficients.loadings)) + '</td>' +
+    '<td class="num">' + fmt(sum(coefficients.residuals)) + '</td>' +
+    (hasStd ? '<td class="num"></td><td class="num"></td>' : '') + '</tr>';
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function coefficientRow(name, value, meaning){
+  return '<tr><th scope="row">' + name + '</th><td class="num">' + fmt(value) + '</td><td>' + meaning + '</td></tr>';
+}
+
+function continuousPanel(model, group, info){
+  var c = continuousCoefficients(model, group, info.factor, info.items);
+  var html = '<h3>Factor ' + esc(info.factor) + ' · ' + info.k + ' items · continuous indicators</h3>';
+  if (c.error) {
+    return { html: html + '<div class="status bad"><p><span class="tag">Not computed.</span> ' + c.error + '</p></div>' };
+  }
+  html += loadingTable(c);
+  html += '<div class="table-wrap"><table><caption>Coefficients</caption><thead><tr>' +
+    '<th scope="col">Coefficient</th><th scope="col" class="num">Value</th><th scope="col">What it refers to</th>' +
+    '</tr></thead><tbody>';
+  html += coefficientRow("ω (McDonald)", c.omega,
+    "reliability of the sum of the " + c.k + " items, without assuming equal loadings");
+  if (c.alpha !== undefined)
+    html += coefficientRow("α (Cronbach)", c.alpha,
+      "reliability of the same sum if the items were tau-equivalent");
+  html += coefficientRow("AVE", c.ave, "mean proportion of item variance accounted for by the factor");
+  html += '</tbody></table></div>';
+
+  if (c.inadmissible.length) {
+    html += '<div class="status bad"><p><span class="tag">Inadmissible solution.</span> ' +
+      'No omega and no average variance extracted are reported for this factor, because ' +
+      c.inadmissible.join('; ') + '. What the formulas return from such estimates ' +
+      (c.omegaRaw !== undefined ? '(omega would be ' + fmt(c.omegaRaw) + ') ' : '') +
+      'is arithmetic, not a reliability. Respecify the model, or check the data and the ' +
+      'missing-value codes, and compute the coefficients again from an admissible solution.</p></div>';
+  }
+  if (c.psiUnknown) {
+    html += '<div class="status bad"><p><span class="tag">Factor variance not read.</span> ' +
+      (c.psiSource === "residual"
+        ? 'The factor is endogenous, so the output prints its residual variance (' + fmt(c.psi) +
+          ') and not its total variance, and the R-SQUARE section that would give the rest is not ' +
+          'in this file. Omega and the average variance extracted are both proportional to the ' +
+          'total variance of the factor, so neither is computed here rather than reported too low. ' +
+          'Add STDYX to the OUTPUT command, which makes ' + MP + ' print R² for the factor, and ' +
+          'load the output again.'
+        : 'Neither a variance nor a residual variance for this factor appears in MODEL RESULTS, so ' +
+          'the scale of the factor is unknown. Omega and the average variance extracted are both ' +
+          'proportional to it, and taking it as 1.000 would be right only if the factor were ' +
+          'identified by fixing its variance, which this file does not show. Neither coefficient is ' +
+          'computed. Cronbach\'s alpha, which does not use the factor variance, is unaffected.') +
+      '</p></div>';
+  } else if (c.psiSource) {
+    html += '<p>The factor variance used in the calculation is ' + fmt(c.psi) + ', ' + esc(c.psiSource) + '.</p>';
+  }
+  if (c.residualCovs.length) {
+    html += '<p>The model estimates ' + c.residualCovs.length + ' residual covariance' +
+      (c.residualCovs.length === 1 ? '' : 's') + ' between these items (' +
+      names(c.residualCovs.map(function(x){ return x.a + " – " + x.b; })) +
+      '), and they are part of the total variance of the sum, as the omega formula requires. They also ' +
+      'need to be justified in the text: correlated residuals mean the items share something besides the factor.</p>';
+  }
+  if (c.alpha !== undefined && c.omega !== undefined) {
+    var difference = c.omega - c.alpha;
+    html += '<p>Alpha is ' + fmt(c.alpha) + ' and omega is ' + fmt(c.omega) + ', a difference of ' +
+      fmt(Math.abs(difference)) + '. ' +
+      (Math.abs(difference) < 0.005
+        ? 'The two lead to the same practical conclusion here; omega remains the coefficient that matches the estimated model, because it does not assume equal loadings.'
+        : difference > 0
+          ? 'Alpha is the lower of the two, which is what happens when the loadings differ: omega is the coefficient to report.'
+          : 'Alpha is the higher of the two. That happens when the observed covariances between items exceed those reproduced by the one-factor model, so the fit of the model is worth checking before reporting either.') +
+      '</p>';
+  }
+  html += '<p>The largest loading is ' + fmt(Math.max.apply(null, c.loadings)) + ' and the smallest is ' +
+    fmt(Math.min.apply(null, c.loadings)) +
+    (isFinite(c.loadingRatio) ? ' (ratio of absolute values ' + fmt(c.loadingRatio, 2) + '). ' : ' (one loading is zero). ');
+  if (c.mixedSigns)
+    html += 'The loadings do not all have the same sign, so check whether an item is worded in the reverse direction and was not recoded before reading any reliability coefficient.';
+  else if (!isFinite(c.loadingRatio))
+    html += 'With a loading of zero the ratio is undefined: that item does not contribute to the factor.';
+  else if (c.loadingRatio < 1.2)
+    html += 'These are close values, so tau-equivalence is plausible; the formal check is a chi-square difference test between the congeneric and the tau-equivalent model.';
+  else
+    html += 'These values are far apart, so tau-equivalence is not plausible and alpha understates the reliability; the formal check is a chi-square difference test between the congeneric and the tau-equivalent model.';
+  html += '</p>';
+  if (c.k === 2) {
+    html += '<p>With two items the one-factor model is not identified on its own, and the two ' +
+      'loadings come from whatever else identifies it in this run. Omega is still defined, and is ' +
+      'reported, but it rests on that identification rather than on the two items alone.</p>';
+  }
+  c.notes.forEach(function(note){
+    html += '<div class="status info"><p><span class="tag">Note.</span> ' + note + '</p></div>';
+  });
+  return { html: html, summary: c };
+}
+
+function categoricalPanel(model, group, info, link){
+  var c = categoricalCoefficients(model, group, info.factor, info.items, link);
+  var html = '<h3>Factor ' + esc(info.factor) + ' · ' + info.k + ' items · ordered categorical indicators</h3>';
+  if (c.error) {
+    return { html: html + '<div class="status bad"><p><span class="tag">Not computed.</span> ' + c.error + '</p></div>' };
+  }
+  html += '<div class="table-wrap narrow"><table><caption>Item parameters on y*</caption><thead><tr>' +
+    '<th scope="col">Item</th><th scope="col" class="num">λ* (STDYX)</th>' +
+    '<th scope="col" class="num">categories</th><th scope="col">thresholds</th></tr></thead><tbody>';
+  for (var i = 0; i < c.k; i++) {
+    html += '<tr><th scope="row">' + esc(c.items[i]) + '</th>' +
+      '<td class="num">' + fmt(c.loadings[i]) + '</td>' +
+      '<td class="num">' + (c.categories ? c.categories[i] : "—") + '</td>' +
+      '<td>' + (c.taus ? c.taus[i].map(function(v){ return fmt(v); }).join(" · ") : "—") + '</td></tr>';
+  }
+  html += '</tbody></table></div>';
+
+  html += '<div class="table-wrap"><table><caption>Coefficients</caption><thead><tr>' +
+    '<th scope="col">Coefficient</th><th scope="col" class="num">Value</th><th scope="col">Which score it refers to</th>' +
+    '</tr></thead><tbody>';
+  if (c.omegaGY !== undefined)
+    html += coefficientRow("ω (Green and Yang)", c.omegaGY,
+      "reliability of the <strong>observed sum</strong> of the responses");
+  html += coefficientRow("ω on y*", c.omegaYstar,
+    "reliability of the sum of the underlying response variables, which describes the model rather than a score anyone computes");
+  if (c.ordinalAlpha !== undefined)
+    html += coefficientRow("α ordinal", c.ordinalAlpha,
+      "alpha on the polychoric correlations, also on the y* metric");
+  html += coefficientRow("AVE on y*", c.ave, "mean proportion of y* variance accounted for by the factor");
+  html += '</tbody></table></div>';
+
+  if (c.omegaGY !== undefined && c.omegaYstar !== undefined && isFinite(c.omegaYstar) && isFinite(c.omegaGY)) {
+    var gap = c.omegaYstar - c.omegaGY;
+    html += '<p>The coefficient on the y* metric is ' + fmt(Math.abs(gap)) +
+      (gap >= 0 ? ' higher' : ' lower') + ' than the one for the observed sum. ' +
+      (gap >= 0
+        ? 'That gap is the attenuation produced by categorizing the responses, not an improvement of ' +
+          'the scale, and the Green and Yang value is the one that refers to the score participants ' +
+          'actually produce.'
+        : 'The usual order is the other way round, because categorizing a response loses information. ' +
+          'It reverses when the model estimates residual correlations that enter the total variance ' +
+          'of the observed sum but not the sum on y*, so check the residual correlations of this ' +
+          'factor before reporting either value.') + '</p>';
+  }
+  if (c.residualCovs.length) {
+    html += '<p>The model estimates ' + c.residualCovs.length + ' residual correlation' +
+      (c.residualCovs.length === 1 ? '' : 's') + ' between these items (' +
+      names(c.residualCovs.map(function(x){ return x.a + " – " + x.b; })) +
+      '), which enter the denominator of the Green and Yang formula through the model-implied ' +
+      'correlations between the underlying variables. They also need to be justified in the text: ' +
+      'a residual correlation means the two items share something besides the factor.</p>';
+  }
+  c.notes.forEach(function(note){
+    html += '<div class="status warn"><p><span class="tag">Note.</span> ' + note + '</p></div>';
+  });
+  return { html: html, summary: c };
+}
+
+function summaryTable(rows, categorical){
+  if (!rows.length) return "";
+  var html = '<div class="table-wrap narrow"><table><caption>Summary</caption><thead><tr>' +
+    '<th scope="col">Factor</th><th scope="col" class="num">k</th>';
+  html += categorical
+    ? '<th scope="col" class="num">ω Green–Yang</th><th scope="col" class="num">ω on y*</th><th scope="col" class="num">α ordinal</th><th scope="col" class="num">AVE</th>'
+    : '<th scope="col" class="num">ω</th><th scope="col" class="num">α</th><th scope="col" class="num">AVE</th>';
+  html += '</tr></thead><tbody>';
+  rows.forEach(function(r){
+    html += '<tr><th scope="row">' + esc(r.factor) + '</th><td class="num">' + r.k + '</td>';
+    html += categorical
+      ? '<td class="num">' + fmt(r.omegaGY) + '</td><td class="num">' + fmt(r.omegaYstar) +
+        '</td><td class="num">' + fmt(r.ordinalAlpha) + '</td><td class="num">' + fmt(r.ave) + '</td>'
+      : '<td class="num">' + fmt(r.omega) + '</td><td class="num">' + fmt(r.alpha) +
+        '</td><td class="num">' + fmt(r.ave) + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  return html;
+}
+
+function groupSection(model, group, estimator, multiple){
+  var link = linkOf(model, estimator);
+  var html = multiple
+    ? '<h2>Group ' + esc(group.name) + (group.nObs ? ' · ' + group.nObs + ' observations' : '') + '</h2>'
+    : '<h2>Coefficients</h2>';
+  var continuousRows = [], categoricalRows = [];
+  var factors = group.raw.order;
+  /* A residual covariance between items of two different factors belongs to
+     neither sum, so it enters no coefficient here. Saying so is shorter than
+     leaving the reader to work out why it is missing. */
+  var factorOf = {};
+  factors.forEach(function(f){ (group.raw.by[f] || []).forEach(function(r){ factorOf[r.item] = f; }); });
+  var acrossFactors = (group.raw.residualCovs || []).filter(function(c){
+    return factorOf[c.a] && factorOf[c.b] && factorOf[c.a] !== factorOf[c.b];
+  });
+  if (acrossFactors.length) {
+    html += '<div class="status info"><p><span class="tag">Note.</span> The model estimates ' +
+      acrossFactors.length + ' residual covariance' + (acrossFactors.length === 1 ? '' : 's') +
+      ' between items of different factors (' +
+      names(acrossFactors.map(function(c){ return c.a + " – " + c.b; })) + '). ' +
+      (acrossFactors.length === 1 ? 'It is' : 'They are') + ' part of the covariance between the two ' +
+      'sums and of no single sum, so ' + (acrossFactors.length === 1 ? 'it does' : 'they do') +
+      ' not enter any coefficient below. ' + (acrossFactors.length === 1 ? 'It does' : 'They do') +
+      ' affect the discriminant validity of the two scales, which is a separate question.</p></div>';
+  }
+  if (!factors.length) {
+    return html + '<div class="status warn"><p><span class="tag">Nothing to compute.</span> No factor was read for this group.</p></div>';
+  }
+  factors.forEach(function(factor){
+    var info = describeFactor(model, group, factor);
+    if (info.blocked) {
+      html += '<h3>Factor ' + esc(factor) + '</h3><div class="status bad"><p><span class="tag">No coefficient.</span> ' +
+        info.blocked + '</p></div>';
+      return;
+    }
+    if (info.kind === "categorical" && !info.categoricalDeclared) {
+      html += '<div class="status info"><p><span class="tag">Note.</span> The list of variables declared ' +
+        'as ordered categorical could not be read from SUMMARY OF ANALYSIS. The items of ' + esc(factor) +
+        ' were treated as ordered categorical because thresholds were estimated for them.</p></div>';
+    }
+    var panel = info.kind === "categorical"
+      ? categoricalPanel(model, group, info, link)
+      : continuousPanel(model, group, info);
+    html += panel.html;
+    if (panel.summary) {
+      if (info.kind === "categorical") categoricalRows.push(panel.summary);
+      else continuousRows.push(panel.summary);
+    }
+  });
+  html += summaryTable(continuousRows, false);
+  html += summaryTable(categoricalRows, true);
+  return html;
+}
+
+function intervalSection(model){
+  if (model.newParams.length) {
+    var html = '<h2 id="extra-params">Additional parameters already computed by ' + MP + '</h2>' +
+      '<div class="table-wrap"><table aria-labelledby="extra-params"><thead><tr><th scope="col">Parameter</th>' +
+      '<th scope="col" class="num">Estimate</th><th scope="col" class="num">S.E.</th>' +
+      '<th scope="col" class="num">p</th><th scope="col" class="num">95% CI</th></tr></thead><tbody>';
+    model.newParams.forEach(function(p){
+      var interval = model.intervals[p.name];
+      html += '<tr><th scope="row">' + esc(p.name) + '</th><td class="num">' + fmt(p.est) +
+        '</td><td class="num">' + fmt(p.se) + '</td><td class="num">' +
+        (isFinite(p.p) ? (p.p < 0.001 ? "&lt; .001" : "= " + fmt(p.p).replace(/^0/, "")) : "—") +
+        '</td><td class="num">' + (interval ? "[" + fmt(interval.low) + ", " + fmt(interval.high) + "]" : "—") +
+        '</td></tr>';
+    });
+    html += '</tbody></table></div><p>With MLR these standard errors and intervals are robust.</p>';
+    return html;
+  }
+  var group = model.groups[0];
+  if (!group) return "";
+  var eligible = group.raw.order.filter(function(f){
+    var info = describeFactor(model, group, f);
+    return !info.blocked && info.kind === "continuous";
+  });
+  var built = constraintSyntax(group, eligible);
+  if (!built) return "";
+  var out = '<h2>Getting a confidence interval as well</h2>' +
+    '<p>The coefficients above are point estimates. To obtain a standard error and a confidence ' +
+    'interval for omega, have ' + MP + ' compute it as a model parameter. The syntax below is written ' +
+    'for the factors and items of the file you loaded: paste it in place of the current MODEL command ' +
+    'and run the model again.</p>' +
+    '<pre class="syntax">' + esc(built.syntax) + '</pre>' +
+    '<p>The labels in parentheses name the parameters, they do not constrain them; they are what the ' +
+    'formula refers to. The lines are kept under eighty characters because ' + MP + ' reads ninety ' +
+    'and discards the rest of a longer line. With ESTIMATOR = MLR the resulting interval is robust.</p>';
+  if (built.longNames.length) {
+    out += '<div class="status warn"><p><span class="tag">Check the names.</span> ' +
+      names(built.longNames) + ' ' + (built.longNames.length === 1 ? 'is' : 'are') +
+      ' longer than the eight characters ' + MP + ' allows in a variable name. The names above were ' +
+      'copied from the output as they were printed; if the run truncated them, replace them with the ' +
+      'names the input file actually declares before using this syntax.</p></div>';
+  }
+  if (model.groups.length > 1) {
+    out += '<p>The syntax describes a single-group model and was written from the parameters of ' +
+      (group.name ? esc(group.name) : 'the first group') + '. With ' + model.groups.length +
+      ' groups in the output, run it once per group, or add the constraint to each group-specific MODEL command.</p>';
+  }
+  return out;
+}
+
+function guidanceSection(){
+  return '<h2>Reading these values</h2>' +
+    '<p>Values near .70 are often quoted as a minimum for research on group means, and .80 or higher ' +
+    'for decisions about individuals. These are conventions of the literature and are offered here as ' +
+    'rough guidance, not as a line a scale passes or fails (Cho, 2016; Flora, 2020). A reliability ' +
+    'coefficient does not by itself settle whether a scale is adequate: it depends on the model that ' +
+    'produced it, on the sample it was estimated in, and on the use the score is put to. Which ' +
+    'coefficient is reported, and why, belongs in the text alongside the value.</p>';
+}
+
+function render(){
+  var model = state.model;
+  var results = document.getElementById("results");
+  if (!model) { results.innerHTML = ""; return; }
+  var estimator = state.estimatorChoice || model.estimator;
+  var html = fileChecklist(model, estimator);
+  /* Without a parameter table there is nothing the estimator would let us
+     compute, so asking for it would be asking for nothing. */
+  if (!model.hasModelResults) {
+    results.innerHTML = html +
+      '<div class="status bad"><p><span class="glyph" aria-hidden="true">✗</span> ' +
+      '<span class="tag">Nothing to compute.</span> This file has no MODEL RESULTS section, so it ' +
+      'holds no parameter estimates. Load the output of a run that estimated the measurement model, ' +
+      'with <code>OUTPUT: SAMPSTAT STDYX;</code> in the input.</p></div>';
+    return;
+  }
+  if (!estimator) {
+    results.innerHTML = html + estimatorPicker();
+    var apply = document.getElementById("estimator-apply");
+    if (apply) apply.addEventListener("click", function(){
+      var choice = document.getElementById("estimator-choice");
+      state.estimatorChoice = choice ? choice.value : null;
+      render();
+    });
+    return;
+  }
+  var multiple = model.groups.length > 1;
+  model.groups.forEach(function(group){ html += groupSection(model, group, estimator, multiple); });
+  html += intervalSection(model);
+  html += guidanceSection();
+  results.innerHTML = html;
+}
+
+/* ---------- file input ---------- */
+
+/* Mplus on Windows writes output in Windows-1252, not UTF-8, so the file is read as bytes and
+   decoded from its byte-order mark, from a successful strict UTF-8 decoding, or as Windows-1252. */
+function decodeBuffer(buffer){
+  var bytes = new Uint8Array(buffer);
+  if (typeof TextDecoder === "undefined") {
+    var text = "";
+    for (var i = 0; i < bytes.length; i++) text += String.fromCharCode(bytes[i]);
+    return text;
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+    try { return new TextDecoder("utf-16le").decode(bytes.subarray(2)); } catch (e) {}
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+    try { return new TextDecoder("utf-16be").decode(bytes.subarray(2)); } catch (e) {}
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) bytes = bytes.subarray(3);
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(bytes); } catch (e) {}
+  try { return new TextDecoder("windows-1252").decode(bytes); } catch (e) {}
+  return new TextDecoder("utf-8").decode(bytes);
+}
+
+function readTextFile(file, onText, onError){
+  var reader = new FileReader();
+  reader.onerror = function(){ if (onError) onError(); };
+  if (typeof reader.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined") {
+    reader.onload = function(){
+      try { onText(decodeBuffer(reader.result)); }
+      catch (err) { if (onError) onError(err); }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload = function(){ onText(reader.result || ""); };
+    reader.readAsText(file);
+  }
+}
+
+/* The message is page text and carries markup; anything read from the file is
+   escaped by the caller before it gets here. */
+function failure(title, message){
+  state.model = null;
+  document.getElementById("results").innerHTML =
+    '<div class="status bad"><p><span class="glyph" aria-hidden="true">✗</span> <span class="tag">' +
+    title + '</span> ' + message + '</p></div>';
+}
+
+function loadFile(file){
+  readTextFile(file, function(text){
+    var kind = diagnoseFile(text);
+    if (kind === "empty" || kind === "blank") {
+      failure("Nothing to read.", "The file <code>" + esc(file.name) + "</code> is " +
+        (kind === "empty" ? "empty (zero bytes)" : "blank: it holds only spaces and line breaks") +
+        ". " + MP + " writes the output file as the run proceeds, so an empty one usually means the " +
+        "run was interrupted, or that the file was opened before the run finished. Nothing was computed.");
+      return;
+    }
+    if (kind === "foreign") {
+      failure("Not an " + MP + " output.", "The file <code>" + esc(file.name) + "</code> contains " +
+        "none of the headings every " + MP + " output carries (<code>INPUT INSTRUCTIONS</code>, " +
+        "<code>SUMMARY OF ANALYSIS</code>, <code>MODEL RESULTS</code>, <code>MODEL FIT INFORMATION</code>). " +
+        "This page reads the <code>.out</code> file that " + MP + " writes beside the input, not the " +
+        "data file, the input file, or a saved table of results. Nothing was computed.");
+      return;
+    }
+    var model;
+    try { model = parseMplusOutput(text); }
+    catch (err) {
+      failure("File not read.", "The file was opened and decoded, but reading it as " + MP +
+        " output raised an error part way through, so nothing was computed. Check that it is the " +
+        "complete .out file of a finished run.");
+      return;
+    }
+    state.model = model;
+    state.fileName = file.name;
+    state.estimatorChoice = null;
+    var name = document.getElementById("file-name");
+    if (name) name.textContent = file.name;
+    render();
+  }, function(){
+    failure("File not read.", "The browser could not open <code>" + esc(file.name) + "</code>. " +
+      "The file may have been moved or deleted since it was chosen, or the browser may not have " +
+      "permission to read it. Choose it again, or copy it somewhere else first.");
+  });
+}
+
+(function wireFileInput(){
+  var drop = document.getElementById("drop");
+  var input = document.getElementById("file");
+  if (!drop || !input) return;
+  input.addEventListener("change", function(){
+    if (input.files && input.files.length) loadFile(input.files[0]);
+  });
+  drop.addEventListener("click", function(event){
+    var target = event.target;
+    if (target === input || (target.closest && target.closest("label"))) return;
+    input.click();
+  });
+  ["dragenter", "dragover"].forEach(function(name){
+    drop.addEventListener(name, function(event){ event.preventDefault(); drop.classList.add("over"); });
+  });
+  ["dragleave", "dragend"].forEach(function(name){
+    drop.addEventListener(name, function(event){ event.preventDefault(); drop.classList.remove("over"); });
+  });
+  drop.addEventListener("drop", function(event){
+    event.preventDefault();
+    drop.classList.remove("over");
+    if (event.dataTransfer && event.dataTransfer.files.length) loadFile(event.dataTransfer.files[0]);
+  });
+  /* A file dropped outside the drop zone would be opened by the browser, discarding the page. */
+  ["dragover", "drop"].forEach(function(name){
+    window.addEventListener(name, function(event){
+      if (event.target === drop || (event.target.closest && event.target.closest("#drop"))) return;
+      event.preventDefault();
+    }, false);
+  });
+})();
+
+/* ---------- self-test ---------- */
+
+var SELFTEST_CONTINUOUS = [
+"Mplus VERSION 8.8",
+"",
+"SUMMARY OF ANALYSIS",
+"",
+"Number of groups                                                 2",
+"Number of observations",
+"   Group G1                                                    200",
+"   Group G2                                                    180",
+"",
+"Number of dependent variables                                    3",
+"Number of continuous latent variables                            1",
+"",
+"  Observed dependent variables",
+"",
+"  Continuous",
+"   Y1          Y2          Y3",
+"",
+"  Continuous latent variables",
+"   F1",
+"",
+"",
+"Estimator                                                       ML",
+"",
+"THE MODEL ESTIMATION TERMINATED NORMALLY",
+"",
+"MODEL FIT INFORMATION",
+"",
+"Chi-Square Test of Model Fit",
+"",
+"          Value                              2.500",
+"          Degrees of Freedom                     2",
+"          P-Value                           0.2865",
+"",
+"SAMPLE STATISTICS",
+"",
+"     SAMPLE STATISTICS FOR GROUP G1",
+"",
+"           Covariances",
+"              Y1            Y2            Y3",
+"              ________      ________      ________",
+" Y1             1.000",
+" Y2             0.500         1.000",
+" Y3             0.500         0.500         1.000",
+"",
+"     SAMPLE STATISTICS FOR GROUP G2",
+"",
+"           Covariances",
+"              Y1            Y2            Y3",
+"              ________      ________      ________",
+" Y1             2.000",
+" Y2             1.000         2.000",
+" Y3             1.000         1.000         2.000",
+"",
+"MODEL RESULTS",
+"",
+"                                                    Two-Tailed",
+"                    Estimate       S.E.  Est./S.E.    P-Value",
+"",
+"Group G1",
+"",
+" F1       BY",
+"    Y1                 1.000      0.000    999.000  999.000",
+"    Y2                 0.900      0.100      9.000    0.000",
+"    Y3                 0.800      0.100      8.000    0.000",
+"",
+" Variances",
+"    F1                 0.500      0.080      6.250    0.000",
+"",
+" Residual Variances",
+"    Y1                 0.500      0.060      8.333    0.000",
+"    Y2                 0.600      0.070      8.571    0.000",
+"    Y3                 0.700      0.080      8.750    0.000",
+"",
+"Group G2",
+"",
+" F1       BY",
+"    Y1                 1.000      0.000    999.000  999.000",
+"    Y2                 1.100      0.120      9.167    0.000",
+"    Y3                 1.200      0.130      9.231    0.000",
+"",
+" Variances",
+"    F1                 0.800      0.100      8.000    0.000",
+"",
+" Residual Variances",
+"    Y1                 1.000      0.110      9.091    0.000",
+"    Y2                 1.100      0.120      9.167    0.000",
+"    Y3                 1.200      0.130      9.231    0.000",
+"",
+"",
+"STANDARDIZED MODEL RESULTS",
+"",
+"",
+"STDYX Standardization",
+"",
+"                                                    Two-Tailed",
+"                    Estimate       S.E.  Est./S.E.    P-Value",
+"",
+"Group G1",
+"",
+" F1       BY",
+"    Y3                 0.560      0.050     11.200    0.000",
+"    Y1                 0.707      0.040     17.675    0.000",
+"    Y2                 0.636      0.045     14.133    0.000",
+"",
+" Residual Variances",
+"    Y1                 0.500      0.060      8.333    0.000",
+"    Y2                 0.596      0.070      8.514    0.000",
+"    Y3                 0.686      0.080      8.575    0.000",
+"",
+"Group G2",
+"",
+" F1       BY",
+"    Y1                 0.667      0.040     16.675    0.000",
+"    Y2                 0.685      0.045     15.222    0.000",
+"    Y3                 0.702      0.050     14.040    0.000",
+"",
+" Residual Variances",
+"    Y1                 0.555      0.060      9.250    0.000",
+"    Y2                 0.531      0.070      7.586    0.000",
+"    Y3                 0.507      0.080      6.338    0.000",
+"",
+"",
+"TECHNICAL 1 OUTPUT",
+""
+].join("\n");
+
+var SELFTEST_CATEGORICAL = [
+"Mplus VERSION 8.8",
+"",
+"SUMMARY OF ANALYSIS",
+"",
+"Number of groups                                                 2",
+"Number of observations",
+"   Group G1                                                    300",
+"   Group G2                                                    300",
+"",
+"  Observed dependent variables",
+"",
+"  Binary and ordered categorical (ordinal)",
+"   U1          U2",
+"",
+"  Continuous latent variables",
+"   FC",
+"",
+"",
+"Estimator                                                    WLSMV",
+"Link                                                        PROBIT",
+"",
+"THE MODEL ESTIMATION TERMINATED NORMALLY",
+"",
+"MODEL RESULTS",
+"",
+"                                                    Two-Tailed",
+"                    Estimate       S.E.  Est./S.E.    P-Value",
+"",
+"Group G1",
+"",
+" FC       BY",
+"    U1                 1.000      0.000    999.000  999.000",
+"    U2                 1.000      0.000    999.000  999.000",
+"",
+" Thresholds",
+"    U1$1               0.000      0.070      0.000    1.000",
+"    U2$1               0.000      0.070      0.000    1.000",
+"",
+" Variances",
+"    FC                 0.640      0.090      7.111    0.000",
+"",
+"Group G2",
+"",
+" FC       BY",
+"    U1                 1.000      0.000    999.000  999.000",
+"    U2                 1.000      0.000    999.000  999.000",
+"",
+" Thresholds",
+"    U1$1               0.500      0.070      7.143    0.000",
+"    U2$1               0.500      0.070      7.143    0.000",
+"",
+" Variances",
+"    FC                 0.250      0.060      4.167    0.000",
+"",
+"",
+"STANDARDIZED MODEL RESULTS",
+"",
+"",
+"STDYX Standardization",
+"",
+"                                                    Two-Tailed",
+"                    Estimate       S.E.  Est./S.E.    P-Value",
+"",
+"Group G1",
+"",
+" FC       BY",
+"    U1                 0.800      0.030     26.667    0.000",
+"    U2                 0.800      0.030     26.667    0.000",
+"",
+" Thresholds",
+"    U1$1               0.000      0.070      0.000    1.000",
+"    U2$1               0.000      0.070      0.000    1.000",
+"",
+"Group G2",
+"",
+" FC       BY",
+"    U1                 0.500      0.040     12.500    0.000",
+"    U2                 0.500      0.040     12.500    0.000",
+"",
+" Thresholds",
+"    U1$1               0.500      0.070      7.143    0.000",
+"    U2$1               0.500      0.070      7.143    0.000",
+"",
+"",
+"TECHNICAL 1 OUTPUT",
+""
+].join("\n");
+
+/* ---- routines written a second way, used only by the self-test ---- */
+
+/* The normal distribution function from the Maclaurin series of the error
+   function and, in the tail, from its continued fraction. It shares no code
+   with normalCdf and is slow, which is why it is only used here. */
+function referenceNormalCdf(x){
+  function erfSeries(z){
+    var term = z, s = z, n = 0;
+    while (Math.abs(term) > 1e-22 * Math.abs(s) && n < 400) { n++; term *= -z * z / n; s += term / (2 * n + 1); }
+    return 2 / Math.sqrt(Math.PI) * s;
+  }
+  function erfcTail(z){
+    var f = 1 / z, C = 1e300, D = 1 / z, n, a, delta;
+    for (n = 1; n < 300; n++) {
+      a = n / 2;
+      D = z + a * D; if (D === 0) D = 1e-300;
+      C = z + a / C; if (C === 0) C = 1e-300;
+      D = 1 / D; delta = C * D; f *= delta;
+      if (Math.abs(delta - 1) < 1e-17) break;
+    }
+    return Math.exp(-z * z) / Math.sqrt(Math.PI) * f;
+  }
+  function erfc(z){
+    if (z < 0) return 2 - erfc(-z);
+    return z < 2.5 ? 1 - erfSeries(z) : erfcTail(z);
+  }
+  return 0.5 * erfc(-x / Math.SQRT2);
+}
+
+/* The same integral as bivariateNormalCov, by adaptive Simpson rather than by
+   panelled Gauss-Legendre. */
+function referenceBivariateNormalCov(a, b, rho){
+  if (rho === 0) return 0;
+  var r = Math.max(-1, Math.min(1, rho)), limit = Math.asin(r);
+  function f(t){ var c = Math.cos(t); return Math.exp(-(a * a - 2 * Math.sin(t) * a * b + b * b) / (2 * c * c)); }
+  function simpson(lo, hi, flo, fmid, fhi){ return (hi - lo) / 6 * (flo + 4 * fmid + fhi); }
+  function refine(lo, hi, flo, fmid, fhi, whole, depth){
+    var mid = (lo + hi) / 2, lm = (lo + mid) / 2, rm = (mid + hi) / 2;
+    var flm = f(lm), frm = f(rm);
+    var left = simpson(lo, mid, flo, flm, fmid), right = simpson(mid, hi, fmid, frm, fhi);
+    if (depth > 40 || Math.abs(left + right - whole) <= 15e-16) return left + right + (left + right - whole) / 15;
+    return refine(lo, mid, flo, flm, fmid, left, depth + 1) + refine(mid, hi, fmid, frm, fhi, right, depth + 1);
+  }
+  if (limit === 0) return 0;
+  var f0 = f(0), f1 = f(limit), fm = f(limit / 2);
+  return refine(0, limit, f0, fm, f1, simpson(0, limit, f0, fm, f1), 0) / (2 * Math.PI);
+}
+
+/* Category probabilities, and the mean and variance of an ordinal item built
+   from them rather than from the sum over thresholds. */
+function referenceCategoryProbabilities(taus){
+  var p = [], previous = 0, c;
+  for (c = 0; c < taus.length; c++) { var cumulative = referenceNormalCdf(taus[c]); p.push(cumulative - previous); previous = cumulative; }
+  p.push(1 - previous);
+  return p;
+}
+function referenceItemVariance(taus){
+  var p = referenceCategoryProbabilities(taus), mean = 0, second = 0, c;
+  for (c = 0; c < p.length; c++) { mean += (c + 1) * p[c]; second += (c + 1) * (c + 1) * p[c]; }
+  return second - mean * mean;
+}
+/* Covariance of two ordinal items from the joint distribution over pairs of
+   categories, which is the definition rather than the threshold sum. */
+function referenceItemCovariance(tA, tB, rho){
+  var lowerA = [-Infinity].concat(tA).concat([Infinity]);
+  var lowerB = [-Infinity].concat(tB).concat([Infinity]);
+  function joint(x, y){
+    if (x === -Infinity || y === -Infinity) return 0;
+    if (x === Infinity && y === Infinity) return 1;
+    if (x === Infinity) return referenceNormalCdf(y);
+    if (y === Infinity) return referenceNormalCdf(x);
+    return referenceBivariateNormalCov(x, y, rho) + referenceNormalCdf(x) * referenceNormalCdf(y);
+  }
+  var total = 0, a, b, meanA = 0, meanB = 0;
+  var pA = referenceCategoryProbabilities(tA), pB = referenceCategoryProbabilities(tB);
+  for (a = 0; a < pA.length; a++) meanA += (a + 1) * pA[a];
+  for (b = 0; b < pB.length; b++) meanB += (b + 1) * pB[b];
+  for (a = 0; a < pA.length; a++) {
+    for (b = 0; b < pB.length; b++) {
+      var probability = joint(lowerA[a + 1], lowerB[b + 1]) - joint(lowerA[a], lowerB[b + 1]) -
+                        joint(lowerA[a + 1], lowerB[b]) + joint(lowerA[a], lowerB[b]);
+      total += (a + 1) * (b + 1) * probability;
+    }
+  }
+  return total - meanA * meanB;
+}
+function referenceGreenYang(lambda, taus, rhoTotal){
+  var k = lambda.length, numerator = 0, denominator = 0, i, j;
+  for (i = 0; i < k; i++) {
+    denominator += referenceItemVariance(taus[i]);
+    numerator += referenceItemCovariance(taus[i], taus[i], clampCorrelation(lambda[i] * lambda[i]));
+  }
+  for (i = 0; i < k - 1; i++) {
+    for (j = i + 1; j < k; j++) {
+      numerator += 2 * referenceItemCovariance(taus[i], taus[j], clampCorrelation(lambda[i] * lambda[j]));
+      denominator += 2 * referenceItemCovariance(taus[i], taus[j], clampCorrelation(rhoTotal[i][j]));
+    }
+  }
+  return numerator / denominator;
+}
+
+/* A deterministic generator, so that a failure can be reproduced. */
+function selfTestRandom(seed){
+  var state = seed >>> 0;
+  return function(){
+    state = (state * 1664525 + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+
+function runSelfTest(){
+  var failures = [], performed = 0;
+  function check(name, condition, detail){
+    performed++;
+    if (!condition) failures.push(name + (detail ? ": " + detail : ""));
+  }
+  function close(name, actual, expected, tolerance){
+    var ok = typeof actual === "number" && isFinite(actual) && Math.abs(actual - expected) < tolerance;
+    check(name, ok, "expected " + expected + ", got " + actual);
+  }
+
+  /* Normal distribution function, against the series and continued fraction. */
+  close("normalCdf(0)", normalCdf(0), 0.5, 1e-12);
+  close("normalCdf(1.96)", normalCdf(1.96), 0.9750021048517795, 1e-12);
+  var worstNormal = 0, xValue;
+  for (xValue = -8; xValue <= 8; xValue += 0.05) {
+    worstNormal = Math.max(worstNormal, Math.abs(normalCdf(xValue) - referenceNormalCdf(xValue)));
+  }
+  check("normalCdf over -8 to 8 against the error function series", worstNormal < 1e-14,
+    "largest difference " + worstNormal.toExponential(3));
+
+  /* Phi2(0, 0; rho) - 1/4 = arcsin(rho) / (2 pi), an identity that holds for every rho.
+     The grid is fine, and includes correlations a whisker away from +-1, where the
+     integrand is narrowest and the panelled quadrature is under most strain. */
+  var worstArcsine = 0, worstAt = 0, step;
+  for (step = -1000; step <= 1000; step++) {
+    var rho = step / 1000;
+    if (Math.abs(rho) === 1) continue;
+    var difference = Math.abs(bivariateNormalCov(0, 0, rho) - Math.asin(rho) / (2 * Math.PI));
+    if (difference > worstArcsine) { worstArcsine = difference; worstAt = rho; }
+  }
+  [1e-4, 1e-6, 1e-8, 1e-10, 1e-12].forEach(function(epsilon){
+    [1 - epsilon, -(1 - epsilon)].forEach(function(rho){
+      var difference = Math.abs(bivariateNormalCov(0, 0, rho) - Math.asin(rho) / (2 * Math.PI));
+      if (difference > worstArcsine) { worstArcsine = difference; worstAt = rho; }
+    });
+  });
+  check("the arcsine identity over 2001 correlations and up to 1e-12 from the ends",
+    worstArcsine < 1e-14, "largest difference " + worstArcsine.toExponential(3) + " at rho = " + worstAt);
+
+  /* The same integral away from the origin, against adaptive Simpson. */
+  var random = selfTestRandom(20240917), trial, worstIntegral = 0, worstArguments = "";
+  for (trial = 0; trial < 200; trial++) {
+    var a = (random() - 0.5) * 7, b = random() < 0.3 ? a : (random() - 0.5) * 7;
+    var r = random() < 0.3 ? (random() < 0.5 ? 1 : -1) * (1 - Math.pow(10, -1 - 8 * random()))
+                           : (random() * 2 - 1);
+    var gap = Math.abs(bivariateNormalCov(a, b, r) - referenceBivariateNormalCov(a, b, r));
+    if (gap > worstIntegral) { worstIntegral = gap; worstArguments = "a=" + fmt(a) + " b=" + fmt(b) + " rho=" + r; }
+  }
+  check("the bivariate normal integral against adaptive Simpson, 200 random arguments",
+    worstIntegral < 1e-12, "largest difference " + worstIntegral.toExponential(3) + " at " + worstArguments);
+
+  /* Variance of a binary item with a threshold at 0 is the Bernoulli variance .25. */
+  close("ordinalItemVariance([0])", ordinalItemVariance([0]), 0.25, 1e-14);
+  var worstVariance = 0;
+  for (trial = 0; trial < 200; trial++) {
+    var categories = 2 + Math.floor(random() * 7), taus = [], t = -3 + random() * 2, c;
+    for (c = 0; c < categories - 1; c++) { taus.push(t); t += 0.05 + random() * 1.5; }
+    worstVariance = Math.max(worstVariance, Math.abs(ordinalItemVariance(taus) - referenceItemVariance(taus)));
+  }
+  check("the variance of an ordinal item against the category probabilities, 200 items",
+    worstVariance < 1e-12, "largest difference " + worstVariance.toExponential(3));
+
+  /* Green and Yang omega, two binary items, thresholds at 0, equal standardized loadings.
+     Every bivariate term reduces to arcsin(lambda^2) / (2 pi) and every item variance to 1/4, so
+     omega = 4A / (1/2 + 2A) with A = arcsin(lambda^2) / (2 pi). */
+  [0.8, 0.5, 0.95].forEach(function(lambda){
+    var A = Math.asin(lambda * lambda) / (2 * Math.PI);
+    var expected = 4 * A / (0.5 + 2 * A);
+    close("greenYangOmega two-item lambda=" + lambda,
+      greenYangOmega([lambda, lambda], [[0], [0]], [[1, lambda * lambda], [lambda * lambda, 1]]),
+      expected, 1e-12);
+  });
+
+  /* The same coefficient against the joint distribution over pairs of categories,
+     which is the definition of a covariance rather than the sum over thresholds. */
+  var worstGY = 0, worstGYat = "";
+  for (trial = 0; trial < 40; trial++) {
+    var k = 2 + Math.floor(random() * 3), lambda = [], tauSet = [], q, cc;
+    for (q = 0; q < k; q++) {
+      lambda.push(random() * 1.9 - 0.95);
+      var nCat = 2 + Math.floor(random() * 4), tt = [], x = -2.5 + random() * 2;
+      for (cc = 0; cc < nCat - 1; cc++) { tt.push(x); x += 0.2 + random() * 1.4; }
+      tauSet.push(tt);
+    }
+    var rhoAll = [];
+    for (q = 0; q < k; q++) { rhoAll.push([]); for (cc = 0; cc < k; cc++) rhoAll[q][cc] = (q === cc) ? 1 : lambda[q] * lambda[cc]; }
+    var gyGap = Math.abs(greenYangOmega(lambda, tauSet, rhoAll) - referenceGreenYang(lambda, tauSet, rhoAll));
+    if (gyGap > worstGY) { worstGY = gyGap; worstGYat = "k=" + k; }
+  }
+  check("Green and Yang omega against the joint category distribution, 40 problems",
+    worstGY < 1e-11, "largest difference " + worstGY.toExponential(3) + " at " + worstGYat);
+
+  /* Omega, the average variance extracted and alpha against the formulas written
+     out directly, over random problems of a wide range of size and conditioning. */
+  var worstOmega = 0, worstAve = 0, worstAlpha = 0, worstYstar = 0;
+  for (trial = 0; trial < 400; trial++) {
+    var n = 2 + Math.floor(random() * 30);
+    var scale = Math.exp((random() - 0.5) * 8), psi = Math.exp((random() - 0.5) * 6);
+    var loadings = [], residuals = [], itemNames = [], q2;
+    for (q2 = 0; q2 < n; q2++) {
+      loadings.push((random() * 2 - 1) * scale);
+      residuals.push(Math.exp((random() - 0.5) * 8));
+      itemNames.push("I" + q2);
+    }
+    var group = {
+      raw: { order: ["F"], by: { F: itemNames.map(function(nm, i){ return { item: nm, est: loadings[i] }; }) },
+             variances: { F: psi }, residuals: {}, residualCovs: [], thresholds: {} },
+      std: null, stdIndex: {}, rSquare: {}, thresholds: {}, sampleCov: null, polychoric: null, collapsed: null
+    };
+    itemNames.forEach(function(nm, i){ group.raw.residuals[nm] = residuals[i]; });
+    var got = continuousCoefficients({ latentVars: [], categoricalVars: [], link: null }, group, "F", itemNames);
+    var total = sum(loadings), squares = sum(loadings.map(function(v){ return v * v; })), errors = sum(residuals);
+    worstOmega = Math.max(worstOmega, Math.abs(got.omega - total * total * psi / (total * total * psi + errors)));
+    worstAve = Math.max(worstAve, Math.abs(got.ave - squares * psi / (squares * psi + errors)));
+    worstYstar = Math.max(worstYstar, Math.abs(omegaYstar(loadings, residuals, []) - total * total / (total * total + errors)));
+    /* alpha on a covariance matrix built from the same parameters */
+    var matrix = { m: {} };
+    itemNames.forEach(function(a, i){
+      matrix.m[a] = {};
+      itemNames.forEach(function(b, j){
+        matrix.m[a][b] = loadings[i] * loadings[j] * psi + (i === j ? residuals[i] : 0);
+      });
+    });
+    var diagonal = 0, whole = 0;
+    itemNames.forEach(function(a, i){
+      diagonal += matrix.m[a][a];
+      itemNames.forEach(function(b, j){ whole += matrix.m[a][b]; });
+    });
+    worstAlpha = Math.max(worstAlpha, Math.abs(alphaFromCovariance(matrix, itemNames) -
+      n / (n - 1) * (1 - diagonal / whole)));
+  }
+  check("omega against its formula over 400 random problems", worstOmega < 1e-12,
+    "largest difference " + worstOmega.toExponential(3));
+  check("the average variance extracted against its formula over 400 random problems", worstAve < 1e-12,
+    "largest difference " + worstAve.toExponential(3));
+  check("omega on y* against its formula over 400 random problems", worstYstar < 1e-12,
+    "largest difference " + worstYstar.toExponential(3));
+  check("Cronbach's alpha against its formula over 400 random problems", worstAlpha < 1e-12,
+    "largest difference " + worstAlpha.toExponential(3));
+
+  /* Alpha on a known covariance matrix: three items, unit variances, all covariances .5. */
+  var covariance = { m: {
+    A: { A: 1, B: 0.5, C: 0.5 },
+    B: { A: 0.5, B: 1, C: 0.5 },
+    C: { A: 0.5, B: 0.5, C: 1 } } };
+  close("alphaFromCovariance", alphaFromCovariance(covariance, ["A", "B", "C"]), 0.75, 1e-14);
+  check("alphaFromCovariance with a missing item",
+    alphaFromCovariance(covariance, ["A", "D"]) === undefined);
+  close("ordinalAlpha", ordinalAlpha([[1, 0.5, 0.5], [0.5, 1, 0.5], [0.5, 0.5, 1]]), 0.75, 1e-14);
+  close("omegaYstar", omegaYstar([0.8, 0.8], [undefined, undefined], []), 2.56 / (2.56 + 0.72), 1e-14);
+
+  /* Parser, two groups, continuous indicators. */
+  var model = parseMplusOutput(SELFTEST_CONTINUOUS);
+  check("estimator", model.estimator === "ML", String(model.estimator));
+  check("number of groups", model.groups.length === 2, String(model.groups.length));
+  check("group names", model.groups[0].name === "G1" && model.groups[1].name === "G2",
+    model.groups.map(function(g){ return g.name; }).join(","));
+  check("observed variables", model.observedVars.join(",") === "Y1,Y2,Y3", model.observedVars.join(","));
+  check("latent variables", model.latentVars.join(",") === "F1", model.latentVars.join(","));
+  check("observations per group", model.groups[0].nObs === 200 && model.groups[1].nObs === 180,
+    model.groups[0].nObs + "/" + model.groups[1].nObs);
+  check("chi-square", model.chiSquare === 2.5 && model.df === 2, model.chiSquare + "/" + model.df);
+  var g1 = model.groups[0], g2 = model.groups[1];
+  check("loadings of group 1",
+    g1.raw.by.F1.map(function(r){ return r.item + "=" + r.est; }).join(",") === "Y1=1,Y2=0.9,Y3=0.8",
+    g1.raw.by.F1.map(function(r){ return r.item + "=" + r.est; }).join(","));
+  check("loadings of group 2",
+    g2.raw.by.F1.map(function(r){ return r.est; }).join(",") === "1,1.1,1.2",
+    g2.raw.by.F1.map(function(r){ return r.est; }).join(","));
+  /* STDYX is printed here in a different item order: matching must be by name. */
+  check("STDYX matched by name", g1.stdIndex.F1.Y1.est === 0.707 && g1.stdIndex.F1.Y3.est === 0.56,
+    g1.stdIndex.F1.Y1.est + "/" + g1.stdIndex.F1.Y3.est);
+  check("covariance matrix of group 1", g1.sampleCov && g1.sampleCov.m.Y1.Y1 === 1,
+    g1.sampleCov ? String(g1.sampleCov.m.Y1.Y1) : "missing");
+  check("covariance matrix of group 2", g2.sampleCov && g2.sampleCov.m.Y1.Y1 === 2,
+    g2.sampleCov ? String(g2.sampleCov.m.Y1.Y1) : "missing");
+  var info1 = describeFactor(model, g1, "F1");
+  check("factor F1 is usable", !info1.blocked && info1.kind === "continuous", info1.blocked || info1.kind);
+  var c1 = continuousCoefficients(model, g1, "F1", info1.items);
+  close("omega, group 1", c1.omega, 3.645 / 5.445, 1e-12);
+  close("AVE, group 1", c1.ave, 1.225 / 3.025, 1e-12);
+  close("alpha, group 1", c1.alpha, 0.75, 1e-12);
+  var c2 = continuousCoefficients(model, g2, "F1", describeFactor(model, g2, "F1").items);
+  close("omega, group 2", c2.omega, 8.712 / 12.012, 1e-12);
+  check("group omegas differ", Math.abs(c1.omega - c2.omega) > 0.01,
+    c1.omega + " vs " + c2.omega);
+
+  /* Parser, two groups, ordered categorical indicators: thresholds must come from the group
+     they are printed in, not from the last group of the file. */
+  var ordinal = parseMplusOutput(SELFTEST_CATEGORICAL);
+  check("categorical list", ordinal.categoricalVars.join(",") === "U1,U2", ordinal.categoricalVars.join(","));
+  check("link", ordinal.link === "PROBIT", String(ordinal.link));
+  var o1 = ordinal.groups[0], o2 = ordinal.groups[1];
+  check("thresholds of group 1", o1.thresholds.U1.join(",") === "0", o1.thresholds.U1.join(","));
+  check("thresholds of group 2", o2.thresholds.U1.join(",") === "0.5", o2.thresholds.U1.join(","));
+  var oInfo = describeFactor(ordinal, o1, "FC");
+  check("factor FC is categorical", oInfo.kind === "categorical", oInfo.blocked || oInfo.kind);
+  var oc1 = categoricalCoefficients(ordinal, o1, "FC", oInfo.items, "PROBIT");
+  var expected1 = 4 * (Math.asin(0.64) / (2 * Math.PI)) / (0.5 + 2 * (Math.asin(0.64) / (2 * Math.PI)));
+  close("Green-Yang omega from the parsed group 1", oc1.omegaGY, expected1, 1e-12);
+  var oc2 = categoricalCoefficients(ordinal, o2, "FC", describeFactor(ordinal, o2, "FC").items, "PROBIT");
+  close("Green-Yang omega from the parsed group 2", oc2.omegaGY,
+    greenYangOmega([0.5, 0.5], [[0.5], [0.5]], [[1, 0.25], [0.25, 1]]), 1e-12);
+  check("the two groups give different omegas", Math.abs(oc1.omegaGY - oc2.omegaGY) > 0.01,
+    oc1.omegaGY + " vs " + oc2.omegaGY);
+
+  /* A second-order factor and a cross-loaded item must be refused. */
+  var secondOrder = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    " F1       BY\n    Y1                 1.000      0.000    999.000  999.000",
+    " G        BY\n    F1                 1.000      0.000    999.000  999.000\n\n F1       BY\n    Y1                 1.000      0.000    999.000  999.000"));
+  var secondInfo = describeFactor(secondOrder, secondOrder.groups[0], "G");
+  check("a second-order factor is refused", !!secondInfo.blocked, "no message produced");
+
+  /* ---- edge cases ---- */
+
+  check("an empty file is recognized", diagnoseFile("") === "empty", diagnoseFile(""));
+  check("a file of whitespace is recognized", diagnoseFile("\n\n   \t\n") === "blank", diagnoseFile("\n\n  \n"));
+  check("a file with none of the expected headings is recognized as foreign",
+    diagnoseFile("id,age,score\n1,23,4.5\n") === "foreign", diagnoseFile("id,age\n1,2\n"));
+  check("an output with the expected headings is recognized", diagnoseFile(SELFTEST_CONTINUOUS) === "mplus",
+    diagnoseFile(SELFTEST_CONTINUOUS));
+  check("a complete output is not reported as truncated", !model.truncated, "reported as truncated");
+  var cut = parseMplusOutput(SELFTEST_CONTINUOUS.slice(0, SELFTEST_CONTINUOUS.indexOf("Residual Variances")));
+  check("an output cut short is reported as truncated", cut.truncated, "not reported");
+
+  /* Fortran D exponents, asterisks for a standard error, and the 999.000 sentinel. */
+  close("a D exponent is read as a number", toNumber("0.900D+00"), 0.9, 1e-15);
+  close("a negative D exponent is read as a number", toNumber("-1.250D-02"), -0.0125, 1e-18);
+  check("asterisks are not read as a number", isNaN(toNumber("*********")), String(toNumber("*********")));
+  var sentinel = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    "    Y3                 0.800      0.100      8.000    0.000",
+    "    Y3               999.000    999.000    999.000  999.000"));
+  check("the 999.000 sentinel is not read as a loading",
+    sentinel.groups[0].raw.by.F1.length === 2 && sentinel.groups[0].raw.notComputable.indexOf("Y3") >= 0,
+    sentinel.groups[0].raw.by.F1.length + " loadings, sentinel list " + sentinel.groups[0].raw.notComputable.join(","));
+  check("a fixed parameter keeps its estimate",
+    model.groups[0].raw.by.F1[0].est === 1, String(model.groups[0].raw.by.F1[0].est));
+
+  /* A factor with one indicator, and two indicators. */
+  var single = parseMplusOutput(SELFTEST_CONTINUOUS
+    .replace("    Y2                 0.900      0.100      9.000    0.000\n", "")
+    .replace("    Y3                 0.800      0.100      8.000    0.000\n", ""));
+  var singleInfo = describeFactor(single, single.groups[0], "F1");
+  check("a factor with one indicator is refused", !!singleInfo.blocked, "no message produced");
+  check("a factor with two indicators is computed", !describeFactor(model, g1, "F1").blocked &&
+    describeFactor(model, g1, "F1").k === 3, "unexpected");
+
+  /* Duplicate item names must be refused, not treated as a cross-loading. */
+  var duplicated = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    "    Y3                 0.800      0.100      8.000    0.000",
+    "    Y3                 0.800      0.100      8.000    0.000\n    Y2                 0.850      0.100      8.500    0.000"));
+  var duplicateInfo = describeFactor(duplicated, duplicated.groups[0], "F1");
+  check("a duplicated item name is refused",
+    !!duplicateInfo.blocked && /more than once/.test(duplicateInfo.blocked), duplicateInfo.blocked || "not refused");
+
+  /* An absent factor variance, and an endogenous factor without R-SQUARE:
+     omega is proportional to the factor variance, so no number is produced. */
+  var noVariance = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    " Variances\n    F1                 0.500      0.080      6.250    0.000\n", ""));
+  var noVarianceOut = continuousCoefficients(noVariance, noVariance.groups[0], "F1",
+    describeFactor(noVariance, noVariance.groups[0], "F1").items);
+  check("no coefficient when the factor variance is absent",
+    noVarianceOut.omega === undefined && noVarianceOut.ave === undefined && noVarianceOut.psiUnknown,
+    "omega " + noVarianceOut.omega);
+  var endogenous = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    " Variances\n    F1                 0.500      0.080      6.250    0.000",
+    " Residual Variances\n    F1                 0.300      0.080      3.750    0.000"));
+  var endogenousOut = continuousCoefficients(endogenous, endogenous.groups[0], "F1",
+    describeFactor(endogenous, endogenous.groups[0], "F1").items);
+  check("no coefficient for an endogenous factor without R-SQUARE",
+    endogenousOut.omega === undefined && endogenousOut.psiSource === "residual",
+    "omega " + endogenousOut.omega + ", source " + endogenousOut.psiSource);
+
+  /* A residual variance of zero or below is a Heywood case: no coefficient. */
+  var heywood = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    "    Y2                 0.600      0.070      8.571    0.000",
+    "    Y2                -0.100      0.070     -1.429    0.153"));
+  var heywoodOut = continuousCoefficients(heywood, heywood.groups[0], "F1",
+    describeFactor(heywood, heywood.groups[0], "F1").items);
+  check("a negative residual variance leaves no coefficient",
+    heywoodOut.omega === undefined && heywoodOut.inadmissible.length > 0,
+    "omega " + heywoodOut.omega + ", reasons " + heywoodOut.inadmissible.length);
+  var missingResidual = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    "    Y3                 0.700      0.080      8.750    0.000\n", ""));
+  var missingOut = continuousCoefficients(missingResidual, missingResidual.groups[0], "F1",
+    describeFactor(missingResidual, missingResidual.groups[0], "F1").items);
+  check("a missing residual variance leaves no coefficient",
+    !!missingOut.error && missingOut.omega === undefined, missingOut.error || "computed anyway");
+
+  /* Positive definiteness, and ordinal alpha refused on an indefinite matrix. */
+  check("a correlation matrix that is positive definite is accepted",
+    isPositiveDefinite([[1, 0.5, 0.4], [0.5, 1, 0.3], [0.4, 0.3, 1]]), "rejected");
+  check("a correlation matrix that is not positive definite is rejected",
+    !isPositiveDefinite([[1, 0.95, 0.95], [0.95, 1, -0.95], [0.95, -0.95, 1]]), "accepted");
+  check("a singular matrix is rejected", !isPositiveDefinite([[1, 1], [1, 1]]), "accepted");
+
+  /* The logit link leaves the Green and Yang coefficient uncomputed. */
+  var logit = parseMplusOutput(SELFTEST_CATEGORICAL.replace("Link                                                        PROBIT", "Link                                                         LOGIT"));
+  check("the link is read", logit.link === "LOGIT", String(logit.link));
+  var logitOut = categoricalCoefficients(logit, logit.groups[0], "FC",
+    describeFactor(logit, logit.groups[0], "FC").items, "LOGIT");
+  check("no Green and Yang omega with a logit link", logitOut.omegaGY === undefined,
+    "omega " + logitOut.omegaGY);
+  check("the estimator implies a probit link for weighted least squares",
+    linkOf({ link: null }, "WLSMV") === "PROBIT" && linkOf({ link: null }, "ULSMV") === "PROBIT" &&
+    linkOf({ link: null }, "ML") === null, "unexpected");
+
+  /* Thresholds missing for one item of a factor. */
+  var partialThresholds = parseMplusOutput(SELFTEST_CATEGORICAL.replace(
+    /    U2\$1               0\.000      0\.070      0\.000    1\.000\n/g, ""));
+  var partialOut = categoricalCoefficients(partialThresholds, partialThresholds.groups[0], "FC",
+    describeFactor(partialThresholds, partialThresholds.groups[0], "FC").items, "PROBIT");
+  check("no Green and Yang omega when a threshold is missing", partialOut.omegaGY === undefined,
+    "omega " + partialOut.omegaGY);
+
+  /* Two hundred indicators: the generated syntax must stay inside the line
+     length Mplus reads, and the labels must still form a readable range. */
+  var manyItems = [], manyRows = [], manyResiduals = {}, item;
+  for (trial = 1; trial <= 200; trial++) {
+    item = "V" + trial;
+    manyItems.push(item);
+    manyRows.push({ item: item, est: 0.5 + (trial % 7) / 20 });
+    manyResiduals[item] = 0.4;
+  }
+  var manyGroup = { raw: { order: ["F1"], by: { F1: manyRows }, variances: { F1: 1 },
+                           residuals: manyResiduals, residualCovs: [], thresholds: {} } };
+  var built = constraintSyntax(manyGroup, ["F1"]);
+  var longest = 0;
+  built.syntax.split("\n").forEach(function(line){ longest = Math.max(longest, line.length); });
+  check("the generated syntax stays inside 90 characters a line with 200 items",
+    longest <= 90, "longest line " + longest);
+  check("every item appears in the generated syntax",
+    built.syntax.indexOf(" V200 ") > 0 || built.syntax.indexOf("\n  V200") > 0 || / V200[ \n]/.test(built.syntax),
+    "V200 missing");
+  check("names longer than eight characters are reported",
+    constraintSyntax({ raw: { order: ["F1"], by: { F1: [{ item: "VERYLONGNAME1", est: 1 }, { item: "VERYLONGNAME2", est: 1 }] },
+                             variances: { F1: 1 }, residuals: { VERYLONGNAME1: 0.5, VERYLONGNAME2: 0.5 },
+                             residualCovs: [], thresholds: {} } }, ["F1"]).longNames.length === 2,
+    "not reported");
+
+  /* Six groups, and groups whose item sets differ. */
+  var sixGroups = SELFTEST_CONTINUOUS;
+  ["G3", "G4", "G5", "G6"].forEach(function(name){
+    sixGroups = sixGroups.replace("\n\nSTANDARDIZED MODEL RESULTS",
+      "\n\nGroup " + name + "\n\n F1       BY\n" +
+      "    Y1                 1.000      0.000    999.000  999.000\n" +
+      "    Y2                 0.950      0.100      9.500    0.000\n" +
+      "    Y3                 0.850      0.100      8.500    0.000\n\n" +
+      " Variances\n    F1                 0.600      0.080      7.500    0.000\n\n" +
+      " Residual Variances\n    Y1                 0.550      0.060      9.167    0.000\n" +
+      "    Y2                 0.650      0.070      9.286    0.000\n" +
+      "    Y3                 0.750      0.080      9.375    0.000\n\nSTANDARDIZED MODEL RESULTS");
+  });
+  var six = parseMplusOutput(sixGroups);
+  check("six groups are read separately", six.groups.length === 6, String(six.groups.length));
+  check("the item sets of the six groups are seen as equal", !six.groupsDiffer, "reported as different");
+  var differing = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
+    "Group G2\n\n F1       BY\n    Y1                 1.000      0.000    999.000  999.000",
+    "Group G2\n\n F1       BY\n    Y4                 1.000      0.000    999.000  999.000"));
+  check("item sets that differ between groups are reported", differing.groupsDiffer, "not reported");
+
+  return { failures: failures, performed: performed };
+}
+
+(function maybeSelfTest(){
+  if (!/[?&]selftest=1\b/.test(location.search)) return;
+  var result;
+  try { result = runSelfTest(); }
+  catch (err) {
+    result = { failures: ["the self-test raised an error: " + (err && err.message ? err.message : String(err))],
+               performed: 0 };
+  }
+  var failures = result.failures, performed = result.performed;
+  var banner = document.createElement("div");
+  banner.className = "status " + (failures.length ? "bad" : "ok");
+  banner.setAttribute("role", "status");
+  banner.innerHTML = failures.length
+    ? '<p><span class="glyph" aria-hidden="true">✗</span> <span class="tag">Self-test failed.</span> ' +
+      failures.length + ' of ' + performed + ' checks did not pass.</p><ul><li>' +
+      failures.map(esc).join('</li><li>') + '</li></ul>'
+    : '<p><span class="glyph" aria-hidden="true">✓</span> <span class="tag">Self-test passed.</span> ' +
+      performed + ' checks, 0 failed. They cover the normal and bivariate normal integrals against ' +
+      'independently written routines, omega, the average variance extracted, both alphas and the ' +
+      'Green and Yang coefficient against their formulas over random problems, and the file, model ' +
+      'and syntax cases the parser has to refuse.</p>';
+  var main = document.getElementById("main");
+  main.insertBefore(banner, main.firstChild);
+  if (failures.length) console.error("self-test failed", failures);
+  else console.log("self-test passed");
+})();
+</script>
+</body>
+</html>
