@@ -6,6 +6,7 @@
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Chi-square difference test between two nested Mplus models: classical difference for ML, MLF, GLS and WLS, Satorra-Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST procedure for MLMV, WLSMV and ULSMV.">
 <title>Chi-square difference test · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
 /* Page-specific layout: the two (or three) file zones and the two value
@@ -32,7 +33,7 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
     <a href="index.html#tools">All tools</a>
   </nav>
   <h1>Chi-square difference test</h1>
-  <p class="lede">Reads two <span class="mp">M</span><em>plus</em> output files, checks the conditions that a nesting relation requires, and computes the difference test that the estimator of those two runs allows: the classical difference for ML, MLF, GLS and WLS, the Satorra-Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST result for MLMV, WLSMV and ULSMV.</p>
+  <p class="lede">Reads two <span class="mp">M</span><em>plus</em> output files, checks the conditions that a nesting relation requires, and computes the difference test that the estimator of those two runs allows: the classical difference for ML, MLF, GLS and WLS, the Satorra-Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST result for MLMV, WLSMV and ULSMV. Every number it uses is read from those files, and none of them can be typed in.</p>
   <div class="callout" role="note">
     <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> Nothing beyond the standard output: the page reads <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> always prints. With MLMV, WLSMV or ULSMV add <code>SAVEDATA: DIFFTEST = file.dat;</code> to the less restricted run and <code>ANALYSIS: DIFFTEST = file.dat;</code> to the restricted one, because for those estimators the difference of the two printed statistics is not chi-square distributed.
   </div>
@@ -40,39 +41,51 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
 <main id="main">
   <p id="selftest" class="status" hidden></p>
 
-  <div class="split">
-  <div class="split-col">
+  <section aria-labelledby="h-steps">
+    <h2 id="h-steps">What to do</h2>
+    <ol class="steps">
+      <li>Write two <span class="mp">M</span><em>plus</em> inputs, one for each of the two models you want to compare, and give each one its own file with the extension <code>.inp</code>. The two runs have to use the same data file, the same observed variables and the same estimator, and one of the two models has to be the other one with restrictions added to it.</li>
+      <li>Add nothing to the OUTPUT command. The chi-square of a model is in the section <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> writes in every output without being asked.</li>
+      <li>Only if the estimator of the two runs is MLMV, WLSMV or ULSMV: add the line <code>SAVEDATA: DIFFTEST = deriv.dat;</code> to the input of the less restricted model, add the line <code>ANALYSIS: DIFFTEST = deriv.dat;</code> to the input of the more restricted model, and run the less restricted one first. For those three estimators the difference of the two printed statistics is not a chi-square, and only <span class="mp">M</span><em>plus</em> itself can produce the test.</li>
+      <li>Run both inputs. <span class="mp">M</span><em>plus</em> writes for each one a plain text file with the same name and the extension <code>.out</code>, in the folder the input is in.</li>
+      <li>Drag one <code>.out</code> file onto the first box below and the other onto the second, or press a box and choose the file there. Which file goes in which box makes no difference: the page reads the degrees of freedom of both and treats the model with more of them as the restricted one. The files are read inside your browser and nothing leaves your computer.</li>
+      <li>Read the list headed <em>Compatible with a nesting relation</em>. One line per condition says what was read from the two files: the estimator, the number of observations, the observed dependent variables, the degrees of freedom and the free parameters.</li>
+      <li>Choose the significance level, and say which kind of parameter the restricted model holds fixed. Those two choices decide the level the p-value is compared with and which of the published cutoffs are marked as matching this comparison; they change nothing that was read from the files.</li>
+      <li>Read the test in the table headed with the name of the test the estimator allows, and the sentence written under it for a manuscript. Every number in it comes from the two output files, and no field on this page can change one.</li>
+      <li>Only if the page reports that the scaled test cannot be computed: run the restricted model once more with the unrestricted solution as its starting values and <code>ANALYSIS: ITERATIONS = 0;</code>, and drop that third output in the box at the end of the loading section.</li>
+    </ol>
+    <p>The page refuses four kinds of file and says which one and why: an empty file; a file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, which is not an output; a file that stops before the sections following the fit statistics, which comes from a run that was interrupted; and a file written with the abbreviated invariance syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code>, which holds several models so that no single chi-square belongs to it. It also refuses to compute anything when the estimator cannot be read on the <code>Estimator</code> line of either file, because the formula for the test depends on which estimator was used, and when the two files report different estimators, different numbers of observations or different dependent variables. Nothing on this page can be typed in: every number it computes with is read from an output file.</p>
+  </section>
 
   <section aria-labelledby="h-load">
     <h2 id="h-load">Load the two outputs</h2>
-    <p>Drop one <span class="mp">M</span><em>plus</em> output file in each zone, or press a zone to choose a file. The page identifies the restricted model on its own: the one with more degrees of freedom is treated as H0. Files are read by your browser and are not transmitted anywhere.</p>
+    <p>Drop one <span class="mp">M</span><em>plus</em> output file in each box, or press a box to choose a file.</p>
 
     <div class="zones">
       <label class="drop" id="dropA" for="pickA">
-        <strong>Model A</strong>
-        <span class="hint" id="detA">Drop the first .out file here, or press to choose one</span>
+        <strong>First output file</strong>
+        <span class="hint" id="detA">Drop one .out file here, or press to choose it</span>
         <input type="file" id="pickA" accept=".out,.txt,.log,text/plain">
         <span class="file-name" id="fileA"></span>
       </label>
       <label class="drop" id="dropB" for="pickB">
-        <strong>Model B</strong>
-        <span class="hint" id="detB">Drop the second .out file here, or press to choose one</span>
+        <strong>Second output file</strong>
+        <span class="hint" id="detB">Drop the other .out file here, or press to choose it</span>
         <input type="file" id="pickB" accept=".out,.txt,.log,text/plain">
         <span class="file-name" id="fileB"></span>
       </label>
     </div>
 
     <div class="actions">
-      <button type="button" class="secondary" id="btnManual">Enter the numbers by hand</button>
-      <button type="button" class="secondary" id="btnReset">Clear everything</button>
+      <button type="button" class="secondary" id="btnReset">Remove both files and start again</button>
     </div>
 
     <details id="spBox">
-      <summary>Third output, for the strictly positive scaled test (Satorra &amp; Bentler, 2010)</summary>
-      <p>This file is needed only when the standard scaled difference test cannot be computed, that is when the difference scaling correction <code>cd</code> is zero or negative, or when the test statistic comes out negative. It is a run of the <em>restricted</em> model in which every parameter starts at the unrestricted solution and the estimation is stopped before the first update (<code>ANALYSIS: ITERATIONS = 0;</code>). The page takes from it only the scaling correction factor of the chi-square, written <code>c10</code>.</p>
+      <summary>Third output, needed only when the scaled test cannot be computed</summary>
+      <p>Load a file here only when the page reports that the scaled difference test gave a correction factor that is zero or negative, or a negative statistic. The file is a further run of the <em>restricted</em> model in which every parameter starts at the unrestricted solution and the estimation is stopped before the first update, which is what <code>ANALYSIS: ITERATIONS = 0;</code> does. From it the page reads one number and nothing else: the scaling correction factor of the chi-square, written c<sub>10</sub> (Satorra &amp; Bentler, 2010).</p>
       <label class="drop" id="dropC" for="pickC">
         <strong>Restricted model at the unrestricted solution, zero iterations</strong>
-        <span class="hint" id="detC">Drop the extra .out file here, or press to choose one</span>
+        <span class="hint" id="detC">Drop the third .out file here, or press to choose it</span>
         <input type="file" id="pickC" accept=".out,.txt,.log,text/plain">
         <span class="file-name" id="fileC"></span>
       </label>
@@ -81,18 +94,21 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
   </section>
 
   <section id="valuesSection" aria-labelledby="h-values" hidden>
-    <h2 id="h-values">Values used in the computation</h2>
-    <p>Every number below comes from the output file named in the card, and every one of them can be corrected or typed in by hand. Press <em>Recompute</em> after an edit.</p>
+    <h2 id="h-values">What was read from each file</h2>
+    <p>These are the values the test is computed from. They are read from the output files and cannot be edited here: a value read from an output is the value used.</p>
     <div class="cards">
       <div class="card" id="cardA"></div>
       <div class="card" id="cardB"></div>
     </div>
+  </section>
 
+  <section id="settingsSection" aria-labelledby="h-settings" hidden>
+    <h2 id="h-settings">Two choices about how to read the result</h2>
     <fieldset>
-      <legend>Settings</legend>
+      <legend>Choices</legend>
       <div class="row">
         <div class="field">
-          <label for="selAlpha">Significance level</label>
+          <label for="selAlpha">Compare the p-value with this significance level</label>
           <select id="selAlpha">
             <option value="0.05" selected>.05</option>
             <option value="0.01">.01</option>
@@ -100,35 +116,24 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
           </select>
         </div>
         <div class="field">
-          <label for="selConstraint">Parameters constrained in H0</label>
+          <label for="selConstraint">Say which parameters the restricted model holds fixed</label>
           <select id="selConstraint">
-            <option value="unstated" selected>not stated</option>
+            <option value="unstated" selected>leave it unsaid; mark no cutoff as matching</option>
             <option value="loadings">loadings</option>
-            <option value="intercepts">intercepts, thresholds or residuals</option>
+            <option value="intercepts">intercepts, thresholds or residual variances</option>
           </select>
-          <span class="hint">Chen (2007) proposed a stricter SRMR cutoff for intercepts, thresholds and residuals than for loadings.</span>
+          <span class="hint">Chen (2007) proposed a stricter SRMR cutoff for intercepts, thresholds and residual variances than for loadings. This choice only decides which published cutoff is marked as matching the comparison.</span>
         </div>
-        <div class="field">
-          <label class="check" for="chkUnequal"><input type="checkbox" id="chkUnequal"> Group sizes are unequal</label>
-          <span class="hint">Checked automatically when the per-group sample sizes read from the output differ by more than half.</span>
-        </div>
-      </div>
-      <div class="actions">
-        <button type="button" id="btnCompare">Recompute</button>
       </div>
     </fieldset>
   </section>
 
-  </div>
-
   <section aria-labelledby="h-results">
     <h2 id="h-results">Results</h2>
     <div id="results" aria-live="polite">
-      <div class="status info"><span class="tag">Waiting</span> Load two <span class="mp">M</span><em>plus</em> output files, or press <em>Enter the numbers by hand</em>.</div>
+      <div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an <span class="mp">M</span><em>plus</em> output file on each of the two boxes above; the test appears here as soon as both have been read.</div>
     </div>
   </section>
-
-  </div>
 
   <section class="tracks" aria-labelledby="h-methods">
     <h2 id="h-methods">Methods and formulas</h2>
@@ -138,28 +143,27 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
 
     <h3>Classical difference test: ML, MLF, GLS, WLS</h3>
     <p>These estimators produce a statistic that is asymptotically chi-square distributed, and the difference of two such statistics is again chi-square distributed:</p>
-    <pre class="formula">T  = chi2_0 - chi2_1
-df = df_0 - df_1</pre>
+    <div class="eq"><span class="eq-in"><var>T</var> = χ²<sub>0</sub> <span class="op">−</span> χ²<sub>1</sub></span>,<span class="op"> </span> <span class="eq-in">Δ<var>df</var> = <var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span></div>
+    <p class="where">Here <var>T</var> is the difference statistic, χ²<sub>0</sub> and <var>df</var><sub>0</sub> are the chi-square and the degrees of freedom of the restricted model, χ²<sub>1</sub> and <var>df</var><sub>1</sub> are those of the free model, and Δ<var>df</var> is the number of degrees of freedom the test is referred to.</p>
     <p>MLF differs from ML in the standard errors, which use the first-order derivative information matrix; the chi-square test of model fit it prints is the ML statistic, so the classical difference applies to MLF unchanged.</p>
 
     <h3>Scaled difference test: MLR, MLM, WLSM</h3>
-    <p>These estimators print a statistic that has already been divided by a scaling correction factor c, so the scaled difference test of Satorra and Bentler (2001) multiplies the printed values back before differencing them:</p>
-    <pre class="formula">cd = (df_0 * c_0 - df_1 * c_1) / (df_0 - df_1)
-T  = (chi2_0 * c_0 - chi2_1 * c_1) / cd</pre>
-    <p>T is referred to a chi-square distribution with df_0 - df_1 degrees of freedom. The factors c_0 and c_1 are the values <span class="mp">M</span><em>plus</em> prints as <code>Scaling Correction Factor</code> under the chi-square of each model. Subtracting the two printed statistics without the correction does not give a chi-square statistic.</p>
+    <p>These estimators print a statistic that has already been divided by a scaling correction factor <span class="eq-in"><var>c</var></span>, so the scaled difference test of Satorra and Bentler (2001) multiplies the printed values back before differencing them:</p>
+    <div class="eq"><span class="eq-in"><var>c</var><sub><var>d</var></sub> = <span class="frac"><span class="num"><var>df</var><sub>0</sub> <var>c</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span></span></span>,<span class="op"> </span> <span class="eq-in"><var>T</var> = <span class="frac"><span class="num">χ²<sub>0</sub> <var>c</var><sub>0</sub> <span class="op">−</span> χ²<sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>c</var><sub><var>d</var></sub></span></span></span></div>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>df</var><sub>0</sub> and <var>df</var><sub>1</sub> are the degrees of freedom of the restricted and of the free model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their scaling correction factors, χ²<sub>0</sub> and χ²<sub>1</sub> are the chi-square values printed for them, and <var>T</var> is the difference statistic.</p>
+    <p><var>T</var> is referred to a chi-square distribution with <span class="eq-in"><var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span> degrees of freedom. The factors <span class="eq-in"><var>c</var><sub>0</sub></span> and <span class="eq-in"><var>c</var><sub>1</sub></span> are the values <span class="mp">M</span><em>plus</em> prints as <code>Scaling Correction Factor</code> under the chi-square of each model. Subtracting the two printed statistics without the correction does not give a chi-square statistic.</p>
 
     <h3>Log-likelihood version of the scaled test</h3>
-    <p>When both outputs report an H0 log-likelihood and its scaling correction factor, the same test can be computed from the log-likelihoods, with p the number of free parameters and c the H0 correction factor:</p>
-    <pre class="formula">cd = (p_0 * c_0 - p_1 * c_1) / (p_0 - p_1)
-T  = -2 * (L_0 - L_1) / cd
-df = p_1 - p_0</pre>
+    <p>When both outputs report an H0 log-likelihood and its scaling correction factor, the same test can be computed from the log-likelihoods:</p>
+    <div class="eq"><span class="eq-in"><var>c</var><sub><var>d</var></sub> = <span class="frac"><span class="num"><var>q</var><sub>0</sub> <var>c</var><sub>0</sub> <span class="op">−</span> <var>q</var><sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>q</var><sub>0</sub> <span class="op">−</span> <var>q</var><sub>1</sub></span></span></span>,<span class="op"> </span> <span class="eq-in"><var>T</var> = <span class="frac"><span class="num"><span class="op">−</span>2 (<var>L</var><sub>0</sub> <span class="op">−</span> <var>L</var><sub>1</sub>)</span><span class="den"><var>c</var><sub><var>d</var></sub></span></span></span>,<span class="op"> </span> <span class="eq-in">Δ<var>df</var> = <var>q</var><sub>1</sub> <span class="op">−</span> <var>q</var><sub>0</sub></span></div>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>q</var><sub>0</sub> and <var>q</var><sub>1</sub> are the numbers of free parameters of the restricted and of the free model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their H0 scaling correction factors, <var>L</var><sub>0</sub> and <var>L</var><sub>1</sub> are their H0 log-likelihoods, <var>T</var> is the difference statistic and Δ<var>df</var> is the number of degrees of freedom it is referred to.</p>
     <p>The page computes both versions when it can and reports them together. They answer the same question and should agree; a disagreement is flagged, because with the same data and the same nesting it points to an inconsistency between the two files rather than to a substantive result.</p>
 
     <h3>Strictly positive scaled test</h3>
-    <p>The scaled difference test can produce a non-positive cd or a negative T, and neither outcome is a non-significant test: the test is simply not computable in that form. Satorra and Bentler (2010) give a version that is strictly positive by construction, and Bryant and Satorra (2012) set out the steps. It needs one additional <span class="mp">M</span><em>plus</em> run of the restricted model in which the unrestricted solution supplies the starting values and the estimation is stopped before the first update, so that <span class="mp">M</span><em>plus</em> evaluates the restricted model at the unrestricted estimates and prints the scaling correction factor of that evaluation, written c10. With that factor the correction becomes</p>
-    <pre class="formula">cd* = (df_0 * c10 - df_1 * c_1) / (df_0 - df_1)
-T   = (chi2_0 * c_0 - chi2_1 * c_1) / cd*</pre>
-    <p>Load that output in the third zone above and the page computes T with cd* in place of cd.</p>
+    <p>The scaled difference test can produce a non-positive <span class="eq-in"><var>c</var><sub><var>d</var></sub></span> or a negative <var>T</var>, and neither outcome is a non-significant test: the test is simply not computable in that form. Satorra and Bentler (2010) give a version that is strictly positive by construction, and Bryant and Satorra (2012) set out the steps. It needs one additional <span class="mp">M</span><em>plus</em> run of the restricted model in which the unrestricted solution supplies the starting values and the estimation is stopped before the first update, so that <span class="mp">M</span><em>plus</em> evaluates the restricted model at the unrestricted estimates and prints the scaling correction factor of that evaluation, written <span class="eq-in"><var>c</var><sub>10</sub></span>. With that factor the correction becomes</p>
+    <div class="eq"><span class="eq-in"><var>c</var><sub><var>d</var></sub>′ = <span class="frac"><span class="num"><var>df</var><sub>0</sub> <var>c</var><sub>10</sub> <span class="op">−</span> <var>df</var><sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span></span></span>,<span class="op"> </span> <span class="eq-in"><var>T</var> = <span class="frac"><span class="num">χ²<sub>0</sub> <var>c</var><sub>0</sub> <span class="op">−</span> χ²<sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>c</var><sub><var>d</var></sub>′</span></span></span></div>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub>′ is the strictly positive difference scaling correction, <var>c</var><sub>10</sub> is the scaling correction factor of the restricted model evaluated at the unrestricted solution, <var>df</var><sub>0</sub>, <var>df</var><sub>1</sub>, <var>c</var><sub>0</sub>, <var>c</var><sub>1</sub>, χ²<sub>0</sub> and χ²<sub>1</sub> are the quantities of the previous formula, and <var>T</var> is the difference statistic.</p>
+    <p>Load that third output in the box at the end of the loading section and the page computes <var>T</var> with <span class="eq-in"><var>c</var><sub><var>d</var></sub>′</span> in place of <span class="eq-in"><var>c</var><sub><var>d</var></sub></span>.</p>
 
     <h3>Mean- and variance-adjusted estimators: MLMV, WLSMV, ULSMV</h3>
     <p>These estimators adjust both the mean and the variance of the test statistic, and the degrees of freedom <span class="mp">M</span><em>plus</em> prints for them are not the difference between the number of moments and the number of free parameters. The difference of two such statistics is not chi-square distributed under any rescaling, so the test has to be produced by <span class="mp">M</span><em>plus</em> itself with the DIFFTEST option (Asparouhov &amp; Muthén, 2006), in two runs:</p>
@@ -188,7 +192,7 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
     <p>A change exactly equal to a cutoff is counted here as within it. These values come from simulation studies run under specific conditions of sample size, number of groups, number of indicators and type of misspecification, and they do not replace the evaluation of the model: a change within a cutoff is not evidence that the constraints hold, and a change beyond it is not by itself grounds for rejecting them. When the checks find something that a nesting relation excludes, the two sets of fit values are still shown but the cutoffs are not applied, because they were derived for nested comparisons. The information criteria are compared only when the two runs used the same number of observations, since they are on the scale of the log-likelihood of the sample.</p>
 
     <h3>Self-test</h3>
-    <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome and the number of checks at the top. They cover the upper tail of the chi-square distribution against eighty published quantiles from 1 to 100 degrees of freedom and against a series and continued-fraction implementation written separately for the purpose; the classical difference, the Satorra-Bentler scaled difference, its strictly positive form and the log-likelihood version, each over more than a thousand randomly drawn problems, with the cases that cannot be computed counted separately to confirm that they are refused rather than reported; the differences in the fit indices; both sides of every cutoff the page can show, including a change exactly equal to it; the bands of the Raftery and of the Burnham and Anderson scales at their boundaries; the parser on synthetic outputs for every estimator, on a file written with the abbreviated invariance syntax, on a truncated file, on an empty file, on a file that is not an output, on runs that did not converge and on runs with errors and with warnings; three groups of unequal size; values that cannot be right typed by hand; and the decoding of Windows-1252, UTF-8 with and without a byte-order mark, and UTF-16 in both byte orders.</p>
+    <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome and the number of checks at the top. They cover the upper tail of the chi-square distribution against eighty published quantiles from 1 to 100 degrees of freedom and against a series and continued-fraction implementation written separately for the purpose; the classical difference, the Satorra-Bentler scaled difference, its strictly positive form and the log-likelihood version, each over more than a thousand randomly drawn problems, with the cases that cannot be computed counted separately to confirm that they are refused rather than reported; the differences in the fit indices; both sides of every cutoff the page can show, including a change exactly equal to it; the bands of the Raftery and of the Burnham and Anderson scales at their boundaries; the parser on synthetic outputs for every estimator, on a file written with the abbreviated invariance syntax, on a truncated file, on an empty file, on a file that is not an output, on runs that did not converge and on runs with errors and with warnings; three groups of unequal size; values an output file should never contain, such as a negative chi-square or a scaling correction factor of zero; and the decoding of Windows-1252, UTF-8 with and without a byte-order mark, and UTF-16 in both byte orders.</p>
   </section>
 
   <section class="tracks" aria-labelledby="h-refs">
@@ -278,14 +282,13 @@ function emptyModel(fileName){
     parameters:null, chi2:null, df:null, p:null, scf:null, h0LL:null, h0SCF:null,
     aic:null, bic:null, abic:null, cfi:null, tli:null, rmsea:null, srmr:null,
     depVars:null, model:null, modelByGroup:false, labelConstraints:0, fixedConstraints:0,
-    difftest:null, shortcut:null, notes:[], typed:true,
+    difftest:null, shortcut:null, notes:[],
     empty:false, isMplus:false, truncated:false, converged:false, notConverged:false,
     nWarnings:0, nErrors:0 };
 }
 
 function parseMplus(text, fileName){
   var r = emptyModel(fileName);
-  r.typed = false;
   var m;
 
   m = text.match(/^\s*Estimator\s+([A-Z]+)\s*$/m);
@@ -516,17 +519,15 @@ function fixedAtZero(v){
 }
 
 /* ---------- Necessary conditions for nesting ---------- */
-/* Why a model has no chi-square, in the words of the case at hand. A generic
-   "type the numbers in" would be wrong for a file that is not an output at all,
-   for an estimator that prints no chi-square, and for a file holding several
-   models, and in the last two cases typing numbers in would not help. */
+/* Why a model has no chi-square, in the words of the case at hand: what is
+   wrong with this file, and what to do about it. The reason differs for a file
+   that is not an output at all, for an estimator that prints no chi-square, and
+   for a file holding several models, so one message would fit none of them. */
 function whyNoStatistic(m, label){
   var nm = esc(label), est = m.estimator ? String(m.estimator).toUpperCase() : null;
-  if(m.typed && m.chi2===null && m.df===null)
-    return nm + " has no numbers yet. Type its chi-square, its degrees of freedom and its estimator into the card above.";
   if(m.empty)
     return "The file loaded as " + nm + " is empty. Load the .out file " + MP + " wrote, not an empty or partly saved copy of it.";
-  if(!m.typed && !m.isMplus)
+  if(!m.isMplus)
     return "The file loaded as " + nm + " carries none of the headings " + MP + " always writes, so it was not read: it is not an " + MP +
       " output. Load the .out file itself rather than a data file, a saved table or a fragment copied out of the output.";
   if(m.shortcut)
@@ -548,7 +549,7 @@ function whyNoStatistic(m, label){
   if(m.noFitSection)
     return "The heading “MODEL FIT INFORMATION” does not appear in " + nm + ", so no fit statistic was read. Nothing is searched outside that section, because the echoed input at the top of the file contains the same words. " +
       "Analyses run with <code>TYPE = BASIC</code>, and EFA runs, print no such section.";
-  return "The section “Chi-Square Test of Model Fit” of " + nm + " is missing or incomplete, so the chi-square or the degrees of freedom could not be read. Type them into the card above and press Recompute.";
+  return "The section “Chi-Square Test of Model Fit” of " + nm + " is incomplete or absent, so the chi-square or the degrees of freedom could not be read, and this page computes with nothing it has not read. Check that the run finished and that the model is one for which " + MP + " prints a chi-square test of model fit, then load the complete output again.";
 }
 
 function evaluateNesting(A,B){
@@ -576,12 +577,12 @@ function evaluateNesting(A,B){
       estimator = String(H0.estimator).toUpperCase();
       method = methodOf(estimator);
       if(method) add("ok","Both models were estimated with "+esc(estimator)+".");
-      else add("bad","The estimator read in both files, "+esc(estimator)+", is not one this page knows how to test. Choose the estimator in the cards above if it was read incorrectly.");
+      else add("bad","The <code>Estimator</code> line of both files reads "+esc(estimator)+", which is not one this page knows how to test (ML, MLF, MLR, MLM, MLMV, GLS, WLS, WLSM, WLSMV, ULS, ULSMV, BAYES). No test is computed, because the formula depends on which estimator was used and the page assumes none.");
     }else{
       add("bad","The two files report different estimators ("+esc(A.estimator)+" and "+esc(B.estimator)+"). The difference test requires the same estimator in both runs; the difference between a chi-square from one estimator and a chi-square from another is not a test statistic.");
     }
   }else{
-    add("bad","The estimator could not be read in "+(H0.estimator?esc(names.H1):esc(names.H0))+". State it in the card above: the page does not assume one, because the formula for the test depends on it.");
+    add("bad","The estimator could not be read on the <code>Estimator</code> line of "+(H0.estimator?esc(names.H1):esc(names.H0))+", so no test is computed. Which difference test applies depends on the estimator, and this page assumes none: check that the file is the complete output of a run that finished, and load it again. Nothing can be typed in to replace it.");
   }
 
   /* Abbreviated invariance syntax: several models in one file, and no way to
@@ -589,7 +590,7 @@ function evaluateNesting(A,B){
   [[H0,names.H0],[H1,names.H1]].forEach(function(pair){
     if(pair[0].shortcut)
       add("bad","<b>"+esc(pair[1])+"</b> was produced with the abbreviated invariance syntax (<code>MODEL = "+esc(pair[0].shortcut.join(" "))+";</code>), so one file holds "+pair[0].shortcut.length+" models ("+esc(pair[0].shortcut.join(", ").toLowerCase())+"), each with its own fit statistics. No single chi-square belongs to that file, and none is read from it. Estimate the two models you want to compare in separate runs, or use the invariance tool, which separates them.");
-    if(pair[0].truncated && !pair[0].typed)
+    if(pair[0].truncated)
       add("bad","The file loaded as <b>"+esc(pair[1])+"</b> ends before " + MP + " finished writing it: the sections that follow the fit statistics are missing. Load the complete output.");
     /* A DIFFTEST block in a run estimated with something other than MLMV,
        WLSMV or ULSMV means the derivatives file came from another analysis. */
@@ -602,7 +603,6 @@ function evaluateNesting(A,B){
   /* 2. Convergence and Mplus messages */
   [[H0,names.H0],[H1,names.H1]].forEach(function(pair){
     var m=pair[0], nm=esc(pair[1]);
-    if(m.typed) return;
     if(m.nErrors)
       add("bad","" + MP + " printed "+m.nErrors+" <b>*** ERROR</b> message(s) in "+nm+". That output does not describe a model that was estimated as specified.");
     if(m.notConverged)
@@ -613,7 +613,7 @@ function evaluateNesting(A,B){
       add("warn","" + MP + " printed "+m.nWarnings+" <b>*** WARNING</b> message(s) in "+nm+". Read them before reporting the comparison.");
   });
 
-  /* 3. Values that cannot be right, whether read or typed */
+  /* 3. Values an output file should never contain */
   [[H0,names.H0],[H1,names.H1]].forEach(function(pair){
     var m=pair[0], nm=esc(pair[1]), bad=[];
     if(m.df!==null && (!isFinite(m.df) || m.df<0 || Math.abs(m.df-Math.round(m.df))>1e-9)) bad.push("degrees of freedom ("+m.df+")");
@@ -622,7 +622,7 @@ function evaluateNesting(A,B){
     if(m.parameters!==null && (!isFinite(m.parameters) || m.parameters<0 || Math.abs(m.parameters-Math.round(m.parameters))>1e-9)) bad.push("free parameters ("+m.parameters+")");
     if(m.scf!==null && (!isFinite(m.scf) || m.scf<=0)) bad.push("scaling correction factor ("+m.scf+")");
     if(bad.length)
-      add("bad","Values that cannot be right in "+nm+": "+esc(bad.join("; "))+". Degrees of freedom and free parameters are non-negative integers, the chi-square is non-negative, and the scaling correction factor is positive. A scaling correction factor of zero in particular would divide the difference test by zero; " + MP + " never prints one.");
+      add("bad","Values that cannot be right were read in "+nm+": "+esc(bad.join("; "))+". Degrees of freedom and free parameters are non-negative integers, the chi-square is non-negative, and the scaling correction factor is positive. A scaling correction factor of zero in particular would divide the difference test by zero; " + MP + " never prints one.");
     /* A model with no degrees of freedom reproduces the covariance matrix
        exactly, so its chi-square is zero by construction. */
     if(m.df===0 && m.chi2!==null && m.chi2 > 0.005)
@@ -753,7 +753,7 @@ function scaledDifference(H0,H1,c10){
       out.error = (out.cd<=0
         ? "The difference scaling correction is not positive (cd = "+fmt(out.cd,4)+")."
         : "The scaled test statistic comes out negative (T = "+fmt(numerator/out.cd)+").")
-        + " With nested models estimated without trouble this does not happen, and it is not a non-significant test: the statistic in this form cannot be referred to a chi-square distribution, and nothing follows from it for H0 or for H1. The strictly positive version of the test (Satorra &amp; Bentler, 2010) is the way forward. It needs one more " + MP + " run: the restricted model, with the unrestricted solution as starting values and the estimation stopped before the first update (<code>ANALYSIS: ITERATIONS = 0;</code>). Load that output in the third zone at the top of the page and the page recomputes the test with cd* = (df_0 · c10 − df_1 · c_1) / (df_0 − df_1) in place of cd.";
+        + " With nested models estimated without trouble this does not happen, and it is not a non-significant test: the statistic in this form cannot be referred to a chi-square distribution, and nothing follows from it for H0 or for H1. The strictly positive version of the test (Satorra &amp; Bentler, 2010) is the way forward. It needs one more " + MP + " run: the restricted model, with the unrestricted solution as starting values and the estimation stopped before the first update (<code>ANALYSIS: ITERATIONS = 0;</code>). Load that output in the box headed <em>Third output</em> at the end of the loading section and the page recomputes the test with <span class=\'eq-in\'><var>c</var><sub><var>d</var></sub>′ = (<var>df</var><sub>0</sub> <var>c</var><sub>10</sub> − <var>df</var><sub>1</sub> <var>c</var><sub>1</sub>) / (<var>df</var><sub>0</sub> − <var>df</var><sub>1</sub>)</span> in place of <span class=\'eq-in\'><var>c</var><sub><var>d</var></sub></span>.";
       return out;
     }
   }
@@ -1116,14 +1116,16 @@ function readTextFile(file, then, fail){
 var state = { A:null, B:null, C:null };
 function el(id){ return document.getElementById(id); }
 
+/* What the card shows, in the order it is shown. Every one of these values is
+   read from the output file; none of them can be edited on this page. */
 var FIELDS = [
-  {key:"n",          label:"Observations (N)",              step:"1"},
-  {key:"parameters", label:"Free parameters",               step:"1"},
-  {key:"chi2",       label:"Chi-square value",              step:"any"},
-  {key:"df",         label:"Degrees of freedom",            step:"1"},
-  {key:"scf",        label:"Scaling correction factor",     step:"any"},
-  {key:"h0LL",       label:"H0 log-likelihood",             step:"any"},
-  {key:"h0SCF",      label:"H0 scaling correction factor",  step:"any"}
+  {key:"n",          label:"Observations (N)",             dec:0},
+  {key:"parameters", label:"Free parameters",              dec:0},
+  {key:"chi2",       label:"Chi-square value",             dec:3},
+  {key:"df",         label:"Degrees of freedom",           dec:0},
+  {key:"scf",        label:"Scaling correction factor",    dec:4},
+  {key:"h0LL",       label:"H0 log-likelihood",            dec:3},
+  {key:"h0SCF",      label:"H0 scaling correction factor", dec:4}
 ];
 
 function wireZone(letter){
@@ -1153,21 +1155,17 @@ function loadFile(file, letter){
       /* The third zone is read for one number only, so its own problems have to
          be reported here rather than through the comparison of the two models. */
       var cMsg = "";
-      if(parsed.empty) cMsg = "The file loaded in the third zone is empty.";
-      else if(!parsed.isMplus) cMsg = "The file loaded in the third zone is not an " + MP + " output.";
-      else if(parsed.scf === null) cMsg = "The file loaded in the third zone carries no “Scaling Correction Factor” under its chi-square, so the factor c10 that the strictly positive test needs could not be read. That factor is printed only when the run uses MLR, MLM or WLSM.";
-      el("detC").innerHTML = cMsg ? "Read, but nothing usable was found in it" : "File loaded; press to replace it";
+      if(parsed.empty) cMsg = "The file dropped in this box is empty. Load the .out file " + MP + " wrote.";
+      else if(!parsed.isMplus) cMsg = "The file dropped in this box is not an " + MP + " output: it carries none of the headings " + MP + " always writes. Load the .out file itself.";
+      else if(parsed.scf === null) cMsg = "The file dropped in this box carries no “Scaling Correction Factor” under its chi-square, so the factor c<sub>10</sub> that the strictly positive test needs could not be read. " + MP + " prints that factor only for MLR, MLM and WLSM. Check that this is the output of the restricted model run with <code>ANALYSIS: ITERATIONS = 0;</code> and the same estimator as the other two.";
+      el("detC").innerHTML = cMsg ? "Read, but the factor this box needs is not in it" : "File read; press to replace it";
       if(cMsg) el("cMsg").innerHTML = '<div class="status warn"><span class="tag">Not used</span> ' + cMsg + '</div>';
-      else el("cMsg").innerHTML = '<div class="status ok"><span class="tag">Read</span> The scaling correction factor of this run is c10 = ' + fmt(parsed.scf,4) + '.</div>';
+      else el("cMsg").innerHTML = '<div class="status ok"><span class="tag">Read</span> The scaling correction factor of this run is c<sub>10</sub> = ' + fmt(parsed.scf,4) + ', and the strictly positive test is computed with it whenever the standard one cannot be computed.</div>';
     }else{
       state[letter] = parsed;
-      if(parsed.groupNs && parsed.groupNs.length>1){
-        var lo = Math.min.apply(null, parsed.groupNs), hi = Math.max.apply(null, parsed.groupNs);
-        if(lo>0 && hi/lo > 1.5) el("chkUnequal").checked = true;
-      }
       el("det"+letter).innerHTML = parsed.empty
-        ? "The file that was chosen is empty"
-        : (parsed.isMplus ? "File loaded; press to replace it" : "Read, but this is not an " + MP + " output");
+        ? "This file is empty; press to choose another"
+        : (parsed.isMplus ? "File read; press to replace it" : "Read, but this is not an " + MP + " output");
     }
     el("drop"+letter).classList.add("filled");
     el("file"+letter).textContent = file.name;
@@ -1181,31 +1179,36 @@ function loadFile(file, letter){
 
 function showValues(){
   if(state.A || state.B) el("valuesSection").hidden = false;
+  el("settingsSection").hidden = !(state.A && state.B);
+}
+
+/* Whether the groups are of unequal size is a fact about the two runs, read
+   from the per-group sample sizes the output prints. It decides which of the
+   cutoffs proposed by Chen (2007) matches this comparison, and it is not a
+   choice: when the sizes cannot be read, neither set is marked as matching. */
+function unequalGroups(){
+  var gn = (state.A && state.A.groupNs) || (state.B && state.B.groupNs);
+  if(!gn || gn.length < 2) return null;
+  var lo = Math.min.apply(null, gn), hi = Math.max.apply(null, gn);
+  return lo > 0 ? (hi / lo > 1.5) : null;
 }
 
 function drawCard(letter){
   var m = state[letter];
   var box = el("card"+letter);
   if(!m){ box.innerHTML = ""; return; }
-  var idBase = "f-"+letter+"-";
-  var h = '<h3>Model '+letter+'</h3>';
-  h += '<p class="card-note">'+(m.fileName ? "File: "+esc(m.fileName) : "Typed in by hand")+'</p>';
-
-  h += '<div class="field"><label for="'+idBase+'est">Estimator</label><select id="'+idBase+'est" data-l="'+letter+'" data-c="estimator">';
-  var known = m.estimator ? ESTIMATOR_LIST.indexOf(String(m.estimator).toUpperCase()) >= 0 : false;
-  h += '<option value=""'+(m.estimator?"":" selected")+'>— state the estimator —</option>';
-  ESTIMATOR_LIST.forEach(function(e){
-    h += '<option value="'+e+'"'+((known && String(m.estimator).toUpperCase()===e)?" selected":"")+'>'+e+'</option>';
-  });
-  if(m.estimator && !known)
-    h += '<option value="'+esc(m.estimator)+'" selected>'+esc(m.estimator)+' (read from the file)</option>';
-  h += '</select></div>';
-
+  var h = '<h3>' + (letter === "A" ? "First" : "Second") + ' output file</h3>';
+  h += '<p class="card-note">'+esc(m.fileName)+'</p>';
+  h += '<dl class="kv">';
+  h += '<dt>Estimator</dt><dd>' + (m.estimator
+      ? esc(String(m.estimator).toUpperCase())
+      : 'not read from the file') + '</dd>';
   FIELDS.forEach(function(f){
     var v = m[f.key];
-    h += '<div class="field"><label for="'+idBase+f.key+'">'+f.label+'</label>'
-      +  '<input type="number" step="'+f.step+'" id="'+idBase+f.key+'" data-l="'+letter+'" data-c="'+f.key+'" value="'+(v===null||v===undefined?"":v)+'"></div>';
+    if(v === null || v === undefined) return;
+    h += '<dt>'+f.label+'</dt><dd>'+esc(f.dec === 0 ? String(v) : fmt(v, f.dec))+'</dd>';
   });
+  h += '</dl>';
 
   var extra = [];
   if(m.cfi!==null) extra.push("CFI = "+fmt(m.cfi,3));
@@ -1225,18 +1228,6 @@ function drawCard(letter){
     h += '<div class="status warn"><span class="tag">Not read</span> '+m.notes.join(" ")+'</div>';
 
   box.innerHTML = h;
-  Array.prototype.forEach.call(box.querySelectorAll("input,select"), function(inp){
-    inp.addEventListener("change", function(){
-      var mm = state[inp.getAttribute("data-l")], key = inp.getAttribute("data-c");
-      if(key === "estimator"){
-        mm.estimator = inp.value === "" ? null : inp.value;
-      }else{
-        var num = inp.value === "" ? null : parseFloat(inp.value);
-        mm[key] = (num===null || isNaN(num)) ? null : num;
-      }
-      compare();
-    });
-  });
 }
 
 /* ---------- Rendering the results ---------- */
@@ -1301,7 +1292,7 @@ function testPanel(ev, alpha){
   var ddf = H0.df - H1.df;
 
   if(!ev.method){
-    out.html = '<div class="status bad"><span class="tag">No test</span> The estimator has to be stated before any difference test can be computed, because the formula depends on it. Choose it in the cards above.</div>';
+    out.html = '<div class="status bad"><span class="tag">No test</span> The estimator was not read from the two files, so no difference test is computed: which test applies depends on it, and this page assumes none. Load the complete output of each run again.</div>';
     return out;
   }
   if(ev.method === "nochi2"){
@@ -1368,13 +1359,13 @@ function testPanel(ev, alpha){
         ? (test.strictlyPositive ? "Strictly positive scaled difference test" : "Scaled difference test") + " of " + esc(ev.names.H0) + " against " + esc(ev.names.H1)
         : "Chi-square difference test of " + esc(ev.names.H0) + " against " + esc(ev.names.H1))
     + '</caption>'
-    + '<tr>' + (test.kind==="scaled" ? '<th scope="col" class="num">'+(test.strictlyPositive?"cd*":"cd")+'</th>' : '')
+    + '<tr>' + (test.kind==="scaled" ? '<th scope="col" class="num">'+(test.strictlyPositive?"<var>c</var><sub><var>d</var></sub>′":"<var>c</var><sub><var>d</var></sub>")+'</th>' : '')
     + '<th scope="col" class="num">'+symbol+'</th><th scope="col" class="num">Δdf</th><th scope="col" class="num">p</th></tr>'
     + '<tr>' + (test.kind==="scaled" ? '<td class="num">'+fmt(test.strictlyPositive?test.cdStar:test.cd,4)+'</td>' : '')
     + '<td class="num">'+fmt(test.stat,3)+'</td><td class="num">'+test.ddf+'</td><td class="num">'+fmtP(test.p)+'</td></tr></table></div>';
 
   if(test.strictlyPositive)
-    body += '<div class="status info"><span class="tag">Strictly positive</span> The standard correction gave a value that cannot be referred to a chi-square distribution, so the statistic was computed with cd* = '+fmt(test.cdStar,4)+', built from the scaling correction factor c10 = '+fmt(test.c10,4)+' of the third output (Satorra &amp; Bentler, 2010).</div>';
+    body += '<div class="status info"><span class="tag">Strictly positive</span> The standard correction gave a value that cannot be referred to a chi-square distribution, so the statistic was computed with <span class="eq-in"><var>c</var><sub><var>d</var></sub>′</span> = '+fmt(test.cdStar,4)+', built from the scaling correction factor <span class="eq-in"><var>c</var><sub>10</sub></span> = '+fmt(test.c10,4)+' of the third output (Satorra &amp; Bentler, 2010).</div>';
 
   var sig = test.p < alpha, alphaText = String(alpha).replace(/^0\./,".");
   body += '<div class="status '+(sig?"bad":"ok")+'"><span class="tag">'+(sig?"Significant":"Not significant")+'</span> '
@@ -1386,7 +1377,7 @@ function testPanel(ev, alpha){
 
   if(test.ll){
     body += '<details><summary>The same test computed from the log-likelihoods</summary>'
-      + '<p>cd = '+fmt(test.ll.cd,4)+', T = '+fmt(test.ll.stat,3)+', df = '+test.ll.ddf+', p = '+fmtP(test.ll.p)+'. '
+      + '<p><span class="eq-in"><var>c</var><sub><var>d</var></sub></span> = '+fmt(test.ll.cd,4)+', <var>T</var> = '+fmt(test.ll.stat,3)+', Δ<var>df</var> = '+test.ll.ddf+', p = '+fmtP(test.ll.p)+'. '
       + (test.ll.ddf === test.ddf
           ? 'Small differences from the chi-square version come from rounding in the printed values.'
           : 'Here the degrees of freedom are '+test.ll.ddf+', the difference in free parameters, against '+test.ddf+' for the chi-square version. When the two counts differ, the two tests are not asking the same question, and the count that matches the restrictions actually imposed is the one to use.')
@@ -1486,8 +1477,12 @@ function icOnlyPanel(ev){
 
 function compare(){
   var box = el("results");
+  if(!state.A && !state.B){
+    box.innerHTML = '<div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an ' + MP + ' output file on each of the two boxes above; the test appears here as soon as both have been read.</div>';
+    return;
+  }
   if(!state.A || !state.B){
-    box.innerHTML = '<div class="status info"><span class="tag">Waiting</span> One model is loaded. Add the second output, or type its numbers into the card.</div>';
+    box.innerHTML = '<div class="status info"><span class="tag">Waiting for the second file</span> One output has been read. Drop the output of the other model on the empty box above. A difference test needs two runs, and this page computes with nothing it has not read from a file.</div>';
     return;
   }
   var ev = evaluateNesting(state.A, state.B);
@@ -1499,7 +1494,7 @@ function compare(){
   var ctx = {
     n: (ev.H0.n!==null && ev.H1.n!==null) ? Math.min(ev.H0.n, ev.H1.n) : (ev.H0.n!==null ? ev.H0.n : ev.H1.n),
     nGroups: ev.H0.nGroups!==null ? ev.H0.nGroups : ev.H1.nGroups,
-    unequalGroups: el("chkUnequal").checked,
+    unequalGroups: unequalGroups() === true,
     constraint: el("selConstraint").value
   };
 
@@ -1558,31 +1553,22 @@ function copySentence(text){
 
 /* ---------- Wiring ---------- */
 ["A","B","C"].forEach(wireZone);
-el("btnCompare").addEventListener("click", compare);
 el("selAlpha").addEventListener("change", compare);
 el("selConstraint").addEventListener("change", compare);
-el("chkUnequal").addEventListener("change", compare);
-el("btnManual").addEventListener("click", function(){
-  if(!state.A) state.A = emptyModel("");
-  if(!state.B) state.B = emptyModel("");
-  showValues();
-  drawCard("A"); drawCard("B");
-  el("results").innerHTML = '<div class="status info"><span class="tag">Waiting</span> Type the chi-square, the degrees of freedom and the estimator of each model into the cards above, then press Recompute.</div>';
-  el("valuesSection").scrollIntoView({block:"nearest"});
-});
 el("btnReset").addEventListener("click", function(){
   state.A = state.B = state.C = null;
   ["A","B","C"].forEach(function(l){
     el("drop"+l).classList.remove("filled");
     el("file"+l).textContent = "";
     el("det"+l).textContent = (l==="C")
-      ? "Drop the extra .out file here, or press to choose one"
-      : "Drop the "+(l==="A"?"first":"second")+" .out file here, or press to choose one";
+      ? "Drop the third .out file here, or press to choose it"
+      : (l==="A" ? "Drop one .out file here, or press to choose it"
+                 : "Drop the other .out file here, or press to choose it");
   });
   el("cardA").innerHTML = ""; el("cardB").innerHTML = ""; el("cMsg").innerHTML = "";
-  el("chkUnequal").checked = false;
   el("valuesSection").hidden = true;
-  el("results").innerHTML = '<div class="status info"><span class="tag">Waiting</span> Load two ' + MP + ' output files, or press <em>Enter the numbers by hand</em>.</div>';
+  el("settingsSection").hidden = true;
+  el("results").innerHTML = '<div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an ' + MP + ' output file on each of the two boxes above; the test appears here as soon as both have been read.</div>';
 });
 
 /* A file dropped next to a zone rather than inside it would otherwise be opened
@@ -1593,40 +1579,6 @@ el("btnReset").addEventListener("click", function(){
     e.preventDefault();
   }, false);
 });
-
-/* Italian and other European keyboards produce a comma as the decimal
-   separator. A number input rejects it: Chrome converts it, Safari leaves the
-   field empty without saying so. Here the comma becomes a point as it is typed
-   and as it is pasted, on every browser. */
-(function(){
-  function isNumberField(t){ return t && t.tagName === "INPUT" && t.type === "number"; }
-  document.addEventListener("keydown", function(e){
-    if(e.key !== "," || e.ctrlKey || e.metaKey || e.altKey) return;
-    var t = e.target;
-    if(!isNumberField(t)) return;
-    e.preventDefault();
-    var done = false;
-    try{ done = document.execCommand("insertText", false, "."); }catch(err){ done = false; }
-    if(!done) t.value = (t.value || "") + ".";
-    t.dispatchEvent(new Event("input", {bubbles:true}));
-    t.dispatchEvent(new Event("change", {bubbles:true}));
-  }, true);
-  document.addEventListener("paste", function(e){
-    var t = e.target;
-    if(!isNumberField(t)) return;
-    var data = (e.clipboardData || window.clipboardData);
-    if(!data) return;
-    var s = data.getData("text");
-    if(s && s.indexOf(",") >= 0 && /^-?[\d., ]+$/.test(s)){
-      e.preventDefault();
-      var v = s.replace(/\s/g,"").replace(/\.(?=.*[.,])/g,"").replace(",",".");
-      try{ if(!document.execCommand("insertText", false, v)) t.value = v; }catch(err){ t.value = v; }
-      t.dispatchEvent(new Event("input", {bubbles:true}));
-      t.dispatchEvent(new Event("change", {bubbles:true}));
-    }
-  }, true);
-})();
-
 
 /* ---------- Self-test ---------- */
 /* Two synthetic outputs per estimator, written to exercise the parser, the
@@ -2535,10 +2487,10 @@ function runSelfTest(){
   var g3eq = parseMplus(mkOut({estimator:"ML", chi2:60, df:20, parameters:30, groupNs:[200,210,205]}), "a.out");
   contains("three groups of comparable size", messageFor(g3eq, g3b), "sizes are comparable");
 
-  /* values that cannot be right, typed by hand */
+  /* values an output file should never contain */
   var badVals = emptyModel(""); badVals.chi2 = -3; badVals.df = 5; badVals.estimator = "ML";
   var okVals  = emptyModel(""); okVals.chi2 = 2; okVals.df = 2; okVals.estimator = "ML";
-  contains("a negative chi-square typed by hand", messageFor(badVals, okVals), "cannot be right");
+  contains("a negative chi-square", messageFor(badVals, okVals), "cannot be right");
   var zeroScf = emptyModel(""); zeroScf.chi2 = 30; zeroScf.df = 10; zeroScf.estimator = "MLR"; zeroScf.scf = 0;
   var okScf   = emptyModel(""); okScf.chi2 = 12; okScf.df = 6;  okScf.estimator = "MLR"; okScf.scf = 1.1;
   contains("a scaling correction factor of zero", messageFor(zeroScf, okScf), "scaling correction factor");

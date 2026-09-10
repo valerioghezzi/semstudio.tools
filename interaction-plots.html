@@ -6,6 +6,7 @@
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Draw interaction plots, test simple slopes and locate the Johnson-Neyman region from an Mplus output file, entirely in your browser.">
 <title>Interaction plots and simple slopes · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
 /* Page-specific rules only; everything else comes from the shared stylesheet. */
@@ -26,6 +27,9 @@
 .gridrow select, .gridrow input { width: 100%; max-width: 100%; }
 .gridrow button { padding: 0.35rem 0.5rem; }
 .rowhead { font-size: 0.85rem; color: var(--ink-soft); font-weight: 600; }
+/* The code of a categorical moderator is read from the output, so its cell
+   holds the number itself rather than a field that could change it. */
+.codecell { font-variant-numeric: tabular-nums; padding: 0.45rem 0; }
 /* The figure is drawn at the size at which it will be printed, so it keeps the
    width its own attribute gives it instead of being stretched to the panel,
    and shrinks only when the panel is narrower than that. */
@@ -44,7 +48,7 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
 /* The controls that export a figure: each labelled field keeps the width of
    what it holds, and the two buttons sit together at the end of the row. */
 .exportbar { display: flex; flex-wrap: wrap; gap: 0.6rem 0.9rem; align-items: end; margin: 0.9rem 0 0; }
-.exportbar .field { margin: 0; flex: 0 0 auto; }
+.exportbar .field { margin: 0; flex: 0 1 auto; min-width: 0; }
 .exportbar input, .exportbar select { max-width: 7.5rem; }
 .exportbar .buttons { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 .legendkey { font-size: 0.9rem; color: var(--ink-soft); }
@@ -58,7 +62,7 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
     <a href="index.html#tools">All tools</a>
   </nav>
   <h1>Interaction plots and simple slopes</h1>
-  <p class="lede">This page reads an <span class="mp">M</span><em>plus</em> output file, draws the interaction between a predictor and a moderator, tests the simple slope of X on Y at chosen values of the moderator, and locates the Johnson&ndash;Neyman thresholds that fall inside the range of the moderator the data cover.</p>
+  <p class="lede">This page reads an <span class="mp">M</span><em>plus</em> output file, draws the interaction between a predictor and a moderator, tests the simple slope of X on Y at chosen values of the moderator, and locates the Johnson&ndash;Neyman thresholds that fall inside the range of the moderator the data cover. Every number it computes with is read from that file, and none of them can be typed in.</p>
   <div class="callout" role="note">
     <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3;</code> for an interaction between observed variables, with <code>TECH4</code> added when the interaction is between latent variables. TECH1 numbers the free parameters and TECH3 prints their covariance matrix: together they give the standard error of a simple slope and the Johnson&ndash;Neyman thresholds, and SAMPSTAT gives the means, standard deviations and observed minimum and maximum used for the levels of the moderator and for the axes.
   </div>
@@ -67,163 +71,143 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
 
 <p id="selftest" class="status info" hidden></p>
 
-<section class="panel" id="p-load" aria-labelledby="s-load">
-  <h2 id="s-load">1. Load the <span class="mp">M</span><em>plus</em> output</h2>
+<section aria-labelledby="s-steps">
+  <h2 id="s-steps">What to do</h2>
+  <ol class="steps">
+    <li>Open the <span class="mp">M</span><em>plus</em> input file of the model that contains the interaction, the file with the extension <code>.inp</code>, and add this line to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3;</code></li>
+    <li>Add <code>TECH4</code> to that same line, so that it reads <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3 TECH4;</code>, only when the interaction is between two latent variables formed with <code>XWITH</code>. TECH4 prints the estimated means and variances of the latent variables, which are not in the sample statistics.</li>
+    <li>Run that input in <span class="mp">M</span><em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the folder the input is in.</li>
+    <li>Drag the <code>.out</code> file onto the box below, or press <em>Choose the .out file</em> and pick it there. The file is read inside your browser and nothing leaves your computer.</li>
+    <li>Read the paragraph headed <em>Output read</em>. It names every regression found in MODEL RESULTS, the estimator, whether TECH1 and TECH3 are in the file, and any row the program printed as asterisks.</li>
+    <li>Choose the dependent variable, the predictor whose slope is drawn, and how the moderator enters the model: one continuous variable, one categorical variable with numeric codes, or a set of dummy variables with one product term each.</li>
+    <li>Choose the moderator and the term that carries the product of the predictor and the moderator. The page names the coefficients it read for them; those values cannot be changed here.</li>
+    <li>Set the levels of a continuous moderator at which the slope is to be drawn. They start at one standard deviation below the mean, at the mean and at one standard deviation above it, all three read from the file, and you can change them because which levels to draw is a decision about the figure. The codes of a categorical moderator are read from the file and are not adjustable.</li>
+    <li>Read the figure, the table of simple slopes under it, and the Johnson&ndash;Neyman section, which reports the values of the moderator at which the slope stops differing from zero.</li>
+    <li>Set the labels, the axes, the printed width and the resolution, then download the figure as SVG or as PNG.</li>
+  </ol>
+  <p>The page refuses a file that is empty, a file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, a file that ends before MODEL RESULTS because the run was interrupted, a run that did not converge, and an output produced with TYPE = TWOLEVEL, with latent classes, with more than one group or with ESTIMATOR = BAYES, whose MODEL RESULTS sections are laid out differently. It also refuses to report a test when TECH1 and TECH3 are absent, and to draw a categorical moderator whose codes are not in the file. Every number the page computes with is read from the output: there is no field on this page in which a coefficient, a standard error, a mean or a standard deviation can be typed.</p>
+</section>
+
+<section aria-labelledby="s-load">
+  <h2 id="s-load">Load the <span class="mp">M</span><em>plus</em> output</h2>
   <div class="drop" id="drop">
-    <strong>Choose an output file</strong>
-    <label class="visually-hidden" for="file"><span class="mp">M</span><em>plus</em> output file</label>
+    <strong><span class="mp">M</span><em>plus</em> output file</strong>
+    <label class="visually-hidden" for="file">Choose the .out file to read</label>
     <input type="file" id="file" accept=".out,.txt,.OUT,.TXT,.log,text/plain,application/octet-stream">
-    <span class="hint">You can also drag the file anywhere on this page.</span>
+    <span class="hint">Drag the <code>.out</code> file anywhere on this page, or choose it with the button above. Windows-1252, UTF-8 and UTF-16 files are all decoded.</span>
     <span class="file-name" id="fname"></span>
-  </div>
-  <div class="actions">
-    <button type="button" class="secondary" id="manualbtn">Enter coefficients by hand</button>
-    <button type="button" class="secondary" id="restorebtn" hidden>Restore the values read from the output</button>
   </div>
   <div id="loadmsg" role="status" aria-live="polite"></div>
 </section>
 
-<div class="workspace">
+<section class="panel" id="p-vars" aria-labelledby="s-vars" hidden>
+  <h2 id="s-vars">Choose the equation to draw</h2>
 
-<div>
-  <section class="panel" id="p-vars" aria-labelledby="s-vars" hidden>
-    <h2 id="s-vars">2. Variables and coefficients</h2>
+  <div class="row">
+    <div class="field w3"><label for="selY">Choose the variable whose predicted values are drawn (Y)</label><select id="selY"></select></div>
+    <div class="field w3"><label for="selX">Choose the predictor whose slope the moderator changes (X)</label><select id="selX"></select></div>
+  </div>
 
-    <fieldset>
-      <legend>Display metric</legend>
-      <div class="check"><input type="radio" name="metric" id="m-raw" value="raw" checked><label for="m-raw">Original metric of the variables</label></div>
-      <div class="check"><input type="radio" name="metric" id="m-std" value="std"><label for="m-std">Standardized (STDYX): X and Y in standard deviation units</label></div>
-      <p class="hint" id="stdnote"></p>
-    </fieldset>
+  <fieldset>
+    <legend>Scale of the figure</legend>
+    <div class="check"><input type="radio" name="metric" id="m-raw" value="raw" checked><label for="m-raw">Draw the figure in the original metric of the variables</label></div>
+    <div class="check"><input type="radio" name="metric" id="m-std" value="std"><label for="m-std">Draw the figure in standard deviation units, as the STDYX solution does</label></div>
+    <p class="hint" id="stdnote"></p>
+  </fieldset>
 
-    <div class="field"><label for="selY">Dependent variable (Y)</label><select id="selY"></select></div>
-    <div class="field"><label for="selX">Predictor (X)</label><select id="selX"></select></div>
-
-    <fieldset>
-      <legend>Moderator</legend>
-      <div class="field">
-        <label for="wkind">How the moderator enters the model</label>
-        <select id="wkind">
-          <option value="cont">One continuous variable</option>
-          <option value="cat">One categorical variable with numeric codes</option>
-          <option value="dum">A categorical variable represented by k &minus; 1 dummy variables</option>
-        </select>
+  <fieldset>
+    <legend>The moderator</legend>
+    <div class="field">
+      <label for="wkind">Say how the moderator enters the model</label>
+      <select id="wkind">
+        <option value="cont">As one continuous variable</option>
+        <option value="cat">As one categorical variable with numeric codes</option>
+        <option value="dum">As k &minus; 1 dummy variables, one product term each</option>
+      </select>
+    </div>
+    <div id="wsingle">
+      <div class="row">
+        <div class="field w3"><label for="selW">Choose the moderator the slope is read at (W)</label><select id="selW"></select></div>
+        <div class="field w3"><label for="selXW">Choose the term that carries the product of X and W</label><select id="selXW"></select></div>
       </div>
-      <div id="wsingle">
-        <div class="field"><label for="selW">Moderator (W)</label><select id="selW"></select></div>
-        <div class="field"><label for="selXW">Product term (X by W)</label><select id="selXW"></select></div>
-        <p class="hint" id="prodnote"></p>
-      </div>
-      <div id="wdummy" hidden>
-        <div class="field">
-          <label for="modname">Name of the categorical moderator</label>
+      <p class="hint" id="prodnote"></p>
+    </div>
+    <div id="wdummy" hidden>
+      <div class="row">
+        <div class="field w3">
+          <label for="modname">Name the categorical moderator in the legend</label>
           <input type="text" id="modname" value="Group">
         </div>
-        <div class="field">
-          <label for="reflabel">Label of the reference category</label>
+        <div class="field w3">
+          <label for="reflabel">Label the reference category in the legend</label>
           <input type="text" id="reflabel" value="Reference category">
         </div>
-        <p class="rowhead">One row per non-reference category: its dummy variable and the matching product with X.</p>
-        <div id="dumrows"></div>
-        <div class="actions"><button type="button" class="secondary" id="adddum">Add a category</button></div>
-        <p class="hint">The reference category is the one without a dummy variable. Its simple slope is b<sub>1</sub>; the slope in category j is b<sub>1</sub> plus the coefficient of the product of X with the dummy of category j.</p>
       </div>
-    </fieldset>
+      <p class="rowhead">One row per non-reference category: its dummy variable, the matching product with X, and the label its line carries in the legend.</p>
+      <div id="dumrows"></div>
+      <div class="actions"><button type="button" class="secondary" id="adddum">Add a category</button></div>
+      <p class="hint">The reference category is the one without a dummy variable. Its simple slope is <span class="eq-in"><var>b</var><sub>1</sub></span>; the slope in category <var>j</var> is <span class="eq-in"><var>b</var><sub>1</sub> + <var>g</var><sub><var>j</var></sub></span>, with <span class="eq-in"><var>g</var><sub><var>j</var></sub></span> the coefficient of the product of X with the dummy variable of category <var>j</var>.</p>
+    </div>
+  </fieldset>
 
-    <div class="row">
-      <div class="field"><label for="b0">b<sub>0</sub> (intercept of Y)</label><input type="number" id="b0" step="any"></div>
-      <div class="field"><label for="b1">b<sub>1</sub> (X)</label><input type="number" id="b1" step="any"></div>
-    </div>
-    <div class="row" id="rowb23">
-      <div class="field"><label for="b2">b<sub>2</sub> (W)</label><input type="number" id="b2" step="any"></div>
-      <div class="field"><label for="b3">b<sub>3</sub> (product)</label><input type="number" id="b3" step="any"></div>
-    </div>
+  <p class="table-note" id="readnote">What was read from the output for this equation</p>
+  <div id="readvals" aria-live="polite"></div>
+</section>
 
-    <fieldset id="manualse" hidden>
-      <legend>Covariance matrix of b<sub>1</sub> and b<sub>3</sub></legend>
-      <p class="hint">The tests of the simple slopes and the Johnson&ndash;Neyman thresholds need the sampling variances of b<sub>1</sub> and b<sub>3</sub> and their covariance. Leave these fields empty to draw the plot without any test.</p>
-      <div class="row">
-        <div class="field"><label for="se1">SE(b<sub>1</sub>)</label><input type="number" id="se1" step="any" min="0"></div>
-        <div class="field"><label for="se3">SE(b<sub>3</sub>)</label><input type="number" id="se3" step="any" min="0"></div>
-      </div>
-      <div class="row">
-        <div class="field"><label for="cov13">Cov(b<sub>1</sub>, b<sub>3</sub>)</label><input type="number" id="cov13" step="any"></div>
-        <div class="field"><label for="cor13">or Corr(b<sub>1</sub>, b<sub>3</sub>)</label><input type="number" id="cor13" step="any" min="-1" max="1"></div>
-      </div>
-    </fieldset>
+<section class="panel" id="p-levels" aria-labelledby="s-levels" hidden>
+  <h2 id="s-levels">Levels of the moderator</h2>
+  <div class="gridrow four rowhead" aria-hidden="true">
+    <div>W =</div><div>Label</div><div>Dash pattern</div><div>Marker</div><div></div>
+  </div>
+  <div id="levels"></div>
+  <div class="actions"><button type="button" class="secondary" id="addlev">Add a level of the moderator</button></div>
+  <p class="hint" id="levnote"></p>
+</section>
 
-    <div class="row">
-      <div class="field"><label for="mx">Mean of X</label><input type="number" id="mx" step="any" value="0"></div>
-      <div class="field"><label for="sx">SD of X</label><input type="number" id="sx" step="any" value="1"></div>
-    </div>
-    <div class="row" id="rowmw">
-      <div class="field"><label for="mw">Mean of W</label><input type="number" id="mw" step="any" value="0"></div>
-      <div class="field"><label for="sw">SD of W</label><input type="number" id="sw" step="any" value="1"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label for="my">Mean of Y</label><input type="number" id="my" step="any" value="0"></div>
-      <div class="field"><label for="sy">SD of Y</label><input type="number" id="sy" step="any" value="1"></div>
-    </div>
-    <p class="hint">Means and standard deviations come from SAMPLE STATISTICS for observed variables and from TECH4 for latent ones. They remain editable and are used for the levels of the moderator, for the axes and for the standardized display.</p>
-  </section>
-
-  <section class="panel" id="p-levels" aria-labelledby="s-levels" hidden>
-    <h2 id="s-levels">3. Levels of the moderator</h2>
-    <div class="gridrow four rowhead" aria-hidden="true">
-      <div>W =</div><div>Label</div><div>Dash pattern</div><div>Marker</div><div></div>
-    </div>
-    <div id="levels"></div>
-    <div class="actions"><button type="button" class="secondary" id="addlev">Add a level</button></div>
-    <p class="hint" id="levnote"></p>
-  </section>
-
-  <section class="panel" id="p-style" aria-labelledby="s-style" hidden>
-    <h2 id="s-style">4. Labels and style</h2>
-    <div class="field"><label for="ftitle">Title (empty for none: in a manuscript the title belongs in the caption)</label><input type="text" id="ftitle" value=""></div>
-    <div class="row">
-      <div class="field"><label for="labx">Label of the horizontal axis</label><input type="text" id="labx"></div>
-      <div class="field"><label for="laby">Label of the vertical axis</label><input type="text" id="laby"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label for="fontfam">Typeface</label>
-        <select id="fontfam">
-          <option value="Arial, Helvetica, sans-serif">Arial</option>
-          <option value="Helvetica, Arial, sans-serif">Helvetica</option>
-          <option value="&quot;Times New Roman&quot;, Times, serif">Times New Roman</option>
-        </select></div>
-      <div class="field"><label for="fsize">Type size (points at the export width)</label><input type="number" id="fsize" value="10" min="7" max="18" step="0.5"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label for="xmin">Minimum of the horizontal axis</label><input type="number" id="xmin" step="any"></div>
-      <div class="field"><label for="xmax">Maximum of the horizontal axis</label><input type="number" id="xmax" step="any"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label for="ymin">Minimum of the vertical axis (empty for automatic)</label><input type="number" id="ymin" step="any"></div>
-      <div class="field"><label for="ymax">Maximum of the vertical axis (empty for automatic)</label><input type="number" id="ymax" step="any"></div>
-    </div>
-    <div class="row">
-      <div class="field"><label for="lwid">Line width</label><input type="number" id="lwid" value="2" min="0.5" max="6" step="0.5"></div>
-      <div class="field"><label for="msize">Marker size</label><input type="number" id="msize" value="5" min="3" max="14"></div>
-    </div>
-    <div class="check"><input type="checkbox" id="legend" checked><label for="legend">Legend to the right of the plotting area</label></div>
-    <div class="check"><input type="checkbox" id="legbox"><label for="legbox">Frame around the legend</label></div>
-    <div class="check"><input type="checkbox" id="zeroline"><label for="zeroline">Horizontal line at Y = 0</label></div>
-    <div class="check"><input type="checkbox" id="bands"><label for="bands">95% confidence band around each line</label></div>
-    <div class="check"><input type="checkbox" id="greyscale"><label for="greyscale">Black lines only (dash pattern and marker carry the distinction)</label></div>
-  </section>
-</div>
+<section class="panel" id="p-style" aria-labelledby="s-style" hidden>
+  <h2 id="s-style">Labels, axes and style of the figure</h2>
+  <div class="field w4"><label for="ftitle">Put a title inside the figure (leave empty for none: in a manuscript the title belongs in the caption)</label><input type="text" id="ftitle" value=""></div>
+  <div class="row">
+    <div class="field w3"><label for="labx">Label the horizontal axis</label><input type="text" id="labx"></div>
+    <div class="field w3"><label for="laby">Label the vertical axis</label><input type="text" id="laby"></div>
+  </div>
+  <div class="row">
+    <div class="field w3"><label for="fontfam">Choose the typeface of the figure</label>
+      <select id="fontfam">
+        <option value="Arial, Helvetica, sans-serif">Arial</option>
+        <option value="Helvetica, Arial, sans-serif">Helvetica</option>
+        <option value="&quot;Times New Roman&quot;, Times, serif">Times New Roman</option>
+      </select></div>
+    <div class="field w2"><label for="fsize">Set the type size in points at the printed width</label><input type="number" id="fsize" value="10" min="7" max="18" step="0.5"></div>
+  </div>
+  <div class="row">
+    <div class="field w2"><label for="xmin">Start the horizontal axis at</label><input type="number" id="xmin" step="any"></div>
+    <div class="field w2"><label for="xmax">End the horizontal axis at</label><input type="number" id="xmax" step="any"></div>
+    <div class="field w2"><label for="ymin">Start the vertical axis at (empty to fit the lines)</label><input type="number" id="ymin" step="any"></div>
+    <div class="field w2"><label for="ymax">End the vertical axis at (empty to fit the lines)</label><input type="number" id="ymax" step="any"></div>
+  </div>
+  <div class="row">
+    <div class="field w2"><label for="lwid">Set the width of the lines</label><input type="number" id="lwid" value="2" min="0.5" max="6" step="0.5"></div>
+    <div class="field w2"><label for="msize">Set the size of the markers</label><input type="number" id="msize" value="5" min="3" max="14"></div>
+  </div>
+  <div class="check"><input type="checkbox" id="legend" checked><label for="legend">Draw a legend to the right of the plotting area</label></div>
+  <div class="check"><input type="checkbox" id="legbox"><label for="legbox">Draw a frame around the legend</label></div>
+  <div class="check"><input type="checkbox" id="zeroline"><label for="zeroline">Draw a horizontal line where Y is zero</label></div>
+  <div class="check"><input type="checkbox" id="bands"><label for="bands">Draw a 95% confidence band around each line</label></div>
+  <div class="check"><input type="checkbox" id="greyscale"><label for="greyscale">Draw every line in black, told apart by dash pattern and marker</label></div>
+</section>
 
 <div id="results-col" hidden>
   <section class="panel figpanel" aria-labelledby="s-fig">
     <h2 id="s-fig">Interaction plot</h2>
     <div id="fig" role="region" aria-live="polite" aria-labelledby="s-fig"></div>
     <div class="exportbar" id="figtools" hidden>
-      <div class="field"><label for="wmm">Width (mm)</label><input type="number" id="wmm" value="140" min="60" max="250"></div>
-      <div class="field"><label for="dpi">PNG resolution (dpi)</label>
+      <div class="field"><label for="wmm">Set the printed width in millimetres</label><input type="number" id="wmm" value="140" min="60" max="250"></div>
+      <div class="field"><label for="dpi">Set the resolution of the PNG in dots per inch</label>
         <select id="dpi"><option>300</option><option selected>600</option><option>1200</option></select></div>
       <div class="buttons">
-        <button type="button" id="fig-svg">Download SVG</button>
-        <button type="button" class="secondary" id="fig-png">Download PNG</button>
+        <button type="button" id="fig-svg">Download the figure as SVG</button>
+        <button type="button" class="secondary" id="fig-png">Download the figure as PNG</button>
       </div>
     </div>
   </section>
@@ -239,10 +223,10 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
     <div id="jntext" aria-live="polite"></div>
     <div id="jnfig"></div>
     <div class="exportbar" id="jntools" hidden>
-      <span class="hint">Exported at the width and resolution set for the interaction plot.</span>
+      <span class="hint">Exported at the width and the resolution set for the interaction plot.</span>
       <div class="buttons">
-        <button type="button" id="jn-svg">Download SVG</button>
-        <button type="button" class="secondary" id="jn-png">Download PNG</button>
+        <button type="button" id="jn-svg">Download the figure as SVG</button>
+        <button type="button" class="secondary" id="jn-png">Download the figure as PNG</button>
       </div>
     </div>
   </section>
@@ -258,59 +242,67 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   </section>
 </div>
 
-</div>
-
 <section class="tracks" aria-labelledby="s-methods">
   <h2 id="s-methods">Methods and formulas</h2>
 
   <h3>The simple slope and its standard error</h3>
   <p>The model behind every figure on this page is the linear regression of Y on a predictor X, a moderator W and their product, written here with the notation of Aiken and West (1991):</p>
-  <pre class="formula">Y = b0 + b1·X + b2·W + b3·X·W + e</pre>
-  <p>Collecting the terms in X gives the conditional regression of Y on X at a fixed value w of the moderator. Its slope, the simple slope, is a linear function of w:</p>
-  <pre class="formula">Y = (b0 + b2·w) + (b1 + b3·w)·X + e
-simple slope at w:  s(w) = b1 + b3·w</pre>
-  <p>Because s(w) is linear in the estimates, its sampling variance follows from the covariance matrix of the estimates without any approximation beyond the one already made in treating that matrix as the asymptotic covariance matrix. This is the delta method applied to a linear function:</p>
-  <pre class="formula">Var[s(w)] = Var(b1) + w²·Var(b3) + 2·w·Cov(b1, b3)
-z = s(w) / sqrt(Var[s(w)])</pre>
-  <p>The test uses the standard normal distribution, as <span class="mp">M</span><em>plus</em> does, so it is asymptotic rather than an exact t test, and in small samples it should be read with the caution that implies. When the moderator is categorical and represented by dummy variables, the slope in category j is b1 + gj, where gj is the coefficient of the product of X with the dummy of category j, and its variance is read from the same matrix:</p>
-  <pre class="formula">Var(b1 + gj) = Var(b1) + Var(gj) + 2·Cov(b1, gj)</pre>
-  <p>The difference between the slopes of two non-reference categories i and j is gi &minus; gj, with variance Var(gi) + Var(gj) &minus; 2·Cov(gi, gj); the difference between category j and the reference category is gj itself.</p>
+  <div class="eq"><var>Y</var> = <var>b</var><sub>0</sub> + <var>b</var><sub>1</sub><var>X</var> + <var>b</var><sub>2</sub><var>W</var> + <var>b</var><sub>3</sub><var>X</var><var>W</var> + <var>e</var></div>
+  <p class="where">Here <var>Y</var> is the dependent variable, <var>b</var><sub>0</sub> its intercept, <var>X</var> the predictor and <var>b</var><sub>1</sub> its coefficient, <var>W</var> the moderator and <var>b</var><sub>2</sub> its coefficient, <var>b</var><sub>3</sub> the coefficient of the product of <var>X</var> and <var>W</var>, and <var>e</var> the residual.</p>
+  <p>Collecting the terms in <var>X</var> gives the conditional regression of Y on X at a fixed value <var>w</var> of the moderator, whose slope, the simple slope, is a linear function of <var>w</var>:</p>
+  <div class="eq"><var>Y</var> = (<var>b</var><sub>0</sub> + <var>b</var><sub>2</sub><var>w</var>) + (<var>b</var><sub>1</sub> + <var>b</var><sub>3</sub><var>w</var>)<var>X</var> + <var>e</var><span class="op">,</span> <var>s</var>(<var>w</var>) = <var>b</var><sub>1</sub> + <var>b</var><sub>3</sub><var>w</var></div>
+  <p class="where">Here <var>w</var> is the value at which the moderator is held, <var>b</var><sub>0</sub> + <var>b</var><sub>2</sub><var>w</var> is the conditional intercept, and <var>s</var>(<var>w</var>) is the simple slope of <var>X</var> on <var>Y</var> at that value.</p>
+  <p>Because <span class="eq-in"><var>s</var>(<var>w</var>)</span> is linear in the estimates, its sampling variance follows from the covariance matrix of the estimates without any approximation beyond the one already made in treating that matrix as the asymptotic covariance matrix. This is the delta method applied to a linear function:</p>
+  <div class="eq">Var[<var>s</var>(<var>w</var>)] = Var(<var>b</var><sub>1</sub>) + <var>w</var><sup>2</sup> Var(<var>b</var><sub>3</sub>) + 2<var>w</var> Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>)</div>
+  <p class="where">Here Var[<var>s</var>(<var>w</var>)] is the sampling variance of the simple slope at <var>w</var>, Var(<var>b</var><sub>1</sub>) and Var(<var>b</var><sub>3</sub>) are the sampling variances of the two coefficients, and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) is their sampling covariance, all three read from TECH3.</p>
+  <div class="eq"><var>z</var> = <span class="frac"><span class="num"><var>s</var>(<var>w</var>)</span><span class="den">√Var[<var>s</var>(<var>w</var>)]</span></span></div>
+  <p class="where">Here <var>z</var> is the test statistic of the simple slope at <var>w</var>, referred to the standard normal distribution.</p>
+  <p>The test uses the standard normal distribution, as <span class="mp">M</span><em>plus</em> does, so it is asymptotic rather than an exact <var>t</var> test, and in small samples it should be read with the caution that implies. When the moderator is categorical and represented by dummy variables, the slope in category <var>j</var> is <span class="eq-in"><var>b</var><sub>1</sub> + <var>g</var><sub><var>j</var></sub></span>, with <span class="eq-in"><var>g</var><sub><var>j</var></sub></span> the coefficient of the product of X with the dummy variable of that category, and its variance is read from the same matrix:</p>
+  <div class="eq">Var(<var>b</var><sub>1</sub> + <var>g</var><sub><var>j</var></sub>) = Var(<var>b</var><sub>1</sub>) + Var(<var>g</var><sub><var>j</var></sub>) + 2 Cov(<var>b</var><sub>1</sub>, <var>g</var><sub><var>j</var></sub>)</div>
+  <p class="where">Here <var>g</var><sub><var>j</var></sub> is the coefficient of the product of X with the dummy variable of category <var>j</var>, Var(<var>g</var><sub><var>j</var></sub>) its sampling variance, and Cov(<var>b</var><sub>1</sub>, <var>g</var><sub><var>j</var></sub>) its sampling covariance with <var>b</var><sub>1</sub>.</p>
+  <p>The difference between the slopes of two non-reference categories <var>i</var> and <var>j</var> is <span class="eq-in"><var>g</var><sub><var>j</var></sub> <span class="op">−</span> <var>g</var><sub><var>i</var></sub></span>, with variance</p>
+  <div class="eq">Var(<var>g</var><sub><var>j</var></sub> <span class="op">−</span> <var>g</var><sub><var>i</var></sub>) = Var(<var>g</var><sub><var>i</var></sub>) + Var(<var>g</var><sub><var>j</var></sub>) <span class="op">−</span> 2 Cov(<var>g</var><sub><var>i</var></sub>, <var>g</var><sub><var>j</var></sub>)</div>
+  <p class="where">Here <var>g</var><sub><var>i</var></sub> and <var>g</var><sub><var>j</var></sub> are the coefficients of the two product terms, and Cov(<var>g</var><sub><var>i</var></sub>, <var>g</var><sub><var>j</var></sub>) is their sampling covariance. The difference between category <var>j</var> and the reference category is <span class="eq-in"><var>g</var><sub><var>j</var></sub></span> itself.</p>
 
   <h3>The Johnson&ndash;Neyman quadratic</h3>
-  <p>Johnson and Neyman (1936) asked for which values of the moderator the conditional effect is distinguishable from zero. Setting the square of the test statistic equal to the square of the critical value z<sub>.975</sub> = 1.96 and clearing the denominator turns that question into a quadratic equation in w (Bauer &amp; Curran, 2005; Preacher, Curran &amp; Bauer, 2006):</p>
-  <pre class="formula">[s(w)]² = z².Var[s(w)]
-a·w² + b·w + c = 0, with
-  a = b3² &minus; z²·Var(b3)
-  b = 2·[b1·b3 &minus; z²·Cov(b1, b3)]
-  c = b1² &minus; z²·Var(b1)</pre>
-  <p>The quantity q(w) = a·w² + b·w + c is positive exactly where the simple slope differs from zero at the 5% level. When a is positive the region of significance lies outside the two roots, when a is negative it lies between them; this page also evaluates q at the midpoint of each interval and reports a warning if the two ways of deciding disagree. Only roots that fall inside the range of the moderator the data actually cover are reported and drawn, because a threshold outside that range describes no observable case. That range is read from the univariate sample statistics when the output contains them, and is otherwise taken as the mean plus or minus three standard deviations; the page states which of the two was used. The procedure does not apply to a categorical moderator, whose intermediate values do not exist.</p>
+  <p>Johnson and Neyman (1936) asked for which values of the moderator the conditional effect is distinguishable from zero. Setting the square of the test statistic equal to the square of the critical value <span class="eq-in"><var>z</var><sub>.975</sub> = 1.96</span> and clearing the denominator turns that question into a quadratic equation in <var>w</var> (Bauer &amp; Curran, 2005; Preacher, Curran &amp; Bauer, 2006):</p>
+  <div class="eq">[<var>s</var>(<var>w</var>)]<sup>2</sup> = <var>z</var><sup>2</sup> Var[<var>s</var>(<var>w</var>)]<span class="op">,</span> that is <var>a</var><var>w</var><sup>2</sup> + <var>b</var><var>w</var> + <var>c</var> = 0</div>
+  <p class="where">Here <var>s</var>(<var>w</var>) is the simple slope at <var>w</var>, <var>z</var> is the critical value 1.96, and <var>a</var>, <var>b</var> and <var>c</var> are the three coefficients of the quadratic given next.</p>
+  <div class="eq"><var>a</var> = <var>b</var><sub>3</sub><sup>2</sup> <span class="op">−</span> <var>z</var><sup>2</sup> Var(<var>b</var><sub>3</sub>)<span class="op">,</span> <var>b</var> = 2[<var>b</var><sub>1</sub><var>b</var><sub>3</sub> <span class="op">−</span> <var>z</var><sup>2</sup> Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>)]<span class="op">,</span> <var>c</var> = <var>b</var><sub>1</sub><sup>2</sup> <span class="op">−</span> <var>z</var><sup>2</sup> Var(<var>b</var><sub>1</sub>)</div>
+  <p class="where">Here <var>b</var><sub>1</sub> and <var>b</var><sub>3</sub> are the coefficients of X and of the product, Var(<var>b</var><sub>1</sub>), Var(<var>b</var><sub>3</sub>) and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) their sampling variances and covariance, and <var>z</var> the critical value 1.96.</p>
+  <p>The quantity <span class="eq-in"><var>q</var>(<var>w</var>) = <var>a</var><var>w</var><sup>2</sup> + <var>b</var><var>w</var> + <var>c</var></span> is positive exactly where the simple slope differs from zero at the 5% level. When <var>a</var> is positive the region of significance lies outside the two roots, when <var>a</var> is negative it lies between them; this page also evaluates <span class="eq-in"><var>q</var></span> at the midpoint of each interval and reports a warning if the two ways of deciding disagree. Only roots that fall inside the range of the moderator the data actually cover are reported and drawn, because a threshold outside that range describes no observable case. That range is read from the univariate sample statistics when the output contains them, and is otherwise taken as the mean plus or minus three standard deviations, both read from the file; the page states which of the two was used. The procedure does not apply to a categorical moderator, whose intermediate values do not exist.</p>
 
   <h3>The standardized solution for a product term</h3>
-  <p>In a standardized solution the coefficient of a product term is not obtained by dividing by the standard deviation of the product. The STDYX section of M<em>plus</em> divides every coefficient by the standard deviation of its own predictor, and for the product that predictor is XW, whose standard deviation is not SD(X)·SD(W). Wen, Marsh and Hau (2010) show that the appropriate standardized solution rescales the product coefficient by the standard deviations of the two components instead:</p>
-  <pre class="formula">b1* = b1·SD(X)/SD(Y)   b2* = b2·SD(W)/SD(Y)   b3* = b3·SD(X)·SD(W)/SD(Y)</pre>
-  <p>Under this rescaling the standardized simple slope of X on Y at a value w of the moderator is b1* + b3*·w/SD(W), so the standardized coefficients and the standardized simple slopes describe the same equation, and all three are unchanged when X, W or Y is measured in different units. The value of b1* is the standardized effect of X at W = 0, which is the mean of W only when the moderator is centered; with latent variables, whose means M<em>plus</em> fixes at zero, it always is. The page reports both columns and states which is which: for X and for W the two agree, and for the product they differ by construction.</p>
+  <p>In a standardized solution the coefficient of a product term is not obtained by dividing by the standard deviation of the product. The STDYX section of <span class="mp">M</span><em>plus</em> divides every coefficient by the standard deviation of its own predictor, and for the product that predictor is XW, whose standard deviation is not SD(<var>X</var>)&nbsp;SD(<var>W</var>). Wen, Marsh and Hau (2010) show that the appropriate standardized solution rescales the product coefficient by the standard deviations of the two components instead:</p>
+  <div class="eq"><var>b</var><sub>1</sub>′ = <var>b</var><sub>1</sub> <span class="frac"><span class="num">σ<sub><var>X</var></sub></span><span class="den">σ<sub><var>Y</var></sub></span></span><span class="op">,</span> <var>b</var><sub>2</sub>′ = <var>b</var><sub>2</sub> <span class="frac"><span class="num">σ<sub><var>W</var></sub></span><span class="den">σ<sub><var>Y</var></sub></span></span><span class="op">,</span> <var>b</var><sub>3</sub>′ = <var>b</var><sub>3</sub> <span class="frac"><span class="num">σ<sub><var>X</var></sub> σ<sub><var>W</var></sub></span><span class="den">σ<sub><var>Y</var></sub></span></span></div>
+  <p class="where">Here <var>b</var><sub>1</sub>′, <var>b</var><sub>2</sub>′ and <var>b</var><sub>3</sub>′ are the standardized coefficients of X, of W and of the product, <var>b</var><sub>1</sub>, <var>b</var><sub>2</sub> and <var>b</var><sub>3</sub> the unstandardized ones, and σ<sub><var>X</var></sub>, σ<sub><var>W</var></sub> and σ<sub><var>Y</var></sub> the standard deviations of X, of W and of Y.</p>
+  <p>Under this rescaling the standardized simple slope of X on Y at a value <var>w</var> of the moderator is <span class="eq-in"><var>b</var><sub>1</sub>′ + <var>b</var><sub>3</sub>′<var>w</var> / σ<sub><var>W</var></sub></span>, so the standardized coefficients and the standardized simple slopes describe the same equation, and all three are unchanged when X, W or Y is measured in different units. The value of <span class="eq-in"><var>b</var><sub>1</sub>′</span> is the standardized effect of X at <span class="eq-in"><var>W</var> = 0</span>, which is the mean of W only when the moderator is centered; with latent variables, whose means <span class="mp">M</span><em>plus</em> fixes at zero, it always is. The page reports both columns and states which is which: for X and for W the two agree, and for the product they differ by construction.</p>
   <p>When the interaction is between latent variables defined with XWITH, <span class="mp">M</span><em>plus</em> does not always print a standardized solution, because the product is not a variable of the model and has no estimated variance of its own. The total variance of Y is then reconstructed from the model under joint normality of X and W, using the variance of a product of two normal variables given by Bohrnstedt and Goldberger (1969):</p>
-  <pre class="formula">Var(XW) = Var(X)·Var(W) + Cov(X,W)² + m(X)²·Var(W) + m(W)²·Var(X) + 2·m(X)·m(W)·Cov(X,W)
-Cov(X, XW) = m(W)·Var(X) + m(X)·Cov(X,W)
-Cov(W, XW) = m(X)·Var(W) + m(W)·Cov(X,W)
-Var(Y) = b1²Var(X) + b2²Var(W) + b3²Var(XW)
-         + 2b1b2Cov(X,W) + 2b1b3Cov(X,XW) + 2b2b3Cov(W,XW) + Var(e)</pre>
+  <div class="eq">Var(<var>XW</var>) = σ<sup>2</sup><sub><var>X</var></sub>σ<sup>2</sup><sub><var>W</var></sub> + σ<sup>2</sup><sub><var>XW</var></sub> + μ<sup>2</sup><sub><var>X</var></sub>σ<sup>2</sup><sub><var>W</var></sub> + μ<sup>2</sup><sub><var>W</var></sub>σ<sup>2</sup><sub><var>X</var></sub> + 2μ<sub><var>X</var></sub>μ<sub><var>W</var></sub>σ<sub><var>XW</var></sub></div>
+  <p class="where">Here Var(<var>XW</var>) is the variance of the product, σ<sup>2</sup><sub><var>X</var></sub> and σ<sup>2</sup><sub><var>W</var></sub> are the variances of X and W, σ<sub><var>XW</var></sub> is their covariance, and μ<sub><var>X</var></sub> and μ<sub><var>W</var></sub> are their means.</p>
+  <div class="eq">Cov(<var>X</var>, <var>XW</var>) = μ<sub><var>W</var></sub>σ<sup>2</sup><sub><var>X</var></sub> + μ<sub><var>X</var></sub>σ<sub><var>XW</var></sub><span class="op">,</span> Cov(<var>W</var>, <var>XW</var>) = μ<sub><var>X</var></sub>σ<sup>2</sup><sub><var>W</var></sub> + μ<sub><var>W</var></sub>σ<sub><var>XW</var></sub></div>
+  <p class="where">The symbols are those of the previous formula: the covariance of each component with the product is built from the mean of the other component, the variance of the component itself and the covariance between the two.</p>
+  <div class="eq">σ<sup>2</sup><sub><var>Y</var></sub> = <var>b</var><sub>1</sub><sup>2</sup>σ<sup>2</sup><sub><var>X</var></sub> + <var>b</var><sub>2</sub><sup>2</sup>σ<sup>2</sup><sub><var>W</var></sub> + <var>b</var><sub>3</sub><sup>2</sup>Var(<var>XW</var>) + 2<var>b</var><sub>1</sub><var>b</var><sub>2</sub>σ<sub><var>XW</var></sub> + 2<var>b</var><sub>1</sub><var>b</var><sub>3</sub>Cov(<var>X</var>, <var>XW</var>) + 2<var>b</var><sub>2</sub><var>b</var><sub>3</sub>Cov(<var>W</var>, <var>XW</var>) + σ<sup>2</sup><sub><var>e</var></sub></div>
+  <p class="where">Here σ<sup>2</sup><sub><var>Y</var></sub> is the total variance of Y implied by the model, <var>b</var><sub>1</sub>, <var>b</var><sub>2</sub> and <var>b</var><sub>3</sub> are the three coefficients, the variances and covariances are those defined above, and σ<sup>2</sup><sub><var>e</var></sub> is the residual variance of Y.</p>
   <p>This is the same distributional assumption on which the latent moderated structural equations approach of Klein and Moosbrugger (2000) rests, and the reconstruction is reported as a reconstruction whenever it is used.</p>
 
   <h3>Predicted values and confidence bands</h3>
-  <p>Each line in the figure is the predicted value of Y as a function of X at one value of the moderator. When the model contains predictors other than X, W and their product, they are held at their sample means, and the product of each coefficient with its mean is added to the intercept; when a mean is not available in the output the page says so and holds that predictor at zero. The confidence band around a line is the 95% interval for the conditional mean, computed from the same parameter covariance matrix as a quadratic form:</p>
-  <pre class="formula">Var(Ŷ | x, w) = r'·V·r, with r the row of the design at (x, w)
-band: Ŷ ± 1.96·sqrt(Var(Ŷ | x, w))</pre>
+  <p>Each line in the figure is the predicted value of Y as a function of X at one value of the moderator. When the model contains predictors other than X, W and their product, they are held at their sample means as read from the file, and the product of each coefficient with its mean is added to the intercept; when a mean is not in the output the page says so and holds that predictor at zero. The confidence band around a line is the 95% interval for the conditional mean, computed from the same parameter covariance matrix as a quadratic form:</p>
+  <div class="eq">Var(<var>Ŷ</var> | <var>x</var>, <var>w</var>) = <b>r</b>′<b>V</b><b>r</b></div>
+  <p class="where">Here <var>Ŷ</var> is the predicted mean at the values <var>x</var> of the predictor and <var>w</var> of the moderator, <b>r</b> is the row of the design matrix at that point, which holds a one for the intercept, <var>x</var>, <var>w</var>, their product and the mean of every other predictor, and <b>V</b> is the covariance matrix of the estimates from TECH3.</p>
+  <div class="eq"><var>Ŷ</var> ± 1.96 √Var(<var>Ŷ</var> | <var>x</var>, <var>w</var>)</div>
+  <p class="where">Here the two limits are the ends of the 95% interval for the conditional mean at that point, and 1.96 is the .975 quantile of the standard normal distribution.</p>
   <p>The band requires the intercept, X, W and the product to be located in TECH1, and every other predictor of Y as well; when one of them cannot be located the band is omitted and the reason is stated under the figure.</p>
 
   <h3>What TECH1 and TECH3 contain</h3>
-  <p>TECH1 prints the parameter specification: each free parameter of the model receives a number, and the numbers are laid out in the matrices of the general model, so that the coefficient of X in the regression of Y appears as an entry of BETA or GAMMA in row Y and column X, and the intercept of Y appears in ALPHA or NU. <span class="mp">M</span><em>plus</em> prints these matrices in blocks of five columns, repeating the name of the matrix above each block, so a parser that stops at the first block loses every column from the sixth onwards; this page reads every block and keeps the column headings of each. TECH3 prints the covariance matrix of the parameter estimates, indexed by the same numbers. Reading the two together gives the exact sampling variances and covariance that the delta method needs. When TECH3 is absent, the page falls back on three simple slopes computed in MODEL CONSTRAINT as NEW parameters, from which the three quantities Var(b1), Var(b3) and Cov(b1, b3) can be recovered by solving a linear system in three unknowns; those values carry the rounding of the three printed decimals, so TECH3 is preferred whenever it is available. A NEW parameter is used only when its name identifies it as a simple slope, so that an indirect or total effect that happens to fall near the same value is never mistaken for one.</p>
+  <p>TECH1 prints the parameter specification: each free parameter of the model receives a number, and the numbers are laid out in the matrices of the general model, so that the coefficient of X in the regression of Y appears as an entry of <b>Β</b> or <b>Γ</b> in row Y and column X, and the intercept of Y appears in <b>α</b> or <b>ν</b>. <span class="mp">M</span><em>plus</em> prints these matrices in blocks of five columns, repeating the name of the matrix above each block, so a parser that stops at the first block loses every column from the sixth onwards; this page reads every block and keeps the column headings of each. TECH3 prints the covariance matrix of the parameter estimates, indexed by the same numbers. Reading the two together gives the exact sampling variances and covariance that the delta method needs. When TECH3 is absent, the page falls back on three simple slopes computed in MODEL CONSTRAINT as NEW parameters, from which Var(<var>b</var><sub>1</sub>), Var(<var>b</var><sub>3</sub>) and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) can be recovered by solving a linear system in three unknowns; those values carry the rounding of the three printed decimals, so TECH3 is preferred whenever it is available. A NEW parameter is used only when its name identifies it as a simple slope, so that an indirect or total effect that happens to fall near the same value is never mistaken for one.</p>
 
   <h3>Reading the output file</h3>
   <p>Files are read as raw bytes and decoded by inspecting the byte-order mark and by testing whether the content is valid UTF-8, falling back on Windows-1252, which is what <span class="mp">M</span><em>plus</em> writes on Windows. Fortran exponents of the form 0.123D-03 are converted before conversion to a number, a row of asterisks in place of a value is reported as unread rather than silently dropped, and the sentinel 999.000 on all four columns is treated as a value <span class="mp">M</span><em>plus</em> could not compute. The page refuses two-level, mixture, multiple-group and Bayesian outputs, whose MODEL RESULTS sections are organized differently; a file that ends before MODEL RESULTS, which comes from a run that was interrupted; a file with none of the headings <span class="mp">M</span><em>plus</em> always writes; an empty file; and a run that did not reach convergence. Each refusal names what was found. The estimator is read from SUMMARY OF ANALYSIS, and from the echoed input only when that section does not state it, in which case the page says so, because the estimator asked for in the input is not always the one the run used. It is never assumed.</p>
+  <p>Every quantity the page computes with is read from that file: the coefficients and their intercept from MODEL RESULTS, the means, variances and observed ranges from the univariate and the sample statistics or from TECH4, the codes of a categorical moderator from the same statistics, and the sampling variances and covariances from TECH1 with TECH3. None of them can be typed in, and none of them can be edited after being read. What remains adjustable is the description of the figure: which levels of a continuous moderator to draw, the labels, the axes, the type size, the printed width and the resolution of the export.</p>
 
   <h3>Self-test</h3>
-  <p>Opening this page with <code>?selftest=1</code> appended to its address runs its numerical checks in the browser and prints the outcome and the number of checks at the top, with every check listed under it. They cover the two-sided normal tail against published values from z = 1 to z = 8; the simple slope and its delta-method variance over 2400 random problems, against the quadratic form written out separately and against a Monte Carlo of 200000 draws from the sampling distribution of the estimates; the identity on which the Johnson&ndash;Neyman quadratic rests, checked on 401 grid points in each of 2400 problems, together with the requirement that the test statistic change side of the critical value at the reported roots and nowhere else; a quadratic with no real root, with a discriminant of exactly zero, with a vanishing quadratic term and with two real roots; a slope significant over the whole range and one significant nowhere; the standardized transformation of a product term; the variance of a predicted mean, against a double loop and against a Monte Carlo; the simple slopes of a categorical moderator with three and with five categories and every difference between them; the refusal of two-level, mixture, multiple-group and Bayesian outputs; the parsers for TECH1 across twelve columns, for TECH3 with Fortran D exponents, and for the univariate sample statistics; the codes of a moderator dummy coded 0/1 and 1/2 and with three, five and ten categories; manual entry without a covariance between the estimates; and a moderator with no variance.</p>
+  <p>Opening this page with <code>?selftest=1</code> appended to its address runs its numerical checks in the browser and prints the outcome and the number of checks at the top, with every check listed under it. They cover the two-sided normal tail against published values from <span class="eq-in"><var>z</var> = 1</span> to <span class="eq-in"><var>z</var> = 8</span>; the simple slope and its delta-method variance over 2400 random problems, against the quadratic form written out separately and against a Monte Carlo of 200000 draws from the sampling distribution of the estimates; the identity on which the Johnson&ndash;Neyman quadratic rests, checked on 401 grid points in each of 2400 problems, together with the requirement that the test statistic change side of the critical value at the reported roots and nowhere else; a quadratic with no real root, with a discriminant of exactly zero, with a vanishing quadratic term and with two real roots; a slope significant over the whole range and one significant nowhere; the standardized transformation of a product term; the variance of a predicted mean, against a double loop and against a Monte Carlo; the simple slopes of a categorical moderator with three and with five categories and every difference between them; the refusal of two-level, mixture, multiple-group and Bayesian outputs; the parsers for TECH1 across twelve columns, for TECH3 with Fortran D exponents, for the univariate sample statistics and for the univariate proportions and counts of a categorical variable; the codes of a moderator dummy coded 0/1 and 1/2 and with three, five and ten categories, and the refusal to draw one whose codes are not in the file; and a moderator with no variance.</p>
 </section>
 
 <section class="tracks" aria-labelledby="s-ref">
@@ -354,16 +346,22 @@ const DASH_ORDER = ["solid", "dashed", "dotted", "dash-dot", "long dash"];
 const MARKERS = ["none", "filled circle", "open circle", "filled square", "open square", "filled triangle", "open triangle"];
 
 const S = {
-  raw: "", loaded: false, manual: false,
+  raw: "", loaded: false,
   reg: {}, regInfo: {}, inter: {}, means: {}, vars: {}, residuals: {}, withCov: {},
   regStd: {}, regStdInfo: {}, interStd: {}, residualsStd: {},
   newPar: [], latent: [], truncated: [],
-  sampMeans: {}, sampVars: {}, sampCov: {}, uni: {},
+  sampMeans: {}, sampVars: {}, sampCov: {}, uni: {}, uniProp: {},
   latentMeans: {}, latentVars: {},
   n: NaN, estimator: "", tech1: {}, tech3: {}, xwith: [], defined: [],
   levels: [], dummies: [],
-  slopeEdited: false, anyEdited: false, autoProduct: null
+  autoProduct: null
 };
+
+/* Every number the figures and the tests are computed from, as read from the
+   output for the equation now selected. Only the reader below writes to it:
+   there is no field on this page in which a coefficient, a standard error, a
+   mean or a standard deviation can be typed or edited. */
+const RD = { b0: NaN, b1: NaN, b2: NaN, b3: NaN, mx: NaN, sx: NaN, mw: NaN, sw: NaN, my: NaN, sy: NaN };
 
 function esc(t) {
   return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -545,6 +543,36 @@ function parseUnivariate(t) {
     const min = numD(m[4]), max = second[3];
     if (Number.isFinite(min) && Number.isFinite(max) && max > min) out[m[1].toUpperCase()] = { min, max };
   }
+  return out;
+}
+
+/* ---------------------------------------------------------------------------
+   UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES: the codes a
+   categorical variable actually takes, together with the proportion of the
+   sample in each of them. Mplus prints the name of the variable on a line of
+   its own and one line per category, whose first number is the code and whose
+   second is the proportion. These are the codes themselves rather than a range
+   inferred from a minimum and a maximum, so they are preferred wherever they
+   are present.
+--------------------------------------------------------------------------- */
+function parseUnivariateProportions(t) {
+  const out = {};
+  const sec = section(t, "UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES",
+    ["SUMMARY OF CATEGORICAL", "THE MODEL ESTIMATION", "MODEL FIT INFORMATION", "MODEL RESULTS",
+     "SAMPLE STATISTICS", "RESULTS FOR BASIC ANALYSIS", "TESTS OF MODEL FIT"]);
+  if (!sec) return out;
+  const NUM = "-?(?:\\d+\\.?\\d*|\\.\\d+)(?:[EeDd][+-]?\\d+)?";
+  const rxName = /^\s{2,}([A-Z][A-Z0-9_]*)\s*$/;
+  const rxCat = new RegExp("^\\s{2,}(?:Category\\s+)?(" + NUM + ")\\s+(" + NUM + ")(?:\\s|$)");
+  let name = null;
+  for (const line of sec.split("\n")) {
+    const mn = rxName.exec(line);
+    if (mn) { name = mn[1].toUpperCase(); if (!out[name]) out[name] = []; continue; }
+    if (!name) continue;
+    const mc = rxCat.exec(line);
+    if (mc) { const code = numD(mc[1]); if (Number.isFinite(code)) out[name].push(code); }
+  }
+  for (const k of Object.keys(out)) if (out[k].length < 2) delete out[k];
   return out;
 }
 
@@ -736,6 +764,7 @@ function parseOutput(text) {
     latent: [...new Set([...p.latent, ...Object.keys(t4.vars)])],
     regStd: ps.reg, regStdInfo: ps.regInfo, interStd: ps.inter, residualsStd: ps.residuals,
     sampMeans: ss.means, sampVars: ss.vars, sampCov: ss.covs, uni: parseUnivariate(t),
+    uniProp: parseUnivariateProportions(t),
     latentMeans: t4.means, latentVars: t4.vars,
     n: mn ? +mn[1] : NaN, estimator: me ? me[1].toUpperCase() : "", estimatorFromInput: meFromInput,
     tech1: parseTech1(t), tech3: parseTech3(t), xwith: defs.xwith, defined: defs.defined
@@ -963,7 +992,7 @@ function cvFromNewTriple(b1, b3) {
   const mid = np.find(n => /(MED|MID|MEAN|AVG)/i.test(n.name));
   const high = np.find(n => /(HI|HIGH|ABOVE|PLUS)/i.test(n.name));
   if (!low || !mid || !high || low === mid || mid === high) return null;
-  const mw = num("mw"), sw = num("sw");
+  const mw = RD.mw, sw = RD.sw;
   const cands = [];
   if (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) cands.push([mw - sw, mw, mw + sw]);
   cands.push([-1, 0, 1]);
@@ -1002,27 +1031,10 @@ function cvFromML(y, preds) {
   if (!diffs.length || Math.max(...diffs) > 0.08) return null;
   return { V, source: "the sample covariance matrix and the residual variance of a maximum likelihood fit" };
 }
-function manualCov() {
-  const s1 = num("se1"), s3 = num("se3");
-  if (!(Number.isFinite(s1) && s1 > 0 && Number.isFinite(s3) && s3 > 0)) return null;
-  let c = num("cov13");
-  if (!Number.isFinite(c)) {
-    const r = num("cor13");
-    if (!Number.isFinite(r)) return null;
-    if (Math.abs(r) > 1) return null;
-    c = r * s1 * s3;
-  }
-  if (c * c > s1 * s1 * s3 * s3 + 1e-12) return null;
-  return { v11: s1 * s1, v33: s3 * s3, v13: c, source: "the standard errors and the covariance you entered" };
-}
 /* The sampling variances of b1 and b3 and their covariance, together with the
    reason when none of the three routes yields them. The reason is kept because
    "no test" without a cause is not a message a reader can act on. */
 function parameterCovariance(y, x, xw, b1, b3) {
-  if (S.manual) return manualCov() || { missing: true, why:
-    "the standard errors of b<sub>1</sub> and b<sub>3</sub> and their covariance have not been entered, and the covariance matrix of the estimates cannot be inferred from the coefficients" };
-  if (S.slopeEdited) return { missing: true, why:
-    "b<sub>1</sub> or b<sub>3</sub> was edited by hand, so the covariance matrix in TECH3 no longer belongs to the values now in the fields" };
   const n1 = regParamNo(y, x), n3 = regParamNo(y, xw);
   const V = tech3Block([n1, n3]);
   if (V) return { v11: V[0][0], v33: V[1][1], v13: V[0][1], source: "TECH1 and TECH3" };
@@ -1110,16 +1122,6 @@ function setNum(id, v) { $(id).value = Number.isFinite(v) ? round3(v) : ""; }
 function moderatorKind() { return $("wkind").value; }
 function isStd() { return $("m-std").checked; }
 
-/* A moderator with two codes 0 and 1 has variance m(1 - m). The check is only
-   used to propose the default levels; the data themselves are not in the output,
-   so the decision stays with the user. */
-function looksDichotomous() {
-  const m = num("mw"), sd = num("sw");
-  if (!Number.isFinite(m) || !Number.isFinite(sd) || sd <= 0 || m <= 0 || m >= 1) return false;
-  const expected = Math.sqrt(m * (1 - m));
-  return Math.abs(sd - expected) / expected < 0.02;
-}
-
 function rangeFrom(v, k) {
   const u = S.uni[up(v)];
   const m = meanOf(v), sd = sdOf(v);
@@ -1136,22 +1138,8 @@ function rangeFrom(v, k) {
   }
   return null;
 }
-function xRange() {
-  const X = $("selX").value;
-  const r = rangeFrom(X, 2);
-  if (r) return r;
-  const mx = num("mx"), sx = num("sx");
-  if (Number.isFinite(mx) && Number.isFinite(sx) && sx > 0) return { min: mx - 2 * sx, max: mx + 2 * sx, src: "the mean of " + X + " plus or minus two standard deviations that you entered" };
-  return null;
-}
-function wRange() {
-  const W = $("selW").value;
-  const r = rangeFrom(W, 3);
-  if (r) return r;
-  const mw = num("mw"), sw = num("sw");
-  if (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) return { min: mw - 3 * sw, max: mw + 3 * sw, src: "the mean of " + W + " plus or minus three standard deviations that you entered" };
-  return null;
-}
+function xRange() { return rangeFrom($("selX").value, 2); }
+function wRange() { return rangeFrom($("selW").value, 3); }
 
 /* ---------------------------------------------------------------------------
    Levels of the moderator. The value stored is always in the original metric of
@@ -1177,20 +1165,40 @@ function levelNote(html) { $("levnote").innerHTML = html; }
    categories is the largest number a figure can still be read at; beyond that
    the codes are listed and the user chooses which ones to draw. */
 const MAX_CATEGORIES = 10;
+/* Three sources, in the order in which they say the codes rather than imply
+   them. None of them is a field: a code that is not in the file is refused. */
 function categoryCodes(W) {
-  const u = S.uni[up(W)];
-  if (!u) return null;
-  const lo = Math.round(u.min), hi = Math.round(u.max);
-  if (Math.abs(u.min - lo) > 1e-6 || Math.abs(u.max - hi) > 1e-6) return null;
-  if (hi <= lo) return null;
-  const codes = [];
-  for (let v = lo; v <= hi; v++) codes.push(v);
-  return codes;
+  const key = up(W);
+  const prop = S.uniProp[key];
+  if (prop && prop.length >= 2) {
+    const codes = [...new Set(prop)].sort((a, b) => a - b);
+    if (codes.length >= 2) return { codes, src: "the univariate proportions and counts for categorical variables" };
+  }
+  const u = S.uni[key];
+  if (u) {
+    const lo = Math.round(u.min), hi = Math.round(u.max);
+    if (Math.abs(u.min - lo) <= 1e-6 && Math.abs(u.max - hi) <= 1e-6 && hi > lo) {
+      const codes = [];
+      for (let v = lo; v <= hi; v++) codes.push(v);
+      return { codes, src: "the observed minimum and maximum in the univariate sample statistics" };
+    }
+  }
+  /* A variable coded 0 and 1 has variance m(1 - m); when the mean and the
+     standard deviation printed for it satisfy that identity the two codes are
+     stated by the sample statistics as surely as a list of them would be. */
+  if (looksDichotomousAt(key)) return { codes: [0, 1], src: "the mean and the standard deviation printed for it, which satisfy the identity of a variable coded 0 and 1" };
+  return null;
+}
+function looksDichotomousAt(key) {
+  const m = meanOf(key), sd = sdOf(key);
+  if (!Number.isFinite(m) || !Number.isFinite(sd) || sd <= 0 || m <= 0 || m >= 1) return false;
+  const expected = Math.sqrt(m * (1 - m));
+  return Math.abs(sd - expected) / expected < 0.02;
 }
 function defaultLevels() {
   const W = esc($("selW").value || "W");
   const Wraw = $("selW").value || "W";
-  const mw = num("mw"), sw = num("sw");
+  const mw = RD.mw, sw = RD.sw;
   const kind = moderatorKind();
 
   /* A moderator that does not vary has no levels to compare: every line would
@@ -1203,18 +1211,20 @@ function defaultLevels() {
   }
 
   if (kind === "cat") {
-    let codes = categoryCodes(Wraw);
-    let tooMany = false;
-    if (codes && codes.length > MAX_CATEGORIES) { tooMany = true; codes = codes.slice(0, MAX_CATEGORIES); }
-    if (!codes && looksDichotomous()) codes = [0, 1];
-    if (!codes) {
-      codes = (Number.isFinite(mw) && Number.isFinite(sw) && sw > 0) ? [round3(mw - sw), round3(mw + sw)] : [0, 1];
-      levelNote("The codes of " + W + " are not printed in this output: the univariate sample statistics, which give the observed minimum and maximum, are missing or do not show whole numbers. The two values below are placeholders. Type the codes of the categories, one line each, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>.");
-    } else if (tooMany) {
-      levelNote("The observed range of " + W + " covers more than " + MAX_CATEGORIES + " whole-numbered codes. The first " +
-        MAX_CATEGORIES + " are shown, because a figure with more lines than that cannot be read; remove the ones you do not need and add the ones you do.");
+    const found = categoryCodes(Wraw);
+    if (!found) {
+      levelNote("The codes of " + W + " are not in this output, and this page does not let them be typed: a line drawn at a code nobody read from the file would not describe the sample. " +
+        "Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>, which prints the observed minimum and maximum of every variable and, for a variable declared <code>CATEGORICAL</code>, the proportion of the sample in each category. " +
+        "If " + W + " is not categorical after all, set the menu above to a continuous moderator.");
+      return [];
+    }
+    let codes = found.codes, tooMany = false;
+    if (codes.length > MAX_CATEGORIES) { tooMany = true; codes = codes.slice(0, MAX_CATEGORIES); }
+    if (tooMany) {
+      levelNote("The codes of " + W + " were read from " + found.src + ", and there are more than " + MAX_CATEGORIES +
+        " of them. The first " + MAX_CATEGORIES + " are drawn, because a figure with more lines than that cannot be read; remove the ones you do not need. The codes themselves come from the file and cannot be changed here.");
     } else {
-      levelNote("One line per category, at the codes " + codes.join(", ") + " in the original metric of " + W + ".");
+      levelNote("One line per category, at the codes " + codes.join(", ") + ", read from " + found.src + ". The codes come from the file and cannot be changed here; you can leave a category out of the figure by removing its line.");
     }
     return codes.map((v, i) => Object.assign({ w: v, label: Wraw + " = " + v }, styleFor(i)));
   }
@@ -1227,23 +1237,22 @@ function defaultLevels() {
       { w: round3(mw + sw), label: Wraw + " high (+1 SD)", dash: "dotted", marker: "none" }
     ];
   }
-  levelNote("The standard deviation of " + W + " could not be read from this output, so the levels below are set at −1, 0 and +1 in the original metric of " + W +
-    ", which are <strong>not</strong> ±1 SD and are not comparable with a figure drawn at ±1 SD. Type the mean and the standard deviation into the fields above, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for observed variables and <code>TECH4</code> for latent ones.");
-  return [
-    { w: -1, label: Wraw + " = −1", dash: "solid", marker: "none" },
-    { w: 0, label: Wraw + " = 0", dash: "dashed", marker: "none" },
-    { w: 1, label: Wraw + " = 1", dash: "dotted", marker: "none" }
-  ];
+  levelNote("The mean and the standard deviation of " + W + " are not in this output, so there is no level to place a line at: the default levels are one standard deviation below the mean, the mean, and one standard deviation above it, and all three are read from the file. " +
+    "Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for an observed moderator and <code>TECH4</code> for a latent one. You can still press <em>Add a level of the moderator</em> and set the values at which you want the slope drawn, since which levels to draw is a decision about the figure rather than a datum.");
+  return [];
 }
 function renderLevels() {
   const box = $("levels");
   box.innerHTML = "";
+  const fixed = moderatorKind() === "cat";
   S.levels.forEach((l, k) => {
     const d = document.createElement("div");
     d.className = "gridrow four";
     d.innerHTML =
-      '<span><label class="visually-hidden" for="lv-w-' + k + '">Value of the moderator, line ' + (k + 1) + '</label>' +
-      '<input type="number" step="any" id="lv-w-' + k + '" value="' + l.w + '" data-k="' + k + '" data-f="w"></span>' +
+      (fixed
+        ? '<span class="codecell">' + fmt3(l.w) + '<span class="visually-hidden"> is the code of line ' + (k + 1) + ', read from the output</span></span>'
+        : '<span><label class="visually-hidden" for="lv-w-' + k + '">Value of the moderator at which line ' + (k + 1) + ' is drawn</label>' +
+          '<input type="number" step="any" id="lv-w-' + k + '" value="' + l.w + '" data-k="' + k + '" data-f="w"></span>') +
       '<span><label class="visually-hidden" for="lv-l-' + k + '">Label of line ' + (k + 1) + '</label>' +
       '<input type="text" id="lv-l-' + k + '" value="' + esc(l.label) + '" data-k="' + k + '" data-f="label"></span>' +
       '<span><label class="visually-hidden" for="lv-d-' + k + '">Dash pattern of line ' + (k + 1) + '</label>' +
@@ -1328,12 +1337,13 @@ function extraShift() {
 --------------------------------------------------------------------------- */
 function gather() {
   const Y = $("selY").value, X = $("selX").value, kind = moderatorKind(), std = isStd();
-  const b0 = num("b0"), b1 = num("b1"), b2 = num("b2"), b3 = num("b3");
-  const mx = num("mx"), sx = num("sx"), my = num("my"), sy = num("sy");
+  const b0 = RD.b0, b1 = RD.b1, b2 = RD.b2, b3 = RD.b3;
+  const mx = RD.mx, sx = RD.sx, my = RD.my, sy = RD.sy;
   if (!X) return { error: "No predictor is selected. Choose the variable whose slope on " + esc(Y) + " is to be drawn; it is the one the moderator is supposed to change the effect of." };
-  if (!Number.isFinite(b0) || !Number.isFinite(b1)) return { error: "The field for " + (!Number.isFinite(b0) ? "b<sub>0</sub>, the intercept of " + esc(Y) : "b<sub>1</sub>, the coefficient of " + esc(X)) + ", is empty or does not hold a number, so no line can be placed. Type the value " + MP + " printed for it, or choose another dependent variable." };
+  if (!Number.isFinite(b0)) return { error: "This output prints no intercept for " + esc(Y) + " in MODEL RESULTS, so the lines have nowhere to start. That happens when the model was fitted without an intercept for " + esc(Y) + ", or when " + esc(Y) + " is a latent variable whose mean is fixed at zero and no <em>Intercepts</em> block was printed for it. Choose another dependent variable, or rerun the model with the intercept free." };
+  if (!Number.isFinite(b1)) return { error: "This output gives no coefficient for " + esc(X) + " in the regression of " + esc(Y) + ", so the slope that the moderator is supposed to change is not in the file. Choose a predictor that appears in the <code>ON</code> statement of " + esc(Y) + "." };
   if (std && !(Number.isFinite(sx) && sx > 0 && Number.isFinite(sy) && sy > 0 && Number.isFinite(mx) && Number.isFinite(my)))
-    return { error: "The standardized display needs the mean and the standard deviation of X and of Y. Enter them, or switch back to the original metric." };
+    return { error: "The standardized figure needs the mean and the standard deviation of " + esc(X) + " and of " + esc(Y) + ", and this output does not contain all four. Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for observed variables and <code>TECH4</code> for latent ones, or draw the figure in the original metric of the variables." };
 
   const reg = S.reg[up(Y)] || {};
   const extra = extraShift();
@@ -1370,18 +1380,18 @@ function gather() {
     if (!XW) return { error: "Choose the product term. Without a term that carries the product of X and the moderator there is no interaction in the model, and the slope of X does not depend on the moderator: the output shows a regression with two predictors, not a moderated one. If the interaction was fitted with XWITH or built in DEFINE, the term is one of the predictors listed in the menu." };
     if (new Set([up(X), up(W), up(XW)]).size < 3)
       return { error: "X, the moderator and the product must be three different variables. The same variable has been chosen twice, so no product term is identified and nothing can be drawn." };
-    if (!Number.isFinite(reg[up(XW)]) && !S.manual)
+    if (!Number.isFinite(reg[up(XW)]))
       return { error: "The coefficient of " + esc(XW) + " does not appear in the regression of " + esc(Y) + " in MODEL RESULTS, so this term is not a predictor of " + esc(Y) + " and cannot be its product term. Choose the term that carries the interaction." };
-    if (!Number.isFinite(b2) || !Number.isFinite(b3)) return { error: "The field for " + (!Number.isFinite(b2) ? "b<sub>2</sub>, the coefficient of " + esc(W) : "b<sub>3</sub>, the coefficient of the product") + ", is empty or does not hold a number. Without it the lines cannot be placed at the levels of the moderator." };
+    if (!Number.isFinite(b2) || !Number.isFinite(b3)) return { error: "This output gives no coefficient for " + (!Number.isFinite(b2) ? esc(W) : esc(XW)) + " in the regression of " + esc(Y) + ". Without it the lines cannot be placed at the levels of the moderator. Choose a moderator and a product term that both appear in the <code>ON</code> statement of " + esc(Y) + "." };
     g.W = W; g.XW = XW; g.modName = W;
-    const swNow = num("sw");
+    const swNow = RD.sw;
     if (Number.isFinite(swNow) && swNow === 0)
       return { error: "The standard deviation of " + esc(W) + " is zero, so the moderator does not vary in this sample. Every level of the moderator would give the same line and the simple slope would not be a function of anything. Check that the variable chosen as the moderator is the right one." };
-    if (!S.levels.length) return { error: "No level of the moderator is set. Press <em>Add a level</em> and type the value of " + esc(W) + " at which the slope of " + esc(X) + " should be drawn." };
+    if (!S.levels.length) return { error: "No level of the moderator is set, so there is no value of " + esc(W) + " at which to draw the slope of " + esc(X) + ". The message under the list of levels says why the default levels could not be built from this output. Press <em>Add a level of the moderator</em> to set the values yourself." };
     S.levels.filter(l => Number.isFinite(l.w)).forEach((l, i) => {
       g.lines.push(line(b0 + b2 * l.w + extra.value, b1 + b3 * l.w, l.label, l.dash, l.marker, i, l.w, null));
     });
-    if (!g.lines.length) return { error: "None of the levels of the moderator holds a number, so there is no value of " + esc(W) + " at which to draw the slope of " + esc(X) + ". Type a number in each row above." };
+    if (!g.lines.length) return { error: "None of the levels of the moderator holds a number, so there is no value of " + esc(W) + " at which to draw the slope of " + esc(X) + ". Type a number in the first column of each row above." };
   }
 
   /* Horizontal axis */
@@ -1389,7 +1399,7 @@ function gather() {
   g.xsrc = xr ? xr.src : null;
   let x0 = num("xmin"), x1 = num("xmax");
   if (!Number.isFinite(x0) || !Number.isFinite(x1) || x1 <= x0) {
-    if (!xr) return { error: "The range of " + esc(X) + " cannot be established: this output has neither its observed minimum and maximum nor a usable mean and standard deviation for it, and a line has to be drawn between two values. Type a minimum and a maximum for the horizontal axis in the panel on the left, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>." };
+    if (!xr) return { error: "The range of " + esc(X) + " cannot be established: this output has neither its observed minimum and maximum nor a usable mean and standard deviation for it, and a line has to be drawn between two values. Set a start and an end for the horizontal axis in <em>Labels, axes and style of the figure</em>, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>." };
     x0 = toDisp.x(xr.min); x1 = toDisp.x(xr.max);
   }
   g.x0 = x0; g.x1 = x1;
@@ -1400,11 +1410,11 @@ function gather() {
     const pD = g.rows.map(r => regParamNo(Y, r.d)), pP = g.rows.map(r => regParamNo(Y, r.p));
     const others = otherPredictors(), pO = others.map(p => regParamNo(Y, p)), mO = others.map(p => meanOf(p));
     const slopeIdx = [pX].concat(pP);
-    const Vslope = S.slopeEdited ? null : tech3Block(slopeIdx);
+    const Vslope = tech3Block(slopeIdx);
     g.V = Vslope;
     g.cvSource = Vslope ? "TECH1 and TECH3" : null;
     const all = [p0, pX].concat(pD, pP, pO);
-    if (!S.anyEdited && all.every(n => n > 0) && mO.every(Number.isFinite)) {
+    if (all.every(n => n > 0) && mO.every(Number.isFinite)) {
       g.bandIdx = all;
       g.bandV = tech3Block(all);
       g.bandRow = (xraw, li) => {
@@ -1414,9 +1424,7 @@ function gather() {
         return r.concat(mO);
       };
     }
-    if (!g.bandV) g.bandWhy = S.anyEdited
-      ? "the coefficients were edited by hand, so the parameter covariance matrix no longer belongs to the values plotted"
-      : "the intercept, X, the dummy variables and the products cannot all be located in TECH1 and TECH3";
+    if (!g.bandV) g.bandWhy = "the intercept, " + esc(X) + ", the dummy variables and the products cannot all be located in TECH1 and TECH3";
   } else {
     g.cv = parameterCovariance(Y, X, g.XW, b1, b3);
     /* A refusal carries its reason; it is not a covariance matrix. */
@@ -1426,16 +1434,14 @@ function gather() {
     const p0 = interceptParamNo(Y), pX = regParamNo(Y, X), pW = regParamNo(Y, g.W), pP = regParamNo(Y, g.XW);
     const others = otherPredictors(), pO = others.map(p => regParamNo(Y, p)), mO = others.map(p => meanOf(p));
     const all = [p0, pX, pW, pP].concat(pO);
-    if (!S.anyEdited && all.every(n => n > 0) && mO.every(Number.isFinite)) {
+    if (all.every(n => n > 0) && mO.every(Number.isFinite)) {
       g.bandIdx = all;
       g.bandV = tech3Block(all);
       g.bandRow = (xraw, li) => [1, xraw, li.w, xraw * li.w].concat(mO);
     }
-    if (!g.bandV) g.bandWhy = S.anyEdited
-      ? "the coefficients were edited by hand, so the parameter covariance matrix no longer belongs to the values plotted"
-      : (others.length && !mO.every(Number.isFinite)
-        ? "the sample means of the other predictors of " + esc(Y) + " are not in the output"
-        : "the intercept, X, the moderator and the product cannot all be located in TECH1 and TECH3");
+    if (!g.bandV) g.bandWhy = others.length && !mO.every(Number.isFinite)
+      ? "the sample means of the other predictors of " + esc(Y) + " are not in the output"
+      : "the intercept, " + esc(X) + ", the moderator and the product cannot all be located in TECH1 and TECH3";
   }
   return g;
 }
@@ -1646,7 +1652,7 @@ function jnReport(g) {
     "the sampling variances of b<sub>1</sub> and b<sub>3</sub> read from this output are both zero, so the simple slope has no sampling variability and no threshold exists. Check that TECH3 belongs to the model whose coefficients are shown" };
   const rng = wRange();
   if (!rng) return { applies: true, ok: false, why: "the range of " + esc(g.W) +
-    " cannot be established: neither the observed minimum and maximum (univariate sample statistics) nor a mean and a standard deviation are available for it, and a threshold outside the range the data cover describes no observable case. Type the mean and the standard deviation of " + esc(g.W) + " into the fields above, or rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>" };
+    " cannot be established: this output has neither its observed minimum and maximum, which the univariate sample statistics give, nor a usable mean and standard deviation for it, and a threshold outside the range the data cover describes no observable case. Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for an observed moderator and <code>TECH4</code> for a latent one" };
   const co = jnQuadratic(g.b1, g.b3, g.cv, Z95);
   const q = w => co.a * w * w + co.b * w + co.c;
   const roots = jnRoots(g.b1, g.b3, g.cv, Z95);
@@ -1665,7 +1671,7 @@ function jnReport(g) {
   }
   const W = esc(g.W);
   const f = w => fmt3(w);
-  const sd = w => (g.std && Number.isFinite(num("mw")) && num("sw") > 0) ? " (" + fmt3((w - num("mw")) / num("sw")) + " SD)" : "";
+  const sd = w => (g.std && Number.isFinite(RD.mw) && RD.sw > 0) ? " (" + fmt3((w - RD.mw) / RD.sw) + " SD)" : "";
   let text;
   if (inside.length === 1) {
     const r = inside[0];
@@ -1860,10 +1866,13 @@ function slopesTable(g) {
     }
   }
   h += "</tbody></table></div>";
-  if (g.cvSource) h += '<p class="hint">Standard errors come from ' + esc(g.cvSource) + ', by the delta method: ' +
+  if (g.cvSource) h += '<p class="hint">Standard errors come from ' + esc(g.cvSource) + ', by the delta method:</p>' +
     (g.kind === "dum"
-      ? "Var(b<sub>1</sub> + g<sub>j</sub>) = Var(b<sub>1</sub>) + Var(g<sub>j</sub>) + 2·Cov(b<sub>1</sub>, g<sub>j</sub>), with g<sub>j</sub> the coefficient of the product of X with the dummy of category j."
-      : "Var(b<sub>1</sub> + b<sub>3</sub>w) = Var(b<sub>1</sub>) + w²Var(b<sub>3</sub>) + 2w·Cov(b<sub>1</sub>, b<sub>3</sub>).") + " The tests use the standard normal distribution, as " + MP + " does, and are therefore asymptotic." +
+      ? '<div class="eq">Var(<var>b</var><sub>1</sub> + <var>g</var><sub><var>j</var></sub>) = Var(<var>b</var><sub>1</sub>) + Var(<var>g</var><sub><var>j</var></sub>) + 2 Cov(<var>b</var><sub>1</sub>, <var>g</var><sub><var>j</var></sub>)</div>' +
+        '<p class="where">Here <var>g</var><sub><var>j</var></sub> is the coefficient of the product of ' + esc(g.X) + ' with the dummy variable of category <var>j</var>, Var(<var>g</var><sub><var>j</var></sub>) its sampling variance, and Cov(<var>b</var><sub>1</sub>, <var>g</var><sub><var>j</var></sub>) its sampling covariance with the coefficient of ' + esc(g.X) + '.</p>'
+      : '<div class="eq">Var(<var>b</var><sub>1</sub> + <var>b</var><sub>3</sub><var>w</var>) = Var(<var>b</var><sub>1</sub>) + <var>w</var><sup>2</sup> Var(<var>b</var><sub>3</sub>) + 2<var>w</var> Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>)</div>' +
+        '<p class="where">Here <var>w</var> is the value of ' + esc(g.modName) + ' the slope is read at, <var>b</var><sub>1</sub> and <var>b</var><sub>3</sub> are the coefficients of ' + esc(g.X) + ' and of the product, and the two variances and the covariance are those of the estimates.</p>') +
+    '<p class="hint">The tests use the standard normal distribution, as ' + MP + ' does, and are therefore asymptotic.' +
     (g.std ? " Estimates and standard errors are rescaled by SD(" + esc(g.X) + ")/SD(" + esc(g.Y) + "); z and p are unchanged by that rescaling." : "") + "</p>";
   if (checks.length) {
     const dmax = Math.max(...checks.map(c => Math.abs(c.mine - c.theirs)));
@@ -1875,11 +1884,7 @@ function slopesTable(g) {
     /* One message, built from the reason the covariance matrix could not be
        obtained, followed by what to do about it. */
     const why = g.cvWhy || "the covariance matrix of the estimates is not available";
-    const cure = S.manual
-      ? " Enter SE(b<sub>1</sub>), SE(b<sub>3</sub>) and their covariance, or their correlation, in the fields above. Until then the plot is drawn and no test is reported."
-      : (S.slopeEdited
-        ? " Press the button that restores the values read from the output to bring the tests back."
-        : " Request <code>OUTPUT: TECH1 TECH3;</code> in " + MP + ", or compute the simple slopes in MODEL CONSTRAINT as NEW parameters whose names identify them as slopes and the level they refer to, for example <code>SLO_LO</code>, <code>SLO_MED</code>, <code>SLO_HI</code>; three of them are enough to recover the two variances and the covariance.");
+    const cure = " Request <code>OUTPUT: TECH1 TECH3;</code> in " + MP + " and load the output again, or compute the simple slopes in MODEL CONSTRAINT as NEW parameters whose names identify them as slopes and the level they refer to, for example <code>SLO_LO</code>, <code>SLO_MED</code>, <code>SLO_HI</code>; three of them are enough to recover the two sampling variances and the covariance.";
     h += statusBox("warn", "No tests.", "The slopes above are point estimates without a test, because " + why + "." + cure);
   }
   return h;
@@ -1903,7 +1908,9 @@ function differencesTable(g) {
     h += "<tr><td>" + esc(labs[j]) + " minus " + esc(labs[i]) + '</td><td class="num">' + fmt3(d * scale) + '</td><td class="num">' + fmt3(se * scale) + '</td><td class="num">' + fmt2(z) + '</td><td class="num">p ' + fmtP(Number.isFinite(z) ? pnorm2(z) : NaN) + "</td></tr>";
   }
   h += "</tbody></table></div>";
-  h += '<p class="hint">The difference between the slope in a category and the slope in the reference category is the coefficient of the corresponding product term; the difference between two non-reference categories is the difference of those coefficients, with variance Var(g<sub>i</sub>) + Var(g<sub>j</sub>) &minus; 2Cov(g<sub>i</sub>, g<sub>j</sub>) read from TECH3.</p>';
+  h += '<p class="hint">The difference between the slope in a category and the slope in the reference category is the coefficient of the corresponding product term; the difference between two non-reference categories is the difference of those coefficients, with the variance below read from TECH3.</p>' +
+    '<div class="eq">Var(<var>g</var><sub><var>j</var></sub> <span class="op">−</span> <var>g</var><sub><var>i</var></sub>) = Var(<var>g</var><sub><var>i</var></sub>) + Var(<var>g</var><sub><var>j</var></sub>) <span class="op">−</span> 2 Cov(<var>g</var><sub><var>i</var></sub>, <var>g</var><sub><var>j</var></sub>)</div>' +
+    '<p class="where">Here <var>g</var><sub><var>i</var></sub> and <var>g</var><sub><var>j</var></sub> are the coefficients of the product terms of the two categories, and Cov(<var>g</var><sub><var>i</var></sub>, <var>g</var><sub><var>j</var></sub>) is their sampling covariance.</p>';
   return h;
 }
 
@@ -1943,8 +1950,7 @@ function varianceOfY(g) {
   return Number.isFinite(im) ? { v: im, src: "the model" } : { v: NaN, src: null };
 }
 function stdTable(g) {
-  if (S.manual) return '<p class="hint">A standardized solution is reported only for a model read from an output file.</p>';
-  if (g.kind === "dum") return '<p class="hint">With a categorical moderator entered as dummy variables the standardized solution of the product terms has no single scale factor: the dummy variables are not measured in standard deviations. The slopes are reported above in the original metric of ' + esc(g.X) + ' and ' + esc(g.Y) + ', and in the standardized display as the slope of standardized ' + esc(g.Y) + ' on standardized ' + esc(g.X) + ' within each category, that is b·SD(' + esc(g.X) + ')/SD(' + esc(g.Y) + ').</p>';
+  if (g.kind === "dum") return '<p class="hint">With a categorical moderator entered as dummy variables the standardized solution of the product terms has no single scale factor: the dummy variables are not measured in standard deviations. The slopes are reported above in the original metric of ' + esc(g.X) + ' and ' + esc(g.Y) + ', and in the standardized display as the slope of standardized ' + esc(g.Y) + ' on standardized ' + esc(g.X) + ' within each category, that is <span class="eq-in"><var>b</var> σ<sub>X</sub> / σ<sub>Y</sub></span>, with σ<sub>X</sub> and σ<sub>Y</sub> the standard deviations of ' + esc(g.X) + ' and ' + esc(g.Y) + '.</p>';
   const YU = up(g.Y);
   const sx = sdOf(g.X), sw = sdOf(g.W), vy = varianceOfY(g);
   const sy = Number.isFinite(vy.v) && vy.v > 0 ? Math.sqrt(vy.v) : NaN;
@@ -2033,11 +2039,11 @@ function stdTable(g) {
          disagreement as a defect would be wrong. */
       h += '<p class="hint"><strong>The product term is the exception.</strong> ' + MP +
         ' standardizes ' + esc(g.XW) + ' by its own standard deviation' +
-        (Number.isFinite(sdProd) ? ", SD(" + esc(g.XW) + ") = " + sdProd.toFixed(3) : "") +
-        ', which gives β = ' + fmt3(rows[2].mp) + '. The rebuilt column divides instead by SD(' + esc(g.X) + ')·SD(' + esc(g.W) +
-        ') = ' + (sx * sw).toFixed(3) + ', which gives ' + fmt3(rows[2].rebuilt) + '. The two differ by ' + dprod.toFixed(3) +
-        ' because the standard deviation of a product is not the product of the standard deviations. Wen, Marsh and Hau (2010) show that the second is the appropriate standardized solution: it is the one under which the standardized simple slope at a moderator value w is b<sub>1</sub>* + b<sub>3</sub>*·w/SD(' +
-        esc(g.W) + '), and the one that stays unchanged when the variables are rescaled. Report ' + fmt3(rows[2].rebuilt) +
+        (Number.isFinite(sdProd) ? ', <span class="eq-in">σ<sub>' + esc(g.XW) + '</sub> = ' + sdProd.toFixed(3) + '</span>' : "") +
+        ', which gives β = ' + fmt3(rows[2].mp) + '. The rebuilt column divides instead by the product of the two standard deviations, <span class="eq-in">σ<sub>' +
+        esc(g.X) + '</sub> σ<sub>' + esc(g.W) + '</sub> = ' + (sx * sw).toFixed(3) + '</span>, which gives ' + fmt3(rows[2].rebuilt) + '. The two differ by ' + dprod.toFixed(3) +
+        ' because the standard deviation of a product is not the product of the standard deviations. Wen, Marsh and Hau (2010) show that the second is the appropriate standardized solution: it is the one under which the standardized simple slope at a moderator value <var>w</var> is <span class="eq-in"><var>b</var><sub>1</sub>′ + <var>b</var><sub>3</sub>′<var>w</var> / σ<sub>' +
+        esc(g.W) + '</sub></span>, and the one that stays unchanged when the variables are rescaled. Report ' + fmt3(rows[2].rebuilt) +
         ' for ' + esc(g.XW) + ', and say in the text that the standardized solution printed by ' + MP + ' divides instead by the standard deviation of the product term.</p>';
     }
   } else {
@@ -2069,8 +2075,7 @@ function clearResults() {
   $("figtools").hidden = true; $("jntools").hidden = true;
 }
 function draw() {
-  if (!S.loaded && !S.manual) return;
-  $("restorebtn").hidden = !(S.loaded && (S.slopeEdited || S.anyEdited));
+  if (!S.loaded) return;
   const g = gather();
   if (g.error) { clearResults(); $("fig").innerHTML = statusBox("bad", "Nothing drawn.", g.error); return; }
   const bandsOn = $("bands").checked;
@@ -2100,7 +2105,7 @@ function draw() {
   $("slopes").innerHTML = slopesTable(g);
   $("diffs").innerHTML = differencesTable(g);
   $("stdsol").innerHTML = stdTable(g);
-  $("newpars").innerHTML = S.manual ? '<p class="hint">Available only for a model read from an output file.</p>' : newParametersTable();
+  $("newpars").innerHTML = newParametersTable();
 
   const jn = jnReport(g);
   if (!jn.applies) {
@@ -2112,7 +2117,10 @@ function draw() {
     $("jnfig").innerHTML = ""; $("jntools").hidden = true;
   } else {
     $("jntext").innerHTML = "<p>" + jn.text + "</p>" +
-      '<p class="hint">The thresholds are the roots of a·w² + b·w + c = 0 with a = b<sub>3</sub>² &minus; z²Var(b<sub>3</sub>), b = 2[b<sub>1</sub>b<sub>3</sub> &minus; z²Cov(b<sub>1</sub>, b<sub>3</sub>)] and c = b<sub>1</sub>² &minus; z²Var(b<sub>1</sub>), with z = 1.96. Only roots inside the range of ' + esc(g.W) + ' used here are reported: ' + esc(jn.rng.src) + ', from ' + fmt3(jn.rng.min) + " to " + fmt3(jn.rng.max) + ". The quadratic coefficient a = " + fmt3(jn.co.a) + " is " + (jn.co.a > 0 ? "positive, so significance holds outside the roots" : "negative, so significance holds between the roots") + ", and the test statistic evaluated at the midpoint of each interval agrees with that.</p>";
+      '<p class="hint">The thresholds are the roots of the quadratic below.</p>' +
+      '<div class="eq"><var>a</var><var>w</var><sup>2</sup> + <var>b</var><var>w</var> + <var>c</var> = 0<span class="op">,</span> <var>a</var> = <var>b</var><sub>3</sub><sup>2</sup> <span class="op">−</span> <var>z</var><sup>2</sup> Var(<var>b</var><sub>3</sub>)<span class="op">,</span> <var>b</var> = 2[<var>b</var><sub>1</sub><var>b</var><sub>3</sub> <span class="op">−</span> <var>z</var><sup>2</sup> Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>)]<span class="op">,</span> <var>c</var> = <var>b</var><sub>1</sub><sup>2</sup> <span class="op">−</span> <var>z</var><sup>2</sup> Var(<var>b</var><sub>1</sub>)</div>' +
+      '<p class="where">Here <var>w</var> is a value of ' + esc(g.W) + ', <var>b</var><sub>1</sub> and <var>b</var><sub>3</sub> are the coefficients of ' + esc(g.X) + ' and of the product, Var and Cov are their sampling variances and covariance from TECH3, and <var>z</var> is the critical value 1.96.</p>' +
+      '<p class="hint">Only roots inside the range of ' + esc(g.W) + ' used here are reported: ' + esc(jn.rng.src) + ', from ' + fmt3(jn.rng.min) + " to " + fmt3(jn.rng.max) + ". The quadratic coefficient <var>a</var> = " + fmt3(jn.co.a) + " is " + (jn.co.a > 0 ? "positive, so significance holds outside the roots" : "negative, so significance holds between the roots") + ", and the test statistic evaluated at the midpoint of each interval agrees with that.</p>";
     const svg = jnSVG(g, jn);
     $("jnfig").innerHTML = svg ? '<figure class="plot">' + svg + "<figcaption>Simple slope of " + esc(g.X) + " on " + esc(g.Y) + " as a function of " + esc(g.W) + ", with its 95% confidence band. The horizontal dashed line marks a slope of zero and the vertical dashed lines mark the thresholds. " + jn.plain + "</figcaption></figure>" : "";
     $("jntools").hidden = !svg;
@@ -2123,7 +2131,7 @@ function draw() {
    Applying a selection to the controls
 --------------------------------------------------------------------------- */
 function updateStdAvailability() {
-  const sx = num("sx"), sy = num("sy");
+  const sx = RD.sx, sy = RD.sy;
   const ok = sx > 0 && sy > 0;
   $("m-std").disabled = !ok;
   if (!ok && $("m-std").checked) $("m-raw").checked = true;
@@ -2136,18 +2144,8 @@ function updateStdAvailability() {
 function applySelection() {
   const Y = $("selY").value, X = $("selX").value, W = $("selW").value, XW = $("selXW").value;
   const reg = S.reg[up(Y)] || {};
-  if (!S.manual) {
-    setNum("b0", Number.isFinite(S.inter[up(Y)]) ? S.inter[up(Y)] : 0);
-    setNum("b1", reg[up(X)]);
-    setNum("b2", reg[up(W)]);
-    setNum("b3", reg[up(XW)]);
-    setNum("mx", meanOf(X)); setNum("sx", sdOf(X));
-    setNum("mw", meanOf(W)); setNum("sw", sdOf(W));
-    setNum("my", meanOf(Y));
-    const vy = varOf(Y);
-    setNum("sy", Number.isFinite(vy) && vy > 0 ? Math.sqrt(vy) : NaN);
-    S.slopeEdited = false; S.anyEdited = false;
-  }
+  readValues(Y, X, W, XW, reg);
+  showReadValues(Y, X, W, XW);
   $("labx").value = X || "X";
   $("laby").value = Y || "Y";
   updateStdAvailability();
@@ -2156,8 +2154,8 @@ function applySelection() {
   const xr = xRange();
   if (xr) {
     const std = isStd();
-    setNum("xmin", std ? (xr.min - num("mx")) / num("sx") : xr.min);
-    setNum("xmax", std ? (xr.max - num("mx")) / num("sx") : xr.max);
+    setNum("xmin", std ? (xr.min - RD.mx) / RD.sx : xr.min);
+    setNum("xmax", std ? (xr.max - RD.mx) / RD.sx : xr.max);
   }
   $("ymin").value = ""; $("ymax").value = "";
   draw();
@@ -2192,8 +2190,6 @@ function refreshModeratorUI() {
   $("wsingle").hidden = k === "dum";
   $("wdummy").hidden = k !== "dum";
   $("p-levels").hidden = k === "dum";
-  $("rowb23").hidden = k === "dum";
-  $("rowmw").hidden = k === "dum";
 }
 
 /* ---------------------------------------------------------------------------
@@ -2203,7 +2199,7 @@ function fail(msg) {
   clearResults();
   $("p-vars").hidden = true; $("p-levels").hidden = true; $("p-style").hidden = true;
   $("results-col").hidden = true;
-  S.loaded = false; S.manual = false;
+  S.loaded = false;
   $("loadmsg").innerHTML = statusBox("bad", "Not read.", msg);
 }
 function loadText(raw) {
@@ -2242,10 +2238,9 @@ function loadText(raw) {
     return;
   }
   Object.assign(S, D);
-  S.loaded = true; S.manual = false; S.slopeEdited = false; S.anyEdited = false;
+  S.loaded = true;
   S.haveStd = Object.keys(S.regStd).length > 0;
   S.dummies = [];
-  $("manualse").hidden = true;
   $("wkind").value = "cont";
   refreshModeratorUI();
   $("p-vars").hidden = false; $("p-style").hidden = false; $("results-col").hidden = false;
@@ -2276,38 +2271,52 @@ function loadText(raw) {
 }
 
 /* ---------------------------------------------------------------------------
-   Coefficients entered by hand. Nothing is invented here: without the standard
-   errors and the covariance of b1 and b3 the page draws the plot and says that
-   the tests need the covariance matrix of the estimates.
+   The numbers the page computes with, read from the output for the equation
+   now selected, and the panel that shows them. Nothing on the page writes to
+   RD but this reader: a value read from the output is the value used.
 --------------------------------------------------------------------------- */
-function manualMode() {
-  S.manual = true; S.loaded = false;
-  S.reg = { Y: { X: 0.4, W: -0.2, XW: -0.05 } }; S.regInfo = { Y: {} }; S.regStd = {}; S.regStdInfo = {};
-  S.inter = { Y: 0 }; S.means = {}; S.vars = {}; S.residuals = {}; S.withCov = {};
-  S.sampMeans = {}; S.sampVars = {}; S.sampCov = {}; S.uni = {}; S.latentMeans = {}; S.latentVars = {};
-  S.newPar = []; S.latent = []; S.truncated = []; S.tech1 = {}; S.tech3 = {}; S.xwith = []; S.defined = [];
-  S.n = NaN; S.estimator = ""; S.haveStd = false; S.dummies = [];
-  S.slopeEdited = false; S.anyEdited = false;
-  $("p-vars").hidden = false; $("p-style").hidden = false; $("results-col").hidden = false;
-  $("manualse").hidden = false;
-  $("wkind").value = "cont";
-  $("wkind").querySelector('option[value="dum"]').disabled = true;
-  refreshModeratorUI();
-  fillSelect($("selY"), ["Y"], "Y");
-  fillSelect($("selX"), ["X", "W", "XW"], "X");
-  fillSelect($("selW"), ["X", "W", "XW"], "W");
-  fillSelect($("selXW"), ["X", "W", "XW"], "XW");
-  for (const [id, v] of [["b0", 0], ["b1", 0.4], ["b2", -0.2], ["b3", -0.05], ["mx", 0], ["sx", 1], ["mw", 0], ["sw", 1], ["my", 0], ["sy", 1]]) $(id).value = v;
-  for (const id of ["se1", "se3", "cov13", "cor13"]) $(id).value = "";
-  $("prodnote").textContent = "";
-  $("loadmsg").innerHTML = statusBox("info", "Coefficients by hand.",
-    "Enter b<sub>0</sub>, b<sub>1</sub>, b<sub>2</sub> and b<sub>3</sub>, together with the means and standard deviations of X, W and Y. The plot is drawn from those alone. The tests of the simple slopes and the Johnson&ndash;Neyman thresholds also need SE(b<sub>1</sub>), SE(b<sub>3</sub>) and Cov(b<sub>1</sub>, b<sub>3</sub>), or the correlation between the two estimates; without them no test is reported.");
-  updateStdAvailability();
-  S.levels = defaultLevels();
-  renderLevels();
-  setNum("xmin", -2); setNum("xmax", 2);
-  $("labx").value = "X"; $("laby").value = "Y";
-  draw();
+function readValues(Y, X, W, XW, reg) {
+  RD.b0 = S.inter[up(Y)];
+  RD.b1 = reg[up(X)];
+  RD.b2 = reg[up(W)];
+  RD.b3 = reg[up(XW)];
+  RD.mx = meanOf(X); RD.sx = sdOf(X);
+  RD.mw = meanOf(W); RD.sw = sdOf(W);
+  RD.my = meanOf(Y);
+  const vy = varOf(Y);
+  RD.sy = Number.isFinite(vy) && vy > 0 ? Math.sqrt(vy) : NaN;
+}
+/* A value that is not in the file is named as missing together with the OUTPUT
+   option that would put it there, rather than shown as a blank field. */
+function readRow(label, value, cure) {
+  return "<dt>" + label + "</dt><dd>" +
+    (Number.isFinite(value) ? fmt3(value) : '<em>not in this output</em>' + (cure ? " — " + cure : "")) + "</dd>";
+}
+function showReadValues(Y, X, W, XW) {
+  const dum = moderatorKind() === "dum";
+  const samp = "request <code>OUTPUT: SAMPSTAT;</code>, or <code>TECH4</code> for a latent variable";
+  let h = '<dl class="kv">';
+  h += readRow("Intercept of " + esc(Y), RD.b0, "the model was fitted without one");
+  h += readRow("Coefficient of " + esc(X), RD.b1, "it is not in the <code>ON</code> statement of " + esc(Y));
+  if (!dum) {
+    h += readRow("Coefficient of " + esc(W || "the moderator"), RD.b2, "it is not in the <code>ON</code> statement of " + esc(Y));
+    h += readRow("Coefficient of " + esc(XW || "the product"), RD.b3, "it is not in the <code>ON</code> statement of " + esc(Y));
+  }
+  h += readRow("Mean of " + esc(X), RD.mx, samp);
+  h += readRow("SD of " + esc(X), RD.sx, samp);
+  if (!dum) {
+    h += readRow("Mean of " + esc(W || "the moderator"), RD.mw, samp);
+    h += readRow("SD of " + esc(W || "the moderator"), RD.sw, samp);
+  }
+  h += readRow("Mean of " + esc(Y), RD.my, samp);
+  h += readRow("SD of " + esc(Y), RD.sy, samp);
+  h += "</dl>";
+  const haveT1 = Object.keys(S.tech1).length > 0, haveT3 = Object.keys(S.tech3).length > 0;
+  h += '<p class="hint">These are the values the figure and the tests are computed from. They are read from the output and cannot be edited here: a value read from an output is the value used. ' +
+    (haveT1 && haveT3
+      ? "The sampling variances and covariances behind every standard error below come from TECH1 with TECH3 in the same file."
+      : "The sampling variances and covariances the tests need are not in this file; request <code>OUTPUT: TECH1 TECH3;</code> and load the output again.") + "</p>";
+  $("readvals").innerHTML = h;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2809,45 +2818,46 @@ function runSelfTests() {
     wideOk ? "the eleventh column is kept" : "columns beyond a block boundary were lost");
 
   /* 19. The codes of a categorical moderator, dummy coded 0/1 and 1/2, and
-         with three, five and ten categories. */
-  const keepUni = S.uni;
+         with three, five and ten categories, read from the file and never
+         typed; and the refusal when the file states none of them. */
+  const keepUni = S.uni, keepProp = S.uniProp, keepSamp = S.sampMeans, keepSampV = S.sampVars;
   S.uni = { G01: { min: 0, max: 1 }, G12: { min: 1, max: 2 }, G3: { min: 1, max: 3 },
             G5: { min: 1, max: 5 }, G10: { min: 0, max: 9 }, G30: { min: 1, max: 30 } };
-  const cc = n => (categoryCodes(n) || []).join(",");
+  S.uniProp = {};
+  const cc = n => { const r = categoryCodes(n); return r ? r.codes.join(",") : ""; };
   const codesOk = cc("G01") === "0,1" && cc("G12") === "1,2" && cc("G3") === "1,2,3" &&
-    cc("G5") === "1,2,3,4,5" && cc("G10") === "0,1,2,3,4,5,6,7,8,9" && (categoryCodes("G30") || []).length === 30;
-  S.uni = keepUni;
+    cc("G5") === "1,2,3,4,5" && cc("G10") === "0,1,2,3,4,5,6,7,8,9" && categoryCodes("G30").codes.length === 30;
+  const refused = categoryCodes("GNONE") === null;
+  S.uniProp = { GP: [1, 2, 5] };
+  const fromProp = cc("GP") === "1,2,5";
+  S.uni = keepUni; S.uniProp = keepProp; S.sampMeans = keepSamp; S.sampVars = keepSampV;
   add("Codes of a categorical moderator read from the observed minimum and maximum", codesOk,
-    codesOk ? "0/1, 1/2, three, five and ten categories all enumerated; a range of thirty is left to the user" : "the codes were not enumerated as expected");
+    codesOk ? "0/1, 1/2, three, five and ten categories all enumerated; a range of thirty is truncated for the figure" : "the codes were not enumerated as expected");
+  add("Codes read from the univariate proportions when the output states them", fromProp,
+    fromProp ? "the codes 1, 2 and 5 are taken as printed, gap included" : "the printed codes were not used");
+  add("A moderator whose codes are in no section of the output is refused rather than guessed", refused,
+    "no code is invented and none can be typed");
 
-  /* 20. Manual entry without a covariance between the estimates gives no test. */
-  const keepManual = S.manual;
-  const keepVals = ["se1", "se3", "cov13", "cor13"].map(id => $(id).value);
-  $("se1").value = "0.05"; $("se3").value = "0.03"; $("cov13").value = ""; $("cor13").value = "";
-  const noCov = manualCov();
-  $("cor13").value = "0.4";
-  const withCor = manualCov();
-  $("cor13").value = "1.6";
-  const badCor = manualCov();
-  $("cov13").value = "0.0009"; $("cor13").value = "";
-  const withCov = manualCov();
-  ["se1", "se3", "cov13", "cor13"].forEach((id, i) => { $(id).value = keepVals[i]; });
-  S.manual = keepManual;
-  add("Without a covariance between b1 and b3 no test is produced", noCov === null,
-    "the page refuses rather than assuming the estimates are independent");
-  add("A correlation between the estimates is accepted in place of the covariance",
-    withCor && near(withCor.v13, 0.4 * 0.05 * 0.03, 1e-15), "Cov = r·SE(b1)·SE(b3)");
-  add("A correlation outside the range from −1 to 1 is refused", badCor === null, "no covariance is built from it");
-  add("A covariance entered directly is used as given", withCov && near(withCov.v13, 0.0009, 1e-15) === false ? false : true,
-    "Cov(b1, b3) = 0.000900");
+  /* 20. The univariate proportions and counts of a categorical variable. */
+  const propText = [
+    "UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES", "",
+    "    W", "      Category 1    0.250          125.000",
+    "      Category 2    0.500          250.000",
+    "      Category 3    0.250          125.000", "",
+    "SAMPLE STATISTICS", ""
+  ].join("\n");
+  const props = parseUnivariateProportions(propText);
+  const propsOk = props.W && props.W.join(",") === "1,2,3";
+  add("UNIVARIATE PROPORTIONS AND COUNTS read as the codes of the variable", propsOk,
+    propsOk ? "three categories coded 1, 2 and 3" : "the block was not read");
 
   /* 21. A moderator with no variance produces a message and no levels. */
-  const keepLev = $("levnote").innerHTML, keepSw = $("sw").value, keepMw = $("mw").value;
+  const keepLev = $("levnote").innerHTML, keepSw = RD.sw, keepMw = RD.mw;
   const keepKind = $("wkind").value;
-  $("wkind").value = "cont"; $("sw").value = "0"; $("mw").value = "2";
+  $("wkind").value = "cont"; RD.sw = 0; RD.mw = 2;
   const zeroLevels = defaultLevels();
   const zeroNote = $("levnote").textContent;
-  $("sw").value = keepSw; $("mw").value = keepMw; $("wkind").value = keepKind;
+  RD.sw = keepSw; RD.mw = keepMw; $("wkind").value = keepKind;
   $("levnote").innerHTML = keepLev;
   add("A moderator with no variance yields no levels and a message that says so",
     zeroLevels.length === 0 && says(zeroNote, "does not vary"),
@@ -2879,12 +2889,6 @@ function showSelfTest() {
 /* ---------------------------------------------------------------------------
    Events
 --------------------------------------------------------------------------- */
-function markEdited(which) {
-  if (!S.loaded) { draw(); return; }
-  S.anyEdited = true;
-  if (which === "slope") S.slopeEdited = true;
-  draw();
-}
 function wireEvents() {
   $("file").addEventListener("change", ev => {
     const f = ev.target.files[0]; if (!f) return;
@@ -2900,8 +2904,6 @@ function wireEvents() {
     $("fname").textContent = f.name;
     readTextFile(f, loadText, () => fail("The browser could not read this file. It may have been moved, renamed or deleted since it was chosen, or the browser may not have permission to open it. Choose it again."));
   });
-  $("manualbtn").addEventListener("click", manualMode);
-  $("restorebtn").addEventListener("click", () => { S.slopeEdited = false; S.anyEdited = false; applySelection(); });
   $("selY").addEventListener("change", populateForY);
   for (const id of ["selX", "selW", "selXW"]) $(id).addEventListener("change", () => { updateProductNote(); applySelection(); });
   $("wkind").addEventListener("change", () => {
@@ -2919,17 +2921,12 @@ function wireEvents() {
     const xr = xRange();
     if (xr) {
       const std = isStd();
-      setNum("xmin", std ? (xr.min - num("mx")) / num("sx") : xr.min);
-      setNum("xmax", std ? (xr.max - num("mx")) / num("sx") : xr.max);
+      setNum("xmin", std ? (xr.min - RD.mx) / RD.sx : xr.min);
+      setNum("xmax", std ? (xr.max - RD.mx) / RD.sx : xr.max);
     }
     $("ymin").value = ""; $("ymax").value = "";
     draw();
   }));
-  for (const id of ["b0", "b2"]) $(id).addEventListener("input", () => markEdited("other"));
-  for (const id of ["b1", "b3"]) $(id).addEventListener("input", () => markEdited("slope"));
-  for (const id of ["se1", "se3", "cov13", "cor13"]) $(id).addEventListener("input", draw);
-  for (const id of ["mx", "sx", "my", "sy"]) $(id).addEventListener("input", () => { updateStdAvailability(); draw(); });
-  for (const id of ["mw", "sw"]) $(id).addEventListener("input", () => { S.levels = defaultLevels(); renderLevels(); draw(); });
   for (const id of ["modname", "reflabel", "ftitle", "labx", "laby", "xmin", "xmax", "ymin", "ymax", "fsize", "lwid", "msize", "wmm"]) $(id).addEventListener("input", draw);
   for (const id of ["fontfam", "legend", "legbox", "zeroline", "bands", "greyscale", "dpi"]) $(id).addEventListener("change", draw);
   $("fig-svg").addEventListener("click", () => exportSVG("fig", "interaction-plot"));
@@ -2957,7 +2954,7 @@ if (new URLSearchParams(location.search).get("selftest") === "1") {
      outside the browser can compare them with an implementation of its own. */
   window.__api = {
     pnorm2, chi2Tail, jnQuadratic, jnRoots, slopeVariance, categorySlope, quadForm,
-    parseTech1, parseTech3, parseUnivariate, parseSampleStatistics, parseOutput,
+    parseTech1, parseTech3, parseUnivariate, parseUnivariateProportions, parseSampleStatistics, parseOutput,
     unsupportedReason, detectProduct, solveVarianceFromThree, invertMatrix, categoryCodes
   };
   showSelfTest();

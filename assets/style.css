@@ -55,9 +55,11 @@ img, svg, video, canvas { max-width: 100%; height: auto; }
 
 /* Header and footer */
 header.site, footer.site, main {
-  width: min(100% - 2rem, 76rem);
+  width: min(100% - 4rem, 62rem);
   margin-inline: auto;
 }
+@media (max-width: 48rem) { header.site, footer.site, main { width: min(100% - 2rem, 62rem); } }
+@media (max-width: 30rem) { header.site, footer.site, main { width: min(100% - 1.25rem, 62rem); } }
 header.site {
   padding-top: 1rem;
   display: grid; align-items: start;
@@ -333,7 +335,7 @@ body.home main { width: min(100% - 2rem, 62rem); margin-inline: auto; }
   display: flex; flex-direction: column; align-items: center; gap: 1.1rem;
   color: var(--brand);
 }
-.logo .mark { width: clamp(74px, 12vw, 104px); height: auto; display: block; }
+.logo .mark { width: clamp(96px, 15vw, 136px); height: auto; display: block; }
 .wordmark {
   font-size: clamp(2.3rem, 1.1rem + 4.6vw, 4rem);
   font-weight: 300;
@@ -520,3 +522,37 @@ pre.syntax { max-height: 30rem; overflow: auto; contain: paint; }
   body { background: #fff; color: #000; }
   a { color: #000; }
 }
+
+
+/* ---------- Typeset formulas ---------- */
+var { font-style: italic; font-family: Georgia, "Times New Roman", serif; }
+var sub, var sup { font-style: normal; }
+.eq {
+  display: block; margin: 1.1rem 0; padding: 0.85rem 1rem;
+  background: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius);
+  font-family: Georgia, "Times New Roman", serif; font-size: 1.06rem; line-height: 1.9;
+  text-align: center; overflow-x: auto; max-width: 100%;
+}
+.eq-in { font-family: Georgia, "Times New Roman", serif; white-space: nowrap; }
+.eq .frac {
+  display: inline-block; vertical-align: middle; text-align: center;
+  margin: 0 0.2em; line-height: 1.35;
+}
+.eq .frac > .num { display: block; padding: 0 0.35em; border-bottom: 1px solid currentColor; }
+.eq .frac > .den { display: block; padding: 0 0.35em; }
+.eq .op { padding: 0 0.28em; }
+.eq .big { font-size: 1.35em; vertical-align: -0.12em; }
+.where { max-width: var(--measure); color: var(--ink-soft); margin-top: -0.4rem; }
+
+/* Numbered instructions */
+ol.steps { counter-reset: step; list-style: none; padding-left: 0; margin: 1rem 0 1.4rem; max-width: var(--measure); }
+ol.steps > li {
+  counter-increment: step; position: relative; padding-left: 2.6rem; margin-bottom: 0.85rem;
+}
+ol.steps > li::before {
+  content: counter(step); position: absolute; left: 0; top: 0.05rem;
+  width: 1.85rem; height: 1.85rem; border-radius: 50%;
+  background: var(--brand); color: #fff; font-weight: 700; font-size: 0.95rem;
+  display: flex; align-items: center; justify-content: center;
+}
+ol.steps code { font-size: 0.9em; }

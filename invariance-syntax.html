@@ -4,18 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Writes the input files for a sequence of identified multiple-group confirmatory factor models, for continuous indicators and for ordered-categorical indicators following Wu and Estabrook (2016).">
+<meta name="description" content="Describe a multiple-group confirmatory factor model and get the Mplus input files for a sequence of identified measurement invariance models, for continuous indicators and for ordered-categorical indicators following Wu and Estabrook (2016).">
 <title>Invariance Syntax Builder · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
-/* Page-specific: the item table needs compact cells with a small number
-   field, and each generated input needs a header row that keeps its copy
-   button beside the level name. Neither belongs in the shared sheet. */
-#cats { max-width: 34rem; }
-#cats td, #cats th { padding: 0.3rem 0.45rem; vertical-align: middle; }
-#cats input[type="number"] { width: 5.5rem; padding: 0.25rem 0.4rem; text-align: right; }
-#cats label { margin: 0; font-weight: 400; }
-/* One written input: its number and name, the button that copies it, the
+/* Page-specific: one written input: its number and name, the button that copies it, the
    paragraphs that say what the level does, and the syntax itself. */
 .level { margin: 1.6rem 0 0; }
 .level h3 { margin-top: 0; }
@@ -27,16 +21,26 @@
   .level > .block-head, .level > details { grid-column: 1 / -1; }
   .level-syntax > .pill { margin-top: 0; }
 }
-.pill { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-soft); }
+/* The name of a written file is one word of monospaced text, and the name
+   of the output it was read from can be long, so it breaks inside itself
+   rather than pushing the page sideways on a narrow screen. */
+.pill { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-soft); overflow-wrap: anywhere; }
 p.pill { margin: 0.9rem 0 0.25rem; }
 #selftest-banner { margin-top: 1rem; }
-.seq { list-style: none; padding-left: 0; }
-.seq li { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.5rem; padding: 0.25rem 0; max-width: none; }
-.seq .n { font-variant-numeric: tabular-nums; color: var(--ink-soft); }
-/* The textarea that holds the factor definitions is read as syntax, so it
-   keeps the width of a syntax block rather than that of the column. */
-#defs { max-width: 34rem; min-height: 6rem; }
-#names { max-width: 34rem; }
+/* The two identification methods are named in full in the menu, and the
+   longer of the two names needs more of the row than an equal share. */
+@media (min-width: 60rem) { .row > .field.wide { flex: 1.4 1 24rem; } }
+.row .field.w2 { flex: 0 1 11rem; }
+/* One row per item, so the numbers line up under one another and the
+   name of the item is read down the first column. */
+/* The table is only two columns wide, so the box it sits in shrinks to
+   it rather than reserving the width of a wide table and drawing the
+   scroll shadow of a box nothing overflows. */
+#cat-table .table-wrap { width: max-content; max-width: 100%; background-image: none; }
+#cat-table table { width: auto; min-width: 14rem; }
+#cat-table td, #cat-table th { padding: 0.3rem 0.65rem; }
+#cat-table input { max-width: 6rem; }
+#cat-table label { margin: 0; font-weight: 400; }
 </style>
 </head>
 <body>
@@ -47,9 +51,9 @@ p.pill { margin: 0.9rem 0 0.25rem; }
     <a href="index.html#tools">All tools</a>
   </nav>
   <h1>Invariance Syntax Builder</h1>
-  <p class="lede">This page writes the M<em>plus</em> input for a sequence of identified multiple-group confirmatory factor models, for continuous indicators and for ordered-categorical indicators. For continuous indicators it writes the configural, metric, scalar and strict models and the optional structural steps; for ordered-categorical indicators it writes the sequence of Wu and Estabrook (2016) as applied by Svetina, Rutkowski and Rutkowski (2020), in which each level is identified on its own rather than by adding constraints to an identified baseline.</p>
+  <p class="lede">Describe the model you mean to fit &mdash; its factors and their items, its groups, its estimator &mdash; and this page writes the M<em>plus</em> input for a sequence of identified multiple-group confirmatory factor models. For continuous indicators it writes the configural, metric, scalar and strict models and the optional structural steps; for ordered-categorical indicators it writes the sequence of Wu and Estabrook (2016) as applied by Svetina, Rutkowski and Rutkowski (2020), in which each level is identified on its own rather than by adding constraints to an identified baseline. Nothing is estimated here: what is written is input, to be run in M<em>plus</em> on your data.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> Every input written here ends with <code>OUTPUT: TECH1 TECH4 STDYX;</code>. TECH1 prints the parameter specification group by group, which is the direct way to check that each equality constraint landed on the parameter it was meant for; TECH4 prints the estimated factor means, variances and covariances, which are the quantities the later levels license you to compare; STDYX gives the standardized loadings.
+    <strong>What every input written here asks for.</strong> Each one ends with <code>OUTPUT: TECH1 TECH4 STDYX;</code>. TECH1 prints the parameter specification group by group, which is the direct way to check that each equality constraint landed on the parameter it was meant for; TECH4 prints the estimated factor means, variances and covariances, which are the quantities the later levels license you to compare; STDYX gives the standardized loadings.
   </div>
 </header>
 
@@ -57,130 +61,139 @@ p.pill { margin: 0.9rem 0 0.25rem; }
 
 <div id="selftest-banner" hidden></div>
 
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Say whether the items are continuous or ordered categorical, in the first box under <em>The model</em>. That choice decides which of the two sequences is written and nothing else on the page can be answered without it.</li>
+    <li>Write the factor definitions, one factor to a line, exactly as they would be written in M<em>plus</em>: <code>F1 BY x1 x2 x3;</code> The hyphen range notation is read, so <code>F1 BY x1-x4;</code> is the same definition. Each item may belong to one factor only.</li>
+    <li>Give the number of groups, the name of the grouping variable, and the code and the name of each group, written as <code>1 = male, 2 = female</code>. The code is the value the grouping variable takes in the data file; the name is what M<em>plus</em> calls that group, so it obeys the naming rules of a variable.</li>
+    <li>Choose the estimator. Which difference test the sequence can use follows from it: with <code>MLMV</code>, <code>WLSMV</code> and <code>ULSMV</code> the page pairs a <code>SAVEDATA: DIFFTEST =</code> file to an <code>ANALYSIS: DIFFTEST =</code> file between consecutive levels, and with the others it does not.</li>
+    <li>With ordered-categorical items, give the number of response categories: one number for every item, and, for items that differ from it, a number of their own in the table under <em>Give particular items a different number of categories</em>. An item with fewer than four categories contributes nothing to the test of threshold invariance, which is why the number matters here.</li>
+    <li>Tick the levels of the sequence to write, choose how the factors are identified, and, with ordered-categorical items, choose the parameterization. These are the choices that are not part of the description of the model.</li>
+    <li>Press <em>Write the inputs</em>. Each input appears with the checks it passed under it. Copy one with the button beside its heading, or press <em>Download every input as a separate .inp file</em> to save them all, then run them in M<em>plus</em> in the order they are written.</li>
+  </ol>
+  <p>The page refuses a description it cannot write an identified sequence for, and says which part of the description is at fault: a line that is not a factor definition, an item listed on two factors, a name longer than the eight characters M<em>plus</em> allows or one of the words the language reserves, a group name used twice, fewer than two groups, or a number of categories below two or above twelve.</p>
+</section>
+
 <section aria-labelledby="h-model">
   <h2 id="h-model">The model</h2>
 
-  <div class="split even">
-  <div>
-
   <fieldset>
-    <legend>Indicators</legend>
-    <label class="check"><input type="radio" name="family" id="fam-a" value="A" checked> Continuous indicators: configural, metric, scalar, strict</label>
-    <label class="check"><input type="radio" name="family" id="fam-b" value="B"> Ordered-categorical indicators: the sequence of Wu and Estabrook (2016)</label>
+    <legend>Write the sequence for these indicators</legend>
+    <label class="check"><input type="radio" name="family" id="famA" value="A" checked> Continuous indicators: configural, metric, scalar, strict</label>
+    <label class="check"><input type="radio" name="family" id="famB" value="B"> Ordered-categorical indicators: the sequence of Wu and Estabrook (2016)</label>
   </fieldset>
 
   <div class="field">
-    <label for="defs">Factor definitions</label>
-    <span class="hint">One factor per line, written as it would be written in M<em>plus</em>: <code>F1 BY x1 x2 x3 x4;</code>. The hyphen range notation is read, so <code>F1 BY x1-x4;</code> is the same definition. Semicolons may be left out. Names may be up to eight characters, must begin with a letter and may contain letters, digits and underscores. Each item may belong to one factor only.</span>
-    <textarea id="defs" spellcheck="false" aria-describedby="defs-report">F1 BY x1-x4;</textarea>
+    <label for="defs">Define the factors and their items</label>
+    <span class="hint" id="defs-hint">One factor to a line, written as it would be written in M<em>plus</em>: <code>F1 BY x1 x2 x3 x4;</code> The hyphen range notation is read, so <code>F1 BY x1-x4;</code> is the same definition. Semicolons may be left out. Names may be up to eight characters, must begin with a letter and may contain letters, digits and underscores. Each item may belong to one factor only.</span>
+    <textarea id="defs" rows="5" spellcheck="false" aria-describedby="defs-hint">F1 BY x1-x4;</textarea>
   </div>
 
   <div class="row">
-    <div class="field w2">
-      <label for="ngroups">Number of groups</label>
-      <input type="number" id="ngroups" min="2" max="12" step="1" value="2">
+    <div class="field w1">
+      <label for="nGroups">Compare this many groups</label>
+      <input type="number" id="nGroups" min="2" max="50" step="1" value="2">
     </div>
-    <div class="field w2">
-      <label for="groupvar">Grouping variable</label>
-      <input type="text" id="groupvar" value="grp" spellcheck="false">
+    <div class="field">
+      <label for="groupVar">Split them by this variable</label>
+      <input type="text" id="groupVar" value="grp" spellcheck="false" autocomplete="off">
     </div>
-    <div class="field w4">
-      <label for="groupnames">Group names and codes</label>
-      <input type="text" id="groupnames" value="1 = G1, 2 = G2" spellcheck="false">
-      <span class="hint">Comma-separated, as <code>code = name</code>. The names are used in the <code>GROUPING</code> statement and in the <code>MODEL</code> blocks, so they follow the same naming rules as variables.</span>
+    <div class="field">
+      <label for="groupNames">Name the groups and give their codes</label>
+      <input type="text" id="groupNames" value="1 = G1, 2 = G2" spellcheck="false" autocomplete="off" aria-describedby="groupNames-hint">
+      <span class="hint" id="groupNames-hint">Separated by commas, as <code>code = name</code>. The names go into the <code>GROUPING</code> statement and head the <code>MODEL</code> blocks, so they follow the same naming rules as variables. The first group named is the reference group.</span>
     </div>
   </div>
 
   <div class="row">
-    <div class="field w4">
-      <label for="ident">Identification of the factors</label>
+    <div class="field wide">
+      <label for="ident">Identify the factors in this way</label>
       <select id="ident">
         <option value="fixed" selected>Fixed factor: variance at one, mean at zero in the reference group</option>
-        <option value="marker">Marker indicator: the first item of each factor has a loading of one</option>
+        <option value="marker">Marker item: the first item of each factor has a loading of one</option>
       </select>
     </div>
-    <div class="field w3">
-      <label for="estimator">Estimator</label>
-      <select id="estimator"></select>
-    </div>
-    <div class="field w4" id="param-field" hidden>
-      <label for="param">Parameterization</label>
-      <select id="param">
-        <option value="DELTA" selected>DELTA: scale factors for the latent responses</option>
-        <option value="THETA">THETA: residual variances of the latent responses</option>
-      </select>
+    <div class="field">
+      <label for="estimator">Estimate with</label>
+      <select id="estimator" aria-describedby="est-hint"></select>
+      <span class="hint" id="est-hint">Maximum likelihood for continuous indicators, weighted or unweighted least squares for ordered-categorical ones; the words after each name say how its chi-square is adjusted. The menu holds the estimators the two sequences are written for, the first of them being the one the page starts from; one read from an output file is added to the menu as it stands. What follows from the choice is the difference test, named under the inputs.</span>
     </div>
   </div>
 
-  <fieldset id="cat-fieldset" hidden>
-    <legend>Response categories</legend>
+  <div id="cat-fields" hidden>
     <div class="row">
-      <div class="field w1">
-        <label for="catall">The same number for every item</label>
-        <input type="number" id="catall" min="2" max="12" step="1" value="4">
+      <div class="field w2">
+        <label for="catAll">Response categories per item</label>
+        <input type="number" id="catAll" min="2" max="12" step="1" value="4">
       </div>
-      <div class="field end">
-        <button type="button" class="secondary" id="catapply">Apply to every item</button>
+      <div class="field">
+        <label for="param">Write the latent responses in this parameterization</label>
+        <select id="param">
+          <option value="DELTA" selected>DELTA: scale factors for the latent responses</option>
+          <option value="THETA">THETA: residual variances of the latent responses</option>
+        </select>
+        <span class="hint">Full measurement invariance needs THETA, because the residual variances of the latent responses are not parameters under DELTA.</span>
       </div>
     </div>
-    <p class="table-note" id="cats-note">Number of response categories per item. An item with <em>C</em> categories has <em>C</em> − 1 thresholds.</p>
-    <div class="table-wrap fit">
-      <table id="cats" aria-labelledby="cats-note">
-        <thead><tr><th scope="col">Item</th><th scope="col">Factor</th><th scope="col" class="num">Categories</th><th scope="col" class="num">Thresholds</th></tr></thead>
-        <tbody id="cats-body"></tbody>
-      </table>
-    </div>
-  </fieldset>
-
+    <details id="cat-details">
+      <summary>Give particular items a different number of categories</summary>
+      <p class="hint">Every item takes the number above unless a number is written beside it here. An item with <var>C</var> categories has <span class="eq-in"><var>C</var> <span class="op">&minus;</span> 1</span> thresholds, and contributes <span class="eq-in">(<var>C</var> <span class="op">&minus;</span> 3)(<var>G</var> <span class="op">&minus;</span> 1)</span> degrees of freedom to the test of threshold invariance across <var>G</var> groups.</p>
+      <div id="cat-table"></div>
+    </details>
   </div>
-  <div>
 
   <fieldset>
-    <legend>Levels to write</legend>
+    <legend>Write these levels of the sequence</legend>
     <div id="levels-box"></div>
+    <span class="hint">The configural model is always written, because every later level is compared with it or with a level built on it.</span>
   </fieldset>
 
   <details>
-    <summary>Data file and variable list (optional, for a complete runnable input)</summary>
-    <div class="field">
-      <label for="title">Title</label>
-      <input type="text" id="title" value="Measurement invariance" spellcheck="false">
+    <summary>Name the data file and the columns, so that the inputs run as they stand</summary>
+    <p class="hint">Everything in here is optional. Left empty, the inputs are still complete M<em>plus</em> syntax, but the <code>FILE</code> line names <code>data.dat</code> and the <code>NAMES</code> statement lists the grouping variable and the items only, so both have to be corrected before the inputs are run.</p>
+    <div class="row">
+      <div class="field">
+        <label for="title">Title the run</label>
+        <input type="text" id="title" placeholder="Measurement invariance" spellcheck="false" autocomplete="off" aria-describedby="title-hint">
+        <span class="hint" id="title-hint">The name of the level is added to it in each input.</span>
+      </div>
+      <div class="field">
+        <label for="dataFile">Read the data from this file</label>
+        <input type="text" id="dataFile" placeholder="data.dat" spellcheck="false" autocomplete="off">
+      </div>
     </div>
     <div class="field">
-      <label for="datafile">Data file</label>
-      <input type="text" id="datafile" value="data.dat" spellcheck="false">
+      <label for="namesList">List every column of the data file, in order</label>
+      <input type="text" id="namesList" spellcheck="false" autocomplete="off" aria-describedby="names-hint" placeholder="id grp x1 x2 x3 x4">
+      <span class="hint" id="names-hint">This becomes the <code>NAMES</code> statement, so it must name every column of the file in the order they are in it, whether the model uses them or not. The hyphen range notation is read here too. <code>USEVARIABLES</code> is written from the items of the model in either case.</span>
     </div>
-    <div class="field">
-      <label for="names">Variable list for <code>NAMES</code></label>
-      <span class="hint">The whole list of columns in the data file, in order, with the hyphen range notation allowed. Leave it empty and the grouping variable followed by the items is written instead, which is a placeholder to be checked against the data file.</span>
-      <textarea id="names" spellcheck="false" style="min-height:4rem"></textarea>
-    </div>
-    <div class="field">
-      <label for="missing">Missing value code</label>
-      <input type="text" id="missing" value="" spellcheck="false" placeholder="-999">
-      <span class="hint">Written as <code>MISSING = ALL (code);</code>. Left out when empty.</span>
-    </div>
-    <div class="field">
-      <label for="prefix">Prefix for the file names</label>
-      <input type="text" id="prefix" value="mi" spellcheck="false">
+    <div class="row">
+      <div class="field w1">
+        <label for="missing">Missing values are coded</label>
+        <input type="text" id="missing" placeholder="none" spellcheck="false" autocomplete="off" aria-describedby="missing-hint">
+        <span class="hint" id="missing-hint">The value that stands for a missing answer in the data file, such as <code>-999</code>. Written as <code>MISSING = ALL (-999);</code>.</span>
+      </div>
+      <div class="field w1">
+        <label for="prefix">Begin every file name with</label>
+        <input type="text" id="prefix" value="mi" maxlength="16" spellcheck="false" autocomplete="off" aria-describedby="prefix-hint">
+        <span class="hint" id="prefix-hint">The inputs are named <code>prefix_configural.inp</code> and so on.</span>
+      </div>
     </div>
   </details>
 
   <div class="actions">
-    <button type="button" id="build">Write the inputs</button>
-    <button type="button" class="secondary" id="ex-cont">Example: four continuous items, two groups</button>
-    <button type="button" class="secondary" id="ex-cat">Example: four four-category items, three groups</button>
+    <button type="button" id="write">Write the inputs</button>
+    <button type="button" class="secondary" id="ex-a">Example: four continuous items, two groups</button>
+    <button type="button" class="secondary" id="ex-b">Example: four four-category items, three groups</button>
   </div>
-  <div id="defs-report" aria-live="polite"></div>
-
-  </div>
-  </div>
+  <div id="form-report" aria-live="polite"></div>
 </section>
 
-<section aria-labelledby="h-out">
+<section id="secOut" aria-labelledby="h-out" hidden>
   <h2 id="h-out">The inputs</h2>
   <div class="status warn">
-    <p><span class="tag"><span aria-hidden="true">!</span> What this page cannot do.</span> The syntax written below is a starting point to be read and checked against your data and your model before it is run. The page cannot verify that a model is identified for every structure that can be typed into it: cross-loadings, correlated residuals, an item belonging to more than one factor, factors with one or two indicators and empirically singular groups all change the identification argument, and the conditions used here are those given for a clustered pattern of non-negative loadings with each item on one factor.</p>
+    <p><span class="tag"><span aria-hidden="true">!</span> What this page cannot do.</span> The syntax written below is a starting point to be read and checked against your data and your model before it is run. The page cannot verify that a model is identified for every structure that can be described to it: cross-loadings, correlated residuals, an item belonging to more than one factor, factors with one or two indicators and empirically singular groups all change the identification argument, and the conditions used here are those given for a clustered pattern of non-negative loadings with each item on one factor.</p>
   </div>
   <div id="out" aria-live="polite"></div>
 </section>
@@ -188,12 +201,12 @@ p.pill { margin: 0.9rem 0 0.25rem; }
 <section class="tracks" aria-labelledby="h-why">
   <h2 id="h-why">Why the ordered-categorical sequence is not the familiar one</h2>
   <p>With continuous indicators the observed variable has a metric of its own. Its mean and its variance are estimated in every group, so an intercept and a residual variance can be estimated in every group as well, and the sequence configural, metric, scalar, strict adds one type of constraint at a time to a model that is already identified.</p>
-  <p>With ordered categories nothing is observed but the proportion of respondents in each category and the association between items. The model puts a normally distributed latent response variable behind each item and cuts it at thresholds, and that latent response has no metric of its own: its location and its scale are conventions. Wu and Estabrook (2016) write the transformation that changes those conventions without changing the probability of any response pattern. It has four parts in each group: a shift and a rescaling for every latent response, and a shift and a rescaling for every factor, so 2(<em>p</em> + <em>m</em>) constraints per group are needed to identify a model with <em>p</em> items and <em>m</em> factors.</p>
+  <p>With ordered categories nothing is observed but the proportion of respondents in each category and the association between items. The model puts a normally distributed latent response variable behind each item and cuts it at thresholds, and that latent response has no metric of its own: its location and its scale are conventions. Wu and Estabrook (2016) write the transformation that changes those conventions without changing the probability of any response pattern. It has four parts in each group: a shift and a rescaling for every latent response, and a shift and a rescaling for every factor, so <span class="eq-in">2(<var>p</var> + <var>m</var>)</span> constraints per group are needed to identify a model with <var>p</var> items and <var>m</var> factors.</p>
   <p>The consequence is that the identification condition of a baseline model is not neutral with respect to the invariance tests that follow it. Once loadings are held equal across groups, a condition such as fixing the variance of every latent response to one in every group stops being a free choice of metric and becomes a restriction, and the same invariance hypothesis tested from two differently identified baselines gives two different chi-squares. Wu and Estabrook show a two-group example in which loading invariance is rejected under two identification conditions and retained under a third, with the same data and the same true parameters. Their answer is to identify each level of invariance separately, which is what this page writes.</p>
   <p>Three consequences follow for the sequence itself.</p>
   <ul>
     <li>Invariance of loadings alone, of intercepts alone, and of residual variances alone cannot be tested. A model with only one of these constrained is statistically equivalent to the configural model, so the difference test has no degrees of freedom to spend. Thresholds have to be dealt with first.</li>
-    <li>How much of threshold invariance can be tested depends on the number of categories. A shift and a rescaling of one latent response can always be chosen to make one threshold match, and can be chosen to make two thresholds match, but not three. An item with <em>C</em> categories therefore contributes (<em>C</em> − 3)(<em>G</em> − 1) degrees of freedom to the test of threshold invariance across <em>G</em> groups: none at all for a binary or three-category item, one per extra group for a four-category item.</li>
+    <li>How much of threshold invariance can be tested depends on the number of categories. A shift and a rescaling of one latent response can always be chosen to make one threshold match, and can be chosen to make two thresholds match, but not three. An item with <var>C</var> categories therefore contributes <span class="eq-in">(<var>C</var> <span class="op">−</span> 3)(<var>G</var> <span class="op">−</span> 1)</span> degrees of freedom to the test of threshold invariance across <var>G</var> groups: none at all for a binary or three-category item, one per extra group for a four-category item.</li>
     <li>Binary items are a separate case. With one threshold per item, threshold invariance and threshold-and-loading invariance are both statistically equivalent to the configural model (Wu &amp; Estabrook, 2016, Propositions 3 and 6), and the model that holds thresholds invariant while freeing the intercepts and the scales of the other groups is not even identified. When any item is binary this page drops those two levels and goes from the configural model to the model with invariant thresholds, loadings and intercepts.</li>
   </ul>
   <p>The two articles differ in how far they take the sequence and in what they call the levels. Wu and Estabrook (2016) name each model by the parameters it holds invariant and set out the whole hierarchy of sixteen models, of which ten are statistically distinct for polytomous items and five for binary items. Svetina, Rutkowski and Rutkowski (2020) follow the same identification conditions but write out three models only, which they name after the propositions they come from: the baseline model, Proposition 4 for threshold invariance and Proposition 7 for threshold and loading invariance. They also point out that the resulting order — thresholds first, then loadings — differs from the order in which applied work usually proceeds, where loadings are tested before thresholds and intercepts. One detail in their tutorial is a slip: the text and the annotation of the Proposition 7 input say that the item intercept is fixed at one in the first group and give <code>[y1-y4@1];</code>, while Condition 19 of Wu and Estabrook, which that step implements, sets those intercepts to zero. This page writes <code>@0</code>.</p>
@@ -516,10 +529,12 @@ function buildStructure(cfg) {
           " is not a whole number." });
       } else if (c < 2) {
         errors.push({ code: "badcat", html: "The item " + code(items[i].name) + " is given " + c +
-          " categories. An ordered-categorical item needs at least two." });
+          (c === 1 ? " category" : " categories") + ". An ordered-categorical item needs at least two; " +
+          "give it its number in the table of categories, or make the indicators continuous." });
       } else if (c > 12) {
         errors.push({ code: "badcat", html: "The item " + code(items[i].name) + " is given " + c +
-          " categories, which is more than this page writes thresholds for." });
+          " categories, which is more than this page writes thresholds for. Give it twelve or fewer, " +
+          "or treat the indicators as continuous." });
       }
     }
   }
@@ -693,6 +708,21 @@ function wrapList(names, indent) {
   out.push(line);
   return out;
 }
+/* A run of words broken into lines no longer than the program reads. A
+   title taken from an existing input can be long, and the name of the
+   level is added to it. */
+function wrapWords(text, indent, max) {
+  var words = String(text).replace(/\s+/g, " ").trim().split(" ");
+  var lines = [], cur = "", i;
+  for (i = 0; i < words.length; i++) {
+    var next = cur === "" ? words[i] : cur + " " + words[i];
+    if ((indent + next).length > max && cur !== "") { lines.push(indent + cur); cur = words[i]; }
+    else cur = next;
+  }
+  if (cur !== "") lines.push(indent + cur);
+  return lines.length ? lines : [indent];
+}
+
 function listStatement(head, names) {
   var lines = wrapList(names, "    ");
   lines[lines.length - 1] = lines[lines.length - 1] + ";";
@@ -801,7 +831,7 @@ function buildInput(cfg, S, lv, difIn, difOut) {
   for (i = 0; i < S.items.length; i++) itemNames.push(S.items[i].name);
 
   L.push("TITLE:");
-  L.push("  " + (cfg.title || "Measurement invariance") + " -- " + lv.name);
+  L = L.concat(wrapWords((cfg.title || "Measurement invariance") + " -- " + lv.name, "  ", MAXLEN));
   L.push("");
   L.push("DATA:");
   L.push("  FILE = \"" + (cfg.dataFile || "data.dat") + "\";");
@@ -1156,6 +1186,264 @@ function checkDifftest(levels) {
 }
 
 /* ==================================================================
+   Reading the model description out of an Mplus output
+
+   Everything this page needs about a model except three choices is
+   already written in the output of a run that exists: the variable
+   names, which of them are ordered categorical and with how many
+   categories, the factors and their indicators, the grouping variable
+   with its codes and labels, and the estimator. All of it is read here
+   and none of it is asked for. The reader works on the input echoed at
+   the head of the output, under INPUT INSTRUCTIONS, and falls back on
+   the sections the program writes for itself when a piece of the input
+   does not carry what is needed.
+   ================================================================== */
+
+/* The echoed input, dedented so that a command name starts its line. */
+function echoedInput(text) {
+  var t = String(text).replace(/\r\n?/g, "\n");
+  var head = t.search(/^\s*INPUT INSTRUCTIONS\s*$/m);
+  if (head < 0) return null;
+  var rest = t.slice(t.indexOf("\n", head) + 1);
+  var stop = rest.search(/^\s*(INPUT READING TERMINATED|\*\*\* (WARNING|ERROR|FATAL)|SUMMARY OF ANALYSIS)/m);
+  if (stop >= 0) rest = rest.slice(0, stop);
+  return rest.replace(/^ {1,2}/gm, "");
+}
+
+/* The body of one command of the echoed input, comments removed. */
+function commandBody(input, name) {
+  var secs = sections(input), i, out = [];
+  for (i = 0; i < secs.length; i++) if (secs[i].name === name && !secs[i].group) out.push(secs[i].text);
+  return out.length ? stripComments(out.join("\n")) : null;
+}
+
+/* One statement of a command body: NAMES ARE ..., CATEGORICAL = ... */
+function statementValue(body, keyword) {
+  if (!body) return null;
+  var re = new RegExp("(?:^|;)\\s*" + keyword + "\\s*(?:ARE|IS|=)\\s*([^;]*)", "i");
+  var m = String(body).match(re);
+  return m ? m[1].replace(/\s+/g, " ").trim() : null;
+}
+
+/* A list of variable names, with the hyphen range notation expanded. In
+   an Mplus input a range means the columns from one name to another in
+   the order of the NAMES statement, which is how R09A-R09D names four
+   variables whose names do not end in a number; when the list of columns
+   is known it is resolved that way, and otherwise the range has to run
+   between two names ending in a number. */
+function resolveRange(tok, known) {
+  var m = tok.match(/^([A-Za-z][A-Za-z0-9_]*)-([A-Za-z][A-Za-z0-9_]*)$/);
+  if (!m || !known || !known.length) return null;
+  var lo = -1, hi = -1, i;
+  for (i = 0; i < known.length; i++) {
+    if (up(known[i]) === up(m[1])) lo = i;
+    if (up(known[i]) === up(m[2])) hi = i;
+  }
+  if (lo < 0 || hi < 0 || hi < lo) return null;
+  return known.slice(lo, hi + 1);
+}
+function nameList(spec, known) {
+  if (!spec) return [];
+  var toks = String(spec).replace(/,/g, " ").replace(/\s*-\s*/g, "-").trim().split(/\s+/);
+  var out = [], i, k;
+  for (i = 0; i < toks.length; i++) {
+    if (toks[i] === "") continue;
+    if (toks[i].indexOf("-") > 0) {
+      var byList = resolveRange(toks[i], known);
+      if (byList) { for (k = 0; k < byList.length; k++) out.push(byList[k]); continue; }
+      var r = expandRange(toks[i]);
+      if (r.error) { out.push(toks[i]); continue; }
+      for (k = 0; k < r.items.length; k++) out.push(r.items[k]);
+    } else out.push(toks[i]);
+  }
+  return out;
+}
+
+/* GROUPING IS grp (1 = male 2 = female); or, with many groups, the same
+   list broken over several lines. */
+function readGrouping(body) {
+  if (!body) return null;
+  var m = String(body).match(/(?:^|;)\s*GROUPING\s*(?:IS|ARE|=)\s*([A-Za-z][A-Za-z0-9_]*)\s*\(([^)]*)\)/i);
+  if (!m) return null;
+  var groups = [], txt = m[2].replace(/,/g, " ").trim();
+  var re = /(-?\d+(?:\.\d+)?)\s*=\s*([A-Za-z][A-Za-z0-9_]*)/g, g;
+  while ((g = re.exec(txt)) !== null) groups.push({ value: g[1], name: g[2] });
+  return { variable: m[1], groups: groups };
+}
+
+/* The factors and their indicators, from the BY statements of the MODEL
+   command of the echoed input. A group-specific MODEL block repeats the
+   measurement model of the reference group and adds nothing to it. */
+function readFactors(input, known) {
+  var secs = sections(input), i, txt = [];
+  for (i = 0; i < secs.length; i++) if (secs[i].name === "MODEL" && !secs[i].group) txt.push(secs[i].text);
+  if (!txt.length) return { factors: [], defs: "" };
+  var stmts = splitStatements(stripComments(txt.join("\n"))), out = [], k;
+  for (k = 0; k < stmts.length; k++) {
+    var m = stmts[k].match(/^\s*([A-Za-z][A-Za-z0-9_]*)\s+BY\s+(.+)$/i);
+    if (!m) continue;
+    var items = nameList(m[2].replace(/[@*][-\d.]+/g, " "), known);
+    if (items.length) out.push({ name: m[1], items: items });
+  }
+  var defs = out.map(function (f) { return f.name + " BY " + f.items.join(" ") + ";"; }).join("\n");
+  return { factors: out, defs: defs };
+}
+
+/* How many categories each ordered-categorical item has. Mplus prints one
+   threshold per category boundary, so an item with the thresholds $1 to
+   $3 has four categories; the proportions table under SAMPSTAT names the
+   categories directly and is used when no threshold was printed. */
+function readCategories(text, items) {
+  var cats = {}, i, name, re, m, top;
+  for (i = 0; i < items.length; i++) {
+    name = items[i];
+    top = 0;
+    re = new RegExp("\\b" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\$(\\d+)\\b", "gi");
+    while ((m = re.exec(text)) !== null) top = Math.max(top, parseInt(m[1], 10));
+    if (top > 0) cats[up(name)] = top + 1;
+  }
+  var props = text.search(/UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES/i);
+  if (props >= 0) {
+    var block = text.slice(props), lines = block.split("\n"), cur = null, seen = {};
+    for (i = 0; i < lines.length && i < 4000; i++) {
+      var head = lines[i].match(/^\s{2,}([A-Za-z][A-Za-z0-9_]*)\s*$/);
+      if (head) { cur = up(head[1]); continue; }
+      var row = lines[i].match(/^\s*Category\s+(\d+)\b/i);
+      if (row && cur) seen[cur] = Math.max(seen[cur] || 0, parseInt(row[1], 10));
+    }
+    for (name in seen) if (Object.prototype.hasOwnProperty.call(seen, name) && !cats[name]) cats[name] = seen[name];
+  }
+  return cats;
+}
+
+/* Everything above, put together, with one message per thing that could
+   not be read and what to do about it. */
+function readOutput(text, fileName) {
+  var t = String(text).replace(/\r\n?/g, "\n");
+  var r = {
+    ok: false, fatal: false, fileName: fileName || "", isMplus: false, input: null,
+    title: "", dataFile: "", names: [], useVariables: [], categorical: [], cats: {},
+    factors: [], defs: "", groupVar: "", groups: [], estimator: "", param: "",
+    family: "A", missing: "", problems: [], notes: [], read: []
+  };
+  if (t.trim() === "") {
+    r.fatal = true;
+    r.problems.push({ field: "file", fatal: true, html: "The file is empty, so there is nothing in it to fill the form with. Drop the " +
+      MP + " output file itself, not an empty or partly saved copy of it." });
+    return r;
+  }
+  r.isMplus = /Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS/i.test(t);
+  if (!r.isMplus) {
+    r.fatal = true;
+    r.problems.push({ field: "file", fatal: true, html: "This file carries none of the headings " + MP +
+      " always writes, so it is not an " + MP + " output and nothing can be read out of it. Drop the file with the extension " +
+      code(".out") + " itself, not the data file, a table copied out of it, or the input. The form is filled in by hand in any case." });
+    return r;
+  }
+  var input = echoedInput(t);
+  r.input = input;
+  if (!input) {
+    r.fatal = true;
+    r.problems.push({ field: "file", fatal: true, html: "This output has no " + code("INPUT INSTRUCTIONS") +
+      " section, so the input that produced it was not echoed and there is no model in it to fill the form with. That section is written by every ordinary run; a file without it has been edited or truncated. Drop the complete output, or fill the form in by hand." });
+    return r;
+  }
+
+  var vBody = commandBody(input, "VARIABLE");
+  var aBody = commandBody(input, "ANALYSIS");
+  var dBody = commandBody(input, "DATA");
+  var tBody = commandBody(input, "TITLE");
+
+  if (tBody) r.title = tBody.replace(/\s+/g, " ").replace(/;+\s*$/, "").trim();
+  var df = statementValue(dBody, "FILE");
+  if (df) r.dataFile = df.replace(/^["']|["'];?$/g, "").replace(/;$/, "").trim();
+
+  r.names = nameList(statementValue(vBody, "NAMES"));
+  r.useVariables = nameList(statementValue(vBody, "USEVARIABLES"), r.names);
+  r.categorical = nameList(statementValue(vBody, "CATEGORICAL"), r.names);
+  var miss = statementValue(vBody, "MISSING");
+  if (miss) {
+    var mm = miss.match(/\(([^)]*)\)/);
+    if (mm) r.missing = mm[1].trim();
+  }
+
+  var fa = readFactors(input, r.names.length ? r.names : r.useVariables);
+  r.factors = fa.factors; r.defs = fa.defs;
+  if (!r.factors.length)
+    r.problems.push({ field: "defs", html: "The MODEL command of this run contains no " + code("BY") +
+      " statement, so it defines no factor and there was no measurement model in it to take. The factor definitions in the form were left as they were: write them there, or drop the output of a confirmatory factor model instead." });
+
+  var gr = readGrouping(vBody);
+  if (gr && gr.groups.length >= 2) {
+    r.groupVar = gr.variable;
+    r.groups = gr.groups;
+  } else {
+    var nG = t.match(/Number of groups\s+(\d+)/);
+    r.problems.push({ field: "groups", html: "The VARIABLE command of this run has no " + code("GROUPING") +
+      " statement with two or more groups" + (nG ? ", and " + MP + " reports " + nG[1] + " group" + (nG[1] === "1" ? "" : "s") : "") +
+      ", so the grouping variable and the value it takes in each group are not in this file and cannot be guessed from it. The number of groups, the grouping variable and the codes and names of the groups were left as they stand in the form: fill them in there. If the run you have in mind already compares the groups, its input has a line of the form " +
+      code("GROUPING IS group (1 = first 2 = second);") + " and dropping that output fills these fields in instead." });
+  }
+
+  var est = statementValue(aBody, "ESTIMATOR");
+  if (est) r.estimator = up(est.replace(/;.*$/, "").trim());
+  if (!r.estimator) {
+    var el2 = t.match(/^\s*Estimator\s+([A-Z]+)\s*$/m);
+    if (el2) r.estimator = up(el2[1]);
+  }
+  if (!r.estimator)
+    r.problems.push({ field: "estimator", html: "The estimator could not be read: the ANALYSIS command names none and the line " +
+      code("Estimator") + " of SUMMARY OF ANALYSIS is absent, which happens with an output of a run that did not finish. The estimator menu was left as it was: choose there the estimator you mean to use, since which difference test the sequence can use follows from it." });
+
+  var par = statementValue(aBody, "PARAMETERIZATION");
+  if (par) r.param = up(par.replace(/;.*$/, "").trim());
+  else {
+    var pl = t.match(/^\s*Parameterization\s+([A-Z]+)\s*$/m);
+    if (pl) r.param = up(pl[1]);
+  }
+
+  /* Which items are ordered categorical decides which of the two
+     sequences applies, and that is in the file: the CATEGORICAL
+     statement of the input, or the list Mplus prints under "Binary and
+     ordered categorical (ordinal)". */
+  if (!r.categorical.length) {
+    var ordHead = t.match(/Binary and ordered categorical \(ordinal\)\s*\n((?:\s{2,}[A-Z][A-Z0-9_ ]*\n)+)/i);
+    if (ordHead) r.categorical = nameList(ordHead[1], r.names);
+  }
+  var itemsInModel = {}, i, j;
+  for (i = 0; i < r.factors.length; i++)
+    for (j = 0; j < r.factors[i].items.length; j++) itemsInModel[up(r.factors[i].items[j])] = 1;
+  var ordItems = r.categorical.filter(function (v) { return itemsInModel[up(v)]; });
+  r.family = ordItems.length ? "B" : "A";
+
+  if (r.family === "B") {
+    var allItems = [];
+    for (i = 0; i < r.factors.length; i++)
+      for (j = 0; j < r.factors[i].items.length; j++) allItems.push(r.factors[i].items[j]);
+    r.cats = readCategories(t, allItems);
+    var missingCats = allItems.filter(function (n) { return !r.cats[up(n)]; });
+    if (missingCats.length)
+      r.problems.push({ field: "cats", html: "The number of response categories could not be read for " +
+        missingCats.map(code).join(", ") + ". " + MP + " prints one threshold per category boundary under MODEL RESULTS, and the counts per category under " +
+        code("SAMPSTAT") + "; this output carries neither for " + (missingCats.length === 1 ? "that item" : "those items") +
+        ". " + (missingCats.length === 1 ? "That item takes" : "Those items take") + " the number of categories given in the form, which is where it can be corrected, item by item if they differ. To have it read instead, add " +
+        code("OUTPUT: SAMPSTAT;") + " to that input, run it again and drop the new output." });
+    if (ordItems.length !== allItems.length)
+      r.notes.push({ html: "Some items of the model are declared " + code("CATEGORICAL") +
+        " and others are not. This page writes one sequence for the whole model, and the sequence for ordered-categorical items is the one it writes when any item is categorical." });
+  }
+
+  var listA = EST_A, listB = EST_B;
+  if (r.estimator && (r.family === "A" ? listA : listB).indexOf(r.estimator) < 0)
+    r.notes.push({ html: "The estimator read from the file is " + code(r.estimator) +
+      ", which is not one of those this page writes the sequence for (" +
+      (r.family === "A" ? listA : listB).join(", ") + "). It is written into every input as it stands, and the difference test named below is the one that estimator allows." });
+
+  r.ok = r.problems.length === 0;
+  return r;
+}
+
+/* ==================================================================
    What each level says
    ================================================================== */
 
@@ -1182,7 +1470,7 @@ function levelProse(cfg, S, lv) {
         "in every group, and the factor " + (marker ? "means are fixed at zero" :
         "variances are fixed at one and the factor means at zero") + " in every group. " +
         "This is identification condition " + (cfg.param === "DELTA" ? "7" : "8") +
-        " of Wu and Estabrook (2016), applied group by group: 2(<em>p</em> + <em>m</em>) constraints per " +
+        " of Wu and Estabrook (2016), applied group by group: <span class=\'eq-in\'>2(<var>p</var> + <var>m</var>)</span> constraints per " +
         "group, which is exactly the number of arbitrary constants the model has.");
       p.push("The level says that the same items load on the same factors everywhere. Nothing may be " +
         "compared across groups yet, and the fit of this model is the precondition for everything below it.");
@@ -1204,7 +1492,7 @@ function levelProse(cfg, S, lv) {
       "variances stay at one and the factor means at zero in every group") + ". " +
       "This is condition 15 of Wu and Estabrook (2016), the model Svetina, Rutkowski and Rutkowski (2020) " +
       "call Proposition 4.");
-    p.push("An item with <em>C</em> categories contributes <em>C</em> − 3 degrees of freedom per extra group " +
+    p.push("An item with <var>C</var> categories contributes <span class=\'eq-in\'><var>C</var> <span class=\'op\'>−</span> 3</span> degrees of freedom per extra group " +
       "at this step, because a shift and a rescaling of one latent response can always be chosen to match " +
       "two of its thresholds. The level licenses no comparison of its own; it is the step that makes the " +
       "invariance of the other three parameter types testable at all.");
@@ -1322,6 +1610,104 @@ function testProse(cfg) {
     "subtracting the chi-squares and the degrees of freedom. No DIFFTEST file is needed and none is written.";
 }
 
+/* ==================================================================
+   From an output file to the fields of the form
+
+   Nothing here writes syntax. It turns what was read out of an output
+   file into the values the fields of the form hold, so that the whole
+   description of the model stays visible and editable on the page and
+   the generator is given the form and only the form.
+   ================================================================== */
+
+/* The inputs are named after the file the form was filled from, cut
+   short so that the name of a written file stays readable. */
+function prefixFromName(name) {
+  var p = String(name || "").replace(/\.[A-Za-z0-9]+$/, "").replace(/[^A-Za-z0-9_]/g, "_").slice(0, 16);
+  return p === "" ? "mi" : p;
+}
+
+/* The one number that stands for every item is the number most of them
+   have; the items that differ from it are the ones that need a row of
+   their own. Ties go to the smaller number, so the result does not
+   depend on the order the items were read in. */
+function modalCat(values) {
+  var count = {}, i, best = 4, bestN = 0, k;
+  for (i = 0; i < values.length; i++) count[values[i]] = (count[values[i]] || 0) + 1;
+  for (k in count) {
+    if (!Object.prototype.hasOwnProperty.call(count, k)) continue;
+    var v = parseInt(k, 10);
+    if (count[k] > bestN || (count[k] === bestN && v < best)) { best = v; bestN = count[k]; }
+  }
+  return bestN ? best : 4;
+}
+
+function formFill(m) {
+  var f = {
+    family: m.family === "B" ? "B" : "A",
+    defs: m.defs || "",
+    nGroups: m.groups.length >= 2 ? m.groups.length : 0,
+    groupVar: m.groupVar || "",
+    groupNames: m.groups.map(function (g) { return g.value + " = " + g.name; }).join(", "),
+    estimator: m.estimator || "",
+    param: (m.param === "THETA" ? "THETA" : "DELTA"),
+    catAll: 4,
+    cats: {},
+    title: m.title || "",
+    dataFile: m.dataFile || "",
+    namesText: (m.names || []).join(" "),
+    missing: m.missing || "",
+    prefix: prefixFromName(m.fileName),
+    unfilled: []
+  }, k, i, vals = [];
+  if (f.family === "B") {
+    for (k in m.cats) if (Object.prototype.hasOwnProperty.call(m.cats, k)) vals.push(m.cats[k]);
+    f.catAll = modalCat(vals);
+    for (k in m.cats) {
+      if (Object.prototype.hasOwnProperty.call(m.cats, k) && m.cats[k] !== f.catAll) f.cats[k] = m.cats[k];
+    }
+  }
+  for (i = 0; i < m.problems.length; i++) if (!m.problems[i].fatal) f.unfilled.push(m.problems[i]);
+  return f;
+}
+
+/* ==================================================================
+   The two worked examples
+
+   Both are descriptions of a model, so both are given as the values the
+   fields of the form take. Pressing the button writes them into the
+   form; everything after that is the ordinary route.
+   ================================================================== */
+
+var EXAMPLES = {
+  continuous: {
+    label: "four continuous items in two groups",
+    note: "One factor measured by four continuous items, compared between men and women, estimated " +
+      "with MLR: the configural, metric, scalar and strict models, three degrees of freedom for the " +
+      "step to equal loadings, three for the step to equal intercepts and four for the step to equal " +
+      "residual variances.",
+    fields: {
+      family: "A", defs: "F1 BY x1-x4;", nGroups: 2, groupVar: "grp",
+      groupNames: "1 = male, 2 = female", estimator: "MLR", param: "DELTA",
+      catAll: 4, cats: {}, title: "Job satisfaction", dataFile: "jobsat.dat",
+      namesText: "id sex grp x1 x2 x3 x4 age", missing: "-999", prefix: "jobsat"
+    },
+    include: { configural: 1, metric: 1, scalar: 1, strict: 1 }
+  },
+  categorical: {
+    label: "four four-category items in three groups",
+    note: "This is the model of Svetina, Rutkowski and Rutkowski (2020): four items of four " +
+      "categories each, measuring one factor, compared across Azerbaijan, Austria and Finland with " +
+      "WLSMV under the delta parameterization. The three models they report follow from it, with the " +
+      "48 free parameters and the 6, 14 and 20 degrees of freedom of their Table 3.",
+    fields: {
+      family: "B", defs: "TRUST BY R09A R09B R09C R09D;", nGroups: 3, groupVar: "IDCNTRY",
+      groupNames: "31 = AZE, 40 = AUT, 246 = FIN", estimator: "WLSMV", param: "DELTA",
+      catAll: 4, cats: {}, title: "Trust in civic institutions", dataFile: "civic.dat",
+      namesText: "IDCNTRY R09A R09B R09C R09D", missing: "", prefix: "civic"
+    },
+    include: { baseline: 1, thresholds: 1, loadings: 1, intercepts: 1 }
+  }
+};
 return {
   MP: MP, RESERVED: RESERVED, esc: esc, nameProblem: nameProblem,
   expandRange: expandRange, splitStatements: splitStatements, parseFactors: parseFactors,
@@ -1329,10 +1715,14 @@ return {
   levelsFor: levelsFor, stepDf: stepDf, paramCount: paramCount,
   EST_A: EST_A, EST_B: EST_B, needsDifftest: needsDifftest, isScaled: isScaled,
   modelBlock: modelBlock, buildInput: buildInput, buildSequence: buildSequence,
-  fileNames: fileNames, wrapList: wrapList,
+  fileNames: fileNames, wrapList: wrapList, wrapWords: wrapWords,
   sections: sections, modelStatements: modelStatements, checkInput: checkInput,
   checkDifftest: checkDifftest, stripComments: stripComments, difftestIn: difftestIn,
-  levelProse: levelProse, testProse: testProse, code: code
+  levelProse: levelProse, testProse: testProse, code: code,
+  echoedInput: echoedInput, commandBody: commandBody, statementValue: statementValue,
+  nameList: nameList, resolveRange: resolveRange, readGrouping: readGrouping, readFactors: readFactors,
+  readCategories: readCategories, readOutput: readOutput,
+  formFill: formFill, prefixFromName: prefixFromName, modalCat: modalCat, EXAMPLES: EXAMPLES
 };
 })();
 
@@ -1404,6 +1794,129 @@ return {
   function selfTest() {
     checks = []; failed = 0;
     var i, j, k, r, seq, cfg, S, lv;
+
+    /* ---------------------------------------------------------------
+       Reading a model out of an Mplus output
+
+       The published cases the page used to offer as example buttons are
+       here instead: the two-group continuous model and the three-group
+       four-category model of Svetina, Rutkowski and Rutkowski (2020).
+       --------------------------------------------------------------- */
+
+    var OUT_A = [
+      "Mplus VERSION 8.10", "MUTHEN & MUTHEN", "", "INPUT INSTRUCTIONS", "",
+      "  TITLE: Job satisfaction, configural model;",
+      "  DATA: FILE = jobsat.dat;",
+      "  VARIABLE: NAMES ARE id sex grp x1-x4 age;",
+      "            USEVARIABLES ARE x1-x4;",
+      "            GROUPING IS grp (1 = male 2 = female);",
+      "            MISSING ARE ALL (-999);",
+      "  ANALYSIS: ESTIMATOR = MLR;",
+      "  MODEL:",
+      "      F1 BY x1-x4;",
+      "  OUTPUT: TECH1 STDYX;", "",
+      "INPUT READING TERMINATED NORMALLY", "",
+      "SUMMARY OF ANALYSIS", "",
+      "Number of groups                                                 2",
+      "Estimator                                                      MLR", ""
+    ].join("\n");
+
+    var OUT_B = [
+      "Mplus VERSION 8.10", "MUTHEN & MUTHEN", "", "INPUT INSTRUCTIONS", "",
+      "  TITLE: Civic knowledge, baseline model;",
+      "  DATA: FILE = civic.dat;",
+      "  VARIABLE: NAMES ARE IDCNTRY R09A R09B R09C R09D;",
+      "            USEVARIABLES ARE R09A-R09D;",
+      "            CATEGORICAL ARE R09A-R09D;",
+      "            GROUPING IS IDCNTRY (31 = AZE 40 = AUT 246 = FIN);",
+      "  ANALYSIS: ESTIMATOR = WLSMV;",
+      "            PARAMETERIZATION = DELTA;",
+      "  MODEL:",
+      "      TRUST BY R09A-R09D;",
+      "  OUTPUT: TECH1 STDYX;", "",
+      "INPUT READING TERMINATED NORMALLY", "",
+      "SUMMARY OF ANALYSIS", "",
+      "Number of groups                                                 3",
+      "Estimator                                                    WLSMV",
+      "Parameterization                                             DELTA", "",
+      "MODEL RESULTS", "",
+      " Thresholds",
+      "    R09A$1            -1.204      0.045    -26.756      0.000",
+      "    R09A$2            -0.230      0.037     -6.216      0.000",
+      "    R09A$3             0.884      0.040     22.100      0.000",
+      "    R09B$1            -1.150      0.044    -26.136      0.000",
+      "    R09B$2            -0.180      0.037     -4.865      0.000",
+      "    R09B$3             0.921      0.040     23.025      0.000",
+      "    R09C$1            -1.310      0.046    -28.478      0.000",
+      "    R09C$2            -0.310      0.037     -8.378      0.000",
+      "    R09C$3             0.804      0.039     20.615      0.000",
+      "    R09D$1            -1.180      0.045    -26.222      0.000",
+      "    R09D$2            -0.205      0.037     -5.541      0.000",
+      "    R09D$3             0.860      0.040     21.500      0.000", ""
+    ].join("\n");
+
+    var ra = IS.readOutput(OUT_A, "a.out");
+    okTrue("a two-group continuous output is read", ra.ok === true);
+    ok("its title is read", ra.title, "Job satisfaction, configural model");
+    ok("its data file is read", ra.dataFile, "jobsat.dat");
+    ok("its variable list is read", ra.names.join(" "), "id sex grp x1 x2 x3 x4 age");
+    ok("its factor is read", ra.factors.length, 1);
+    ok("the items of that factor are read", ra.factors[0].items.join(" "), "x1 x2 x3 x4");
+    ok("its grouping variable is read", ra.groupVar, "grp");
+    ok("the group codes are read", ra.groups.map(function (g) { return g.value; }).join(" "), "1 2");
+    ok("the group names are read", ra.groups.map(function (g) { return g.name; }).join(" "), "male female");
+    ok("its estimator is read", ra.estimator, "MLR");
+    ok("its missing value code is read", ra.missing, "-999");
+    ok("continuous indicators give the first sequence", ra.family, "A");
+
+    var rb = IS.readOutput(OUT_B, "b.out");
+    okTrue("a three-group categorical output is read", rb.ok === true);
+    ok("a range between names that do not end in a number is resolved against NAMES",
+       rb.factors[0].items.join(" "), "R09A R09B R09C R09D");
+    ok("categorical items give the second sequence", rb.family, "B");
+    ok("the number of categories is read from the thresholds", rb.cats.R09A, 4);
+    ok("and for every item", [rb.cats.R09B, rb.cats.R09C, rb.cats.R09D].join(" "), "4 4 4");
+    ok("three groups are read", rb.groups.length, 3);
+    ok("a group code that is not 1, 2, 3 is kept as it stands", rb.groups[2].value, "246");
+    ok("the parameterization is read", rb.param, "DELTA");
+    ok("the estimator of a categorical run is read", rb.estimator, "WLSMV");
+
+    var rEmpty = IS.readOutput("", "e.out");
+    okTrue("an empty file is refused", rEmpty.ok === false && rEmpty.problems.length === 1);
+    var rForeign = IS.readOutput("id,age\n1,32\n", "d.csv");
+    okTrue("a file that is not an output is refused", rForeign.ok === false && rForeign.isMplus === false);
+    var rNoEcho = IS.readOutput("Mplus VERSION 8.10\n\nSUMMARY OF ANALYSIS\n\nEstimator  ML\n", "n.out");
+    okTrue("an output without INPUT INSTRUCTIONS is refused", rNoEcho.ok === false);
+    var rOneGroup = IS.readOutput(OUT_A.replace(/^ +GROUPING.*$/m, ""), "g.out");
+    okTrue("an output with no GROUPING statement is refused", rOneGroup.ok === false);
+    okTrue("and the refusal names the statement to add",
+      rOneGroup.problems.map(function (x) { return x.html; }).join(" ").indexOf("GROUPING") > 0);
+    var rNoBy = IS.readOutput(OUT_A.replace(/^ +F1 BY x1-x4;$/m, "      y ON x;"), "m.out");
+    okTrue("an output whose model has no BY statement is refused", rNoBy.ok === false);
+    var rNoCat = IS.readOutput(OUT_B.replace(/^ +R09[A-D]\$\d.*$/gm, ""), "c.out");
+    okTrue("a categorical output with no thresholds and no proportions is refused", rNoCat.ok === false);
+    var rNoEst = IS.readOutput(OUT_A.replace(/^ +ANALYSIS.*$/m, "").replace(/^Estimator.*$/m, ""), "x.out");
+    okTrue("an output with no estimator is refused", rNoEst.ok === false);
+
+    /* the sequence written from what was read, end to end */
+    var cfgA = {
+      family: ra.family, defs: ra.defs, nGroups: ra.groups.length, groupVar: ra.groupVar,
+      groupNames: ra.groups.map(function (g) { return g.value + " = " + g.name; }).join(", "),
+      ident: "fixed", estimator: ra.estimator, param: "DELTA", catAll: 4, cats: ra.cats,
+      title: ra.title, dataFile: ra.dataFile, namesList: ra.names, missing: ra.missing,
+      prefix: "a", include: { configural: 1, metric: 1, scalar: 1, strict: 1 }
+    };
+    var seqA = IS.buildSequence(cfgA);
+    okTrue("the sequence is written from what was read", seqA.ok === true);
+    ok("one input per level", seqA.levels.length, 4);
+    okTrue("the data file read from the output reaches the input",
+      seqA.levels[0].text.indexOf("jobsat.dat") > 0);
+    okTrue("the group names read from the output reach the MODEL blocks",
+      seqA.levels[0].text.indexOf("MODEL female:") > 0);
+    okTrue("a long title is wrapped rather than written past the line the program reads",
+      IS.checkInput(seqA.levels[3].text, { nGroups: 2, groups: ["male", "female"],
+        usevariables: ["x1", "x2", "x3", "x4"], latent: ["F1"] })
+        .filter(function (c) { return !c.ok; }).length === 0);
 
     /* ---------------------------------------------------------------
        Parsing
@@ -1969,6 +2482,127 @@ return {
     okTrue("the missing value code is written",
       seq.levels[0].text.indexOf("MISSING = ALL (-999);") > 0);
 
+    /* ---------------------------------------------------------------
+       The form and the file are the same road
+
+       The form is what the generator is given; a dropped output file
+       fills the form in and does nothing else. A model that can be
+       described both ways therefore has to come out as the same input
+       files, letter for letter, whichever way it was described.
+       --------------------------------------------------------------- */
+
+    function cfgOf(f, over) {
+      var c = {
+        family: f.family, defs: f.defs, nGroups: f.nGroups, groupVar: f.groupVar,
+        groupNames: f.groupNames, ident: "fixed", estimator: f.estimator, param: f.param,
+        catAll: f.catAll, cats: f.cats, title: f.title, dataFile: f.dataFile,
+        namesList: IS.nameList(f.namesText), missing: f.missing, prefix: f.prefix,
+        include: {}
+      }, key;
+      for (key in over) if (Object.prototype.hasOwnProperty.call(over, key)) c[key] = over[key];
+      return c;
+    }
+    function sameTexts(s1, s2) {
+      var n;
+      if (!s1.ok || !s2.ok || s1.levels.length !== s2.levels.length) return false;
+      for (n = 0; n < s1.levels.length; n++) {
+        if (s1.levels[n].text !== s2.levels[n].text) return false;
+        if (s1.levels[n].file !== s2.levels[n].file) return false;
+      }
+      return true;
+    }
+
+    var incA = { configural: 1, metric: 1, scalar: 1, strict: 1 };
+    var incB = { baseline: 1, thresholds: 1, loadings: 1, intercepts: 1 };
+
+    var fa = IS.formFill(IS.readOutput(OUT_A, "a.out"));
+    okTrue("a two-group continuous output fills in every field of the form", fa.unfilled.length === 0);
+    ok("the sequence the file selects", fa.family, "A");
+    ok("the definitions the file writes into the form", fa.defs, "F1 BY x1 x2 x3 x4;");
+    ok("the number of groups the file writes into the form", fa.nGroups, 2);
+    ok("the grouping variable the file writes into the form", fa.groupVar, "grp");
+    ok("the group codes and names the file writes into the form", fa.groupNames, "1 = male, 2 = female");
+    ok("the estimator the file writes into the form", fa.estimator, "MLR");
+    ok("the columns the file writes into the form", fa.namesText, "id sex grp x1 x2 x3 x4 age");
+    ok("the missing value code the file writes into the form", fa.missing, "-999");
+    ok("the file name becomes the prefix of the written files", fa.prefix, "a");
+
+    var typedA = {
+      family: "A", defs: "F1 BY x1-x4;", nGroups: 2, groupVar: "grp",
+      groupNames: "1 = male, 2 = female", ident: "fixed", estimator: "MLR", param: "DELTA",
+      catAll: 4, cats: {}, title: "Job satisfaction, configural model", dataFile: "jobsat.dat",
+      namesList: IS.nameList("id sex grp x1 x2 x3 x4 age"), missing: "-999", prefix: "a",
+      include: incA
+    };
+    okTrue("a continuous model typed into the form and the same model read from an output " +
+           "write the same inputs, letter for letter",
+      sameTexts(IS.buildSequence(typedA), IS.buildSequence(cfgOf(fa, { include: incA }))));
+
+    var fb = IS.formFill(IS.readOutput(OUT_B, "b.out"));
+    okTrue("a three-group categorical output fills in every field of the form", fb.unfilled.length === 0);
+    ok("the sequence that file selects", fb.family, "B");
+    ok("the one number of categories it writes into the form", fb.catAll, 4);
+    ok("and no item needs a row of its own", Object.keys(fb.cats).length, 0);
+    ok("the parameterization it writes into the form", fb.param, "DELTA");
+    var typedB = {
+      family: "B", defs: "TRUST BY R09A R09B R09C R09D;", nGroups: 3, groupVar: "IDCNTRY",
+      groupNames: "31 = AZE, 40 = AUT, 246 = FIN", ident: "fixed", estimator: "WLSMV",
+      param: "DELTA", catAll: 4, cats: {}, title: "Civic knowledge, baseline model",
+      dataFile: "civic.dat", namesList: IS.nameList("IDCNTRY R09A R09B R09C R09D"),
+      missing: "", prefix: "b", include: incB
+    };
+    okTrue("a categorical model typed into the form and the same model read from an output " +
+           "write the same inputs, letter for letter",
+      sameTexts(IS.buildSequence(typedB), IS.buildSequence(cfgOf(fb, { include: incB }))));
+
+    /* an item that differs from the rest is given a row of its own */
+    var OUT_C = OUT_B.replace(/^    R09D\$3.*$/m, "");
+    var fc = IS.formFill(IS.readOutput(OUT_C, "c.out"));
+    ok("an item with fewer categories than the rest keeps the common number in the field", fc.catAll, 4);
+    ok("and takes a row of its own", fc.cats.R09D, 3);
+    okTrue("what the form then holds is what the file said",
+      fc.cats.R09D === 3 && fc.cats.R09A === undefined);
+
+    /* a file that cannot say everything fills in what it can */
+    var oneGroupText = OUT_A.replace(/^ +GROUPING.*$/m, "");
+    var mOne = IS.readOutput(oneGroupText, "g.out");
+    okTrue("a single-group output is not refused as a file", mOne.fatal === false);
+    var fOne = IS.formFill(mOne);
+    ok("it leaves one field for the user", fOne.unfilled.length, 1);
+    ok("and says which", fOne.unfilled[0].field, "groups");
+    ok("while filling in the definitions", fOne.defs, "F1 BY x1 x2 x3 x4;");
+    ok("and the estimator", fOne.estimator, "MLR");
+    okTrue("a file that is not an output fills in nothing at all",
+      IS.readOutput("id,age\n1,32\n", "d.csv").fatal === true);
+    okTrue("and neither does an output with no echoed input",
+      IS.readOutput("Mplus VERSION 8.10\n\nSUMMARY OF ANALYSIS\n\nEstimator  ML\n", "n.out").fatal === true);
+
+    /* ---------------------------------------------------------------
+       The two buttons that fill the form
+       --------------------------------------------------------------- */
+
+    var exA = IS.EXAMPLES.continuous, exB = IS.EXAMPLES.categorical;
+    seq = IS.buildSequence(cfgOf(exA.fields, { include: exA.include }));
+    okTrue("the continuous example fills the form with a model that can be written", seq.ok);
+    ok("the continuous example writes four inputs", seq.levels.length, 4);
+    ok("the continuous example, metric step", seq.levels[1].df, 3);
+    ok("the continuous example, scalar step", seq.levels[2].df, 3);
+    ok("the continuous example, strict step", seq.levels[3].df, 4);
+
+    seq = IS.buildSequence(cfgOf(exB.fields, { include: exB.include }));
+    okTrue("the categorical example fills the form with a model that can be written", seq.ok);
+    if (seq.ok) {
+      var ss = 3 * (4 * 3 / 2 + 4 * 3);
+      ok("the categorical example is the published one: free parameters of the baseline",
+         seq.levels[0].params, 48);
+      ok("the categorical example: degrees of freedom of the baseline", ss - seq.levels[0].params, 6);
+      ok("the categorical example: degrees of freedom of the threshold model",
+         ss - seq.levels[1].params, 14);
+      ok("the categorical example: degrees of freedom of the threshold and loading model",
+         ss - seq.levels[2].params, 20);
+      ok("the categorical example: the threshold step spends", seq.levels[1].df, 8);
+      ok("the categorical example: the loading step spends", seq.levels[2].df, 6);
+    }
     return { checks: checks, failed: failed };
   }
 
@@ -2002,13 +2636,20 @@ return {
 
 /* ==================================================================
    The page
+
+   The form is the model. Everything the generator is given comes from
+   the fields below; a dropped output file is a way of filling those
+   fields in and nothing more, so that what the page writes can always
+   be traced to something visible and editable on the page.
    ================================================================== */
 
 (function () {
   var esc = IS.esc, MP = IS.MP;
   function $(id) { return document.getElementById(id); }
 
-  var st = { cats: {}, include: {}, levels: [], lastItems: [] };
+  /* Which levels are ticked, and what the last file dropped was called.
+     Everything else is read out of the form when it is needed. */
+  var st = { include: {}, levels: [], fileName: "" };
 
   function status(kind, tag, html) {
     var glyph = kind === "ok" ? "✓" : kind === "bad" ? "✗" : kind === "warn" ? "!" : "i";
@@ -2016,90 +2657,103 @@ return {
       "</span> " + tag + "</span> " + html + "</p></div>";
   }
 
-  function family() { return $("fam-b").checked ? "B" : "A"; }
+  function family() { return $("famB").checked ? "B" : "A"; }
 
-  function fillEstimators() {
-    var list = family() === "A" ? IS.EST_A : IS.EST_B, sel = $("estimator"), cur = sel.value, i;
-    sel.innerHTML = "";
+  /* A whole number from a field, or the fallback when the field is empty
+     or holds something that is not one. */
+  function intOf(v, dflt, lo, hi) {
+    var n = parseInt(String(v).trim(), 10);
+    if (!isFinite(n)) return dflt;
+    if (lo !== undefined && n < lo) return lo;
+    if (hi !== undefined && n > hi) return hi;
+    return n;
+  }
+
+  /* ---- the estimator menu ------------------------------------------ */
+
+  /* What each name says about the chi-square it gives, kept short enough
+     to be read in the menu; what it means for the difference test is
+     said in full under the inputs. */
+  var EST_NOTE = {
+    MLR: "robust",
+    ML: "ordinary",
+    MLM: "Satorra-Bentler",
+    MLMV: "mean- and variance-adjusted",
+    WLSMV: "mean- and variance-adjusted",
+    WLSM: "mean-adjusted",
+    WLS: "ordinary",
+    ULSMV: "mean- and variance-adjusted"
+  };
+
+  /* The menu holds the estimators the sequence is written for. An output
+     file may name another one; it is added to the menu rather than
+     dropped, and the page says below what difference test it allows. */
+  function renderEstimator(keep) {
+    var sel = $("estimator"), list = (family() === "A" ? IS.EST_A : IS.EST_B).slice();
+    var want = String(keep || sel.value || list[0]).toUpperCase(), html = "", i;
+    if (want && /^[A-Z0-9]+$/.test(want) && list.indexOf(want) < 0) list.push(want);
     for (i = 0; i < list.length; i++) {
-      var o = document.createElement("option");
-      o.value = list[i];
-      o.textContent = list[i] + (i === 0 ? " (default)" : "");
-      sel.appendChild(o);
+      html += '<option value="' + esc(list[i]) + '">' + esc(list[i]) +
+        (EST_NOTE[list[i]] ? ": " + esc(EST_NOTE[list[i]]) : "") + "</option>";
     }
-    sel.value = (list.indexOf(cur) >= 0) ? cur : list[0];
+    sel.innerHTML = html;
+    sel.value = list.indexOf(want) >= 0 ? want : list[0];
   }
 
-  function readConfig() {
-    var f = family();
-    return {
-      family: f,
-      defs: $("defs").value,
-      nGroups: Math.max(1, Math.min(12, parseInt($("ngroups").value, 10) || 2)),
-      groupVar: $("groupvar").value.trim(),
-      groupNames: $("groupnames").value,
-      ident: $("ident").value,
-      estimator: $("estimator").value,
-      param: $("param").value,
-      catAll: parseInt($("catall").value, 10) || 4,
-      cats: st.cats,
-      title: $("title").value.trim(),
-      dataFile: $("datafile").value.trim(),
-      namesList: readNames(),
-      missing: $("missing").value,
-      prefix: $("prefix").value.trim(),
-      include: st.include
-    };
-  }
+  /* ---- the items of the model, for the per-item table --------------- */
 
-  /* the NAMES field takes the same range notation as the definitions */
-  function readNames() {
-    var raw = $("names").value.replace(/;/g, " ").replace(/,/g, " ")
-      .replace(/!.*$/gm, "").replace(/\s*-\s*/g, "-").trim();
-    if (raw === "") return [];
-    var toks = raw.split(/\s+/), out = [], i, k;
-    for (i = 0; i < toks.length; i++) {
-      if (toks[i] === "") continue;
-      if (toks[i].indexOf("-") >= 0) {
-        var r = IS.expandRange(toks[i]);
-        if (r.error) { out.push(toks[i]); continue; }
-        for (k = 0; k < r.items.length; k++) out.push(r.items[k]);
-      } else out.push(toks[i]);
-    }
+  /* The names in the definitions, in the order they are written there.
+     A definition that cannot be read yields no items and the table is
+     empty until it can. */
+  function itemNames() {
+    var r = IS.parseFactors($("defs").value), out = [], i, j;
+    for (i = 0; i < r.factors.length; i++)
+      for (j = 0; j < r.factors[i].items.length; j++) out.push(r.factors[i].items[j]);
     return out;
   }
 
-  /* ---- the per-item table of response categories ------------------ */
+  var MAX_CAT_ROWS = 200;
 
-  function renderCats(parsed) {
-    var body = $("cats-body"), rows = "", i, j;
-    var items = [];
-    for (i = 0; i < parsed.factors.length; i++) {
-      for (j = 0; j < parsed.factors[i].items.length; j++) {
-        items.push({ name: parsed.factors[i].items[j], fac: parsed.factors[i].name });
-      }
+  /* One row per item, each holding the number of categories of that item
+     or nothing at all, in which case the item takes the number in the
+     field above. What is already typed is kept when the table is rebuilt
+     after the definitions change. */
+  function renderCatTable(preset) {
+    var box = $("cat-table"), names = itemNames(), i;
+    var have = preset || catsFromTable();
+    if (!names.length) {
+      box.innerHTML = '<p class="hint">The table lists one row per item once the factor definitions above can be read.</p>';
+      return;
     }
-    st.lastItems = items;
-    var all = parseInt($("catall").value, 10) || 4;
-    for (i = 0; i < items.length; i++) {
-      var key = items[i].name.toUpperCase();
-      if (!Object.prototype.hasOwnProperty.call(st.cats, key)) st.cats[key] = all;
-      var c = st.cats[key];
-      rows += "<tr><th scope=\"row\">" + esc(items[i].name) + "</th><td>" + esc(items[i].fac) +
-        "</td><td class=\"num\"><label class=\"visually-hidden\" for=\"cat-" + i +
-        "\">Categories of " + esc(items[i].name) + "</label>" +
-        "<input type=\"number\" id=\"cat-" + i + "\" data-item=\"" + esc(key) +
-        "\" min=\"2\" max=\"12\" step=\"1\" value=\"" + c + "\"></td>" +
-        "<td class=\"num\">" + (c - 1) + "</td></tr>";
+    var shown = names.slice(0, MAX_CAT_ROWS), html = "";
+    html += '<div class="table-wrap narrow"><table><caption class="visually-hidden">Number of response categories of each item</caption>' +
+      '<thead><tr><th scope="col">Item</th><th scope="col">Categories</th></tr></thead><tbody>';
+    for (i = 0; i < shown.length; i++) {
+      var key = shown[i].toUpperCase();
+      var v = Object.prototype.hasOwnProperty.call(have, key) ? have[key] : "";
+      html += '<tr><td><label class="mono" for="cat-' + esc(key) + '">' + esc(shown[i]) + '</label></td>' +
+        '<td><input type="number" class="cat-one" id="cat-' + esc(key) + '" data-item="' + esc(key) +
+        '" min="2" max="12" step="1" value="' + esc(v === "" ? "" : String(v)) + '" placeholder="same"></td></tr>';
     }
-    body.innerHTML = rows;
-    var inputs = body.querySelectorAll("input[type=number]");
-    for (i = 0; i < inputs.length; i++) {
-      inputs[i].addEventListener("change", function (ev) {
-        st.cats[ev.target.getAttribute("data-item")] = parseInt(ev.target.value, 10);
-        build();
-      });
+    html += "</tbody></table></div>";
+    if (names.length > shown.length) {
+      html += '<p class="hint">The model has ' + names.length + " items; the first " + MAX_CAT_ROWS +
+        " are listed. The rest take the number of categories given above.</p>";
     }
+    box.innerHTML = html;
+    var ins = box.querySelectorAll("input.cat-one");
+    for (i = 0; i < ins.length; i++) ins[i].addEventListener("change", build);
+  }
+
+  function catsFromTable() {
+    var ins = $("cat-table").querySelectorAll("input.cat-one"), out = {}, i;
+    for (i = 0; i < ins.length; i++) {
+      var raw = ins[i].value.trim();
+      if (raw === "") continue;
+      var n = parseInt(raw, 10);
+      out[ins[i].getAttribute("data-item")] = isFinite(n) ? n : raw;
+    }
+    return out;
   }
 
   /* ---- the list of levels ----------------------------------------- */
@@ -2111,12 +2765,12 @@ return {
       if (!Object.prototype.hasOwnProperty.call(st.include, k)) {
         st.include[k] = (k !== "fvar" && k !== "fmean");
       }
+      if (i === 0) st.include[k] = true;
       html += "<label class=\"check\"><input type=\"checkbox\" data-level=\"" + k + "\"" +
         (st.include[k] ? " checked" : "") + (i === 0 ? " disabled" : "") + "> " + esc(defs[i].name) +
-        (i === 0 ? " (always written)" : "") + "</label>";
+        (i === 0 ? " \u2014 always written" : "") + "</label>";
     }
     box.innerHTML = html;
-    if (defs.length) st.include[defs[0].key] = true;
     var boxes = box.querySelectorAll("input[type=checkbox]");
     for (i = 0; i < boxes.length; i++) {
       boxes[i].addEventListener("change", function (ev) {
@@ -2126,9 +2780,71 @@ return {
     }
   }
 
+  /* ---- the config the generator is given -------------------------- */
+
+  function cfgFromForm() {
+    return {
+      family: family(),
+      defs: $("defs").value,
+      nGroups: intOf($("nGroups").value, 0, 0, 50),
+      groupVar: $("groupVar").value.trim(),
+      groupNames: $("groupNames").value,
+      ident: $("ident").value,
+      estimator: $("estimator").value,
+      param: $("param").value,
+      catAll: intOf($("catAll").value, 4, 0, 99),
+      cats: catsFromTable(),
+      title: $("title").value.trim(),
+      dataFile: $("dataFile").value.trim(),
+      namesList: IS.nameList($("namesList").value),
+      missing: $("missing").value.trim(),
+      prefix: $("prefix").value.trim(),
+      include: st.include
+    };
+  }
+
+  /* ---- filling the form in from a file ----------------------------- */
+
+  /* Mplus writes its output in the code page of the machine it ran on.
+     The bytes are decoded here rather than handed to readAsText, which
+     would assume UTF-8 and turn a Windows-1252 accent into a
+     replacement character in the middle of a variable name. */
+
+  /* ---- the worked examples ----------------------------------------- */
+
+  /* The two published cases, put into the form rather than written
+     straight to the output, because what they illustrate is how the form
+     is filled in. */
+  function loadExample(key) {
+    var ex = IS.EXAMPLES[key], f = ex.fields, k;
+    $(f.family === "B" ? "famB" : "famA").checked = true;
+    onFamily(f.estimator);
+    $("defs").value = f.defs;
+    $("nGroups").value = f.nGroups;
+    $("groupVar").value = f.groupVar;
+    $("groupNames").value = f.groupNames;
+    $("param").value = f.param;
+    $("catAll").value = f.catAll;
+    $("title").value = f.title;
+    $("dataFile").value = f.dataFile;
+    $("namesList").value = f.namesText;
+    $("missing").value = f.missing;
+    $("prefix").value = f.prefix;
+    $("ident").value = "fixed";
+    st.include = {};
+    for (k in ex.include) if (Object.prototype.hasOwnProperty.call(ex.include, k)) st.include[k] = true;
+    renderLevels();
+    renderCatTable(f.cats);
+    st.fileName = "";
+    $("form-report").innerHTML = status("info", "An example loaded.",
+      "The form above now holds " + esc(ex.label) + ". " + ex.note +
+      " Change anything in it: it is an ordinary description of a model.");
+    build();
+  }
+
   /* ---- building and showing ---------------------------------------- */
 
-  function messageList(kind, list) {
+  function messageList(list) {
     if (!list || !list.length) return "";
     var html = "<ul>", i;
     for (i = 0; i < list.length; i++) html += "<li>" + list[i].html + "</li>";
@@ -2136,36 +2852,40 @@ return {
   }
 
   function build() {
-    var cfg = readConfig();
-    var parsed = IS.parseFactors(cfg.defs);
-    if (cfg.family === "B") renderCats(parsed);
-    $("param-field").hidden = (cfg.family !== "B");
-    $("cat-fieldset").hidden = (cfg.family !== "B");
-
+    var cfg = cfgFromForm();
     var seq = IS.buildSequence(cfg);
     var rep = "";
+
     if (seq.errors && seq.errors.length) {
-      rep += status("bad", "The model could not be read.",
-        "Nothing was written. " + seq.errors.length + " problem" + (seq.errors.length > 1 ? "s were" : " was") +
-        " found:") + messageList("bad", seq.errors);
+      rep += status("bad", "Nothing was written.",
+        "The model as it is described above cannot be written as a sequence. " + seq.errors.length +
+        " thing" + (seq.errors.length > 1 ? "s were" : " was") + " found to be wrong with it:") +
+        messageList(seq.errors);
     }
     if (seq.warnings && seq.warnings.length) {
-      rep += status("warn", "Read with changes.", "") + messageList("warn", seq.warnings);
+      rep += status("warn", "Read with changes.",
+        "The description was read, with " + seq.warnings.length + " thing" +
+        (seq.warnings.length > 1 ? "s" : "") + " to be aware of:") + messageList(seq.warnings);
     }
     if (seq.ok) {
       var S = seq.structure;
-      rep += status("ok", "Read.", S.items.length + " item" + (S.items.length === 1 ? "" : "s") + " on " +
+      rep += status("ok", "Written.", S.items.length + " item" + (S.items.length === 1 ? "" : "s") + " on " +
         S.factors.length + " factor" + (S.factors.length === 1 ? "" : "s") + " in " + S.groups.length +
-        " groups; " + seq.levels.length + " input" + (seq.levels.length === 1 ? "" : "s") + " written.");
+        " groups; " + seq.levels.length + " input" + (seq.levels.length === 1 ? "" : "s") +
+        " written under <a href=\"#h-out\">The inputs</a> below.");
     }
-    $("defs-report").innerHTML = rep;
+    $("form-report").innerHTML = rep;
 
-    if (!seq.ok) { $("out").innerHTML = ""; st.levels = []; renderMethods(cfg, null); return; }
+    if (!seq.ok) {
+      $("secOut").hidden = true;
+      $("out").innerHTML = "";
+      st.levels = [];
+      return;
+    }
+    $("secOut").hidden = false;
     st.levels = seq.levels;
     renderOutput(cfg, seq);
-    renderMethods(cfg, seq);
   }
-
   function renderOutput(cfg, seq) {
     var S = seq.structure, html = "", i, j, k;
     var latent = [], usev = [];
@@ -2342,37 +3062,59 @@ return {
   /* ---- the methods section ---------------------------------------- */
 
   function renderMethods(cfg, seq) {
-    var html = "", i;
-    html += "<p>Write <em>p</em> for the number of items, <em>m</em> for the number of factors and " +
-      "<em>G</em> for the number of groups. &Lambda; collects the loadings, &nu; the item intercepts, " +
-      "&Theta; the residual variances, &kappa; the factor means and &Phi; the factor covariance matrix. " +
-      "With ordered-categorical items <strong>T</strong> collects the thresholds and &Sigma;* is the " +
-      "covariance matrix of the latent responses, whose diagonal the delta parameterization fixes through " +
-      "the scale factors.</p>";
+    var html = "";
+    html += "<p>Write <var>p</var> for the number of items, <var>m</var> for the number of factors and " +
+      "<var>G</var> for the number of groups. <b>&Lambda;</b> collects the loadings, <b>&nu;</b> the item " +
+      "intercepts, <b>&Theta;</b> the residual variances, <b>&kappa;</b> the factor means and <b>&Phi;</b> " +
+      "the factor covariance matrix. With ordered-categorical items <b>T</b> collects the thresholds and " +
+      "<b>&Sigma;</b>* is the covariance matrix of the latent responses, whose diagonal the delta " +
+      "parameterization fixes through the scale factors. A superscript in parentheses names the group, so " +
+      "<span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup></span> is the loading matrix of group " +
+      "<var>g</var>, and a quantity written without one is held equal across groups.</p>";
 
     html += "<h3>Continuous indicators</h3>";
-    html += "<p>The model is <em>y</em><sup>(g)</sup> = &nu;<sup>(g)</sup> + &Lambda;<sup>(g)</sup>" +
-      "&eta;<sup>(g)</sup> + &epsilon;<sup>(g)</sup> in each group, with " +
-      "&Sigma;<sup>(g)</sup> = &Lambda;<sup>(g)</sup>&Phi;<sup>(g)</sup>&Lambda;<sup>(g)&prime;</sup> + " +
-      "&Theta;<sup>(g)</sup> and &mu;<sup>(g)</sup> = &nu;<sup>(g)</sup> + &Lambda;<sup>(g)</sup>" +
-      "&kappa;<sup>(g)</sup>. The levels are:</p><ul>";
-    html += "<li><strong>Configural.</strong> Nothing equal across groups. Identified in each group by " +
-      "diag(&Phi;<sup>(g)</sup>) = <strong>I</strong> and &kappa;<sup>(g)</sup> = 0 under the fixed-factor " +
-      "method, or by one loading per factor fixed at one together with &kappa;<sup>(g)</sup> = 0 under the " +
-      "marker method.</li>";
-    html += "<li><strong>Metric.</strong> &Lambda;<sup>(g)</sup> = &Lambda;. The factor variances are " +
-      "freed in the <em>G</em> &minus; 1 groups after the first under the fixed-factor method and stay " +
-      "free everywhere under the marker method. Spends (<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) " +
+    html += "<p>In each group the model for the observed responses is</p>";
+    html += "<div class=\"eq\"><b>y</b><sup>(<var>g</var>)</sup> = <b>&nu;</b><sup>(<var>g</var>)</sup> " +
+      "+ <b>&Lambda;</b><sup>(<var>g</var>)</sup> <b>&eta;</b><sup>(<var>g</var>)</sup> " +
+      "+ <b>&epsilon;</b><sup>(<var>g</var>)</sup></div>";
+    html += "<p class=\"where\">Here <b>y</b><sup>(<var>g</var>)</sup> is the vector of the <var>p</var> " +
+      "observed responses in group <var>g</var>, <b>&nu;</b><sup>(<var>g</var>)</sup> the vector of item " +
+      "intercepts, <b>&Lambda;</b><sup>(<var>g</var>)</sup> the matrix of loadings, " +
+      "<b>&eta;</b><sup>(<var>g</var>)</sup> the vector of the <var>m</var> factors and " +
+      "<b>&epsilon;</b><sup>(<var>g</var>)</sup> the vector of residuals.</p>";
+    html += "<p>Its mean vector and covariance matrix are</p>";
+    html += "<div class=\"eq\"><span class=\"eq-in\"><b>&mu;</b><sup>(<var>g</var>)</sup> = <b>&nu;</b><sup>(<var>g</var>)</sup> " +
+      "+ <b>&Lambda;</b><sup>(<var>g</var>)</sup> <b>&kappa;</b><sup>(<var>g</var>)</sup></span>,<span class=\"op\"> </span> " +
+      "<span class=\"eq-in\"><b>&Sigma;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b><sup>(<var>g</var>)</sup> " +
+      "<b>&Phi;</b><sup>(<var>g</var>)</sup> <b>&Lambda;</b><sup>(<var>g</var>)&prime;</sup> " +
+      "+ <b>&Theta;</b><sup>(<var>g</var>)</sup></span></div>";
+    html += "<p class=\"where\">Here <b>&mu;</b><sup>(<var>g</var>)</sup> is the mean vector of the observed " +
+      "responses in group <var>g</var>, <b>&kappa;</b><sup>(<var>g</var>)</sup> the vector of factor means, " +
+      "<b>&Sigma;</b><sup>(<var>g</var>)</sup> their covariance matrix, <b>&Phi;</b><sup>(<var>g</var>)</sup> " +
+      "the covariance matrix of the factors, <b>&Theta;</b><sup>(<var>g</var>)</sup> the covariance matrix of " +
+      "the residuals, and the prime denotes transposition.</p>";
+    html += "<p>The levels are:</p><ul>";
+    html += "<li><b>Configural.</b> Nothing equal across groups. The model is identified in each group by " +
+      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(<var>g</var>)</sup>) = <b>I</b></span> and " +
+      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> under the fixed-factor " +
+      "method, or by one loading per factor fixed at one together with " +
+      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> under the marker method.</li>";
+    html += "<li><b>Metric.</b> <span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b></span>. " +
+      "The factor variances are freed in the <span class=\"eq-in\"><var>G</var> &minus; 1</span> groups after " +
+      "the first under the fixed-factor method and stay free everywhere under the marker method. Spends " +
+      "<span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
+    html += "<li><b>Scalar.</b> <span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b></span> " +
+      "and <span class=\"eq-in\"><b>&nu;</b><sup>(<var>g</var>)</sup> = <b>&nu;</b></span>. The factor means are " +
+      "freed in the <span class=\"eq-in\"><var>G</var> &minus; 1</span> groups after the first. Spends " +
+      "<span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
+    html += "<li><b>Strict.</b> <span class=\"eq-in\"><b>&Theta;</b><sup>(<var>g</var>)</sup> = <b>&Theta;</b></span> " +
+      "as well. Spends <span class=\"eq-in\"><var>p</var>(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
+    html += "<li><b>Equal factor variances and covariances.</b> " +
+      "<span class=\"eq-in\"><b>&Phi;</b><sup>(<var>g</var>)</sup> = <b>&Phi;</b></span>. Spends " +
+      "<span class=\"eq-in\">[<var>m</var> + <var>m</var>(<var>m</var> &minus; 1) / 2](<var>G</var> &minus; 1)</span> " +
       "degrees of freedom.</li>";
-    html += "<li><strong>Scalar.</strong> &Lambda;<sup>(g)</sup> = &Lambda; and &nu;<sup>(g)</sup> = &nu;. " +
-      "The factor means are freed in the <em>G</em> &minus; 1 groups after the first. Spends " +
-      "(<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) degrees of freedom.</li>";
-    html += "<li><strong>Strict.</strong> &Theta;<sup>(g)</sup> = &Theta; as well. Spends " +
-      "<em>p</em>(<em>G</em> &minus; 1) degrees of freedom.</li>";
-    html += "<li><strong>Equal factor variances and covariances.</strong> &Phi;<sup>(g)</sup> = &Phi;. " +
-      "Spends [<em>m</em> + <em>m</em>(<em>m</em> &minus; 1)/2](<em>G</em> &minus; 1) degrees of freedom.</li>";
-    html += "<li><strong>Equal factor means.</strong> &kappa;<sup>(g)</sup> = 0 in every group. Spends " +
-      "<em>m</em>(<em>G</em> &minus; 1) degrees of freedom.</li></ul>";
+    html += "<li><b>Equal factor means.</b> <span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> " +
+      "in every group. Spends <span class=\"eq-in\"><var>m</var>(<var>G</var> &minus; 1)</span> degrees of freedom.</li></ul>";
     html += "<p>The two identification methods give the same fit and the same degrees of freedom at every " +
       "level; they differ in what is assumed rather than tested. The marker method takes the metric of the " +
       "factor from one item, so that item's loading, and from the scalar level its intercept, are held " +
@@ -2381,43 +3123,60 @@ return {
       "cost of a factor whose scale is defined by a group rather than by an item.</p>";
 
     html += "<h3>Ordered-categorical indicators</h3>";
-    html += "<p>An item with <em>C</em> categories has <em>K</em> = <em>C</em> &minus; 1 thresholds cutting " +
-      "a latent response <em>y</em>*. Wu and Estabrook (2016) show that the parameters may be changed by a " +
-      "shift and a positive rescaling of every latent response and of every factor without changing the " +
-      "probability of any response pattern, so 2(<em>p</em> + <em>m</em>) constraints per group are needed. " +
-      "Their conditions, in the order this page writes them, are:</p><ul>";
-    html += "<li><strong>Configural.</strong> Condition 7 in each group under the delta parameterization: " +
-      "diag(&Phi;) = <strong>I</strong>, &kappa; = 0, &nu; = 0 and diag(&Sigma;*) = <strong>I</strong>. " +
-      "Under the theta parameterization it is condition 8, with &Theta; = <strong>I</strong> in place of " +
-      "the last constraint.</li>";
-    html += "<li><strong>Equal thresholds</strong> (condition 15, Proposition 4). " +
-      "<strong>T</strong><sup>(g)</sup> = <strong>T</strong>; &nu;<sup>(1)</sup> = 0 and " +
-      "diag(&Sigma;*<sup>(1)</sup>) = <strong>I</strong> in the first group only, with the intercepts and " +
-      "scales free elsewhere; &kappa;<sup>(g)</sup> = 0 and diag(&Phi;<sup>(g)</sup>) = <strong>I</strong> " +
-      "in every group. Spends &Sigma;<sub>j</sub>(<em>C<sub>j</sub></em> &minus; 3)(<em>G</em> &minus; 1) " +
-      "degrees of freedom, so an item with fewer than four categories contributes none.</li>";
-    html += "<li><strong>Equal thresholds and loadings</strong> (condition 19, Proposition 7). Also " +
-      "&Lambda;<sup>(g)</sup> = &Lambda;; diag(&Phi;<sup>(1)</sup>) = <strong>I</strong> in the first group " +
-      "only, so factor variances are free elsewhere; &kappa;<sup>(g)</sup> = 0 in every group. Spends " +
-      "(<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) degrees of freedom.</li>";
-    html += "<li><strong>Equal thresholds, loadings and intercepts</strong> (condition 27). Also " +
-      "&nu; = 0 in every group, with &kappa;<sup>(1)</sup> = 0 and factor means free elsewhere. Spends " +
-      "(<em>p</em> &minus; <em>m</em>)(<em>G</em> &minus; 1) degrees of freedom when it follows the previous " +
-      "level, and (<em>p</em> &minus; 2<em>m</em>)(<em>G</em> &minus; 1) when it follows the configural " +
-      "model directly, which is the route taken with binary items.</li>";
-    html += "<li><strong>Full measurement invariance</strong> (condition 9). Also &Theta;<sup>(g)</sup> = " +
-      "&Theta;, written by fixing the residual variances of the latent responses at one in every group " +
-      "rather than in the first only. Fixing an invariant &Theta; and standardizing &Sigma;* in the first " +
-      "group are two ways of choosing the same metric and use the same number of parameters. Spends " +
-      "<em>p</em>(<em>G</em> &minus; 1) degrees of freedom. It needs the theta parameterization, because " +
-      "&Theta; is not a parameter under delta.</li></ul>";
+    html += "<p>An item with <var>C</var> categories has <span class=\"eq-in\"><var>K</var> = <var>C</var> " +
+      "&minus; 1</span> thresholds cutting a latent response <var>y</var>*. Wu and Estabrook (2016) show " +
+      "that the parameters may be changed by a shift and a positive rescaling of every latent response and " +
+      "of every factor without changing the probability of any response pattern, so " +
+      "<span class=\"eq-in\">2(<var>p</var> + <var>m</var>)</span> constraints per group are needed. Their " +
+      "conditions, in the order this page writes them, are:</p><ul>";
+    html += "<li><b>Configural.</b> Condition 7 in each group under the delta parameterization: " +
+      "<span class=\"eq-in\">diag(<b>&Phi;</b>) = <b>I</b></span>, " +
+      "<span class=\"eq-in\"><b>&kappa;</b> = <b>0</b></span>, " +
+      "<span class=\"eq-in\"><b>&nu;</b> = <b>0</b></span> and " +
+      "<span class=\"eq-in\">diag(<b>&Sigma;</b>*) = <b>I</b></span>. Under the theta parameterization it is " +
+      "condition 8, with <span class=\"eq-in\"><b>&Theta;</b> = <b>I</b></span> in place of the last constraint.</li>";
+    html += "<li><b>Equal thresholds</b> (condition 15, Proposition 4). " +
+      "<span class=\"eq-in\"><b>T</b><sup>(<var>g</var>)</sup> = <b>T</b></span>; " +
+      "<span class=\"eq-in\"><b>&nu;</b><sup>(1)</sup> = <b>0</b></span> and " +
+      "<span class=\"eq-in\">diag(<b>&Sigma;</b>*<sup>(1)</sup>) = <b>I</b></span> in the first group only, " +
+      "with the intercepts and scales free elsewhere; " +
+      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> and " +
+      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(<var>g</var>)</sup>) = <b>I</b></span> in every group. " +
+      "The degrees of freedom it spends are</li></ul>";
+    html += "<div class=\"eq\">Δ<var>df</var> = <span class=\"big\">Σ</span><sub><var>j</var></sub> " +
+      "(<var>C</var><sub><var>j</var></sub> &minus; 3)(<var>G</var> &minus; 1)</div>";
+    html += "<p class=\"where\">Here <var>j</var> runs over the <var>p</var> items, " +
+      "<var>C</var><sub><var>j</var></sub> is the number of response categories of item <var>j</var> and " +
+      "<var>G</var> is the number of groups, so an item with fewer than four categories contributes none.</p>";
+    html += "<ul>";
+    html += "<li><b>Equal thresholds and loadings</b> (condition 19, Proposition 7). Also " +
+      "<span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b></span>; " +
+      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(1)</sup>) = <b>I</b></span> in the first group only, so " +
+      "factor variances are free elsewhere; " +
+      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> in every group. Spends " +
+      "<span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
+    html += "<li><b>Equal thresholds, loadings and intercepts</b> (condition 27). Also " +
+      "<span class=\"eq-in\"><b>&nu;</b> = <b>0</b></span> in every group, with " +
+      "<span class=\"eq-in\"><b>&kappa;</b><sup>(1)</sup> = <b>0</b></span> and factor means free elsewhere. " +
+      "Spends <span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees " +
+      "of freedom when it follows the previous level, and " +
+      "<span class=\"eq-in\">(<var>p</var> &minus; 2<var>m</var>)(<var>G</var> &minus; 1)</span> when it follows " +
+      "the configural model directly, which is the route taken with binary items.</li>";
+    html += "<li><b>Full measurement invariance</b> (condition 9). Also " +
+      "<span class=\"eq-in\"><b>&Theta;</b><sup>(<var>g</var>)</sup> = <b>&Theta;</b></span>, written by fixing " +
+      "the residual variances of the latent responses at one in every group rather than in the first only. " +
+      "Fixing an invariant <b>&Theta;</b> and standardizing <b>&Sigma;</b>* in the first group are two ways of " +
+      "choosing the same metric and use the same number of parameters. Spends " +
+      "<span class=\"eq-in\"><var>p</var>(<var>G</var> &minus; 1)</span> degrees of freedom. It needs the theta " +
+      "parameterization, because <b>&Theta;</b> is not a parameter under delta.</li></ul>";
     html += "<p>Millsap and Yun-Tein (2004) identify the baseline model differently: they set " +
-      "&nu;<sup>(g)</sup> = 0 and one loading per factor to one in every group, &kappa;<sup>(1)</sup> = 0 " +
-      "and diag(&Phi;<sup>(1)</sup>) = <strong>I</strong> in the first group, and hold invariant one " +
-      "threshold per item together with a second threshold in the reference item of each factor. Wu and " +
-      "Estabrook keep that parameterization as one of three equivalent ways of identifying the baseline " +
-      "and show that which one is chosen changes the result of the invariance tests built on top of it, " +
-      "which is why each level here is identified on its own instead.</p>";
+      "<span class=\"eq-in\"><b>&nu;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> and one loading per factor " +
+      "to one in every group, <span class=\"eq-in\"><b>&kappa;</b><sup>(1)</sup> = <b>0</b></span> and " +
+      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(1)</sup>) = <b>I</b></span> in the first group, and hold " +
+      "invariant one threshold per item together with a second threshold in the reference item of each " +
+      "factor. Wu and Estabrook keep that parameterization as one of three equivalent ways of identifying " +
+      "the baseline and show that which one is chosen changes the result of the invariance tests built on " +
+      "top of it, which is why each level here is identified on its own instead.</p>";
 
     html += "<h3>What the page checks in what it wrote</h3>";
     html += "<p>Each input is read back as text before it is shown. The reader takes the input apart into " +
@@ -2431,68 +3190,65 @@ return {
 
     $("methods").innerHTML = html;
   }
+  /* ---- wiring ------------------------------------------------------ */
 
-  /* ---- examples and wiring ----------------------------------------- */
-
-  function exampleContinuous() {
-    $("fam-a").checked = true;
-    $("defs").value = "F1 BY x1-x4;";
-    $("ngroups").value = "2";
-    $("groupvar").value = "grp";
-    $("groupnames").value = "1 = male, 2 = female";
-    $("ident").value = "fixed";
-    fillEstimators();
-    $("estimator").value = "MLR";
-    st.include = {}; renderLevels(); build();
-  }
-
-  function exampleCategorical() {
-    $("fam-b").checked = true;
-    $("defs").value = "F1 BY R09A R09B R09C R09D;";
-    $("ngroups").value = "3";
-    $("groupvar").value = "IDCNTRY";
-    $("groupnames").value = "31 = AZE, 40 = AUT, 246 = FIN";
-    $("ident").value = "fixed";
-    $("catall").value = "4";
-    st.cats = {};
-    fillEstimators();
-    $("estimator").value = "WLSMV";
-    $("param").value = "DELTA";
-    st.include = {}; renderLevels(); build();
+  /* The choice between the two sequences changes the estimators that can
+     be used, the levels that exist and whether the number of categories
+     is asked for at all, so everything that depends on it is rebuilt
+     here rather than left to be noticed later. */
+  function onFamily(keepEstimator) {
+    var B = (family() === "B");
+    $("cat-fields").hidden = !B;
+    renderEstimator(keepEstimator);
+    renderLevels();
+    if (B) renderCatTable();
   }
 
   function wire() {
-    var ids = ["defs", "ngroups", "groupvar", "groupnames", "ident", "estimator", "param",
-               "title", "datafile", "names", "missing", "prefix"];
     var i;
-    for (i = 0; i < ids.length; i++) {
-      $(ids[i]).addEventListener("change", build);
-      $(ids[i]).addEventListener("input", build);
+
+    var fam = document.querySelectorAll("input[name=family]");
+    for (i = 0; i < fam.length; i++) {
+      fam[i].addEventListener("change", function () { onFamily(); build(); });
     }
-    $("fam-a").addEventListener("change", function () { fillEstimators(); st.include = {}; renderLevels(); build(); });
-    $("fam-b").addEventListener("change", function () { fillEstimators(); st.include = {}; renderLevels(); build(); });
-    $("catall").addEventListener("change", build);
-    $("catapply").addEventListener("click", function () {
-      var all = parseInt($("catall").value, 10) || 4, i;
-      for (i = 0; i < st.lastItems.length; i++) st.cats[st.lastItems[i].name.toUpperCase()] = all;
+    /* The definitions decide which items the per-item table has a row
+       for, so the table follows them. */
+    $("defs").addEventListener("change", function () {
+      if (family() === "B") renderCatTable();
       build();
     });
-    $("build").addEventListener("click", build);
-    $("ex-cont").addEventListener("click", exampleContinuous);
-    $("ex-cat").addEventListener("click", exampleCategorical);
+    var live = ["nGroups", "groupVar", "groupNames", "ident", "estimator", "param", "catAll",
+                "title", "dataFile", "namesList", "missing", "prefix"];
+    for (i = 0; i < live.length; i++) $(live[i]).addEventListener("change", build);
+
+    $("write").addEventListener("click", function () {
+      if (family() === "B") renderCatTable();
+      build();
+      var out = $("secOut");
+      if (!out.hidden && out.scrollIntoView) out.scrollIntoView({ block: "start" });
+    });
+    $("ex-a").addEventListener("click", function () { loadExample("continuous"); });
+    $("ex-b").addEventListener("click", function () { loadExample("categorical"); });
   }
 
   function start() {
-    fillEstimators();
-    renderLevels();
     wire();
+    onFamily("MLR");
+    renderMethods(null, null);
     build();
     if (/[?&]selftest=1(&|$)/.test(window.location.search) && window.invarianceSelfTest) {
       window.invarianceSelfTest(true);
     }
   }
 
-  window.invariancePage = { build: build, state: st };
+  /* Named so that a browser session can drive the page from the console
+     and so that the checks run against it from outside can reach the
+     inputs it wrote. */
+  window.invariancePage = {
+    build: build, state: st, config: cfgFromForm,
+    texts: function () { return st.levels.map(function (L) { return L.text; }); },
+    example: loadExample
+  };
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();

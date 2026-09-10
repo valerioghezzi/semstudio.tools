@@ -6,34 +6,36 @@
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Builds the measurement invariance ladder from multiple-group output files: fit table, constraints read from TECH1, difference tests between adjacent steps, modification indices and item plots.">
 <title>Invariance Tables · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
 /* Page-specific layout: the ladder, the file list and the plot workspace.
    Everything else comes from the shared stylesheet. */
 
-/* One row per file: its name and what was read from it, then the two menus
-   that can override the step and the estimator, then the button that drops
-   it. The menus keep the width of their longest option. */
-.filelist { list-style: none; padding: 0; margin: 1rem 0 0; max-width: 64rem; }
+/* One row per file: its name and what was read from it, the step the
+   constraints in TECH1 put it on, and the button that drops it. Nothing in
+   the row is editable, so the row holds no control but that button. */
+.filelist { list-style: none; padding: 0; margin: 1rem 0 0; max-width: none; }
 .filelist li {
-  display: grid; gap: 0.4rem 1rem; align-items: end; max-width: none;
-  grid-template-columns: minmax(0, 1fr) 15rem 9rem max-content;
+  display: grid; gap: 0.4rem 1rem; align-items: start; max-width: none;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) max-content;
   padding: 0.6rem 0; border-bottom: 1px solid var(--line-soft);
 }
+.filelist .fplace { font-size: 0.9rem; color: var(--ink-soft); }
 .filelist li:last-child { border-bottom: 0; }
 .filelist .fname { font-family: var(--mono); font-size: 0.86rem; word-break: break-all; }
 .filelist .fmeta { display: block; font-family: var(--sans); font-size: 0.85rem; color: var(--ink-soft); }
 .filelist label { font-size: 0.82rem; font-weight: 600; color: var(--ink-soft); }
 .filelist select { font-size: 0.9rem; padding: 0.3rem 0.4rem; }
 .filelist button { padding: 0.35rem 0.7rem; font-size: 0.88rem; }
-/* Narrower than this the two menus no longer fit beside the name of the
-   file, so the name takes a line of its own and they share the next one. */
+/* Narrower than this the step no longer fits beside the name of the file, so
+   the name takes a line of its own and the step and the button share the next.
+   On a phone each of the three takes its own line and the button keeps the
+   width of its label. */
 @media (max-width: 52rem) {
-  .filelist li { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .filelist li { grid-template-columns: minmax(0, 1fr) max-content; }
   .filelist li > :first-child { grid-column: 1 / -1; }
 }
-/* On a phone each control takes its own line, and the button that removes
-   the file keeps the width of its label. */
 @media (max-width: 34rem) {
   .filelist li { grid-template-columns: minmax(0, 1fr); }
   .filelist li > :last-child { justify-self: start; }
@@ -109,30 +111,36 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
 <main id="main">
   <p id="selftest" class="status" hidden></p>
 
+  <section aria-labelledby="h-steps">
+    <h2 id="h-steps">What to do</h2>
+    <ol class="steps">
+      <li>Estimate each model of your invariance sequence in <span class="mp">M<em>plus</em></span>, in a separate input file with the extension <code>.inp</code>: the configural model, the metric model, the scalar model and whichever further models you fitted. All of them have to use the same data file, the same observed variables, the same grouping variable and the same estimator.</li>
+      <li>Add this line to every one of those inputs, exactly as it is written here: <code>OUTPUT: TECH1 MODINDICES STDYX SAMPSTAT;</code></li>
+      <li>Run every input. <span class="mp">M<em>plus</em></span> writes one plain text file per input, with the same name and the extension <code>.out</code>, in the folder the input is in. One output per model.</li>
+      <li>Drag all of those <code>.out</code> files onto the box below at once, or press the box and select them all there. Drop them in any order you like: the page reads the constraints of each model and works out the order of the sequence itself. Files can also be added in more than one go; each new file joins the list. The files are read inside your browser and nothing leaves your computer.</li>
+      <li>Read the list of files under the box. Each row names the file, the number of groups, the sample size, the estimator, the degrees of freedom, and the step of the ladder the constraints in TECH1 put that model on.</li>
+      <li>Read the ladder, then the fit table, then the table of comparisons between adjacent steps. Choose the significance level the p-values are compared with; that is the one choice the comparison section asks for, and it changes nothing that was read from the files.</li>
+      <li>To look at one item across the groups, or at one class of parameters in every item, choose the model, the item and the parameter under the two figures, then save the figure as PNG or as SVG at the width and the type size your journal asks for.</li>
+    </ol>
+    <p>The page refuses to place a model whose output has no TECHNICAL 1 section: the step of a model comes from the equality constraints <span class="mp">M<em>plus</em></span> prints there and from nothing else, and neither a file name nor a number of degrees of freedom says which parameters were held equal across groups. Such a model is listed, its fit is reported, and it takes part in no comparison; the reason is given in the row and again under the ladder. The page also computes no difference test for a model whose estimator could not be read, for a run that did not converge and for a run in which <span class="mp">M<em>plus</em></span> printed an error, and it compares only models that sit on adjacent steps. Nothing on this page can be typed in: the step, the estimator, the fit statistics and the parameter estimates all come from the files.</p>
+  </section>
+
   <section aria-labelledby="h-load">
     <h2 id="h-load">Load the output files</h2>
-    <div class="split even">
-      <div>
-        <p>Drop the <code>.out</code> files of the sequence into the box, or press it to choose them; several files at once is the normal case. Each file is read by your browser and is not transmitted anywhere.</p>
+    <p>Drop one output file per model into the box, all of them together, or press the box to choose them. Two or more groups are needed. Reading the constraints, the chi-square contribution of each group, the difference tests and the item plot are all defined for any number of groups from two upward.</p>
 
-        <label class="drop" id="drop" for="pick">
-          <strong>Drop the output files here</strong>
-          <span class="hint" id="dropHint">or press to choose them; several at a time</span>
-          <input type="file" id="pick" accept=".out,.txt,.log,text/plain" multiple>
-        </label>
+    <label class="drop" id="drop" for="pick">
+      <strong>Drop one .out file per model here</strong>
+      <span class="hint" id="dropHint">or press to choose them; select them all at once</span>
+      <input type="file" id="pick" accept=".out,.txt,.log,text/plain" multiple>
+    </label>
 
-        <div id="loadStatus" aria-live="polite"></div>
-      </div>
-      <div>
-        <p class="small">The step of each model is read from the constraints in TECH1. The name of the file and the title of the run are used only when TECH1 is missing, and then only as a hint. You can override the step in the list below; the page checks the override against TECH1 and reports a conflict when the two disagree.</p>
-        <p class="small">Two or more groups. Reading the constraints, the chi-square contribution of each group, the difference tests and the item plot are all defined for k groups. The one part that is not general is the reading of a step from a file name, which recognizes the usual English names of the steps and nothing else.</p>
-      </div>
-    </div>
+    <div id="loadStatus" aria-live="polite"></div>
 
     <ul class="filelist" id="filelist"></ul>
 
     <div class="actions">
-      <button type="button" class="secondary" id="btnClear">Clear the model list</button>
+      <button type="button" class="secondary" id="btnClear">Remove every file and start again</button>
     </div>
   </section>
 
@@ -155,21 +163,18 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
   <section id="secCompare" aria-labelledby="h-compare" hidden>
     <h2 id="h-compare">Comparisons between adjacent steps</h2>
     <fieldset>
-      <legend>Settings</legend>
+      <legend>The one choice this section asks for</legend>
       <div class="row">
         <div class="field">
-          <label for="selAlpha">Significance level</label>
+          <label for="selAlpha">Compare each p-value with this significance level</label>
           <select id="selAlpha">
             <option value="0.05" selected>.05</option>
             <option value="0.01">.01</option>
             <option value="0.001">.001</option>
           </select>
         </div>
-        <div class="field">
-          <label class="check" for="chkUnequal"><input type="checkbox" id="chkUnequal"> Treat the group sizes as unequal</label>
-          <span class="hint">Checked on its own when the largest group is more than one and a half times the smallest.</span>
-        </div>
       </div>
+      <p class="hint">Whether the groups are of comparable size is read from the per-group sample sizes in the output files, not chosen here: the largest group being more than one and a half times the smallest is what makes the stricter cutoffs of Chen (2007) the ones that match the comparison.</p>
     </fieldset>
     <div id="comparisons" aria-live="polite"></div>
     <div class="actions"><button type="button" class="secondary" id="btnCopyComp">Copy the comparison table</button><span id="copyCompState" role="status" class="small"></span></div>
@@ -192,15 +197,15 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
     <h2 id="h-mi">Modification indices</h2>
     <div class="row">
       <div class="field w4">
-        <label for="miModel">Model</label>
+        <label for="miModel">Show the indices of this model</label>
         <select id="miModel"></select>
       </div>
       <div class="field w3">
-        <label for="miGroup">Group</label>
+        <label for="miGroup">Show them for this group</label>
         <select id="miGroup"></select>
       </div>
       <div class="field w3">
-        <label for="miThreshold">Threshold</label>
+        <label for="miThreshold">Hide indices smaller than</label>
         <select id="miThreshold">
           <option value="3.841">3.841 (p = .05, 1 df)</option>
           <option value="6.635" selected>6.635 (p = .01, 1 df)</option>
@@ -218,15 +223,15 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
     <div class="plotgrid">
       <div>
         <div class="field">
-          <label for="plotModel">Model the parameters are read from</label>
+          <label for="plotModel">Read the parameters from this model</label>
           <select id="plotModel"></select>
         </div>
         <div class="field">
-          <label for="plotItem">Item</label>
+          <label for="plotItem">Draw this item</label>
           <select id="plotItem"></select>
         </div>
         <div class="field">
-          <label for="plotType">What to draw</label>
+          <label for="plotType">Draw it in this form</label>
           <select id="plotType">
             <option value="expected">Expected value of the item against the factor</option>
             <option value="band">Expected value with a residual band</option>
@@ -234,34 +239,34 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
           </select>
         </div>
         <div class="field" id="fieldBand" hidden>
-          <label for="plotBand">Width of the band</label>
+          <label for="plotBand">Make the band this wide</label>
           <select id="plotBand">
             <option value="1">± 1 residual standard deviation</option>
             <option value="1.96">± 1.96 residual standard deviations</option>
           </select>
         </div>
         <div class="field">
-          <label for="labX">Label of the horizontal axis</label>
+          <label for="labX">Name the horizontal axis</label>
           <input type="text" id="labX" placeholder="left empty: taken from the model">
         </div>
         <div class="field">
-          <label for="labY">Label of the vertical axis</label>
+          <label for="labY">Name the vertical axis</label>
           <input type="text" id="labY" placeholder="left empty: taken from the model">
         </div>
         <fieldset>
           <legend>Export settings</legend>
           <p class="small">Both figures use these settings.</p>
           <div class="row">
-            <div class="field w1">
-              <label for="fsize">Type size (pt)</label>
+            <div class="field w2">
+              <label for="fsize">Set the type size (pt)</label>
               <input type="number" id="fsize" value="9" min="6" max="14" step="0.5">
             </div>
-            <div class="field w1">
-              <label for="wmm">Width (mm)</label>
+            <div class="field w2">
+              <label for="wmm">Set the printed width (mm)</label>
               <input type="number" id="wmm" value="140" min="60" max="250" step="1">
             </div>
-            <div class="field w1">
-              <label for="dpi">Resolution (dpi)</label>
+            <div class="field w2">
+              <label for="dpi">Set the resolution (dpi)</label>
               <select id="dpi"><option>300</option><option selected>600</option><option>1200</option></select>
             </div>
           </div>
@@ -290,7 +295,7 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
     <div class="plotgrid">
       <div>
         <div class="field">
-          <label for="fpar">Parameter to compare</label>
+          <label for="fpar">Compare this class of parameters</label>
           <select id="fpar">
             <option value="loading">Loading</option>
             <option value="intercept">Intercept</option>
@@ -318,14 +323,22 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
     <h3>The ladder and where a model sits on it</h3>
     <p>Every model that the page reads is placed on exactly one step of a fixed ladder. The steps, in order, are: configural, no parameter held equal across groups; metric, the loadings held equal; scalar, the loadings and the intercepts, or the thresholds when the indicators are ordered-categorical; strict, also the residual variances; then two optional structural steps, the factor variances and covariances, and the factor means. Nothing else is a step. A model that releases part of the constraints of its step, such as a scalar model with one intercept left free, sits on that same step and carries the flag <span class="tag-partial">partial</span>. Partial invariance is a property of a model at a step, not a step of its own; treating it as a step is what lets two models be compared that stand in no nesting relation.</p>
     <p>The step comes from the constraints <span class="mp">M<em>plus</em></span> actually imposed, read in TECH1. <span class="mp">M<em>plus</em></span> numbers the free parameters group by group and prints the numbers matrix by matrix; a parameter that carries the same number in every group is estimated once for all groups, which is what an equality constraint across groups means, and a parameter printed as 0 is not free. The page collects, for each class of parameters, how many cells are equal in every group, how many are free, and how many are equal in some groups but not all. A class is <em>fully constrained</em> when no cell of it is left loose, <em>partial</em> when some are, and <em>free</em> when none is constrained. The step is then the highest class that is constrained at all:</p>
-    <pre class="formula">factor means constrained          -> step 5, factor means
-factor variances and covariances  -> step 4, factor variances and covariances
-residual variances constrained    -> step 3, strict
-intercepts or thresholds          -> step 2, scalar
-loadings                          -> step 1, metric
-nothing                           -> step 0, configural</pre>
+    <p class="table-note" id="ladder-rule">The class of parameters that decides the step, and the step it decides.</p>
+    <div class="table-wrap fit">
+      <table aria-labelledby="ladder-rule">
+        <thead><tr><th scope="col">Highest class that carries a constraint</th><th scope="col">Step</th></tr></thead>
+        <tbody>
+          <tr><td>factor means</td><td>5, factor means</td></tr>
+          <tr><td>factor variances and covariances</td><td>4, factor variances and covariances</td></tr>
+          <tr><td>residual variances</td><td>3, strict</td></tr>
+          <tr><td>intercepts or thresholds</td><td>2, scalar</td></tr>
+          <tr><td>loadings</td><td>1, metric</td></tr>
+          <tr><td>none of them</td><td>0, configural</td></tr>
+        </tbody>
+      </table>
+    </div>
     <p>Factor means, factor variances and, with ordered-categorical indicators, the scale factors or the residual variances of the underlying response variables are fixed at the start of the sequence to identify the model, not to impose invariance. The page counts them as constraints only once the loadings and the intercepts or thresholds are themselves constrained. Counting them earlier would make the configural model look more constrained than the scalar one and the whole ladder would run backwards.</p>
-    <p>The name of the file and the title of the run are read only when TECH1 is absent, and then only as a hint, which the page says. When you set the step yourself, the page compares your choice with the step the constraints imply and reports the disagreement instead of hiding it.</p>
+    <p>No other evidence is used and none can be supplied. A file name, the title of the run and the number of degrees of freedom say nothing about which parameters were held equal across groups, and a model whose output has no TECH1 section is therefore listed without a step, with the reason, and takes part in no comparison. There is no control on this page that sets the step of a model.</p>
 
     <h3>Which models are compared</h3>
     <p>A comparison is produced only between two models on adjacent steps, and only in these forms: the full model of a step against the full model of the next step, the full model of a step against the partial model of the next step, and, when a full and a partial model share one step, the two against each other, which is the test of the constraints the partial model releases. No other pair is compared. In particular two models on steps that are not adjacent are never compared, even when their degrees of freedom would allow it.</p>
@@ -334,17 +347,17 @@ nothing                           -> step 0, configural</pre>
     <p>Without TECH1 there is no constraint set, so the model takes part in no comparison. Degrees of freedom are a necessary condition and not a sufficient one: two models can differ by three degrees of freedom without either one being a restriction of the other, and a difference test computed on such a pair looks entirely plausible and means nothing.</p>
 
     <h3>Groups</h3>
-    <p>Everything above is defined for k groups with k at least 2: a cell is constrained when it carries the same parameter number in every one of the k groups, and the count of restrictions on a cell is the number of parameters it removes, that is the number of free groups minus the number of distinct parameter numbers among them. A cell that is equal in some groups and free in others is reported separately and is not treated as a constraint of the class, because the class is then neither constrained nor free. The chi-square contribution of each group is read for all k groups. The item plot draws one line per group. The one part that is not general is the reading of the sequence from a file name, which recognizes the usual English names of the steps only.</p>
+    <p>Everything above is defined for <var>k</var> groups with <var>k</var> at least 2: a cell is constrained when it carries the same parameter number in every one of the <var>k</var> groups, and the count of restrictions on a cell is the number of parameters it removes, that is the number of free groups minus the number of distinct parameter numbers among them. A cell that is equal in some groups and free in others is reported separately and is not treated as a constraint of the class, because the class is then neither constrained nor free. The chi-square contribution of each group is read for all <var>k</var> groups. The item plot draws one line per group. Every part of it is defined for any number of groups from two upward.</p>
 
     <h3>The difference test, by estimator</h3>
-    <p>The test depends on the estimator, and the page never assumes one: when the estimator cannot be read it asks for it in the model list and computes nothing until it is given.</p>
+    <p>The test depends on the estimator, and the page never assumes one: when the <code>Estimator</code> line of an output cannot be read, that model enters no difference test, and the reason is printed in its row. The estimator cannot be supplied by hand, because a difference test computed under the wrong one is a plausible number that means nothing.</p>
     <p>ML, MLF, GLS and WLS produce a statistic that is asymptotically chi-square distributed, and the difference of two of them is again chi-square distributed:</p>
-    <pre class="formula">T  = chi2_restricted - chi2_unrestricted
-df = df_restricted - df_unrestricted</pre>
-    <p>MLR, MLM and WLSM print a statistic already divided by a scaling correction factor c, so the scaled difference test of Satorra and Bentler (2001) multiplies the printed values back before differencing them:</p>
-    <pre class="formula">cd = (df_0 * c_0 - df_1 * c_1) / (df_0 - df_1)
-T  = (chi2_0 * c_0 - chi2_1 * c_1) / cd</pre>
-    <p>with the index 0 for the restricted model and 1 for the unrestricted one, and T referred to a chi-square distribution with df_0 − df_1 degrees of freedom. When cd comes out zero or negative, or when T comes out negative, the test is not a non-significant test: the statistic in that form cannot be referred to a chi-square distribution and nothing follows from it, for either model. Satorra and Bentler (2010) give a version that is positive by construction. It needs one further <span class="mp">M<em>plus</em></span> run of the restricted model in which the unrestricted solution supplies the starting values and estimation stops before the first update, <code>ANALYSIS: ITERATIONS = 0;</code>, whose scaling correction factor c10 replaces c_0 in the numerator of cd. That run is a separate file and is not part of an invariance sequence, so the page reports the obstruction and points to the model comparison tool, which takes the third output.</p>
+    <div class="eq"><span class="eq-in"><var>T</var> = χ²<sub>0</sub> <span class="op">−</span> χ²<sub>1</sub></span>,<span class="op"> </span> <span class="eq-in">Δ<var>df</var> = <var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span></div>
+    <p class="where">Here <var>T</var> is the difference statistic, χ²<sub>0</sub> and <var>df</var><sub>0</sub> are the chi-square and the degrees of freedom of the restricted model, χ²<sub>1</sub> and <var>df</var><sub>1</sub> are those of the unrestricted model, and Δ<var>df</var> is the number of degrees of freedom the test is referred to.</p>
+    <p>MLR, MLM and WLSM print a statistic already divided by a scaling correction factor <span class="eq-in"><var>c</var></span>, so the scaled difference test of Satorra and Bentler (2001) multiplies the printed values back before differencing them:</p>
+    <div class="eq"><span class="eq-in"><var>c</var><sub><var>d</var></sub> = <span class="frac"><span class="num"><var>df</var><sub>0</sub> <var>c</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span></span></span>,<span class="op"> </span> <span class="eq-in"><var>T</var> = <span class="frac"><span class="num">χ²<sub>0</sub> <var>c</var><sub>0</sub> <span class="op">−</span> χ²<sub>1</sub> <var>c</var><sub>1</sub></span><span class="den"><var>c</var><sub><var>d</var></sub></span></span></span></div>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>df</var><sub>0</sub> and <var>df</var><sub>1</sub> are the degrees of freedom of the restricted and of the unrestricted model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their scaling correction factors, χ²<sub>0</sub> and χ²<sub>1</sub> are the chi-square values printed for them, and <var>T</var> is the difference statistic.</p>
+    <p><var>T</var> is referred to a chi-square distribution with <span class="eq-in"><var>df</var><sub>0</sub> <span class="op">−</span> <var>df</var><sub>1</sub></span> degrees of freedom. When <span class="eq-in"><var>c</var><sub><var>d</var></sub></span> comes out zero or negative, or when <var>T</var> comes out negative, the test is not a non-significant test: the statistic in that form cannot be referred to a chi-square distribution and nothing follows from it, for either model. Satorra and Bentler (2010) give a version that is positive by construction. It needs one further <span class="mp">M<em>plus</em></span> run of the restricted model in which the unrestricted solution supplies the starting values and estimation stops before the first update, <code>ANALYSIS: ITERATIONS = 0;</code>, whose scaling correction factor <span class="eq-in"><var>c</var><sub>10</sub></span> replaces <span class="eq-in"><var>c</var><sub>0</sub></span> in the numerator of <span class="eq-in"><var>c</var><sub><var>d</var></sub></span>. That run is a separate file and is not part of an invariance sequence, so the page reports the obstruction and points to the model comparison tool, which takes the third output.</p>
     <p>MLMV, WLSMV and ULSMV adjust both the mean and the variance of the statistic, and the difference of two such statistics is not chi-square distributed under any rescaling. The test has to be produced by <span class="mp">M<em>plus</em></span> with the DIFFTEST option, in two runs:</p>
     <pre class="syntax">! Step 1: the less restricted model
 SAVEDATA:   DIFFTEST = deriv.dat;
@@ -358,21 +371,24 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
     <p>Each difference is the value of the restricted model minus the value of the unrestricted model, for CFI, RMSEA and SRMR, so that a drop in CFI is negative and a rise in RMSEA is positive. The cutoffs proposed for those differences are collected in the guidance section above, with the conditions each was derived under; the comparison table marks a difference as within or beyond the criteria that match this comparison, by a label and a glyph and not by color alone.</p>
 
     <h3>Modification indices</h3>
-    <p>The modification index of a constraint is the drop in the chi-square that releasing that one constraint would produce, tested on one degree of freedom, and the expected parameter change is the value the parameter would take. The thresholds offered are the .05, .01 and .001 quantiles of a chi-square distribution with one degree of freedom, 3.841, 6.635 and 10.828. The indices are shown per model and per group and sorted by size. Under an equality constraint across groups the same index appears in every group, with expected changes of opposite sign: it is one constraint, not k of them, and releasing it costs one degree of freedom in total. A high index says where to look, not what to conclude; constraints are released one at a time, the model is refitted, and the number of released constraints belongs in the report.</p>
+    <p>The modification index of a constraint is the drop in the chi-square that releasing that one constraint would produce, tested on one degree of freedom, and the expected parameter change is the value the parameter would take. The thresholds offered are the .05, .01 and .001 quantiles of a chi-square distribution with one degree of freedom, 3.841, 6.635 and 10.828. The indices are shown per model and per group and sorted by size. Under an equality constraint across groups the same index appears in every group, with expected changes of opposite sign: it is one constraint, not <var>k</var> of them, and releasing it costs one degree of freedom in total. A high index says where to look, not what to conclude; constraints are released one at a time, the model is refitted, and the number of released constraints belongs in the report.</p>
 
     <h3>The two figures</h3>
-    <p>The first figure draws one item across the groups. For a continuous indicator the expected value of item j in group g is a straight line in the factor:</p>
-    <pre class="formula">E(y_j | eta) = nu_jg + lambda_jg * eta</pre>
-    <p>drawn over the range each group covers, from its own factor mean minus 2.5 factor standard deviations to its mean plus 2.5, with the band option adding nu + lambda*eta ± k*sqrt(theta_jg) for k equal to 1 or 1.96, where theta_jg is the residual variance. The distribution option instead draws the normal density of the item at the factor mean of its own group, with mean nu_jg + lambda_jg * alpha_g and variance theta_jg. For an ordered-categorical indicator the vertical axis is the underlying response variable y*, nu is zero, the thresholds of the item are drawn as light reference lines, and the residual variance is not printed under the delta parameterization: it is recovered from the scale factor as</p>
-    <pre class="formula">theta_jg = 1 / delta_jg^2 - lambda_jg^2 * psi_g</pre>
-    <p>which follows from Var(y*) = 1 / delta_jg^2 and Var(y*) = lambda_jg^2 * psi_g + theta_jg. Under the theta parameterization the residual variance is printed and is used as it stands. Under the figure the page states, with the numbers, where the groups part: in slope, that is in the loading, in intercept or in threshold, and in residual standard deviation when the figure carries one. A difference smaller than .001 is not reported as a difference, and when nothing differs the page says that the lines coincide, since a figure of coincident lines shows only the one drawn last.</p>
+    <p>The first figure draws one item across the groups. For a continuous indicator the expected value of item <var>j</var> in group <var>g</var> is a straight line in the factor:</p>
+    <div class="eq">E(<var>y</var><sub><var>j</var></sub> | η) = ν<sub><var>jg</var></sub> + λ<sub><var>jg</var></sub> η</div>
+    <p class="where">Here <var>y</var><sub><var>j</var></sub> is item <var>j</var>, η is the factor it loads on, ν<sub><var>jg</var></sub> is the intercept of that item in group <var>g</var> and λ<sub><var>jg</var></sub> is its loading in that group.</p>
+    <p>The line is drawn over the range each group covers, from its own factor mean minus 2.5 factor standard deviations to its mean plus 2.5. The band option adds <span class="eq-in">ν<sub><var>jg</var></sub> + λ<sub><var>jg</var></sub> η ± <var>k</var> √θ<sub><var>jg</var></sub></span> for <var>k</var> equal to 1 or 1.96, where θ<sub><var>jg</var></sub> is the residual variance of the item in that group. The distribution option instead draws the normal density of the item at the factor mean of its own group, with mean <span class="eq-in">ν<sub><var>jg</var></sub> + λ<sub><var>jg</var></sub> α<sub><var>g</var></sub></span> and variance θ<sub><var>jg</var></sub>, where α<sub><var>g</var></sub> is the factor mean in group <var>g</var>. For an ordered-categorical indicator the vertical axis is the underlying response variable <var>y</var>*, ν is zero, the thresholds of the item are drawn as light reference lines, and the residual variance is not printed under the delta parameterization: it is recovered from the scale factor as</p>
+    <div class="eq">θ<sub><var>jg</var></sub> = <span class="frac"><span class="num">1</span><span class="den">δ<sub><var>jg</var></sub><sup>2</sup></span></span> <span class="op">−</span> λ<sub><var>jg</var></sub><sup>2</sup> ψ<sub><var>g</var></sub></div>
+    <p class="where">Here θ<sub><var>jg</var></sub> is the residual variance of item <var>j</var> in group <var>g</var> on the metric of the underlying response variable, δ<sub><var>jg</var></sub> is the scale factor <span class="mp">M<em>plus</em></span> prints for that item in that group, λ<sub><var>jg</var></sub> is its loading and ψ<sub><var>g</var></sub> is the variance of the factor in that group.</p>
+    <p>The identity follows from <span class="eq-in">Var(<var>y</var>*) = 1 / δ<sub><var>jg</var></sub><sup>2</sup></span> and <span class="eq-in">Var(<var>y</var>*) = λ<sub><var>jg</var></sub><sup>2</sup> ψ<sub><var>g</var></sub> + θ<sub><var>jg</var></sub></span>. Under the theta parameterization the residual variance is printed and is used as it stands. Under the figure the page states, with the numbers, where the groups part: in slope, that is in the loading, in intercept or in threshold, and in residual standard deviation when the figure carries one. A difference smaller than .001 is not reported as a difference, and when nothing differs the page says that the lines coincide, since a figure of coincident lines shows only the one drawn last.</p>
     <p>The second figure puts one class of parameters of one model on a single axis: the items on the vertical axis, and on the horizontal one the estimate in each group with the interval</p>
-    <pre class="formula">estimate ± 1.959964 * standard error</pre>
-    <p>read from MODEL RESULTS, which is the 95 percent Wald interval <span class="mp">M<em>plus</em></span> itself reports under CINTERVAL. Whether a parameter is held equal across groups is read from TECH1, by the rule used for the ladder: one number in every group. Such a row carries one estimate, drawn once as an open diamond and labelled as held equal, because k coincident points would read as k groups that happen to agree when they are one parameter. A parameter fixed by the model, the loading that sets the metric of the factor for instance, is drawn once as an open marker without an interval and labelled as fixed. When TECH1 is missing the page falls back to the same estimate and the same standard error in every group and says that it did so. Two intervals that do not overlap are a hint about where to look; the test of the constraint is the difference test between the two models.</p>
-    <p>Both figures are drawn in a coordinate system whose unit is the typographic point, and the viewBox spans width_mm / 25.4 * 72 units, so a type size given in points is that size in the exported figure at the stated width. The axes are black, with two spines and no box, ticks pointing outward and no gridlines; the only reference lines are the thresholds and, in the second figure, the zero, drawn lighter than any data element. The number of ticks is the largest for which the labels still leave a gap between them, and the number of decimals is the smallest at which every label is the value it stands for and no two labels are alike. Threshold labels sit in the margin beside the plotting area, where no curve reaches them, and are pushed apart when two thresholds fall close together. Each group has a color from the Okabe-Ito palette, a dash pattern and, if you ask for them, a marker shape, so that the groups stay apart in grayscale and under any color-vision deficiency; the legend has a band of its own under the plotting area and cannot overlap the data. Residual bands are drawn under the lines at a fill opacity of 0.16 for two groups and less for more, so the lines remain the most salient element. The figure is exported as SVG, which is vectorial and carries its width in millimeters, and as PNG at the stated width and a resolution of 300, 600 or 1200 dpi; both are produced from the figure on the screen, so what is saved is what is shown.</p>
+    <div class="eq"><var>b</var><sub><var>g</var></sub> ± 1.959964 <span class="op">×</span> <var>SE</var>(<var>b</var><sub><var>g</var></sub>)</div>
+    <p class="where">Here <var>b</var><sub><var>g</var></sub> is the estimate of the parameter in group <var>g</var> as printed under MODEL RESULTS, <var>SE</var>(<var>b</var><sub><var>g</var></sub>) is the standard error printed beside it, and 1.959964 is the .975 quantile of the standard normal distribution.</p>
+    <p>read from MODEL RESULTS, which is the 95 percent Wald interval <span class="mp">M<em>plus</em></span> itself reports under CINTERVAL. Whether a parameter is held equal across groups is read from TECH1, by the rule used for the ladder: one number in every group. Such a row carries one estimate, drawn once as an open diamond and labelled as held equal, because <var>k</var> coincident points would read as <var>k</var> groups that happen to agree when they are one parameter. A parameter fixed by the model, the loading that sets the metric of the factor for instance, is drawn once as an open marker without an interval and labelled as fixed. When TECH1 is missing the page falls back to the same estimate and the same standard error in every group and says that it did so. Two intervals that do not overlap are a hint about where to look; the test of the constraint is the difference test between the two models.</p>
+    <p>Both figures are drawn in a coordinate system whose unit is the typographic point, and the viewBox spans <span class="eq-in"><var>w</var> / 25.4 <span class="op">×</span> 72</span> units, with <var>w</var> the chosen width in millimeters, so a type size given in points is that size in the exported figure at the stated width. The axes are black, with two spines and no box, ticks pointing outward and no gridlines; the only reference lines are the thresholds and, in the second figure, the zero, drawn lighter than any data element. The number of ticks is the largest for which the labels still leave a gap between them, and the number of decimals is the smallest at which every label is the value it stands for and no two labels are alike. Threshold labels sit in the margin beside the plotting area, where no curve reaches them, and are pushed apart when two thresholds fall close together. Each group has a color from the Okabe-Ito palette, a dash pattern and, if you ask for them, a marker shape, so that the groups stay apart in grayscale and under any color-vision deficiency; the legend has a band of its own under the plotting area and cannot overlap the data. Residual bands are drawn under the lines at a fill opacity of 0.16 for two groups and less for more, so the lines remain the most salient element. The figure is exported as SVG, which is vectorial and carries its width in millimeters, and as PNG at the stated width and a resolution of 300, 600 or 1200 dpi; both are produced from the figure on the screen, so what is saved is what is shown.</p>
 
     <h3>The chi-square tail</h3>
-    <p>The p-value is the upper tail P(X ≥ x) of a chi-square distribution, computed from the regularized incomplete gamma function by its series expansion below the crossover and by its continued fraction above it. The upper tail is computed directly rather than as 1 − F(x), which loses every significant digit once p falls below about 1e-16.</p>
+    <p>The p-value is the upper tail <span class="eq-in">P(<var>X</var> ≥ <var>x</var>)</span> of a chi-square distribution, computed from the regularized incomplete gamma function by its series expansion below the crossover and by its continued fraction above it. The upper tail is computed directly rather than as <span class="eq-in">1 <span class="op">−</span> <var>F</var>(<var>x</var>)</span>, which loses every significant digit once p falls below about 10<sup><span class="op">−</span>16</sup>.</p>
   </section>
 
   <section class="tracks" aria-labelledby="h-refs">
@@ -616,7 +632,7 @@ function emptyModel(fileName){
     aic: null, bic: null, abic: null, ll0: null, ll0scf: null,
     contributions: null, difftest: null, printedDiffTests: 0,
     depVars: [], params: {}, mi: [], tech1: null, profile: null,
-    stepFromConstraints: null, stepFromName: null, stepUser: null,
+    stepFromConstraints: null,
     partial: false, converged: false, notConverged: false,
     nErrors: 0, nWarnings: 0, isMplus: false, truncated: false,
     fromShortcut: null, problems: [], notes: []
@@ -774,19 +790,18 @@ function parseOutput(text, fileName){
   r.stepFromConstraints = st ? st.step : null;
   r.partial = st ? st.partial : false;
   r.stepDetail = st;
-  r.stepFromName = stepFromName(r.title + " " + r.fileName);
 
   if(r.estimator === null){
     r.notes.push(r.estimatorRaw
-      ? "The line Estimator reads " + esc(r.estimatorRaw) + ", which is not an <span class='mp'>M<em>plus</em></span> estimator this page knows. State the estimator in the list above; the page does not assume one, because the difference test depends on it."
-      : "The estimator could not be read in this file. State it in the list above; the page does not assume one, because the difference test depends on it.");
+      ? "The line Estimator reads " + esc(r.estimatorRaw) + ", which is not an <span class='mp'>M<em>plus</em></span> estimator this page knows (ML, MLF, MLR, MLM, MLMV, GLS, WLS, WLSM, WLSMV, ULS, ULSMV, BAYES). This model enters no difference test: which test applies depends on the estimator, the page assumes none, and nothing here can be typed in to replace it. Check that the file is the complete output of the run you meant to load."
+      : "The line Estimator could not be found in this file, so this model enters no difference test: which test applies depends on the estimator, the page assumes none, and nothing here can be typed in to replace it. Load the complete output of a run that finished.");
   }
   if(r.chi2 === null || r.df === null)
     r.notes.push("The section Chi-Square Test of Model Fit is missing or incomplete, so this model has no fit statistic to difference.");
   if(methodOf(r.estimator) === "scaled" && r.scf === null)
     r.notes.push("The scaling correction factor of the chi-square could not be read, and the scaled difference test cannot be computed without it.");
   if(!r.tech1)
-    r.notes.push("This output contains no TECHNICAL 1 section, so the constraints cannot be read. The model is listed and its fit is reported, but it enters no comparison. Add TECH1 to the OUTPUT command and run it again.");
+    r.notes.push("This output contains no TECHNICAL 1 section, so which parameters are held equal across groups cannot be read. The model is listed and its fit is reported, but it sits on no step of the ladder and enters no comparison. Add <code>TECH1</code> to the OUTPUT command of the input, run it again, and load the new output.");
   else if(r.profile && r.profile.error)
     r.notes.push(r.profile.error);
   if(r.notConverged)
@@ -1136,31 +1151,14 @@ function stepFromProfile(prof){
            released: cum.filter(function(cl){ return stateOf(prof, cl) === "partial"; }) };
 }
 
-/* The file name says what the author believes was estimated. It is read only
-   when TECH1 is absent, and word boundaries matter: "restricted" contains the
-   letters of "strict" and "meaning" contains those of "mean". */
-function stepFromName(text){
-  var s = " " + String(text || "").toLowerCase().replace(/[_.\-]+/g, " ") + " ";
-  if(/\bfactor means?\b|\blatent means?\b|\bmean structure\b|\bstructured means?\b/.test(s)) return 5;
-  if(/\bfactor (co)?variances?\b|\bvariances? and covariances?\b|\bfactor varcov\b/.test(s)) return 4;
-  if(/\bstrict\b|\bresidual invariance\b|\bresiduals?\b/.test(s)) return 3;
-  if(/\bscalar\b|\bstrong\b|\bintercepts?\b|\bthresholds?\b/.test(s)) return 2;
-  if(/\bmetric\b|\bweak\b|\bloadings?\b/.test(s)) return 1;
-  if(/\bconfigural\b|\bbaseline\b/.test(s)) return 0;
-  return null;
-}
-function partialFromName(text){
-  return /\bpartial\b/.test(" " + String(text || "").toLowerCase().replace(/[_.\-]+/g, " ") + " ");
-}
-
-/* Where a model ends up, and on what evidence. */
+/* Where a model ends up, and on what evidence. The constraints printed in
+   TECH1 are the only evidence there is: a file name, a title and a number of
+   degrees of freedom say nothing about which parameters were held equal, and
+   nothing on this page lets a step be set by hand. A model whose output has no
+   TECH1 section has no step and takes part in no comparison. */
 function placementOf(m){
-  if(m.stepUser !== null && m.stepUser !== undefined)
-    return { step: m.stepUser, partial: m.partial, source: "user" };
   if(m.stepFromConstraints !== null)
     return { step: m.stepFromConstraints, partial: m.partial, source: "tech1" };
-  if(m.stepFromName !== null)
-    return { step: m.stepFromName, partial: partialFromName(m.title + " " + m.fileName), source: "name" };
   return { step: null, partial: false, source: "none" };
 }
 
@@ -1193,7 +1191,11 @@ function buildLadder(models){
        repeating it here as a placement problem would say the same thing twice. */
     if(!usable(m)) return;
     if(pl.step === null){
-      conflicts.push("<b>" + esc(m.title) + "</b> could not be placed on the ladder: TECH1 is missing and the file name says nothing about the step. Set the step in the model list.");
+      conflicts.push("<b>" + esc(m.title) + "</b> (" + esc(m.fileName) + ") cannot be placed on the ladder: " +
+        (m.tech1
+          ? "its TECHNICAL 1 section was read but the constraints in it could not be interpreted, so which parameters are held equal across groups is unknown."
+          : "its output has no TECHNICAL 1 section, so which parameters are held equal across groups cannot be read.") +
+        " The step of a model comes from those constraints and from nothing else, so this model is left off the ladder and takes part in no comparison. Add <code>TECH1</code> to the OUTPUT command of that input, run it again, and load the new output.");
       return;
     }
     var slot = steps[pl.step], role = pl.partial ? "partial" : "full";
@@ -1201,7 +1203,7 @@ function buildLadder(models){
     else{
       slot.extra.push(m);
       conflicts.push("Step " + (pl.step + 1) + ", " + STEPS[pl.step].name.toLowerCase() + ", already holds the " + role +
-        " model <b>" + esc(slot[role].title) + "</b>, so <b>" + esc(m.title) + "</b> was left off the ladder. A step holds one full model and at most one partial model. Give one of the two a different step in the model list, or remove the duplicate.");
+        " model <b>" + esc(slot[role].title) + "</b>, so <b>" + esc(m.title) + "</b> was left off the ladder. A step holds one full model and at most one partial model, and the step of each comes from the constraints in its own TECH1, so two models with the same constraint set cannot both be placed. Remove one of the two files.");
     }
   });
   return { steps: steps, conflicts: conflicts, skips: skips };
@@ -1333,7 +1335,7 @@ function checkPair(A, B){
   else if(sv === null)
     warnings.push("The list of observed variables could not be read in one of the two files, so the page could not check that both models use the same indicators. Read the VARIABLE command of both outputs before reporting the comparison.");
   var ea = A.estimator, eb = B.estimator;
-  if(!ea || !eb) problems.push("The estimator is not stated for <b>" + esc(!ea ? A.title : B.title) + "</b>. The formula of the difference test depends on it and the page does not assume one: choose it in the model list, or add <code>ANALYSIS: ESTIMATOR = ...;</code> and run the model again.");
+  if(!ea || !eb) problems.push("The estimator could not be read for <b>" + esc(!ea ? A.title : B.title) + "</b>. The formula of the difference test depends on it and the page assumes none and takes none by hand: add <code>ANALYSIS: ESTIMATOR = ...;</code> to that input, run it again, and load the new output.");
   else if(ea !== eb) problems.push("The two runs report different estimators (" + esc(ea) + " and " + esc(eb) + "). The difference between a chi-square from one estimator and a chi-square from another is not a test statistic, so none is computed. Fit both models with the same estimator.");
   [A, B].forEach(function(m){
     if(m.isMplus && !m.converged && !m.notConverged)
@@ -1589,7 +1591,7 @@ function guidanceNote(ctx){
 }
 
 /* =========================================================================
-   11. State and the model list
+   11. State and the list of loaded files
    ========================================================================= */
 
 var MODELS = [], nextId = 1;
@@ -1619,6 +1621,10 @@ function modelById(id){
   return null;
 }
 
+/* One row per file: what was read from it, the step those constraints put it
+   on, and the button that drops it. Nothing in the row can be edited: the step
+   comes from TECH1 and the estimator from the Estimator line, and a value read
+   from an output is the value used. */
 function renderFileList(){
   var ul = el("filelist");
   ul.innerHTML = "";
@@ -1630,35 +1636,24 @@ function renderFileList(){
     else meta.push(m.nGroups + " " + plural(m.nGroups, "group"));
     if(m.n !== null) meta.push("N = " + m.n);
     if(m.estimator) meta.push(m.estimator);
-    else if(m.estimatorRaw) meta.push("estimator " + esc(m.estimatorRaw) + ", not recognized");
+    else if(m.estimatorRaw) meta.push("estimator " + esc(m.estimatorRaw) + ", not one this page knows");
     else meta.push("estimator not read");
     if(m.df !== null) meta.push("df = " + m.df);
-    var stepOptions = '<option value="">— from the constraints —</option>';
-    for(var s = 0; s < STEPS.length; s++)
-      stepOptions += '<option value="' + s + '"' + (m.stepUser === s ? " selected" : "") + '>' + esc(STEPS[s].name) + '</option>';
-    var estOptions = '<option value="">— state the estimator —</option>';
-    ESTIMATORS.forEach(function(e){
-      estOptions += '<option value="' + e + '"' + (m.estimator === e ? " selected" : "") + '>' + e + '</option>';
-    });
+    var placed = pl.step !== null
+      ? "step read from TECH1: " + esc(STEPS[pl.step].name.toLowerCase()) + (pl.partial ? ", partial" : "")
+      : (m.tech1 ? "no step: the constraints in TECH1 could not be interpreted"
+                 : "no step: this output has no TECH1 section");
     li.innerHTML =
-      '<span><span class="fname">' + esc(m.fileName || "typed in") + '</span>' +
-        '<span class="fmeta">' + esc(m.title) + " · " + esc(meta.join(" · ")) +
-        (pl.step !== null ? " · " + esc(STEPS[pl.step].name.toLowerCase()) + (pl.partial ? ", partial" : "") : " · not placed") +
-        '</span></span>' +
-      '<span><label for="step-' + m.id + '">Step</label>' +
-        '<select id="step-' + m.id + '" data-role="step" data-id="' + m.id + '">' + stepOptions + '</select></span>' +
-      '<span><label for="est-' + m.id + '">Estimator</label>' +
-        '<select id="est-' + m.id + '" data-role="est" data-id="' + m.id + '">' + estOptions + '</select></span>' +
-      '<span><button type="button" class="secondary" data-role="remove" data-id="' + m.id + '">Remove</button></span>';
+      '<span><span class="fname">' + esc(m.fileName) + '</span>' +
+        '<span class="fmeta">' + esc(m.title) + " · " + esc(meta.join(" · ")) + '</span></span>' +
+      '<span class="fplace">' + placed + '</span>' +
+      '<span><button type="button" class="secondary" data-role="remove" data-id="' + m.id + '">Remove this file</button></span>';
     ul.appendChild(li);
   });
-  Array.prototype.forEach.call(ul.querySelectorAll("select,button"), function(node){
-    node.addEventListener(node.tagName === "BUTTON" ? "click" : "change", function(){
-      var id = +node.getAttribute("data-id"), role = node.getAttribute("data-role"), m = modelById(id);
-      if(!m) return;
-      if(role === "remove"){ MODELS = MODELS.filter(function(x){ return x.id !== id; }); }
-      else if(role === "step"){ m.stepUser = node.value === "" ? null : +node.value; }
-      else if(role === "est"){ m.estimator = node.value === "" ? null : node.value; }
+  Array.prototype.forEach.call(ul.querySelectorAll("button"), function(node){
+    node.addEventListener("click", function(){
+      var id = +node.getAttribute("data-id");
+      MODELS = MODELS.filter(function(x){ return x.id !== id; });
       renderAll();
     });
   });
@@ -1671,9 +1666,7 @@ function renderFileList(){
 function slotHtml(role, m, stepIndex){
   if(!m) return '<div class="slot empty"><span class="role">' + role + '</span>not loaded</div>';
   var pl = m.placement || placementOf(m);
-  var src = pl.source === "tech1" ? "step read from TECH1"
-          : pl.source === "user" ? "step set by hand"
-          : "step guessed from the file name; TECH1 is missing";
+  var src = "step read from the constraints in TECH1";
   return '<div class="slot taken"><span class="role">' + role + '</span>' +
     '<span class="who">' + esc(m.title) + '</span>' +
     (pl.partial ? ' <span class="tag-partial">partial</span>' : '') +
@@ -1709,12 +1702,6 @@ function renderLadder(ladder){
   MODELS.forEach(function(m){
     if(!usable(m)) return;
     var pl = m.placement || placementOf(m);
-    if(pl.source === "user" && m.stepFromConstraints !== null && m.stepUser !== m.stepFromConstraints)
-      conflicts.push("<b>" + esc(m.title) + "</b> is set by hand to the " + esc(STEPS[m.stepUser].name.toLowerCase()) +
-        " step, while the constraints in TECH1 are those of the " + esc(STEPS[m.stepFromConstraints].name.toLowerCase()) +
-        " step. The comparisons below still use the constraint sets themselves, so a pair whose constraints do not nest is refused whatever the step says.");
-    if(pl.source === "name")
-      conflicts.push("<b>" + esc(m.title) + "</b> was placed from its file name, because TECH1 is missing. It takes part in no comparison.");
     if(m.stepDetail && m.stepDetail.holes && m.stepDetail.holes.length)
       conflicts.push("<b>" + esc(m.title) + "</b> constrains " + esc(m.stepDetail.holes.map(function(cl){ return CLASS_NAME[cl]; }).join(" and ")) +
         " not at all while constraining a class above them. The constraints do not follow the order of the ladder; the model is placed on the highest class it constrains and flagged as partial. Wu and Estabrook (2016) discuss orderings of this kind for ordered-categorical indicators.");
@@ -1755,7 +1742,7 @@ function renderFit(){
     var pl = m.placement || placementOf(m);
     var scaled = methodOf(m.estimator) === "scaled";
     h += '<tr><td>' + esc(m.title) + '<br><span class="small">' + esc(m.fileName) + '</span></td>' +
-      '<td>' + (pl.step === null ? "not placed" : esc(STEPS[pl.step].name)) +
+      '<td>' + (pl.step === null ? (m.tech1 ? "no step: TECH1 unreadable" : "no step: no TECH1") : esc(STEPS[pl.step].name)) +
         (pl.partial ? ' <span class="tag-partial">partial</span>' : "") + '</td>' +
       '<td class="num">' + fmtInt(m.npar) + '</td>' +
       '<td class="num">' + fmt(m.chi2) + (scaled && m.scf !== null ? '<span class="small"><br>scaled, c = ' + fmt(m.scf, 4) + '</span>' : "") + '</td>' +
@@ -1878,7 +1865,10 @@ function comparisonContext(c){
     minGroupN: lo,
     n: m ? m.n : null,
     nGroups: m ? m.nGroups : null,
-    unequal: el("chkUnequal").checked
+    /* Whether the groups are of unequal size is read from the per-group
+       sample sizes of the models being compared, not chosen: it decides which
+       of the cutoffs proposed by Chen (2007) matches this comparison. */
+    unequal: (sizes.length > 1 && lo > 0) ? (Math.max.apply(null, sizes) / lo > 1.5) : false
   };
 }
 
@@ -1924,7 +1914,7 @@ function renderComparisons(comparisons){
         return "<b>" + esc(m.title) + "</b> is not on the ladder: " +
           (m.problems.length ? m.problems[0] : "no chi-square and degrees of freedom could be read in it.");
       }).join(" ");
-    body += " Load the remaining models of the sequence, or set the step of a model by hand in the list above.";
+    body += " Load the outputs of the missing models of the sequence; the page places each one from its own TECH1 and compares the steps that then stand next to each other.";
     el("comparisons").innerHTML = statusBox("info", "Nothing to compare", body);
     return;
   }
@@ -3073,13 +3063,10 @@ function renderAll(){
     ["miModel", "miGroup", "plotModel", "plotItem"].forEach(function(id){ el(id).innerHTML = ""; });
     el("copyFitState").textContent = ""; el("copyCompState").textContent = "";
     el("labX").value = ""; el("labY").value = "";
-    el("chkUnequal").checked = false;
     el("loadStatus").innerHTML = "";
     el("dropHint").textContent = "or press to choose them; several at a time";
     return;
   }
-  /* Unequal group sizes are checked on their own the first time a set of files
-     is read; the box stays under the user's control afterwards. */
   var ladder = buildLadder(MODELS);
   renderLadder(ladder);
   renderFit();
@@ -3115,15 +3102,6 @@ function loadFiles(files){
       entry.forEach(addParsed);
     });
     var duplicates = duplicatePairs(MODELS);
-    /* The group sizes are compared inside each model, never across models: two
-       models fitted to different samples are a different problem, reported
-       where the two are compared. */
-    MODELS.forEach(function(m){
-      if(m.groups.length < 2) return;
-      var sizes = m.groups.map(function(g){ return g.n; });
-      var lo = Math.min.apply(null, sizes), hi = Math.max.apply(null, sizes);
-      if(lo > 0 && hi / lo > 1.5) el("chkUnequal").checked = true;
-    });
     var msgs = [];
     msgs.push(MODELS.length + " " + plural(MODELS.length, "model") + " in the list.");
     if(failures.length) msgs.push("Not read: " + failures.map(esc).join(", ") + ".");
@@ -3149,7 +3127,6 @@ function loadFiles(files){
             o.fromShortcut = f.name;
             o.title = (o.title || f.name) + " — " + p.label;
             o.fileName = f.name + " (" + p.label + ")";
-            o.stepFromName = stepFromName(p.label) !== null ? stepFromName(p.label) : o.stepFromName;
             made.push(o);
           });
           if(!made.length) failures.push(f.name);
@@ -3197,7 +3174,6 @@ el("btnClear").addEventListener("click", function(){
   renderAll();
 });
 el("selAlpha").addEventListener("change", renderAll);
-el("chkUnequal").addEventListener("change", renderAll);
 el("miModel").addEventListener("change", function(){ renderMIControls(); renderMI(); });
 el("miGroup").addEventListener("change", renderMI);
 el("miThreshold").addEventListener("change", renderMI);
@@ -3724,12 +3700,16 @@ function runSelfTest(quick){
     ok("abbreviated syntax: the closing lines belong to every model", c0.converged && c1.converged);
   }
 
-  /* 7. Names are read with word boundaries */
-  same("\"restricted\" is not read as strict", stepFromName("model restricted to two factors"), null);
-  same("\"meaning\" is not read as means", stepFromName("the meaning of the scale"), null);
-  same("\"strict invariance\" is read as strict", stepFromName("strict invariance"), 3);
-  same("\"factor means\" is read as the means step", stepFromName("factor means invariance"), 5);
-  same("\"configural\" is read as configural", stepFromName("configural model"), 0);
+  /* 7. The step comes from TECH1 and from nothing else: a title or a file name
+        that reads "strict invariance" places no model. */
+  ["strict invariance", "configural model", "factor means invariance", "partial scalar"].forEach(function(label){
+    var byName = mk2({ title: label, noTech1: true, con: {}, df: 24, chi2: 20 });
+    byName.fileName = label.replace(/ /g, "-") + ".out";
+    same("a title reading “" + label + "” places no model without TECH1", placementOf(byName).step, null);
+    same("and the placement of “" + label + "” names no source", placementOf(byName).source, "none");
+  });
+  same("with TECH1 the constraints decide the step, not the title",
+       placementOf(mk2({ title: "configural model", con: { sat: "all" }, df: 27, chi2: 26 })).step, 1);
 
 
   /* 8. The chi-square tail against a second implementation written for this
@@ -3975,7 +3955,7 @@ function runSelfTest(quick){
   var noEst = mk2({ title: "noest", noEstimatorLine: true, con: {}, df: 24, chi2: 20 });
   var noEst2 = mk2({ title: "noest2", noEstimatorLine: true, con: { sat: "all" }, df: 27, chi2: 26 });
   same("an output without an Estimator line has no estimator", noEst.estimator, null);
-  ok("nothing is computed without an estimator", firstRefusal([noEst, noEst2]).indexOf("estimator is not stated") > 0);
+  ok("nothing is computed without an estimator", firstRefusal([noEst, noEst2]).indexOf("estimator could not be read") > 0);
   var badEst = mk2({ title: "bad", estimator: "MLRR", con: {}, df: 24, chi2: 20 });
   same("a misspelled estimator is not accepted", badEst.estimator, null);
   same("the misspelled name is kept for the message", badEst.estimatorRaw, "MLRR");
@@ -4020,9 +4000,8 @@ function runSelfTest(quick){
   var noT = mk2({ title: "configural run", noTech1: true, con: {}, df: 24, chi2: 20 });
   var noT2 = mk2({ title: "metric run", noTech1: true, con: { sat: "all" }, df: 27, chi2: 26 });
   same("without TECH1 there is no constraint profile", noT.profile, null);
-  same("without TECH1 the step comes from the file name", placementOf(noT).source, "name");
-  same("a file name that says nothing about the step leaves the model unplaced",
-       placementOf(mk2({ title: "run 17", noTech1: true, con: {}, df: 24, chi2: 20 })).step, null);
+  same("without TECH1 a model has no step at all", placementOf(noT).step, null);
+  same("and its placement names no source", placementOf(noT).source, "none");
   ok("without TECH1 no comparison is produced",
      firstRefusal([noT, noT2]).indexOf("Without TECH1") > 0 || compsOf([noT, noT2]).every(function(c){ return !!c.refused; }));
   same("an output without MODINDICES carries no index", mk2({ title: "nomi", con: {}, df: 24, chi2: 20 }).mi.length, 0);
@@ -4184,7 +4163,7 @@ if(/[?&]selftest=1\b/.test(window.location.search)){
     make: makeOutput,
     api: {
       parseOutput: parseOutput, readTech1: readTech1, constraintProfile: constraintProfile,
-      stepFromProfile: stepFromProfile, stepFromName: stepFromName, splitShortcut: splitShortcut,
+      stepFromProfile: stepFromProfile, splitShortcut: splitShortcut,
       buildLadder: buildLadder, buildComparisons: buildComparisons, evaluateComparison: evaluateComparison,
       containment: containment, chi2Tail: chi2Tail, scaledDifference: scaledDifference,
       classicalDifference: classicalDifference, STEPS: STEPS,
@@ -4204,8 +4183,6 @@ if(/[?&]selftest=1\b/.test(window.location.search)){
               o.fromShortcut = f.name;
               o.title = (o.title || f.name) + " — " + p.label;
               o.fileName = f.name + " (" + p.label + ")";
-              var sn = stepFromName(p.label);
-              if(sn !== null) o.stepFromName = sn;
               addParsed(o);
             });
           }else{

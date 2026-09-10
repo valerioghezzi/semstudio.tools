@@ -6,6 +6,7 @@
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Computes the weights that make two or more composites of formative indicators maximally correlated, by canonical correlation analysis and by generalized canonical correlation analysis, and writes the second-step syntax for the common factor those composites define.">
 <title>Composite Weights · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
 /* Page-specific: the indicator table needs compact cells with a small
@@ -13,7 +14,6 @@
    progress bar. Neither belongs in the shared sheet. */
 #vars td, #vars th { padding: 0.35rem 0.45rem; vertical-align: middle; }
 #vars select { padding: 0.25rem 0.35rem; width: auto; min-width: 6rem; }
-#vars input[type="number"] { width: 6rem; padding: 0.25rem 0.4rem; text-align: right; }
 #vars label { margin: 0; font-weight: 400; }
 progress { width: 100%; max-width: 26rem; height: 1rem; }
 /* The two drop zones sit side by side and must line up even when one of
@@ -21,9 +21,6 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
 #routes { align-items: stretch; }
 #routes .field { display: flex; }
 #routes .drop { flex: 1; }
-/* The matrix is pasted as text and read as a matrix, so the box keeps the
-   width of a block of numbers rather than that of the column. */
-#paste { max-width: 34rem; min-height: 10rem; }
 #selftest-banner { margin-top: 1rem; }
 .blockpill { font-family: var(--mono); font-size: 0.82rem; color: var(--ink-soft); }
 </style>
@@ -36,7 +33,7 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <a href="index.html#tools">All tools</a>
   </nav>
   <h1>Composite weights</h1>
-  <p class="lede">This page carries out the first step of the two-step approach of Treiblmaier, Bentler and Mair (2011): it divides a set of formative indicators into two or more composites and computes the weights that make those composites as highly correlated as possible, by canonical correlation analysis with two blocks and by generalized canonical correlation analysis with three or more. It then writes the M<em>plus</em> input for the common factor that the composites define in the second step. The input is either a raw data file with its M<em>plus</em> output, or a correlation or covariance matrix pasted directly.</p>
+  <p class="lede">This page carries out the first step of the two-step approach of Treiblmaier, Bentler and Mair (2011): it divides a set of formative indicators into two or more composites and computes the weights that make those composites as highly correlated as possible, by canonical correlation analysis with two blocks and by generalized canonical correlation analysis with three or more. It then writes the M<em>plus</em> input for the common factor that the composites define in the second step. It reads the raw data file of the analysis together with the <code>TYPE = BASIC</code> output that describes it; every number it computes with comes from those two files, and none of them can be typed in.</p>
   <div class="callout" role="note">
     <strong>What to request from M<em>plus</em>.</strong> <code>ANALYSIS: TYPE = BASIC;</code> together with <code>OUTPUT: SAMPSTAT;</code>. The output is read for the variable names, for <code>USEVARIABLES</code>, <code>CATEGORICAL</code> and the missing value codes, and the sample means it prints are compared with the means recomputed from the data file, which is how a data file read with the wrong number of columns or with an undeclared missing value code is detected.
   </div>
@@ -46,18 +43,31 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
 
 <div id="selftest-banner" hidden></div>
 
-<section aria-labelledby="h-input">
-  <h2 id="h-input">Data</h2>
-  <p>Two routes lead to the same analysis. Both fill the indicator table below, and that table is what the computation reads. The first route is needed for optimal scaling of categorical indicators and for the exploratory search over divisions; the second is enough for everything else, and it is the route for the published examples, which are reported as matrices rather than as raw data.</p>
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Write an M<em>plus</em> input that reads the data file holding your formative indicators, name the columns in <code>NAMES</code>, and declare on <code>USEVARIABLES</code> the variables you want offered as indicators.</li>
+    <li>Add this analysis command to it, exactly as it is written here: <code>ANALYSIS: TYPE = BASIC;</code></li>
+    <li>Add this output command to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT;</code> — the sample means it prints are what the page compares its own reading of the data file against.</li>
+    <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the folder the input is in, and computes nothing beyond the descriptive statistics.</li>
+    <li>Drop the raw data file on the first box below and the <code>.out</code> file on the second, in either order. Both are read inside your browser and neither leaves your computer.</li>
+    <li>Read the paragraphs headed <em>Output read</em>, <em>Data read</em> and <em>Means agree</em>. The last one is the check that the data file and the output belong together: it compares the mean of every variable recomputed here with the mean M<em>plus</em> printed.</li>
+    <li>Choose how many composites to divide the indicators into, and assign each indicator to one of them, or leave it out, in the <em>Composite</em> column of the indicator table. Which indicators form which block is your decision, and the page offers only the variables it read from the output.</li>
+    <li>Choose how the weights within each block are set: for maximal correlation between the composites, equal, or replicated as the first principal component of each block.</li>
+    <li>Press <em>Compute the weights</em>. Read the canonical correlations, the weights, the standardized weights and the structure coefficients, and the checks under them.</li>
+    <li>Copy the second-step M<em>plus</em> input printed at the end, which builds the composites with <code>DEFINE</code> and fits the common factor on them, and run it.</li>
+  </ol>
+  <p>The page refuses to compute anything until both files are loaded, because the data file alone gives no variable names, no missing value codes and no <code>CATEGORICAL</code> declaration, and the output alone gives no cases. It refuses a data file that produced no usable row, and it reports rather than hides a disagreement between the means it recomputed and the means M<em>plus</em> printed, which is what a data file read with the wrong number of columns or with an undeclared missing value code looks like. Nothing on this page can be typed in: the sample size, the variable names, the values and the summary statistics all come from those two files, and the only decisions left to you are how many composites to form, which indicator goes into which of them, and how the weights within a block are set.</p>
+</section>
 
-  <div class="split even">
-  <div>
-  <h3>A raw data file and its M<em>plus</em> output</h3>
+<section aria-labelledby="h-input">
+  <h2 id="h-input">Load the data file and the <code>TYPE = BASIC</code> output</h2>
+  <p>Drop the raw data file on the first box and the M<em>plus</em> output that describes it on the second, in either order. Both are needed: the output supplies the variable names, the missing value codes and the <code>CATEGORICAL</code> declaration, and the data file supplies the cases.</p>
   <div class="row" id="routes">
     <div class="field" style="flex:1 1 16rem">
       <div class="drop" id="drop-dat" tabindex="0" role="button" aria-describedby="drop-hint">
-        <strong>Drop the data file here</strong>, or press Enter to choose one.
-        <label class="visually-hidden" for="file-dat">Data file</label>
+        <strong>Drop the raw data file here</strong>, or press Enter to choose one.
+        <label class="visually-hidden" for="file-dat">Choose the raw data file to read</label>
         <input type="file" id="file-dat" accept=".dat,.txt,.csv,.raw,text/plain,text/csv">
         <span class="file-name" id="name-dat"></span>
       </div>
@@ -65,45 +75,22 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <div class="field" style="flex:1 1 16rem">
       <div class="drop" id="drop-out" tabindex="0" role="button" aria-describedby="drop-hint">
         <strong>Drop the <code>TYPE = BASIC</code> output here</strong>, or press Enter to choose one.
-        <label class="visually-hidden" for="file-out">M<em>plus</em> output file</label>
+        <label class="visually-hidden" for="file-out">Choose the M<em>plus</em> output file to read</label>
         <input type="file" id="file-out" accept=".out,.txt,.log,text/plain">
         <span class="file-name" id="name-out"></span>
       </div>
     </div>
   </div>
-  <p id="drop-hint" class="hint">Both files are read in your browser and neither leaves your computer. Windows-1252, UTF-8 and UTF-16 files are decoded from their bytes, because M<em>plus</em> on Windows writes output in Windows-1252 and reading it as UTF-8 corrupts every accented character. The data file may separate values by spaces, tabs, commas or semicolons, and a case may run over several lines. Without the output file the column names, the missing value codes and the <code>CATEGORICAL</code> declaration are unknown; the page says so rather than assuming them.</p>
+  <p id="drop-hint" class="hint">Both files are read in your browser and neither leaves your computer. Windows-1252, UTF-8 and UTF-16 files are decoded from their bytes, because M<em>plus</em> on Windows writes output in Windows-1252 and reading it as UTF-8 corrupts every accented character. The data file may separate values by spaces, tabs, commas or semicolons, and a case may run over several lines.</p>
   <div id="load-report" aria-live="polite"></div>
-  </div>
-  <div>
-  <h3>A correlation or covariance matrix</h3>
-  <div class="field">
-    <label for="paste">Matrix</label>
-    <span class="hint">One row per variable, as a full square matrix or as a lower or upper triangle. Numbers separated by spaces, tabs, commas or semicolons. A first row of names and a first column of names are used when present. A matrix whose diagonal is one is treated as a correlation matrix, and the weights are then on the standardized metric.</span>
-    <textarea id="paste" spellcheck="false" aria-describedby="paste-report"></textarea>
-  </div>
-  <div class="field">
-    <label for="paste-n">Sample size</label>
-    <input type="number" id="paste-n" min="4" step="1" value="405">
-    <span class="hint">Used by Bartlett's test only; it does not affect the weights.</span>
-  </div>
-  <div class="actions">
-    <button type="button" id="paste-btn">Read the matrix</button>
-    <button type="button" class="secondary" id="ex-a">Example: the six-variable illustration</button>
-    <button type="button" class="secondary" id="ex-b">Example: the privacy study</button>
-  </div>
-  <div id="paste-report" aria-live="polite"></div>
-  </div>
-  </div>
 </section>
 
 <section aria-labelledby="h-blocks">
   <h2 id="h-blocks">Indicators and composites</h2>
-  <p>Each indicator is assigned to one composite or left out. The a priori weight column is read by the a priori method and ignored by the others.</p>
-  <div class="split even">
-  <div>
+  <p>Every indicator the output declares is listed below. Assign each of them to one composite, or leave it out. Which indicators form which block is a decision about the construct, not a datum, so it is yours to make; the names, the values and the summary statistics beside them are read from the two files and cannot be changed here.</p>
   <div class="row">
-    <div class="field w2">
-      <label for="nblocks">Number of composites</label>
+    <div class="field w3">
+      <label for="nblocks">Choose how many composites to divide the indicators into</label>
       <select id="nblocks">
         <option value="2" selected>2</option>
         <option value="3">3</option>
@@ -112,38 +99,33 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
       </select>
     </div>
     <div class="field w4">
-      <label for="wmethod">Weighting method</label>
+      <label for="wmethod">Choose how the weights inside each composite are set</label>
       <select id="wmethod">
-        <option value="canonical" selected>Weights for maximal correlation</option>
-        <option value="apriori">A priori weights, from the table</option>
-        <option value="equal">Equal weights</option>
-        <option value="replicated">Replicated weights, the first principal component of each block</option>
+        <option value="canonical" selected>So that the composites correlate as highly as they can</option>
+        <option value="equal">Equally, every indicator weighted one</option>
+        <option value="replicated">As the first principal component of each composite separately</option>
       </select>
     </div>
   </div>
-  <p id="apriori-note" class="hint" hidden>The a priori method uses the numbers in the weight column. Entering the same weights in both blocks is the article's split with original weights, applied to halves that were built before the data reached this page; entering different weights is the general a priori split.</p>
   <div class="actions">
-    <button type="button" class="secondary" id="btn-oddeven">Odd–even split</button>
-    <button type="button" class="secondary" id="btn-weights1">Set every a priori weight to one</button>
+    <button type="button" class="secondary" id="btn-oddeven">Assign the indicators alternately, one composite after the other</button>
     <button type="button" class="secondary" id="btn-search">Search for the division with the highest correlation</button>
   </div>
   <label class="check" for="opt-balanced"><input type="checkbox" id="opt-balanced"> Restrict the search to divisions whose two blocks differ in size by at most one</label>
   <div id="search-wrap" hidden>
-    <label for="prog">Progress</label>
+    <label for="prog">Progress of the search</label>
     <progress id="prog" max="100" value="0"></progress>
     <p class="hint" id="prog-text" aria-live="polite"></p>
   </div>
-  </div>
-  <div>
-  <p id="vars-note" class="table-note">Indicators. The composite column decides which composite each indicator enters.</p>
-  <div class="table-wrap fit">
+
+  <p id="vars-note" class="table-note">Indicators read from the output. The composite column decides which composite each indicator enters.</p>
+  <div class="table-wrap">
     <table id="vars" aria-labelledby="vars-note">
       <thead><tr id="vars-head"></tr></thead>
       <tbody id="vars-body"></tbody>
     </table>
   </div>
-  </div>
-  </div>
+
   <div class="actions">
     <button type="button" id="btn-run">Compute the weights</button>
     <span id="run-msg" aria-live="polite"></span>
@@ -152,7 +134,7 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
 
 <section aria-labelledby="h-results">
   <h2 id="h-results">Results</h2>
-  <div id="results" aria-live="polite"><p class="hint">Load a data file or a matrix, assign the indicators to composites, then compute the weights.</p></div>
+  <div id="results" aria-live="polite"><div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop the raw data file and the <code>TYPE = BASIC</code> output on the two boxes above, assign the indicators to composites, then press <em>Compute the weights</em>.</div></div>
 </section>
 
 <section aria-labelledby="h-syntax">
@@ -164,59 +146,80 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <h2 id="h-methods">Methods and formulas</h2>
 
   <h3>The two steps</h3>
-  <p>A formative latent variable is written by Treiblmaier, Bentler and Mair (2011) as <code>F = b₁V₁ + b₂V₂ + … + b<sub>k</sub>V<sub>k</sub> + D</code>, where the <code>V</code> are the observed indicators that define it and <code>D</code> is a disturbance uncorrelated with them. The model is not identified: because <code>F</code> is unobserved the coefficients <code>b<sub>i</sub></code> cannot be determined, and the disturbance has no rationale that would fix its variance. The proposal is to leave <code>D</code> aside and work with the determinate part <code>P = b₁V₁ + … + b<sub>k</sub>V<sub>k</sub></code>. In the first step <code>P</code> is divided into two or more parts, <code>P = P₁ + P₂</code>; in the second step those parts are treated as reflective indicators of a common factor <code>F*</code>, which then approximates <code>F</code> as closely as the division allows. The common factor is identified, can be estimated, and can be placed in a larger structural model in the ordinary way.</p>
-  <p>Proposition 2 of the article states that the squared correlation between <code>F*</code> and <code>F</code> is maximized when the sum of the loadings <code>β₁ + β₂</code> is maximal and, for a given level of random error variance, the specific variances of the composites are minimal. The consequence the authors draw is that <code>F*</code> approximates <code>F</code> better as the composites are more highly correlated and the loadings larger, which is why a division that yields highly correlated parts is preferred even though formative measurement does not require the parts to correlate at all.</p>
+  <p>A formative latent variable is written by Treiblmaier, Bentler and Mair (2011) as</p>
+  <div class="eq"><var>F</var> = <var>b</var><sub>1</sub><var>V</var><sub>1</sub> + <var>b</var><sub>2</sub><var>V</var><sub>2</sub> + … + <var>b</var><sub><var>k</var></sub><var>V</var><sub><var>k</var></sub> + <var>D</var></div>
+  <p class="where">Here <var>F</var> is the formative latent variable, <var>V</var><sub>1</sub> to <var>V</var><sub><var>k</var></sub> are the observed indicators that define it, <var>b</var><sub>1</sub> to <var>b</var><sub><var>k</var></sub> are their coefficients, and <var>D</var> is a disturbance uncorrelated with them.</p>
+  <p>The model is not identified: because <var>F</var> is unobserved the coefficients <span class="eq-in"><var>b</var><sub><var>i</var></sub></span> cannot be determined, and the disturbance has no rationale that would fix its variance. The proposal is to leave <var>D</var> aside and work with the determinate part, and to divide that part into two or more pieces:</p>
+  <div class="eq"><var>P</var> = <var>b</var><sub>1</sub><var>V</var><sub>1</sub> + … + <var>b</var><sub><var>k</var></sub><var>V</var><sub><var>k</var></sub><span class="op">,</span> <var>P</var> = <var>P</var><sub>1</sub> + <var>P</var><sub>2</sub></div>
+  <p class="where">Here <var>P</var> is the determinate part of <var>F</var>, that is <var>F</var> without its disturbance, and <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub> are the two composites it is divided into.</p>
+  <p>In the second step those parts are treated as reflective indicators of a common factor <span class="eq-in"><var>F</var>*</span>, which then approximates <var>F</var> as closely as the division allows. The common factor is identified, can be estimated, and can be placed in a larger structural model in the ordinary way.</p>
+  <p>Proposition 2 of the article states that the squared correlation between <span class="eq-in"><var>F</var>*</span> and <var>F</var> is maximized when the sum of the loadings <span class="eq-in">β<sub>1</sub> + β<sub>2</sub></span> is maximal and, for a given level of random error variance, the specific variances of the composites are minimal. The consequence the authors draw is that <span class="eq-in"><var>F</var>*</span> approximates <var>F</var> better as the composites are more highly correlated and the loadings larger, which is why a division that yields highly correlated parts is preferred even though formative measurement does not require the parts to correlate at all.</p>
 
-  <h3>Step 1: four ways to divide the determinate part</h3>
-  <p>The article lists at least four ways of dividing <code>P</code>, and this page computes all of them.</p>
+  <h3>Step 1: the ways of dividing the determinate part</h3>
+  <p>The article lists at least four ways of dividing <var>P</var>. Two of them fix the weights from outside the data, and this page does not compute them, because the numbers they need are in no file: the <strong>a priori split</strong>, in which the indicators are divided on theoretical grounds and the original coefficients <span class="eq-in"><var>b</var><sub><var>i</var></sub></span> are applied within each set, as in the odd and even sums <span class="eq-in"><var>P</var><sub>1</sub> = <var>b</var><sub>1</sub><var>V</var><sub>1</sub> + <var>b</var><sub>3</sub><var>V</var><sub>3</sub> + …</span> and <span class="eq-in"><var>P</var><sub>2</sub> = <var>b</var><sub>2</sub><var>V</var><sub>2</sub> + <var>b</var><sub>4</sub><var>V</var><sub>4</sub> + …</span>; and the <strong>split with original weights</strong>, in which each indicator is itself decomposed as <span class="eq-in"><var>V</var><sub><var>i</var></sub> = <var>V</var><sub><var>i</var>1</sub> + <var>V</var><sub><var>i</var>2</sub></span> and the same coefficient is applied to both halves. Both require the coefficients <span class="eq-in"><var>b</var><sub><var>i</var></sub></span> to be supplied, and a coefficient supplied by hand is a datum this page will not take. The article describes both, and a reader who has such coefficients can write the two <code>DEFINE</code> statements directly.</p>
+  <p>The two the page computes take their weights from the data:</p>
   <ul>
-    <li><strong>A priori split.</strong> The indicators are divided into sets on theoretical grounds and the original weights are applied within each set. The example given in the article is the odd and the even sums, <code>P₁ = b₁V₁ + b₃V₃ + …</code> and <code>P₂ = b₂V₂ + b₄V₄ + …</code>. Choose the a priori method, enter the weights in the indicator table, and use the odd–even button for the assignment.</li>
-    <li><strong>Split with original weights.</strong> Each indicator is itself decomposed into two halves, <code>V<sub>i</sub> = V<sub>i1</sub> + V<sub>i2</sub></code> — for instance by putting the odd items of a test score in one half and the even items in the other — and the same weight <code>b<sub>i</sub></code> is applied to both halves: <code>P₁ = b₁V₁₁ + … + b<sub>k</sub>V<sub>k1</sub></code> and <code>P₂ = b₁V₁₂ + … + b<sub>k</sub>V<sub>k2</sub></code>. The halves have to be built before the data reach this page; once they are columns of the data file, enter the first halves as one block and the second halves as the other, choose the a priori method, and give the same weights in both blocks.</li>
     <li><strong>Split with replicated weights.</strong> The weighting procedure is run separately in each half. The version computed here takes the first principal component of the correlation matrix of each block, which is the procedure the article names, and rescales it so that the composite has unit variance. Because the weights are estimated independently in the two halves they are free to differ, and the article observes that the parts may then be less highly correlated than under the original weights.</li>
     <li><strong>Split with weights for maximal correlation.</strong> The weights are chosen so that the two composites correlate as highly as they can. This is canonical correlation analysis (Hotelling, 1936), and it is the method the article uses in both of its examples.</li>
   </ul>
-  <p>The article adds that all of these methods can be used when <code>P</code> is to be divided into three or more parts, with canonical analysis of several sets of variables in the sense of Kettenring (1971) in place of ordinary canonical correlation analysis.</p>
+  <p>Equal weights are offered as well, as the case of the replicated split in which every indicator counts once. The article adds that all of these methods can be used when <var>P</var> is to be divided into three or more parts, with canonical analysis of several sets of variables in the sense of Kettenring (1971) in place of ordinary canonical correlation analysis.</p>
 
   <h3>Maximally correlated composites: two blocks</h3>
-  <p>Write <code>S</code> for the covariance matrix of the indicators, partitioned into <code>S<sub>xx</sub></code>, <code>S<sub>yy</sub></code> and <code>S<sub>xy</sub></code> according to the division. The problem is to find weight vectors <code>a</code> and <code>b</code> that maximize</p>
-  <pre class="formula">corr(P₁, P₂) = a′ S_xy b / sqrt( (a′ S_xx a)(b′ S_yy b) )</pre>
-  <p>Setting the derivatives to zero gives the pair of stationarity conditions <code>S<sub>xy</sub>b = ρ S<sub>xx</sub>a</code> and <code>S<sub>yx</sub>a = ρ S<sub>yy</sub>b</code>, and the solution comes from the singular value decomposition of</p>
-  <pre class="formula">K = S_xx^(−1/2) S_xy S_yy^(−1/2) = U diag(ρ₁, ρ₂, …) V′</pre>
-  <p>The singular values <code>ρ₁ ≥ ρ₂ ≥ …</code> are the canonical correlations, and the weights of the first pair of composites are <code>a = S<sub>xx</sub><sup>−1/2</sup>u₁</code> and <code>b = S<sub>yy</sub><sup>−1/2</sup>v₁</code>, with <code>u₁</code> and <code>v₁</code> the first columns of <code>U</code> and <code>V</code>. Because <code>u₁</code> and <code>v₁</code> have unit length these weights satisfy <code>a′S<sub>xx</sub>a = 1</code> and <code>b′S<sub>yy</sub>b = 1</code>: each composite has sample variance exactly one, computed with the <em>n</em> − 1 divisor. That is the convention behind the raw canonical coefficients of SPSS <code>MANOVA … /DISCRIM</code>; the R function <code>stats::cancor</code> normalizes to a sum of squares of one instead, so its coefficients are those shown here divided by the square root of <em>n</em> − 1. Weights obtained by any other method on this page are rescaled to unit composite variance in the same way, which changes no correlation and no standardized quantity and makes the raw weights of the different methods comparable.</p>
+  <p>Write <b>S</b> for the covariance matrix of the indicators, partitioned into <b>S</b><sub><var>xx</var></sub>, <b>S</b><sub><var>yy</var></sub> and <b>S</b><sub><var>xy</var></sub> according to the division. The problem is to find weight vectors <b>a</b> and <b>b</b> that maximize</p>
+  <div class="eq">corr(<var>P</var><sub>1</sub>, <var>P</var><sub>2</sub>) = <span class="frac"><span class="num"><b>a</b>′<b>S</b><sub><var>xy</var></sub><b>b</b></span><span class="den">√[(<b>a</b>′<b>S</b><sub><var>xx</var></sub><b>a</b>)(<b>b</b>′<b>S</b><sub><var>yy</var></sub><b>b</b>)]</span></span></div>
+  <p class="where">Here <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub> are the two composites, <b>a</b> and <b>b</b> the weight vectors of the two blocks, <b>S</b><sub><var>xx</var></sub> and <b>S</b><sub><var>yy</var></sub> the covariance matrices within each block, and <b>S</b><sub><var>xy</var></sub> the matrix of covariances between the two blocks.</p>
+  <p>Setting the derivatives to zero gives a pair of stationarity conditions:</p>
+  <div class="eq"><b>S</b><sub><var>xy</var></sub><b>b</b> = ρ <b>S</b><sub><var>xx</var></sub><b>a</b><span class="op">,</span> <b>S</b><sub><var>yx</var></sub><b>a</b> = ρ <b>S</b><sub><var>yy</var></sub><b>b</b></div>
+  <p class="where">Here ρ is the correlation between the two composites and the matrices and vectors are those of the previous formula.</p>
+  <p>The solution comes from the singular value decomposition of a single matrix:</p>
+  <div class="eq"><b>K</b> = <b>S</b><sub><var>xx</var></sub><sup>−1/2</sup> <b>S</b><sub><var>xy</var></sub> <b>S</b><sub><var>yy</var></sub><sup>−1/2</sup> = <b>U</b> diag(ρ<sub>1</sub>, ρ<sub>2</sub>, …) <b>V</b>′</div>
+  <p class="where">Here <b>K</b> is the matrix whose singular values are the canonical correlations, <b>S</b><sub><var>xx</var></sub><sup>−1/2</sup> and <b>S</b><sub><var>yy</var></sub><sup>−1/2</sup> are the symmetric inverse square roots of the two within-block matrices, <b>U</b> and <b>V</b> hold the left and right singular vectors, and ρ<sub>1</sub> ≥ ρ<sub>2</sub> ≥ … are the singular values.</p>
+  <p>The weights of the first pair of composites follow from the first singular vectors:</p>
+  <div class="eq"><b>a</b> = <b>S</b><sub><var>xx</var></sub><sup>−1/2</sup><b>u</b><sub>1</sub><span class="op">,</span> <b>b</b> = <b>S</b><sub><var>yy</var></sub><sup>−1/2</sup><b>v</b><sub>1</sub></div>
+  <p class="where">Here <b>u</b><sub>1</sub> and <b>v</b><sub>1</sub> are the first columns of <b>U</b> and <b>V</b>, and <b>a</b> and <b>b</b> the weight vectors of the two blocks.</p>
+  <p>Because <b>u</b><sub>1</sub> and <b>v</b><sub>1</sub> have unit length these weights satisfy <span class="eq-in"><b>a</b>′<b>S</b><sub><var>xx</var></sub><b>a</b> = 1</span> and <span class="eq-in"><b>b</b>′<b>S</b><sub><var>yy</var></sub><b>b</b> = 1</span>: each composite has sample variance exactly one, computed with the <span class="eq-in"><var>n</var> − 1</span> divisor. That is the convention behind the raw canonical coefficients of SPSS <code>MANOVA … /DISCRIM</code>; the R function <code>stats::cancor</code> normalizes to a sum of squares of one instead, so its coefficients are those shown here divided by the square root of <span class="eq-in"><var>n</var> − 1</span>. Weights obtained by any other method on this page are rescaled to unit composite variance in the same way, which changes no correlation and no standardized quantity and makes the raw weights of the different methods comparable.</p>
   <p>The symmetric inverse square roots are built from the eigendecomposition of each block, computed by cyclic Jacobi rotations, and the singular value decomposition is a one-sided Jacobi sweep. Eigenvalues smaller than 10<sup>−10</sup> times the largest are dropped, which turns the inverse square root into a Moore–Penrose pseudo-inverse. That happens exactly when a block is rank deficient — an indicator duplicated, a total entered together with its parts, an item recoded and kept alongside the original. The page then reports the rank of each block against the number of indicators in it, and truncates the solution to as many canonical dimensions as the smaller rank allows, because the directions that were dropped would return weight vectors of zero and a composite of zero variance is not a canonical variate. Inside a rank-deficient block the weights are not unique: the pseudo-inverse returns one solution out of infinitely many, all giving the same composite.</p>
 
   <h3>Maximally correlated composites: three or more blocks</h3>
-  <p>With three or more blocks there is no single correlation to maximize, only a correlation matrix among the composites, and several criteria have been proposed for it. Kettenring (1971) collected them; all reduce to canonical correlation analysis when there are two blocks. Writing <code>R<sub>P</sub></code> for the correlation matrix of the composites, each standardized to unit variance:</p>
+  <p>With three or more blocks there is no single correlation to maximize, only a correlation matrix among the composites, and several criteria have been proposed for it. Kettenring (1971) collected them; all reduce to canonical correlation analysis when there are two blocks. Writing <b>R</b><sub><var>P</var></sub> for the correlation matrix of the composites, each standardized to unit variance:</p>
   <ul>
     <li><strong>SUMCOR</strong> maximizes the sum of the correlations between all pairs of composites.</li>
     <li><strong>SSQCOR</strong> maximizes the sum of the squared correlations between all pairs, so a strong negative relation counts as much as a strong positive one.</li>
-    <li><strong>MAXVAR</strong> maximizes the largest eigenvalue of <code>R<sub>P</sub></code>, that is, the variance accounted for by the first principal component of the composites.</li>
-    <li><strong>MINVAR</strong> minimizes the smallest eigenvalue of <code>R<sub>P</sub></code>, which drives the composites towards a linearly dependent set.</li>
-    <li><strong>GENVAR</strong> minimizes the determinant of <code>R<sub>P</sub></code>, the generalized variance of the composites.</li>
+    <li><strong>MAXVAR</strong> maximizes the largest eigenvalue of <b>R</b><sub><var>P</var></sub>, that is, the variance accounted for by the first principal component of the composites.</li>
+    <li><strong>MINVAR</strong> minimizes the smallest eigenvalue of <b>R</b><sub><var>P</var></sub>, which drives the composites towards a linearly dependent set.</li>
+    <li><strong>GENVAR</strong> minimizes the determinant of <b>R</b><sub><var>P</var></sub>, the generalized variance of the composites.</li>
   </ul>
-  <p>This page uses MAXVAR, in the formulation of Horst (1961) and Carroll (1968), because it is the criterion that matches the second step: what the second step extracts from the composites is a single common factor, and the largest eigenvalue of <code>R<sub>P</sub></code> is exactly the variance one such dimension can account for. The computation stacks the blocks into the matrix whose <em>(j, k)</em> block is</p>
-  <pre class="formula">M_jk = S_jj^(−1/2) S_jk S_kk^(−1/2)</pre>
-  <p>and whose diagonal blocks are therefore identity matrices, takes the eigenvector <code>w</code> belonging to the largest eigenvalue of <code>M</code>, and normalizes each block of that eigenvector to unit length, so that the weights of block <em>j</em> are <code>a<sub>j</sub> = S<sub>jj</sub><sup>−1/2</sup>w<sub>j</sub> / ‖w<sub>j</sub>‖</code>. Writing <code>c<sub>j</sub> = ‖w<sub>j</sub>‖</code>, the quadratic form <code>w′Mw</code> equals <code>c′R<sub>P</sub>c</code> with <code>‖c‖ = 1</code>, so maximizing it over unit-length <code>w</code> is the same problem as maximizing the largest eigenvalue of <code>R<sub>P</sub></code>: the largest eigenvalue of <code>M</code> and the largest eigenvalue of <code>R<sub>P</sub></code> are the same number. The page reports the correlation matrix of the composites, that eigenvalue, and the proportion of the total variance of the composites it accounts for, which is the eigenvalue divided by the number of blocks. With two blocks <code>M</code> has the eigenvalues 1 ± ρ<sub>j</sub>, its leading eigenvector is <code>(u₁, v₁)</code> up to a scale factor, and the procedure returns the canonical solution; the self-test checks that equality on the six-variable illustration and on two hundred random problems.</p>
+  <p>This page uses MAXVAR, in the formulation of Horst (1961) and Carroll (1968), because it is the criterion that matches the second step: what the second step extracts from the composites is a single common factor, and the largest eigenvalue of <b>R</b><sub><var>P</var></sub> is exactly the variance one such dimension can account for. The computation stacks the blocks into one matrix whose blocks are</p>
+  <div class="eq"><b>M</b><sub><var>jk</var></sub> = <b>S</b><sub><var>jj</var></sub><sup>−1/2</sup> <b>S</b><sub><var>jk</var></sub> <b>S</b><sub><var>kk</var></sub><sup>−1/2</sup></div>
+  <p class="where">Here <b>M</b><sub><var>jk</var></sub> is the block of <b>M</b> in row <var>j</var> and column <var>k</var>, <b>S</b><sub><var>jj</var></sub> and <b>S</b><sub><var>kk</var></sub> are the covariance matrices within blocks <var>j</var> and <var>k</var>, and <b>S</b><sub><var>jk</var></sub> is the matrix of covariances between them.</p>
+  <p>Its diagonal blocks are therefore identity matrices. Taking the eigenvector <b>w</b> belonging to the largest eigenvalue of <b>M</b> and normalizing each block of it to unit length gives the weights of block <var>j</var>:</p>
+  <div class="eq"><b>a</b><sub><var>j</var></sub> = <span class="frac"><span class="num"><b>S</b><sub><var>jj</var></sub><sup>−1/2</sup><b>w</b><sub><var>j</var></sub></span><span class="den">‖<b>w</b><sub><var>j</var></sub>‖</span></span></div>
+  <p class="where">Here <b>a</b><sub><var>j</var></sub> is the weight vector of block <var>j</var>, <b>w</b><sub><var>j</var></sub> is the part of the leading eigenvector belonging to that block, and ‖<b>w</b><sub><var>j</var></sub>‖ is its length.</p>
+  <p>Writing <span class="eq-in"><var>c</var><sub><var>j</var></sub> = ‖<b>w</b><sub><var>j</var></sub>‖</span>, the quadratic form <span class="eq-in"><b>w</b>′<b>Mw</b></span> equals <span class="eq-in"><b>c</b>′<b>R</b><sub><var>P</var></sub><b>c</b></span> with <span class="eq-in">‖<b>c</b>‖ = 1</span>, so maximizing it over unit-length <b>w</b> is the same problem as maximizing the largest eigenvalue of <b>R</b><sub><var>P</var></sub>: the largest eigenvalue of <b>M</b> and the largest eigenvalue of <b>R</b><sub><var>P</var></sub> are the same number. The page reports the correlation matrix of the composites, that eigenvalue, and the proportion of the total variance of the composites it accounts for, which is the eigenvalue divided by the number of blocks. With two blocks <b>M</b> has the eigenvalues <span class="eq-in">1 ± ρ<sub><var>j</var></sub></span>, its leading eigenvector is <span class="eq-in">(<b>u</b><sub>1</sub>, <b>v</b><sub>1</sub>)</span> up to a scale factor, and the procedure returns the canonical solution; the self-test checks that equality on the six-variable illustration and on two hundred random problems.</p>
 
   <h3>Raw weights, standardized weights and structure coefficients</h3>
-  <p>Three quantities describe how an indicator enters a composite, and they answer different questions.</p>
-  <ul>
-    <li>The <strong>raw weight</strong> is the coefficient applied to the indicator in its own metric. It is the number that goes into the <code>DEFINE</code> statement, and it depends on the unit in which the indicator was measured: an item scored from 1 to 100 gets a weight about a hundred times smaller than the same item scored from 0 to 1.</li>
-    <li>The <strong>standardized weight</strong> is <code>w<sub>i</sub> × sd(V<sub>i</sub>) / sd(P<sub>j</sub>)</code>, the coefficient that would apply if the indicator and the composite were both standardized. It is comparable across indicators measured on different scales, and it is a partial coefficient: it says what the indicator contributes over and above the other indicators in the same block.</li>
-    <li>The <strong>structure coefficient</strong> is the correlation between the indicator and its own composite, <code>(S<sub>jj</sub>w<sub>j</sub>)<sub>i</sub> / (sd(V<sub>i</sub>) sd(P<sub>j</sub>))</code>. It is a simple correlation, so what the other indicators do does not affect it.</li>
-  </ul>
+  <p>Three quantities describe how an indicator enters a composite, and they answer different questions. The <strong>raw weight</strong> is the coefficient applied to the indicator in its own metric. It is the number that goes into the <code>DEFINE</code> statement, and it depends on the unit in which the indicator was measured: an item scored from 1 to 100 gets a weight about a hundred times smaller than the same item scored from 0 to 1. The <strong>standardized weight</strong> is the coefficient that would apply if the indicator and the composite were both standardized:</p>
+  <div class="eq"><var>w</var>*<sub><var>i</var></sub> = <var>w</var><sub><var>i</var></sub> <span class="frac"><span class="num">σ<sub><var>V</var><sub><var>i</var></sub></sub></span><span class="den">σ<sub><var>P</var><sub><var>j</var></sub></sub></span></span></div>
+  <p class="where">Here <var>w</var>*<sub><var>i</var></sub> is the standardized weight of indicator <var>i</var>, <var>w</var><sub><var>i</var></sub> its raw weight, σ<sub><var>V</var><sub><var>i</var></sub></sub> the standard deviation of the indicator, and σ<sub><var>P</var><sub><var>j</var></sub></sub> the standard deviation of the composite it belongs to.</p>
+  <p>It is comparable across indicators measured on different scales, and it is a partial coefficient: it says what the indicator contributes over and above the other indicators in the same block. The <strong>structure coefficient</strong> is the correlation between the indicator and its own composite:</p>
+  <div class="eq"><var>r</var>(<var>V</var><sub><var>i</var></sub>, <var>P</var><sub><var>j</var></sub>) = <span class="frac"><span class="num">(<b>S</b><sub><var>jj</var></sub><b>w</b><sub><var>j</var></sub>)<sub><var>i</var></sub></span><span class="den">σ<sub><var>V</var><sub><var>i</var></sub></sub> σ<sub><var>P</var><sub><var>j</var></sub></sub></span></span></div>
+  <p class="where">Here <var>r</var>(<var>V</var><sub><var>i</var></sub>, <var>P</var><sub><var>j</var></sub>) is the correlation between indicator <var>i</var> and composite <var>j</var>, (<b>S</b><sub><var>jj</var></sub><b>w</b><sub><var>j</var></sub>)<sub><var>i</var></sub> is the <var>i</var>-th element of the covariance matrix of the block multiplied by its weight vector, and the two standard deviations are those of the indicator and of the composite.</p>
+  <p>It is a simple correlation, so what the other indicators do does not affect it.</p>
   <p>The article is explicit about which of the three to read: “In CCA, the canonical coefficients are typically not used; the correlations between the variables and the new canonical variates are interpreted instead. These are commonly referred to as loadings and can be interpreted as ordinary factor or component loadings” (Treiblmaier, Bentler, &amp; Mair, 2011, p. 11). The reason is the usual one for regression coefficients: when the indicators are correlated, a weight can be small, or negative, merely because another indicator in the same block already carries that part of the variance, and the weight then says nothing about whether the indicator is related to the composite. The structure coefficient answers that question directly. A weight is a statement about a linear combination, not a measure of the importance of an indicator; the two coincide only when the indicators within a block are uncorrelated. The page prints all three and marks any block whose weights are of both signs, because such a composite is a contrast between groups of indicators rather than a weighted sum of them.</p>
-  <p>The sign of a whole canonical pair is arbitrary: replacing <code>a</code> by <code>−a</code> and <code>b</code> by <code>−b</code> leaves the correlation unchanged, and nothing in the data chooses between them. The page fixes the sign by making the sum of the structure coefficients of the first block positive, so that the composite runs in the same direction as the majority of its indicators. The relative signs within a block are not arbitrary and carry the meaning described above.</p>
-  <p>The published raw coefficients of an example are not always recoverable from a published matrix. The privacy example of the article reports raw canonical coefficients of .0197 and .0220 in the first block and .0292 and .0176 in the second, obtained from variables measured on a slider from 1 to 100. The canonical correlations and the structure coefficients are scale free: multiplying an indicator by a constant leaves them unchanged, so they can be reproduced from a correlation matrix. The raw coefficients are not: they carry the factor 1/sd(V<sub>i</sub>), and the standard deviations are not published. From a correlation matrix the raw weights come out on the standardized metric, and their ratios within a block differ from the published ratios by the ratio of the standard deviations.</p>
+  <p>The sign of a whole canonical pair is arbitrary: replacing <b>a</b> by <span class="eq-in"><span class="op">−</span><b>a</b></span> and <b>b</b> by <span class="eq-in"><span class="op">−</span><b>b</b></span> leaves the correlation unchanged, and nothing in the data chooses between them. The page fixes the sign by making the sum of the structure coefficients of the first block positive, so that the composite runs in the same direction as the majority of its indicators. The relative signs within a block are not arbitrary and carry the meaning described above.</p>
+  <p>The published raw coefficients of an example are not always recoverable from a published matrix. The privacy example of the article reports raw canonical coefficients of .0197 and .0220 in the first block and .0292 and .0176 in the second, obtained from variables measured on a slider from 1 to 100. The canonical correlations and the structure coefficients are scale free: multiplying an indicator by a constant leaves them unchanged, so they can be reproduced from a correlation matrix. The raw coefficients are not: they carry the factor <span class="eq-in">1 / σ<sub><var>V</var><sub><var>i</var></sub></sub></span>, and the standard deviations are not published. That example, and the six-variable illustration, are checked in the self-test of this page rather than offered as an input route, because a matrix copied out of an article is a number typed by hand.</p>
 
   <h3>How many dimensions, and how much is explained</h3>
-  <p>With two blocks there are as many canonical correlations as there are indicators in the smaller block. Only the first pair of composites is used in the second step, but the others say whether the relation between the blocks is one-dimensional. Wilks's lambda for the dimensions from <em>k</em> + 1 onwards, with <em>k</em> the number of canonical correlations already extracted, is</p>
-  <pre class="formula">Λ_k = Π_{j &gt; k} (1 − ρ_j²)</pre>
-  <p>and Bartlett's (1941) large-sample test of the hypothesis that all the canonical correlations from that point on are zero in the population is</p>
-  <pre class="formula">χ² = − ( n − 1 − (p + q + 1)/2 ) ln Λ_k     with  (p − k)(q − k) degrees of freedom</pre>
-  <p>where <em>p</em> and <em>q</em> are the numbers of indicators in the two blocks and <em>n</em> the number of complete cases. The test at <em>k</em> = 0 asks whether the two blocks are related at all; a test that is significant at <em>k</em> = 1 as well says that a single pair of composites does not exhaust the relation between the blocks, which matters because the second step keeps only the first pair. The chi-square tail is computed from the upper incomplete gamma function evaluated by its continued fraction rather than as one minus the lower tail, which would lose every significant digit and return exactly zero for a probability below about 10<sup>−16</sup>.</p>
-  <p>The redundancy index of Stewart and Love (1968) is the proportion of the total variance of one set of indicators accounted for by the <em>other</em> set's canonical variate. Writing <code>U_j</code> for the variate of the first set and <code>W_j</code> for the variate of the second, the redundancy of the first set is</p>
-  <pre class="formula">Rd(X | W_j) = (1/p) Σ_i r(V_i, W_j)²  =  ρ_j² × (1/p) Σ_i r(V_i, U_j)²</pre>
+  <p>With two blocks there are as many canonical correlations as there are indicators in the smaller block. Only the first pair of composites is used in the second step, but the others say whether the relation between the blocks is one-dimensional. Wilks's lambda for the dimensions from <span class="eq-in"><var>k</var> + 1</span> onwards, with <var>k</var> the number of canonical correlations already extracted, is</p>
+  <div class="eq">Λ<sub><var>k</var></sub> = <span class="big">Π</span><sub><var>j</var> &gt; <var>k</var></sub> (1 <span class="op">−</span> ρ<sub><var>j</var></sub><sup>2</sup>)</div>
+  <p class="where">Here Λ<sub><var>k</var></sub> is Wilks's lambda for the dimensions beyond the <var>k</var>-th, and ρ<sub><var>j</var></sub> is the <var>j</var>-th canonical correlation, the product running over every dimension after the <var>k</var>-th.</p>
+  <p>Bartlett's (1941) large-sample test of the hypothesis that all the canonical correlations from that point on are zero in the population is</p>
+  <div class="eq">χ² = <span class="op">−</span> [<var>n</var> <span class="op">−</span> 1 <span class="op">−</span> (<var>p</var> + <var>q</var> + 1)/2] ln Λ<sub><var>k</var></sub><span class="op">,</span> <var>df</var> = (<var>p</var> <span class="op">−</span> <var>k</var>)(<var>q</var> <span class="op">−</span> <var>k</var>)</div>
+  <p class="where">Here χ² is the test statistic, <var>n</var> the number of complete cases, <var>p</var> and <var>q</var> the numbers of indicators in the two blocks, <var>k</var> the number of canonical correlations already extracted, Λ<sub><var>k</var></sub> Wilks's lambda just defined, and <var>df</var> the degrees of freedom the statistic is referred to.</p>
+  <p>The test at <span class="eq-in"><var>k</var> = 0</span> asks whether the two blocks are related at all; a test that is significant at <span class="eq-in"><var>k</var> = 1</span> as well says that a single pair of composites does not exhaust the relation between the blocks, which matters because the second step keeps only the first pair. The chi-square tail is computed from the upper incomplete gamma function evaluated by its continued fraction rather than as one minus the lower tail, which would lose every significant digit and return exactly zero for a probability below about 10<sup>−16</sup>.</p>
+  <p>The redundancy index of Stewart and Love (1968) is the proportion of the total variance of one set of indicators accounted for by the <em>other</em> set's canonical variate:</p>
+  <div class="eq">Rd(<var>X</var> | <var>W</var><sub><var>j</var></sub>) = <span class="frac"><span class="num">1</span><span class="den"><var>p</var></span></span> <span class="big">Σ</span><sub><var>i</var></sub> <var>r</var>(<var>V</var><sub><var>i</var></sub>, <var>W</var><sub><var>j</var></sub>)<sup>2</sup> = ρ<sub><var>j</var></sub><sup>2</sup> <span class="frac"><span class="num">1</span><span class="den"><var>p</var></span></span> <span class="big">Σ</span><sub><var>i</var></sub> <var>r</var>(<var>V</var><sub><var>i</var></sub>, <var>U</var><sub><var>j</var></sub>)<sup>2</sup></div>
+  <p class="where">Here Rd(<var>X</var> | <var>W</var><sub><var>j</var></sub>) is the redundancy of the first set given the <var>j</var>-th variate of the second, <var>p</var> is the number of indicators in the first set, <var>V</var><sub><var>i</var></sub> is one of them, <var>U</var><sub><var>j</var></sub> and <var>W</var><sub><var>j</var></sub> are the <var>j</var>-th canonical variates of the first and of the second set, and ρ<sub><var>j</var></sub> is the <var>j</var>-th canonical correlation.</p>
   <p>The two expressions are equal because the correlation of an indicator with the other set's variate is the canonical correlation times its correlation with its own, so the index is also the mean squared structure coefficient of the set multiplied by the squared canonical correlation. The page computes it the first way and checks it against the second; a difference above 10<sup>−6</sup> would mean a numerical failure and is reported as one. Across two thousand randomly generated problems, including deliberately near-singular ones, the largest difference observed was 1.6 × 10<sup>−9</sup>. The index is asymmetric: the redundancy of the first set is generally not the redundancy of the second. A high canonical correlation with a low redundancy means that the composites are strongly related to each other and weakly related to the indicators they are built from, which is the situation in which the second-step factor represents very little of the material the formative construct was supposed to summarize.</p>
 
   <h3>Categorical indicators and optimal scaling</h3>
@@ -224,7 +227,10 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <p>Once the quantifications are fixed the quantified variables are treated as the observed variables: their covariance matrix is formed and every quantity on this page — weights, standardized weights, structure coefficients, canonical correlations, Wilks's lambda, redundancy — is computed from it in exactly the same way as for numerical indicators. The results show, for each categorical indicator, the weight applied to the quantified variable together with the quantification of every original category and the number of cases in it, so that the recoding can be checked; the generated syntax contains the same recoding as a sequence of <code>IF</code> statements, so the analysis is reproducible from the syntax alone. When the monotone fit assigns the same value to neighbouring categories the page says so, because the indicator is then being used as a coarser variable than it was measured.</p>
 
   <h3>Step 2: the factor on the composites</h3>
-  <p>The composites are entered as reflective indicators of a common factor, <code>P₁ = β₁F* + E₁</code> and <code>P₂ = β₂F* + E₂</code>, with <code>E₁</code> and <code>E₂</code> uncorrelated. With two composites this model is not identified as it stands: two loadings, two residual variances and the factor variance are five parameters against the three distinct elements of the covariance matrix of <code>P₁</code> and <code>P₂</code>. Fixing the factor variance at one and constraining the two loadings to be equal leaves three free parameters against three moments, which is a just-identified model; the article applies exactly this restriction, and justifies it both by the standard cautions for two-indicator factors and by the composites being built from equivalent sets of indicators. Constraining the two residual variances to be equal as well leaves two free parameters and one degree of freedom, so the equivalence of the two composites becomes a testable restriction rather than an assumption. The generated syntax imposes both constraints and says in comments what each of them does. When the composites are standardized to unit variance, as the weights on this page make them, the standardized loading is the square root of the correlation between them: the article's .746 for the a priori split of the six-variable illustration and .894 for the canonical split, and .681 for the privacy example.</p>
+  <p>The composites are entered as reflective indicators of a common factor:</p>
+  <div class="eq"><var>P</var><sub>1</sub> = β<sub>1</sub><var>F</var>* + <var>E</var><sub>1</sub><span class="op">,</span> <var>P</var><sub>2</sub> = β<sub>2</sub><var>F</var>* + <var>E</var><sub>2</sub></div>
+  <p class="where">Here <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub> are the two composites, <var>F</var>* is the common factor of the second step, β<sub>1</sub> and β<sub>2</sub> are its loadings on them, and <var>E</var><sub>1</sub> and <var>E</var><sub>2</sub> are two residuals uncorrelated with each other.</p>
+  <p>With two composites this model is not identified as it stands: two loadings, two residual variances and the factor variance are five parameters against the three distinct elements of the covariance matrix of <code>P₁</code> and <code>P₂</code>. Fixing the factor variance at one and constraining the two loadings to be equal leaves three free parameters against three moments, which is a just-identified model; the article applies exactly this restriction, and justifies it both by the standard cautions for two-indicator factors and by the composites being built from equivalent sets of indicators. Constraining the two residual variances to be equal as well leaves two free parameters and one degree of freedom, so the equivalence of the two composites becomes a testable restriction rather than an assumption. The generated syntax imposes both constraints and says in comments what each of them does. When the composites are standardized to unit variance, as the weights on this page make them, the standardized loading is the square root of the correlation between them: the article's .746 for the a priori split of the six-variable illustration and .894 for the canonical split, and .681 for the privacy example.</p>
   <p>With three or more composites the loadings need no equality constraint: the factor variance is fixed at one, and the loadings and the residual variances are all free. With three composites the model is again just identified; with four or more it has degrees of freedom. The generated syntax is read back by the page and checked before it is shown, and the checklist under it reports what was verified: that every variable used on the right-hand side of a <code>DEFINE</code> statement is either declared in <code>NAMES</code> or created earlier in <code>DEFINE</code>, that every composite appears in <code>USEVARIABLES</code>, that no intermediate quantified variable has been left there, that no name exceeds the eight characters M<em>plus</em> allows and no line the ninety it reads, and that the coefficients read back out of the <code>DEFINE</code> statements match the weights in the table. The check on the intermediate variables matters because a variable created in <code>DEFINE</code> and listed in <code>USEVARIABLES</code> enters the model as an observed variable: the quantified variables would then be analyzed alongside the composites, and M<em>plus</em> would return a fit that has nothing to do with the intended model. Only the composites belong in <code>USEVARIABLES</code>.</p>
 
   <h3>Choosing the division from the data</h3>
@@ -235,10 +241,10 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <p>Cases are deleted listwise: a case is used only if it has a valid value on every indicator assigned to a composite, and indicators left out of the analysis do not cause a case to be dropped. The page reports the number of complete cases used, the number dropped, and the number of cases available on each indicator separately, so that a single indicator responsible for most of the loss can be identified. Values matching a missing value code declared in the M<em>plus</em> output, and the codes <code>.</code> and <code>*</code>, are treated as missing; the numeric codes are compared as numbers, so that −99, −99.0 and −99.000 are recognized as the same code. No imputation and no full-information estimation is available here, because the first step is a computation on a covariance matrix rather than a model fitted by maximum likelihood. When the proportion of dropped cases is large, the covariance matrix is that of the complete cases and generalizes to the rest of the sample only under an assumption this page cannot check.</p>
 
   <h3>What this page does not do</h3>
-  <p>The disturbance <code>D</code> of the formative construct is not estimated, and cannot be: proceeding without it is the point of the two-step approach, so the correlation between <code>F*</code> and the intended <code>F</code> is unknown in any application, as the article states. Nothing here decides whether a construct should be measured formatively at all; that argument is conducted in Bollen and Lennox (1991), Diamantopoulos and Winklhofer (2001) and Bollen (2002), and it has to be settled before these computations are of any use. The weights are sample quantities with no standard errors attached, and the canonical correlation is a maximum over weight vectors, so it is biased upwards in small samples; the page reports the ratio of complete cases to indicators and warns below five cases per indicator. The exploratory search works on the covariance matrix of the raw values even when indicators are categorical, because a quantification would have to be recomputed for every division. When the input is a correlation matrix the raw weights are the standardized weights, and the <code>DEFINE</code> statements are valid only for variables that have been standardized first.</p>
+  <p>The disturbance <code>D</code> of the formative construct is not estimated, and cannot be: proceeding without it is the point of the two-step approach, so the correlation between <code>F*</code> and the intended <code>F</code> is unknown in any application, as the article states. Nothing here decides whether a construct should be measured formatively at all; that argument is conducted in Bollen and Lennox (1991), Diamantopoulos and Winklhofer (2001) and Bollen (2002), and it has to be settled before these computations are of any use. The weights are sample quantities with no standard errors attached, and the canonical correlation is a maximum over weight vectors, so it is biased upwards in small samples; the page reports the ratio of complete cases to indicators and warns below five cases per indicator. The exploratory search works on the covariance matrix of the raw values even when indicators are categorical, because a quantification would have to be recomputed for every division. The page reads a raw data file, so the covariance matrix it works from is on the metric of the variables themselves and the <code>DEFINE</code> statements it writes apply to them unchanged.</p>
 
   <h3>Self-test</h3>
-  <p>Adding <code>?selftest=1</code> to the address of this page runs the numerical checks in the browser and prints the result at the top of the page and in the console. They cover the six-variable illustration end to end — the a priori weights .5, .6 and .7 giving composite variances of 1.1, a covariance of .612, a correlation of .5564 and an equal standardized loading of .746, and the canonical correlation of .8 giving .894; the canonical correlations, the structure coefficients and the loading of .681 of the privacy example; the agreement of the generalized routine with canonical correlation analysis when there are two blocks; Wilks's lambda, Bartlett's statistic and its degrees of freedom against their definitions; the chi-square tail below the point where one minus the lower tail returns zero; the pseudo-inverse path and the truncation of dimensions on a rank-deficient block; the enumeration of the divisions of five indicators and the population count at 2<sup>31</sup>, 2<sup>32</sup>, 2<sup>40</sup> and 2<sup>49</sup>; the redundancy index computed both ways and agreeing; the free-format data parser, the matrix parser, the variable-range expander and the M<em>plus</em> input parser on embedded samples; the pool-adjacent-violators algorithm against monotone fits worked out by hand; optimal scaling with numerical levels reproducing canonical correlation analysis and an ordinal quantification coming out monotone; the generated syntax for two and for three composites, read back and checked; and a randomized run of 220 problems asserting that every composite has unit variance, that the correlation between the composites equals the first canonical correlation, that the stationarity conditions <code>S<sub>xy</sub>b = ρS<sub>xx</sub>a</code> and <code>S<sub>yx</sub>a = ρS<sub>yy</sub>b</code> hold, that the canonical correlations lie between zero and one and do not increase, and that they agree with an independent computation through the eigenvalues of <code>S<sub>xx</sub><sup>−1</sup>S<sub>xy</sub>S<sub>yy</sub><sup>−1</sup>S<sub>yx</sub></code> obtained by a Gauss–Jordan inverse and unshifted QR iteration, which share no code with the routines they check.</p>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs the numerical checks in the browser and prints the result at the top of the page and in the console. They cover the two published benchmarks of Treiblmaier, Bentler and Mair (2011), which appear here and nowhere else on the page, because a matrix copied out of an article is a number typed by hand: the six-variable illustration end to end — the a priori weights .5, .6 and .7 giving composite variances of 1.1, a covariance of .612, a correlation of .5564 and an equal standardized loading of .746, and the canonical correlation of .8 giving .894 — and the canonical correlations, the structure coefficients and the loading of .681 of the privacy example; the agreement of the generalized routine with canonical correlation analysis when there are two blocks; Wilks's lambda, Bartlett's statistic and its degrees of freedom against their definitions; the chi-square tail below the point where one minus the lower tail returns zero; the pseudo-inverse path and the truncation of dimensions on a rank-deficient block; the enumeration of the divisions of five indicators and the population count at 2<sup>31</sup>, 2<sup>32</sup>, 2<sup>40</sup> and 2<sup>49</sup>; the redundancy index computed both ways and agreeing; the free-format data parser, the matrix parser, the variable-range expander and the M<em>plus</em> input parser on embedded samples; the pool-adjacent-violators algorithm against monotone fits worked out by hand; optimal scaling with numerical levels reproducing canonical correlation analysis and an ordinal quantification coming out monotone; the generated syntax for two and for three composites, read back and checked; and a randomized run of 220 problems asserting that every composite has unit variance, that the correlation between the composites equals the first canonical correlation, that the stationarity conditions <code>S<sub>xy</sub>b = ρS<sub>xx</sub>a</code> and <code>S<sub>yx</sub>a = ρS<sub>yy</sub>b</code> hold, that the canonical correlations lie between zero and one and do not increase, and that they agree with an independent computation through the eigenvalues of <code>S<sub>xx</sub><sup>−1</sup>S<sub>xy</sub>S<sub>yy</sub><sup>−1</sup>S<sub>yx</sub></code> obtained by a Gauss–Jordan inverse and unshifted QR iteration, which share no code with the routines they check.</p>
 </section>
 
 <section class="tracks" aria-labelledby="h-refs">
@@ -624,20 +630,6 @@ var CW = (function () {
      Weight sets that do not come from an optimization.
      ================================================================== */
 
-  /* A priori weights: the numbers the user supplies, one per indicator. */
-  function aprioriWeights(sets, wByIndex) {
-    var out = [], j, t;
-    for (j = 0; j < sets.length; j++) {
-      var w = new Float64Array(sets[j].length);
-      for (t = 0; t < sets[j].length; t++) {
-        var v = wByIndex ? wByIndex[sets[j][t]] : 1;
-        w[t] = (v == null || !isFinite(v)) ? 1 : v;
-      }
-      out.push(w);
-    }
-    return out;
-  }
-
   /* Replicated weights: the first principal component of the correlation
      matrix of each block, applied to the standardized indicators, which is
      the weighting procedure the article names for this split. */
@@ -720,7 +712,7 @@ var CW = (function () {
     colMeans: colMeans, center: center, covMat: covMat, colOf: colOf,
     chiSqP: chiSqP, normQ: normQ,
     ccaFromCov: ccaFromCov, gccaFromCov: gccaFromCov,
-    aprioriWeights: aprioriWeights, replicatedWeights: replicatedWeights, replicatedTies: replicatedTies,
+    replicatedWeights: replicatedWeights, replicatedTies: replicatedTies,
     evaluateWeights: evaluateWeights
   };
 })();
@@ -1640,7 +1632,6 @@ var CWREAD = (function () {
     isCorr: false,
     n: 0,
     block: [],         /* 0 = not used, 1..m = block */
-    apw: [],           /* a priori weights */
     level: [],         /* numerical / ordinal / nominal */
     declaredCategorical: [],
     missing: [],
@@ -1658,7 +1649,6 @@ var CWREAD = (function () {
   function resetTable(names) {
     st.names = names.slice();
     st.block = names.map(function (_, i) { return i < 2 ? 1 : 0; });
-    st.apw = names.map(function () { return 1; });
     st.level = names.map(function () { return "numerical"; });
     assignAlternating();
   }
@@ -1669,15 +1659,18 @@ var CWREAD = (function () {
     for (var i = 0; i < st.names.length; i++) st.block[i] = (i % m) + 1;
   }
 
-  function readMatrix() {
-    var txt = $("paste").value;
+  /* A covariance or correlation matrix adopted as the input. No control on the
+     page reaches this: the two published benchmarks of the article are matrices
+     copied out of it, which is typed data, so they live in the self-test and
+     drive the page through this entry point instead of through a textarea. */
+  function adoptMatrix(txt, sampleSize) {
     try {
       var p = READ.parseMatrix(txt);
       st.source = "matrix";
       st.data = null;
       st.S = p.S;
       st.isCorr = p.isCorr;
-      st.n = Math.max(4, parseInt($("paste-n").value, 10) || 0);
+      st.n = Math.max(4, parseInt(sampleSize, 10) || 0);
       resetTable(p.names);
       st.declaredCategorical = [];
       var msg = "";
@@ -1690,7 +1683,7 @@ var CWREAD = (function () {
         ", largest " + num(p.maxEigen, 4) + ".");
       if (p.asymmetry > 1e-8) msg += status("warn", "Not symmetric.",
         " The largest difference between an entry and its mirror image was " + num(p.asymmetry, 6) +
-        "; the two were averaged. Check that the matrix was pasted in full and not as a triangle with an extra column.");
+        "; the two were averaged. Check that the matrix was supplied in full and not as a triangle with an extra column.");
       if (p.minEigen < -1e-8) msg += status("bad", "Not a covariance matrix.",
         " The smallest eigenvalue is " + num(p.minEigen, 6) + ", which is negative, so the matrix cannot be the " +
         "covariance matrix of any set of variables. This happens with a matrix assembled from correlations " +
@@ -1699,23 +1692,22 @@ var CWREAD = (function () {
       else if (p.minEigen < 1e-10 * Math.max(p.maxEigen, 1e-300)) msg += status("warn", "Singular.",
         " The smallest eigenvalue is " + num(p.minEigen, 8) + ", so at least one variable is a linear combination " +
         "of the others. Weights inside an affected block are not uniquely determined.");
-      $("paste-report").innerHTML = msg;
-      $("load-report").innerHTML = "";
+      $("load-report").innerHTML = msg;
       renderVars();
       say("Matrix read. Assign the indicators to blocks, then compute the weights.");
     } catch (e) {
-      $("paste-report").innerHTML = status("bad", "The matrix could not be read.", " " + esc(e.message));
+      $("load-report").innerHTML = status("bad", "The matrix could not be read.", " " + esc(e.message));
     }
   }
 
   var pendingOut = null, pendingDat = null;
 
   function afterFiles() {
-    if (!pendingDat) return;
+    if (!pendingDat || !pendingOut) return;
     var out = pendingOut, msg = "";
     var names = null, use = null, cat = [], miss = [], nExpected = null, meansOut = null;
 
-    if (out) {
+    {
       var inp = READ.parseMplusInput(out.text);
       var sts = READ.parseMplusStats(out.text);
       names = inp.names.length ? inp.names : null;
@@ -1730,21 +1722,21 @@ var CWREAD = (function () {
         (cat.length ? ", " + cat.length + " declared <code>CATEGORICAL</code>" : "") +
         (miss.length ? ", missing value codes " + esc(miss.join(", ")) : ", no missing value code declared") +
         (nExpected ? ", " + nExpected + " observations" : "") + ".");
-      if (!names) msg += status("warn", "No variable names.",
-        " The output does not contain an input echo with a <code>NAMES</code> statement, so the columns of the " +
-        "data file are numbered rather than named, and no missing value code and no <code>CATEGORICAL</code> " +
-        "declaration are known. Nothing is assumed in their place.");
-    } else {
-      msg += status("warn", "No output file.",
-        " Without the <code>TYPE = BASIC</code> output the column names, the missing value codes and the " +
-        "<code>CATEGORICAL</code> declaration are unknown. The columns are numbered, every value is taken at " +
-        "face value, and every indicator is treated as numerical. Nothing is assumed in their place.");
+      if (!names) msg += status("bad", "No variable names.",
+        " The output has no input echo with a <code>NAMES</code> statement, so the columns of the data file " +
+        "cannot be named and no missing value code and no <code>CATEGORICAL</code> declaration are known. " +
+        "Nothing is assumed in their place. Rerun the model with the input echoed, which " +
+        "M<em>plus</em> does unless <code>OUTPUT: NOCHISQUARE;</code>-style suppression was asked for, and load the new output.");
     }
 
     var ncol = names ? names.length : null;
     var pd = READ.parseData(pendingDat.text, ncol, miss);
     if (!pd.rows.length) {
-      $("load-report").innerHTML = msg + status("bad", "No data.", " The data file produced no usable rows.");
+      $("load-report").innerHTML = msg + status("bad", "No data.",
+        " Not one line of the data file held " + (ncol ? ncol + " values" : "a row of numbers") +
+        ", so there are no cases to compute a covariance matrix from. The usual causes are a file of a different " +
+        "format than the one <code>NAMES</code> describes, a header line where numbers were expected, and a file " +
+        "that is not the data file this output was produced from. Load the data file the analysis actually read.");
       return;
     }
     if (!ncol) { ncol = pd.rows[0].length; names = []; for (var q = 0; q < ncol; q++) names.push("V" + (q + 1)); }
@@ -1789,7 +1781,7 @@ var CWREAD = (function () {
         "relative " + worst.toExponential(1) + ". The usual causes are a data file with a different number of " +
         "columns than <code>NAMES</code> declares, a missing value code that is not declared in the output, " +
         "and a data file that does not belong to this output. Correct that before reading anything below.");
-    } else if (out) {
+    } else {
       msg += status("warn", "No sample statistics.",
         " The output has no <code>ESTIMATED SAMPLE STATISTICS</code> section, so the data file cannot be " +
         "checked against it. Request <code>OUTPUT: SAMPSTAT;</code> with <code>ANALYSIS: TYPE = BASIC;</code>.");
@@ -1823,9 +1815,8 @@ var CWREAD = (function () {
       "measurements instead.");
 
     $("load-report").innerHTML = msg;
-    $("paste-report").innerHTML = "";
     renderVars();
-    say("Data read. Assign the indicators to blocks, then compute the weights.");
+    say("Both files read. Assign the indicators to composites, then compute the weights.");
   }
 
   function hookDrop(dropId, inputId, nameId, onText) {
@@ -1858,7 +1849,6 @@ var CWREAD = (function () {
     var m = parseInt($("nblocks").value, 10) || 2;
     var showLevel = st.source === "data";
     head.innerHTML = "<th scope=\"col\">Indicator</th><th scope=\"col\">Composite</th>" +
-      "<th scope=\"col\" class=\"num\">A priori weight</th>" +
       (showLevel ? "<th scope=\"col\">Scale level</th><th scope=\"col\" class=\"num\">Valid</th>" +
                    "<th scope=\"col\" class=\"num\">Mean</th><th scope=\"col\" class=\"num\">SD</th>" +
                    "<th scope=\"col\" class=\"num\">Values</th>"
@@ -1885,21 +1875,13 @@ var CWREAD = (function () {
         extra = '<td class="num">' + num(st.S[i][i], 4) + "</td>";
       }
       rows.push("<tr><th scope=\"row\">" + esc(st.names[i]) + "</th>" +
-        '<td><label class="visually-hidden" for="bk' + i + '">Composite for ' + esc(st.names[i]) +
-        '</label><select id="bk' + i + '" data-bk="' + i + '">' + opts + "</select></td>" +
-        '<td class="num"><label class="visually-hidden" for="wt' + i + '">A priori weight for ' + esc(st.names[i]) +
-        '</label><input type="number" step="any" id="wt' + i + '" data-wt="' + i + '" value="' + st.apw[i] + '"></td>' +
+        '<td><label class="visually-hidden" for="bk' + i + '">Composite that ' + esc(st.names[i]) + ' enters</label>' +
+        '<select id="bk' + i + '" data-bk="' + i + '">' + opts + "</select></td>" +
         extra + "</tr>");
     }
     body.innerHTML = rows.join("");
     Array.prototype.forEach.call(body.querySelectorAll("[data-bk]"), function (el) {
       el.addEventListener("change", function () { st.block[+el.getAttribute("data-bk")] = +el.value; });
-    });
-    Array.prototype.forEach.call(body.querySelectorAll("[data-wt]"), function (el) {
-      el.addEventListener("change", function () {
-        var v = parseFloat(el.value);
-        st.apw[+el.getAttribute("data-wt")] = isFinite(v) ? v : 1;
-      });
     });
     Array.prototype.forEach.call(body.querySelectorAll("[data-lv]"), function (el) {
       el.addEventListener("change", function () { st.level[+el.getAttribute("data-lv")] = el.value; });
@@ -2070,22 +2052,17 @@ var CWREAD = (function () {
     var names = idxMap ? idxMap.map(function (c) { return st.names[c]; }) : st.names;
     var levelOf = idxMap ? idxMap.map(function (c) { return st.level[c]; })
                          : st.names.map(function (_, i) { return st.level[i] || "numerical"; });
-    var apwOf = idxMap ? idxMap.map(function (c) { return st.apw[c]; }) : st.apw;
-
     var method = $("wmethod").value;
     var opt = optimalVectors(S, sets, n);
     var chosen;
-    if (method === "apriori") chosen = M.aprioriWeights(sets, apwOf);
-    else if (method === "equal") chosen = equalWeightVectors(sets);
+    if (method === "equal") chosen = equalWeightVectors(sets);
     else if (method === "replicated") chosen = M.replicatedWeights(S, sets);
     else chosen = opt.weights;
     var repTied = M.replicatedTies(S, sets);
 
     /* The weights are kept in the metric the method produced them in. The
        canonical and MAXVAR weights already give composites of unit
-       variance; a priori, equal and replicated weights generally do not,
-       and the article's composite variances of 1.1 and covariance of .612
-       are exactly those of the unrescaled a priori weights. Every
+       variance; equal and replicated weights generally do not. Every
        standardized quantity below, and every correlation, is unaffected by
        the scale of the weights; only the raw weights, the variances and
        the covariances depend on it. The unit-variance rescaling is
@@ -2102,7 +2079,6 @@ var CWREAD = (function () {
     for (j = 0; j < m; j++) if (Math.abs(ev.cov[j][j] - 1) > 1e-8) unitVariance = false;
 
     var comparison = [
-      { key: "apriori", label: "A priori weights", w: M.aprioriWeights(sets, apwOf) },
       { key: "equal", label: "Equal weights", w: equalWeightVectors(sets) },
       { key: "replicated", label: "Replicated weights (first principal component per block)", w: M.replicatedWeights(S, sets) },
       { key: "canonical", label: m === 2 ? "Maximal correlation (canonical)" : "Maximal correlation (MAXVAR)", w: opt.weights }
@@ -2129,7 +2105,7 @@ var CWREAD = (function () {
   function renderResults() {
     var R = st.last, out = [], j, i;
     var m = R.m, ev = R.ev;
-    var methodName = { apriori: "a priori weights", equal: "equal weights",
+    var methodName = { equal: "equal weights",
       replicated: "replicated weights, the first principal component of each block",
       canonical: m === 2 ? "weights for maximal correlation, by canonical correlation analysis"
                          : "weights for maximal correlation, by generalized canonical correlation analysis under the MAXVAR criterion" }[R.method];
@@ -2214,9 +2190,9 @@ var CWREAD = (function () {
       "the indicators within a block are mutually uncorrelated, which the article's six-variable illustration " +
       "imposes on purpose."));
     if (R.isCorr) warn.push(status("info", "Correlation matrix.",
-      " The input was a correlation matrix, so the raw weights below are the standardized weights and the " +
-      "<code>DEFINE</code> statements apply to standardized variables. Standardize the indicators before using " +
-      "the generated syntax, or paste a covariance matrix instead."));
+      " The covariance matrix in use has a unit diagonal, so the raw weights below are the standardized weights " +
+      "and the <code>DEFINE</code> statements apply to standardized variables. Standardize the indicators before " +
+      "using the generated syntax."));
     out.push(warn.join(""));
 
     /* ---- missing data ---- */
@@ -2778,47 +2754,25 @@ var CWREAD = (function () {
       pendingOut = { text: res.text, encoding: res.encoding, name: file.name };
       st.outName = file.name;
       if (pendingDat) afterFiles();
-      else $("load-report").innerHTML = status("info", "Output loaded.",
-        " Now drop the data file it refers to.");
+      else $("load-report").innerHTML = status("info", "Output read; the data file is still missing.",
+        " The <code>TYPE = BASIC</code> output has been read. Now drop on the first box the raw data file it " +
+        "refers to: the output supplies the names, the missing value codes and the <code>CATEGORICAL</code> " +
+        "declaration, and the data file supplies the cases the covariance matrix is computed from.");
     });
 
-    $("paste-btn").addEventListener("click", readMatrix);
-    $("ex-a").addEventListener("click", function () {
-      $("paste").value = EX_A; $("paste-n").value = 1000; readMatrix();
-      $("nblocks").value = "2";
-      for (var i = 0; i < 6; i++) { st.block[i] = i < 3 ? 1 : 2; st.apw[i] = [0.5, 0.6, 0.7][i % 3]; }
-      renderVars();
-      say("The six-variable illustration is loaded, with the a priori weights .5, .6 and .7 in both blocks.");
-    });
-    $("ex-b").addEventListener("click", function () {
-      $("paste").value = EX_B; $("paste-n").value = 405; readMatrix();
-      $("nblocks").value = "2";
-      for (var i = 0; i < 4; i++) st.block[i] = i < 2 ? 1 : 2;
-      renderVars();
-      say("The privacy example is loaded as the correlation matrix implied by the published results.");
-    });
     $("nblocks").addEventListener("change", function () {
       var m = parseInt($("nblocks").value, 10) || 2;
       for (var i = 0; i < st.block.length; i++) if (st.block[i] > m) st.block[i] = 0;
       renderVars();
     });
     $("btn-oddeven").addEventListener("click", function () {
-      $("nblocks").value = "2";
-      for (var i = 0, k = 0; i < st.names.length; i++) if (st.block[i] !== 0 || true) st.block[i] = (k++ % 2) + 1;
+      var m = parseInt($("nblocks").value, 10) || 2;
+      for (var i = 0; i < st.names.length; i++) st.block[i] = (i % m) + 1;
       renderVars();
-      say("Odd indicators to P1, even indicators to P2, in the order of the table.");
-    });
-    $("btn-weights1").addEventListener("click", function () {
-      for (var i = 0; i < st.apw.length; i++) st.apw[i] = 1;
-      renderVars();
-      say("Every a priori weight set to one.");
+      say("The indicators were assigned alternately, in the order of the table: the first to P1, the second to P2, and so on.");
     });
     $("btn-search").addEventListener("click", startSearch);
     $("btn-run").addEventListener("click", run);
-    $("wmethod").addEventListener("change", function () {
-      $("apriori-note").hidden = $("wmethod").value !== "apriori";
-    });
-    $("apriori-note").hidden = $("wmethod").value !== "apriori";
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
@@ -2826,11 +2780,10 @@ var CWREAD = (function () {
 
   /* Exposed so that the self-test can drive the page the way a person would. */
   window.CWAPP = {
-    state: st, run: run, readMatrix: readMatrix, renderVars: renderVars,
+    state: st, run: run, adoptMatrix: adoptMatrix, renderVars: renderVars,
     buildSyntax: function () { return buildSyntax(); },
     checkSyntax: checkSyntax, EX_A: EX_A, EX_B: EX_B,
     setBlocks: function (b) { st.block = b.slice(); renderVars(); },
-    setWeights: function (w) { st.apw = w.slice(); renderVars(); },
     last: function () { return st.last; }
   };
 })(CW, CWSCALE, CWSPLIT, CWREAD);
@@ -3284,10 +3237,8 @@ var CWREAD = (function () {
        ============================================================ */
     if (window.CWAPP) {
       var app = window.CWAPP;
-      document.getElementById("paste").value = app.EX_A;
-      document.getElementById("paste-n").value = "1000";
       document.getElementById("nblocks").value = "2";
-      app.readMatrix();
+      app.adoptMatrix(app.EX_A, 1000);
       app.setBlocks([1, 1, 1, 2, 2, 2]);
       document.getElementById("wmethod").value = "canonical";
       app.run();
