@@ -138,7 +138,7 @@ p.pill { margin: 0.9rem 0 0.25rem; }
     </div>
     <details id="cat-details">
       <summary>Give particular items a different number of categories</summary>
-      <p class="hint">Every item takes the number above unless a number is written beside it here. An item with <var>C</var> categories has <span class="eq-in"><var>C</var> <span class="op">&minus;</span> 1</span> thresholds, and contributes <span class="eq-in">(<var>C</var> <span class="op">&minus;</span> 3)(<var>G</var> <span class="op">&minus;</span> 1)</span> degrees of freedom to the test of threshold invariance across <var>G</var> groups.</p>
+      <p class="hint">Every item takes the number above unless a number is written beside it here. An item with <var>C</var> categories has <math><mrow><mi>C</mi><mo>&#x2212;</mo><mn>1</mn></mrow></math> thresholds, and contributes <math><mrow><mrow><mo stretchy="false">(</mo><mi>C</mi><mo>&#x2212;</mo><mn>3</mn><mo stretchy="false">)</mo></mrow><mrow><mo stretchy="false">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mrow></math> degrees of freedom to the test of threshold invariance across <var>G</var> groups.</p>
       <div id="cat-table"></div>
     </details>
   </div>
@@ -201,12 +201,12 @@ p.pill { margin: 0.9rem 0 0.25rem; }
 <section class="tracks" aria-labelledby="h-why">
   <h2 id="h-why">Why the ordered-categorical sequence is not the familiar one</h2>
   <p>With continuous indicators the observed variable has a metric of its own. Its mean and its variance are estimated in every group, so an intercept and a residual variance can be estimated in every group as well, and the sequence configural, metric, scalar, strict adds one type of constraint at a time to a model that is already identified.</p>
-  <p>With ordered categories nothing is observed but the proportion of respondents in each category and the association between items. The model puts a normally distributed latent response variable behind each item and cuts it at thresholds, and that latent response has no metric of its own: its location and its scale are conventions. Wu and Estabrook (2016) write the transformation that changes those conventions without changing the probability of any response pattern. It has four parts in each group: a shift and a rescaling for every latent response, and a shift and a rescaling for every factor, so <span class="eq-in">2(<var>p</var> + <var>m</var>)</span> constraints per group are needed to identify a model with <var>p</var> items and <var>m</var> factors.</p>
+  <p>With ordered categories nothing is observed but the proportion of respondents in each category and the association between items. The model puts a normally distributed latent response variable behind each item and cuts it at thresholds, and that latent response has no metric of its own: its location and its scale are conventions. Wu and Estabrook (2016) write the transformation that changes those conventions without changing the probability of any response pattern. It has four parts in each group: a shift and a rescaling for every latent response, and a shift and a rescaling for every factor, so <math><mrow><mn>2</mn><mrow><mo stretchy="false">(</mo><mi>p</mi><mo>+</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></mrow></math> constraints per group are needed to identify a model with <var>p</var> items and <var>m</var> factors.</p>
   <p>The consequence is that the identification condition of a baseline model is not neutral with respect to the invariance tests that follow it. Once loadings are held equal across groups, a condition such as fixing the variance of every latent response to one in every group stops being a free choice of metric and becomes a restriction, and the same invariance hypothesis tested from two differently identified baselines gives two different chi-squares. Wu and Estabrook show a two-group example in which loading invariance is rejected under two identification conditions and retained under a third, with the same data and the same true parameters. Their answer is to identify each level of invariance separately, which is what this page writes.</p>
   <p>Three consequences follow for the sequence itself.</p>
   <ul>
     <li>Invariance of loadings alone, of intercepts alone, and of residual variances alone cannot be tested. A model with only one of these constrained is statistically equivalent to the configural model, so the difference test has no degrees of freedom to spend. Thresholds have to be dealt with first.</li>
-    <li>How much of threshold invariance can be tested depends on the number of categories. A shift and a rescaling of one latent response can always be chosen to make one threshold match, and can be chosen to make two thresholds match, but not three. An item with <var>C</var> categories therefore contributes <span class="eq-in">(<var>C</var> <span class="op">−</span> 3)(<var>G</var> <span class="op">−</span> 1)</span> degrees of freedom to the test of threshold invariance across <var>G</var> groups: none at all for a binary or three-category item, one per extra group for a four-category item.</li>
+    <li>How much of threshold invariance can be tested depends on the number of categories. A shift and a rescaling of one latent response can always be chosen to make one threshold match, and can be chosen to make two thresholds match, but not three. An item with <var>C</var> categories therefore contributes <math><mrow><mrow><mo stretchy="false">(</mo><mi>C</mi><mo>&#x2212;</mo><mn>3</mn><mo stretchy="false">)</mo></mrow><mrow><mo stretchy="false">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mrow></math> degrees of freedom to the test of threshold invariance across <var>G</var> groups: none at all for a binary or three-category item, one per extra group for a four-category item.</li>
     <li>Binary items are a separate case. With one threshold per item, threshold invariance and threshold-and-loading invariance are both statistically equivalent to the configural model (Wu &amp; Estabrook, 2016, Propositions 3 and 6), and the model that holds thresholds invariant while freeing the intercepts and the scales of the other groups is not even identified. When any item is binary this page drops those two levels and goes from the configural model to the model with invariant thresholds, loadings and intercepts.</li>
   </ul>
   <p>The two articles differ in how far they take the sequence and in what they call the levels. Wu and Estabrook (2016) name each model by the parameters it holds invariant and set out the whole hierarchy of sixteen models, of which ten are statistically distinct for polytomous items and five for binary items. Svetina, Rutkowski and Rutkowski (2020) follow the same identification conditions but write out three models only, which they name after the propositions they come from: the baseline model, Proposition 4 for threshold invariance and Proposition 7 for threshold and loading invariance. They also point out that the resulting order — thresholds first, then loadings — differs from the order in which applied work usually proceeds, where loadings are tested before thresholds and intercepts. One detail in their tutorial is a slip: the text and the annotation of the Proposition 7 input say that the item intercept is fixed at one in the first group and give <code>[y1-y4@1];</code>, while Condition 19 of Wu and Estabrook, which that step implements, sets those intercepts to zero. This page writes <code>@0</code>.</p>
@@ -1470,7 +1470,7 @@ function levelProse(cfg, S, lv) {
         "in every group, and the factor " + (marker ? "means are fixed at zero" :
         "variances are fixed at one and the factor means at zero") + " in every group. " +
         "This is identification condition " + (cfg.param === "DELTA" ? "7" : "8") +
-        " of Wu and Estabrook (2016), applied group by group: <span class=\'eq-in\'>2(<var>p</var> + <var>m</var>)</span> constraints per " +
+        " of Wu and Estabrook (2016), applied group by group: <math><mrow><mn>2</mn><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>+</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow></mrow></math> constraints per " +
         "group, which is exactly the number of arbitrary constants the model has.");
       p.push("The level says that the same items load on the same factors everywhere. Nothing may be " +
         "compared across groups yet, and the fit of this model is the precondition for everything below it.");
@@ -1492,7 +1492,7 @@ function levelProse(cfg, S, lv) {
       "variances stay at one and the factor means at zero in every group") + ". " +
       "This is condition 15 of Wu and Estabrook (2016), the model Svetina, Rutkowski and Rutkowski (2020) " +
       "call Proposition 4.");
-    p.push("An item with <var>C</var> categories contributes <span class=\'eq-in\'><var>C</var> <span class=\'op\'>−</span> 3</span> degrees of freedom per extra group " +
+    p.push("An item with <var>C</var> categories contributes <math><mrow><mi>C</mi><mo>&#x2212;</mo><mn>3</mn></mrow></math> degrees of freedom per extra group " +
       "at this step, because a shift and a rescaling of one latent response can always be chosen to match " +
       "two of its thresholds. The level licenses no comparison of its own; it is the step that makes the " +
       "invariance of the other three parameter types testable at all.");
@@ -3063,121 +3063,102 @@ return {
 
   function renderMethods(cfg, seq) {
     var html = "";
-    html += "<p>Write <var>p</var> for the number of items, <var>m</var> for the number of factors and " +
-      "<var>G</var> for the number of groups. <b>&Lambda;</b> collects the loadings, <b>&nu;</b> the item " +
-      "intercepts, <b>&Theta;</b> the residual variances, <b>&kappa;</b> the factor means and <b>&Phi;</b> " +
-      "the factor covariance matrix. With ordered-categorical items <b>T</b> collects the thresholds and " +
-      "<b>&Sigma;</b>* is the covariance matrix of the latent responses, whose diagonal the delta " +
-      "parameterization fixes through the scale factors. A superscript in parentheses names the group, so " +
-      "<span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup></span> is the loading matrix of group " +
-      "<var>g</var>, and a quantity written without one is held equal across groups.</p>";
-
+    html += "<p>Write <var>p</var> for the number of items, <var>m</var> for the number of factors and <var>G</var> " +
+      "for the number of groups. <b>&Lambda;</b> collects the loadings, <b>&nu;</b> the item intercepts, <b>&Theta;</b> " +
+      "the residual variances, <b>&kappa;</b> the factor means and <b>&Phi;</b> the factor covariance matrix. " +
+      "With ordered-categorical items <b>T</b> collects the thresholds and <b>&Sigma;</b>* is the covariance " +
+      "matrix of the latent responses, whose diagonal the delta parameterization fixes through the scale factors. " +
+      "A superscript in parentheses names the group, so <math><mrow><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup></mrow></math> " +
+      "is the loading matrix of group <var>g</var>, and a quantity written without one is held equal across groups.</p>";
     html += "<h3>Continuous indicators</h3>";
     html += "<p>In each group the model for the observed responses is</p>";
-    html += "<div class=\"eq\"><b>y</b><sup>(<var>g</var>)</sup> = <b>&nu;</b><sup>(<var>g</var>)</sup> " +
-      "+ <b>&Lambda;</b><sup>(<var>g</var>)</sup> <b>&eta;</b><sup>(<var>g</var>)</sup> " +
-      "+ <b>&epsilon;</b><sup>(<var>g</var>)</sup></div>";
-    html += "<p class=\"where\">Here <b>y</b><sup>(<var>g</var>)</sup> is the vector of the <var>p</var> " +
-      "observed responses in group <var>g</var>, <b>&nu;</b><sup>(<var>g</var>)</sup> the vector of item " +
-      "intercepts, <b>&Lambda;</b><sup>(<var>g</var>)</sup> the matrix of loadings, " +
-      "<b>&eta;</b><sup>(<var>g</var>)</sup> the vector of the <var>m</var> factors and " +
+    html += "<div class=\"eq\"><math display=\"block\"><mrow><msup><mi mathvariant=\"bold\">y</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><msup><mi mathvariant=\"bold\">&#x3BD;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>+</mo><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><msup><mi mathvariant=\"bold\">&#x3B7;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>+</mo><msup><mi mathvariant=\"bold\">&#x3B5;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup></mrow></math></div>";
+    html += "<p class=\"where\">Here <b>y</b><sup>(<var>g</var>)</sup> is the vector of the <var>p</var> observed responses " +
+      "in group <var>g</var>, <b>&nu;</b><sup>(<var>g</var>)</sup> the vector of item intercepts, <b>&Lambda;</b><sup>(<var>g</var>)</sup> " +
+      "the matrix of loadings, <b>&eta;</b><sup>(<var>g</var>)</sup> the vector of the <var>m</var> factors and " +
       "<b>&epsilon;</b><sup>(<var>g</var>)</sup> the vector of residuals.</p>";
     html += "<p>Its mean vector and covariance matrix are</p>";
-    html += "<div class=\"eq\"><span class=\"eq-in\"><b>&mu;</b><sup>(<var>g</var>)</sup> = <b>&nu;</b><sup>(<var>g</var>)</sup> " +
-      "+ <b>&Lambda;</b><sup>(<var>g</var>)</sup> <b>&kappa;</b><sup>(<var>g</var>)</sup></span>,<span class=\"op\"> </span> " +
-      "<span class=\"eq-in\"><b>&Sigma;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b><sup>(<var>g</var>)</sup> " +
-      "<b>&Phi;</b><sup>(<var>g</var>)</sup> <b>&Lambda;</b><sup>(<var>g</var>)&prime;</sup> " +
-      "+ <b>&Theta;</b><sup>(<var>g</var>)</sup></span></div>";
-    html += "<p class=\"where\">Here <b>&mu;</b><sup>(<var>g</var>)</sup> is the mean vector of the observed " +
-      "responses in group <var>g</var>, <b>&kappa;</b><sup>(<var>g</var>)</sup> the vector of factor means, " +
-      "<b>&Sigma;</b><sup>(<var>g</var>)</sup> their covariance matrix, <b>&Phi;</b><sup>(<var>g</var>)</sup> " +
-      "the covariance matrix of the factors, <b>&Theta;</b><sup>(<var>g</var>)</sup> the covariance matrix of " +
-      "the residuals, and the prime denotes transposition.</p>";
+    html += "<div class=\"eq\"><math display=\"block\"><mrow><mrow><msup><mi mathvariant=\"bold\">&#x3BC;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><msup><mi mathvariant=\"bold\">&#x3BD;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>+</mo><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup></mrow><mrow><mo>&#x2c;</mo><mspace width=\"1em\"></mspace></mrow><mrow><msup><mi mathvariant=\"bold\">&#x3A3;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><msup><mi mathvariant=\"bold\">&#x3A6;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow><mo>&#x2032;</mo></mrow></msup><mo>+</mo><msup><mi mathvariant=\"bold\">&#x398;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup></mrow></mrow></math></div>";
+    html += "<p class=\"where\">Here <b>&mu;</b><sup>(<var>g</var>)</sup> is the mean vector of the observed responses " +
+      "in group <var>g</var>, <b>&kappa;</b><sup>(<var>g</var>)</sup> the vector of factor means, <b>&Sigma;</b><sup>(<var>g</var>)</sup> " +
+      "their covariance matrix, <b>&Phi;</b><sup>(<var>g</var>)</sup> the covariance matrix of the factors, <b>&Theta;</b><sup>(<var>g</var>)</sup> " +
+      "the covariance matrix of the residuals, and the prime denotes transposition.</p>";
     html += "<p>The levels are:</p><ul>";
-    html += "<li><b>Configural.</b> Nothing equal across groups. The model is identified in each group by " +
-      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(<var>g</var>)</sup>) = <b>I</b></span> and " +
-      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> under the fixed-factor " +
-      "method, or by one loading per factor fixed at one together with " +
-      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> under the marker method.</li>";
-    html += "<li><b>Metric.</b> <span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b></span>. " +
-      "The factor variances are freed in the <span class=\"eq-in\"><var>G</var> &minus; 1</span> groups after " +
-      "the first under the fixed-factor method and stay free everywhere under the marker method. Spends " +
-      "<span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
-    html += "<li><b>Scalar.</b> <span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b></span> " +
-      "and <span class=\"eq-in\"><b>&nu;</b><sup>(<var>g</var>)</sup> = <b>&nu;</b></span>. The factor means are " +
-      "freed in the <span class=\"eq-in\"><var>G</var> &minus; 1</span> groups after the first. Spends " +
-      "<span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
-    html += "<li><b>Strict.</b> <span class=\"eq-in\"><b>&Theta;</b><sup>(<var>g</var>)</sup> = <b>&Theta;</b></span> " +
-      "as well. Spends <span class=\"eq-in\"><var>p</var>(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
-    html += "<li><b>Equal factor variances and covariances.</b> " +
-      "<span class=\"eq-in\"><b>&Phi;</b><sup>(<var>g</var>)</sup> = <b>&Phi;</b></span>. Spends " +
-      "<span class=\"eq-in\">[<var>m</var> + <var>m</var>(<var>m</var> &minus; 1) / 2](<var>G</var> &minus; 1)</span> " +
+    html += "<li><b>Configural.</b> Nothing equal across groups. The model is identified in each group by <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A6;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
+      "and <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "under the fixed-factor method, or by one loading per factor fixed at one together with <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "under the marker method.</li>";
+    html += "<li><b>Metric.</b> <math><mrow><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x39B;</mi></mrow></math>. " +
+      "The factor variances are freed in the <math><mrow><mi>G</mi><mo>&#x2212;</mo><mn>1</mn></mrow></math> " +
+      "groups after the first under the fixed-factor method and stay free everywhere under the marker method. " +
+      "Spends <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
       "degrees of freedom.</li>";
-    html += "<li><b>Equal factor means.</b> <span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> " +
-      "in every group. Spends <span class=\"eq-in\"><var>m</var>(<var>G</var> &minus; 1)</span> degrees of freedom.</li></ul>";
-    html += "<p>The two identification methods give the same fit and the same degrees of freedom at every " +
-      "level; they differ in what is assumed rather than tested. The marker method takes the metric of the " +
-      "factor from one item, so that item's loading, and from the scalar level its intercept, are held " +
-      "invariant by construction and never enter a test. The fixed-factor method standardizes the factor " +
-      "in the reference group instead, so every loading and every intercept is free to be tested, at the " +
-      "cost of a factor whose scale is defined by a group rather than by an item.</p>";
-
+    html += "<li><b>Scalar.</b> <math><mrow><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x39B;</mi></mrow></math> " +
+      "and <math><mrow><msup><mi mathvariant=\"bold\">&#x3BD;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x3BD;</mi></mrow></math>. " +
+      "The factor means are freed in the <math><mrow><mi>G</mi><mo>&#x2212;</mo><mn>1</mn></mrow></math> groups " +
+      "after the first. Spends <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom.</li>";
+    html += "<li><b>Strict.</b> <math><mrow><msup><mi mathvariant=\"bold\">&#x398;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x398;</mi></mrow></math> " +
+      "as well. Spends <math><mrow><mi>p</mi><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom.</li>";
+    html += "<li><b>Equal factor variances and covariances.</b> <math><mrow><msup><mi mathvariant=\"bold\">&#x3A6;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x3A6;</mi></mrow></math>. " +
+      "Spends <math><mrow><mrow><mo stretchy=\"false\">[</mo><mi>m</mi><mo>+</mo><mi>m</mi><mrow><mo stretchy=\"false\">(</mo><mi>m</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow><mo>/</mo><mn>2</mn><mo stretchy=\"false\">]</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom.</li>";
+    html += "<li><b>Equal factor means.</b> <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "in every group. Spends <math><mrow><mi>m</mi><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom.</li></ul>";
+    html += "<p>The two identification methods give the same fit and the same degrees of freedom at every level; they " +
+      "differ in what is assumed rather than tested. The marker method takes the metric of the factor from one " +
+      "item, so that item's loading, and from the scalar level its intercept, are held invariant by construction " +
+      "and never enter a test. The fixed-factor method standardizes the factor in the reference group instead, " +
+      "so every loading and every intercept is free to be tested, at the cost of a factor whose scale is defined " +
+      "by a group rather than by an item.</p>";
     html += "<h3>Ordered-categorical indicators</h3>";
-    html += "<p>An item with <var>C</var> categories has <span class=\"eq-in\"><var>K</var> = <var>C</var> " +
-      "&minus; 1</span> thresholds cutting a latent response <var>y</var>*. Wu and Estabrook (2016) show " +
-      "that the parameters may be changed by a shift and a positive rescaling of every latent response and " +
-      "of every factor without changing the probability of any response pattern, so " +
-      "<span class=\"eq-in\">2(<var>p</var> + <var>m</var>)</span> constraints per group are needed. Their " +
-      "conditions, in the order this page writes them, are:</p><ul>";
-    html += "<li><b>Configural.</b> Condition 7 in each group under the delta parameterization: " +
-      "<span class=\"eq-in\">diag(<b>&Phi;</b>) = <b>I</b></span>, " +
-      "<span class=\"eq-in\"><b>&kappa;</b> = <b>0</b></span>, " +
-      "<span class=\"eq-in\"><b>&nu;</b> = <b>0</b></span> and " +
-      "<span class=\"eq-in\">diag(<b>&Sigma;</b>*) = <b>I</b></span>. Under the theta parameterization it is " +
-      "condition 8, with <span class=\"eq-in\"><b>&Theta;</b> = <b>I</b></span> in place of the last constraint.</li>";
-    html += "<li><b>Equal thresholds</b> (condition 15, Proposition 4). " +
-      "<span class=\"eq-in\"><b>T</b><sup>(<var>g</var>)</sup> = <b>T</b></span>; " +
-      "<span class=\"eq-in\"><b>&nu;</b><sup>(1)</sup> = <b>0</b></span> and " +
-      "<span class=\"eq-in\">diag(<b>&Sigma;</b>*<sup>(1)</sup>) = <b>I</b></span> in the first group only, " +
-      "with the intercepts and scales free elsewhere; " +
-      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> and " +
-      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(<var>g</var>)</sup>) = <b>I</b></span> in every group. " +
-      "The degrees of freedom it spends are</li></ul>";
-    html += "<div class=\"eq\">Δ<var>df</var> = <span class=\"big\">Σ</span><sub><var>j</var></sub> " +
-      "(<var>C</var><sub><var>j</var></sub> &minus; 3)(<var>G</var> &minus; 1)</div>";
-    html += "<p class=\"where\">Here <var>j</var> runs over the <var>p</var> items, " +
-      "<var>C</var><sub><var>j</var></sub> is the number of response categories of item <var>j</var> and " +
-      "<var>G</var> is the number of groups, so an item with fewer than four categories contributes none.</p>";
+    html += "<p>An item with <var>C</var> categories has <math><mrow><mi>K</mi><mo>=</mo><mi>C</mi><mo>&#x2212;</mo><mn>1</mn></mrow></math> " +
+      "thresholds cutting a latent response <var>y</var>*. Wu and Estabrook (2016) show that the parameters may " +
+      "be changed by a shift and a positive rescaling of every latent response and of every factor without changing " +
+      "the probability of any response pattern, so <math><mrow><mn>2</mn><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>+</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "constraints per group are needed. Their conditions, in the order this page writes them, are:</p><ul>";
+    html += "<li><b>Configural.</b> Condition 7 in each group under the delta parameterization: <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><mi mathvariant=\"bold\">&#x3A6;</mi><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math>, " +
+      "<math><mrow><mi mathvariant=\"bold\">&#x3BA;</mi><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math>, " +
+      "<math><mrow><mi mathvariant=\"bold\">&#x3BD;</mi><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "and <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A3;</mi><mo>&#x2217;</mo></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math>. " +
+      "Under the theta parameterization it is condition 8, with <math><mrow><mi mathvariant=\"bold\">&#x398;</mi><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
+      "in place of the last constraint.</li>";
+    html += "<li><b>Equal thresholds</b> (condition 15, Proposition 4). <math><mrow><msup><mi mathvariant=\"bold\">T</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">T</mi></mrow></math>; " +
+      "<math><mrow><msup><mi mathvariant=\"bold\">&#x3BD;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "and <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A3;</mi><mrow><mo>&#x2217;</mo><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
+      "in the first group only, with the intercepts and scales free elsewhere; <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "and <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A6;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
+      "in every group. The degrees of freedom it spends are</li></ul>";
+    html += "<div class=\"eq\"><math display=\"block\"><mrow><mi mathvariant=\"normal\">&#x394;</mi><mi>d</mi><mi>f</mi><mo>=</mo><munder><mo movablelimits=\"false\">&#x2211;</mo><mi>j</mi></munder><mrow><mo stretchy=\"false\">(</mo><msub><mi>C</mi><mi>j</mi></msub><mo>&#x2212;</mo><mn>3</mn><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math></div>";
+    html += "<p class=\"where\">Here <var>j</var> runs over the <var>p</var> items, <var>C</var><sub><var>j</var></sub> " +
+      "is the number of response categories of item <var>j</var> and <var>G</var> is the number of groups, so " +
+      "an item with fewer than four categories contributes none.</p>";
     html += "<ul>";
-    html += "<li><b>Equal thresholds and loadings</b> (condition 19, Proposition 7). Also " +
-      "<span class=\"eq-in\"><b>&Lambda;</b><sup>(<var>g</var>)</sup> = <b>&Lambda;</b></span>; " +
-      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(1)</sup>) = <b>I</b></span> in the first group only, so " +
-      "factor variances are free elsewhere; " +
-      "<span class=\"eq-in\"><b>&kappa;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> in every group. Spends " +
-      "<span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees of freedom.</li>";
-    html += "<li><b>Equal thresholds, loadings and intercepts</b> (condition 27). Also " +
-      "<span class=\"eq-in\"><b>&nu;</b> = <b>0</b></span> in every group, with " +
-      "<span class=\"eq-in\"><b>&kappa;</b><sup>(1)</sup> = <b>0</b></span> and factor means free elsewhere. " +
-      "Spends <span class=\"eq-in\">(<var>p</var> &minus; <var>m</var>)(<var>G</var> &minus; 1)</span> degrees " +
-      "of freedom when it follows the previous level, and " +
-      "<span class=\"eq-in\">(<var>p</var> &minus; 2<var>m</var>)(<var>G</var> &minus; 1)</span> when it follows " +
-      "the configural model directly, which is the route taken with binary items.</li>";
-    html += "<li><b>Full measurement invariance</b> (condition 9). Also " +
-      "<span class=\"eq-in\"><b>&Theta;</b><sup>(<var>g</var>)</sup> = <b>&Theta;</b></span>, written by fixing " +
-      "the residual variances of the latent responses at one in every group rather than in the first only. " +
-      "Fixing an invariant <b>&Theta;</b> and standardizing <b>&Sigma;</b>* in the first group are two ways of " +
-      "choosing the same metric and use the same number of parameters. Spends " +
-      "<span class=\"eq-in\"><var>p</var>(<var>G</var> &minus; 1)</span> degrees of freedom. It needs the theta " +
-      "parameterization, because <b>&Theta;</b> is not a parameter under delta.</li></ul>";
-    html += "<p>Millsap and Yun-Tein (2004) identify the baseline model differently: they set " +
-      "<span class=\"eq-in\"><b>&nu;</b><sup>(<var>g</var>)</sup> = <b>0</b></span> and one loading per factor " +
-      "to one in every group, <span class=\"eq-in\"><b>&kappa;</b><sup>(1)</sup> = <b>0</b></span> and " +
-      "<span class=\"eq-in\">diag(<b>&Phi;</b><sup>(1)</sup>) = <b>I</b></span> in the first group, and hold " +
-      "invariant one threshold per item together with a second threshold in the reference item of each " +
-      "factor. Wu and Estabrook keep that parameterization as one of three equivalent ways of identifying " +
-      "the baseline and show that which one is chosen changes the result of the invariance tests built on " +
-      "top of it, which is why each level here is identified on its own instead.</p>";
-
+    html += "<li><b>Equal thresholds and loadings</b> (condition 19, Proposition 7). Also <math><mrow><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x39B;</mi></mrow></math>; " +
+      "<math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A6;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
+      "in the first group only, so factor variances are free elsewhere; <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "in every group. Spends <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom.</li>";
+    html += "<li><b>Equal thresholds, loadings and intercepts</b> (condition 27). Also <math><mrow><mi mathvariant=\"bold\">&#x3BD;</mi><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "in every group, with <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "and factor means free elsewhere. Spends <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom when it follows the previous level, and <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mn>2</mn><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "when it follows the configural model directly, which is the route taken with binary items.</li>";
+    html += "<li><b>Full measurement invariance</b> (condition 9). Also <math><mrow><msup><mi mathvariant=\"bold\">&#x398;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x398;</mi></mrow></math>, " +
+      "written by fixing the residual variances of the latent responses at one in every group rather than in " +
+      "the first only. Fixing an invariant <b>&Theta;</b> and standardizing <b>&Sigma;</b>* in the first group " +
+      "are two ways of choosing the same metric and use the same number of parameters. Spends <math><mrow><mi>p</mi><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "degrees of freedom. It needs the theta parameterization, because <b>&Theta;</b> is not a parameter under " +
+      "delta.</li></ul>";
+    html += "<p>Millsap and Yun-Tein (2004) identify the baseline model differently: they set <math><mrow><msup><mi mathvariant=\"bold\">&#x3BD;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "and one loading per factor to one in every group, <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
+      "and <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A6;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
+      "in the first group, and hold invariant one threshold per item together with a second threshold in the " +
+      "reference item of each factor. Wu and Estabrook keep that parameterization as one of three equivalent " +
+      "ways of identifying the baseline and show that which one is chosen changes the result of the invariance " +
+      "tests built on top of it, which is why each level here is identified on its own instead.</p>";
     html += "<h3>What the page checks in what it wrote</h3>";
     html += "<p>Each input is read back as text before it is shown. The reader takes the input apart into " +
       "its command sections and checks that they are present and in the order the program expects, that " +

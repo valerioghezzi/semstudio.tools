@@ -524,24 +524,46 @@ pre.syntax { max-height: 30rem; overflow: auto; contain: paint; }
 }
 
 
-/* ---------- Typeset formulas ---------- */
+/* ---------- Typeset formulas ----------
+   Formulas are MathML, rendered natively by the browser. A mathematical
+   font is used when the system has one (Cambria Math on Windows, STIX Two
+   Math on macOS, Latin Modern Math on TeX installations): those fonts carry
+   the italic letters, the large operators and the stretchy fences at the
+   right sizes; otherwise the serif face of the prose symbols is used. */
 var { font-style: italic; font-family: Georgia, "Times New Roman", serif; }
 var sub, var sup { font-style: normal; }
+math {
+  font-family: "Cambria Math", "STIX Two Math", "Latin Modern Math", "Libertinus Math",
+    "TeX Gyre Termes Math", "DejaVu Math TeX Gyre", math, Georgia, "Times New Roman", serif;
+  line-height: 1.25;
+}
+math { font-size: 1.05em; }
+math[display="block"] { margin: 0.4rem 0; font-size: 1.08em; }
+/* Browsers that follow MathML Core ignore mathvariant values other than
+   "normal"; matrices and vectors are made bold upright by style instead. */
+math mi[mathvariant="bold"] { font-weight: 700; text-transform: none; font-style: normal; }
 .eq {
-  display: block; margin: 1.1rem 0; padding: 0.85rem 1rem;
-  background: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius);
-  font-family: Georgia, "Times New Roman", serif; font-size: 1.06rem; line-height: 1.9;
-  text-align: center; overflow-x: auto; max-width: 100%;
+  display: flex; margin: 1.1rem 0; padding: 0.85rem 1rem;
+  background-color: var(--panel); border: 1px solid var(--line-soft); border-radius: var(--radius);
+  font-size: 1.06rem; line-height: 1.6;
+  text-align: center; overflow-x: auto; overflow-y: hidden; max-width: 100%;
+  /* the same edge shadows as .table-wrap, visible only where a wide formula
+     still has something to scroll to */
+  contain: paint;
+  background-image:
+    linear-gradient(to right, var(--panel), transparent),
+    linear-gradient(to left,  var(--panel), transparent),
+    linear-gradient(to right, rgba(27, 31, 36, 0.20), transparent),
+    linear-gradient(to left,  rgba(27, 31, 36, 0.20), transparent);
+  background-position: left center, right center, left center, right center;
+  background-size: 2.4rem 100%, 2.4rem 100%, 0.9rem 100%, 0.9rem 100%;
+  background-repeat: no-repeat;
+  background-attachment: local, local, scroll, scroll;
 }
-.eq-in { font-family: Georgia, "Times New Roman", serif; white-space: nowrap; }
-.eq .frac {
-  display: inline-block; vertical-align: middle; text-align: center;
-  margin: 0 0.2em; line-height: 1.35;
-}
-.eq .frac > .num { display: block; padding: 0 0.35em; border-bottom: 1px solid currentColor; }
-.eq .frac > .den { display: block; padding: 0 0.35em; }
-.eq .op { padding: 0 0.28em; }
-.eq .big { font-size: 1.35em; vertical-align: -0.12em; }
+/* Auto margins centre the formula and, unlike justify-content, give way when
+   the formula is wider than the box, so the left end stays reachable by
+   scrolling. */
+.eq > math[display="block"] { flex: none; margin-left: auto; margin-right: auto; }
 .where { max-width: var(--measure); color: var(--ink-soft); margin-top: -0.4rem; }
 
 /* Numbered instructions */

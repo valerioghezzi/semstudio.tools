@@ -247,12 +247,12 @@
 
   <h3>Balance, and the comparison shown beside it</h3>
   <p>For each parcel the page reports the number of items in it, the mean of their loadings and the sum of their loadings. Writing <var>P</var><sub><var>p</var></sub> for the set of items allocated to parcel <var>p</var> and <var>n</var><sub><var>p</var></sub> for how many there are, the two quantities are</p>
-  <div class="eq">λ̄<sub><var>p</var></sub> = <span class="frac"><span class="num">1</span><span class="den"><var>n</var><sub><var>p</var></sub></span></span> <span class="big">Σ</span><sub><var>i</var> ∈ <var>P</var><sub><var>p</var></sub></sub> λ<sub><var>i</var></sub></div>
-  <p class="where">Here λ̄<sub><var>p</var></sub> is the mean loading of parcel <var>p</var>, <var>n</var><sub><var>p</var></sub> the number of items in it, <var>P</var><sub><var>p</var></sub> the set of those items, and λ<sub><var>i</var></sub> the standardized loading of item <var>i</var> read from the output.</p>
-  <div class="eq"><var>S</var><sub><var>p</var></sub> = <span class="big">Σ</span><sub><var>i</var> ∈ <var>P</var><sub><var>p</var></sub></sub> λ<sub><var>i</var></sub></div>
-  <p class="where">Here <var>S</var><sub><var>p</var></sub> is the sum of the loadings of parcel <var>p</var>, over the same set of items.</p>
+  <div class="eq"><math display="block"><mrow><msub><mover accent="true"><mi>&#x3BB;</mi><mo>&#xAF;</mo></mover><mi>p</mi></msub><mo>=</mo><mfrac><mn>1</mn><msub><mi>n</mi><mi>p</mi></msub></mfrac><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub></mrow></math></div>
+  <p class="where">Here λ̄<sub><var>p</var></sub> is the mean loading of parcel <var>p</var>, <var>n</var><sub><var>p</var></sub> the number of items in it, the sum over <var>i</var> runs over those items, and λ<sub><var>i</var></sub> is the standardized loading of item <var>i</var> read from the output.</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>S</mi><mi>p</mi></msub><mo>=</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub></mrow></math></div>
+  <p class="where">Here <var>S</var><sub><var>p</var></sub> is the sum of the loadings of parcel <var>p</var>, the sum over <var>i</var> running over the same items.</p>
   <p>The mean says how strongly the parcel marks the construct; the sum is what an equal split of total strength would equalize, and the balancing technique reduces the spread of it, that is</p>
-  <div class="eq">range(<var>S</var>) = max<sub><var>p</var></sub> <var>S</var><sub><var>p</var></sub> <span class="op">−</span> min<sub><var>p</var></sub> <var>S</var><sub><var>p</var></sub></div>
+  <div class="eq"><math display="block"><mrow><mrow><mi>range</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><munder><mi>max</mi><mi>p</mi></munder><mspace width="0.17em"></mspace><msub><mi>S</mi><mi>p</mi></msub><mo>&#x2212;</mo><munder><mi>min</mi><mi>p</mi></munder><mspace width="0.17em"></mspace><msub><mi>S</mi><mi>p</mi></msub></mrow></math></div>
   <p class="where">Here range(<var>S</var>) is the spread reported under the allocation table, and the maximum and the minimum are taken over the parcels of the scheme.</p>
   <p>A plain sequential split — the items cut into consecutive blocks in the order they were read from the file — is summarized beside the allocation for comparison. Over 2,500 generated problems with four to two hundred items and two to twenty parcels the balancing technique gave a smaller spread of parcel loading sums than that split in 96.8% of them and the same spread in a further 0.3%; the median reduction was 83.6% of the spread the sequential split produced. The page warns when the mean loadings of the parcels range over more than .10; that threshold is a display convention of this page and not a criterion from the literature. It also reports when the parcels differ in size by more than one item, which is not a fault — the source states that parcels need not hold the same number of items — but does mean that a larger parcel is more reliable than a smaller one and will carry a larger loading for that reason alone.</p>
 
@@ -1825,9 +1825,9 @@ function parcelSelfTest() {
     var st = state.last, r = st.result, s = r.summary, items = state.items;
     var out = [], i, q;
 
-    out.push('<p class="table-note" id="alloc-note">Items in each parcel, with the mean λ\u0304<sub><var>p</var></sub> and the sum <var>S</var><sub><var>p</var></sub> of the loadings of the items in it.</p>');
+    out.push('<p class="table-note" id="alloc-note">Items in each parcel, with the mean <math><mrow><msub><mover accent="true"><mi>&#x3BB;</mi><mo>&#xAF;</mo></mover><mi>p</mi></msub></mrow></math> and the sum <math><mrow><msub><mi>S</mi><mi>p</mi></msub></mrow></math> of the loadings of the items in it.</p>');
     out.push('<div class="table-wrap"><table aria-labelledby="alloc-note"><thead><tr>' +
-      "<th>Parcel</th><th>Items in it</th><th class=\"num\">How many</th><th class=\"num\">Mean loading λ\u0304<sub><var>p</var></sub></th><th class=\"num\">Sum of loadings <var>S</var><sub><var>p</var></sub></th></tr></thead><tbody>");
+      "<th>Parcel</th><th>Items in it</th><th class=\"num\">How many</th><th class=\"num\">Mean loading <math><mrow><msub><mover accent=\"true\"><mi>&#x3BB;</mi><mo>&#xAF;</mo></mover><mi>p</mi></msub></mrow></math></th><th class=\"num\">Sum of loadings <math><mrow><msub><mi>S</mi><mi>p</mi></msub></mrow></math></th></tr></thead><tbody>");
     for (i = 0; i < r.parcels.length; i++) {
       var chips = r.parcels[i].map(function (j) {
         var it = items[j];
@@ -1845,7 +1845,7 @@ function parcelSelfTest() {
     out.push('<dl class="kv">');
     out.push("<dt>Items in a parcel</dt><dd>" + s.minSize + (s.minSize === s.maxSize ? "" : " to " + s.maxSize) + "</dd>");
     if (s.meanRange !== null) out.push("<dt>Range of the mean loadings</dt><dd>" + p3(s.meanRange) + "</dd>");
-    if (s.sumRange !== null) out.push("<dt>Range of the loading sums, range(<var>S</var>)</dt><dd>" + n3(s.sumRange) + "</dd>");
+    if (s.sumRange !== null) out.push("<dt>Range of the loading sums, <math><mrow><mrow><mi>range</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><mi>S</mi><mo stretchy=\"false\">)</mo></mrow></mrow></mrow></math></dt><dd>" + n3(s.sumRange) + "</dd>");
     if (r.strategy === "balanced" || r.strategy === "random" || r.strategy === "purposeful") {
       var seq = PARCEL.summarize(items, PARCEL.stratSequential(items, r.parcels.length));
       if (seq.sumRange !== null && s.sumRange !== null) {
