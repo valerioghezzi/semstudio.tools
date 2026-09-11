@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Computes omega, omega hierarchical, ECV, I-ECV, PUC, construct replicability H, factor determinacy and relative parameter bias for a bifactor confirmatory factor model, from the standardized loadings of the fitted solution.">
-<title>Bifactor indices · semstudio.tools</title>
+<title>Bifactor Indices · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
@@ -22,40 +22,46 @@
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Bifactor indices</h1>
-  <p class="lede">This page computes the indices normally reported for a bifactor confirmatory factor model — omega and omega hierarchical, explained common variance, percentage of uncontaminated correlations, construct replicability and factor determinacy — from the standardized loadings of a fitted bifactor solution. Every loading and every residual variance is read from an M<em>plus</em> output file; nothing is typed into this page.</p>
+  <h1>Bifactor Indices</h1>
+  <p class="lede">This page computes the indices that Rodriguez, Reise and Haviland (2016a) recommend for a bifactor confirmatory factor model — omega and omega hierarchical, explained common variance, percentage of uncontaminated correlations, construct replicability and factor determinacy — from the standardized loadings of a fitted bifactor solution. Every loading and every residual variance is read from an M<em>plus</em> output file.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: STDYX;</code> — every index on this page is defined on the standardized metric, so the completely standardized solution is what the parser reads. The residual variances printed in the same section are read as well; when they are absent, or present for only some items, they are recomputed as one minus the sum of the squared loadings for all of them, and the page says which of the two it used.
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: STDYX;</code> — every index on this page is defined on the standardized metric, so this page reads the completely standardized solution. The residual variances printed in the same section are read as well; when they are absent, or present for only some items, they are recomputed as one minus the sum of the squared loadings for all of them, and the page says which of the two it used.
+    A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
   </div>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
 <div id="selftest-banner" hidden></div>
 
 <section aria-labelledby="h-steps">
   <h2 id="h-steps">What to do</h2>
   <ol class="steps">
-    <li>Fit the bifactor model in M<em>plus</em>, with every item loading on the general factor and on at most one specific factor, and add this line to the input file, exactly as it is written here: <code>OUTPUT: STDYX;</code></li>
+    <li>Fit the bifactor model in M<em>plus</em>, with every item loading on the general factor and on at most one specific factor, and with the factors uncorrelated. If the input has no OUTPUT command, add this line, exactly as it is written here: <code>OUTPUT: STDYX;</code>. If it already has one, add the option <code>STDYX</code> to that command instead of writing a second one.</li>
     <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the same folder as the input.</li>
     <li>Drag the <code>.out</code> file onto the first box below, or click that box, or move the focus to it and press Enter, to choose the file from your computer. It is read inside your browser and nothing leaves your computer.</li>
     <li>Say which of the factors in the file is the general factor. The page proposes the factor with the most items, because an output does not record which factor was meant to be general; every other factor is then a specific factor. If the output holds several groups, say which group to read as well.</li>
     <li>Read the indices in the three tables, at the level of the model, of each factor and of each item, and copy the same values as tab-separated text from the block at the end.</li>
     <li>For relative parameter bias only: fit the same items as a single-factor model, with the same <code>OUTPUT: STDYX;</code> line, and drop that second <code>.out</code> file on the second box. The page matches the items by name and reports the bias per item. Without that file the two bias columns stay empty.</li>
   </ol>
-  <p>The page refuses a file with no STDYX Standardization section, since the unstandardized loadings would give different numbers; a model whose indicators include a latent variable, which is a second-order model none of these formulas applies to; an output that prints the same item name twice under one BY heading; and a model with a single factor, which is not a bifactor model. It reads nothing from a file that is not an M<em>plus</em> output, and it computes nothing from a value supplied any other way, because there is no other way to supply one.</p>
+  <p>The page refuses a file with no STDYX Standardization section, since the unstandardized loadings would give different numbers; a model whose indicators include a latent variable, which is a second-order model none of these formulas applies to; a model whose factors are correlated, since every formula assumes orthogonal factors; an output that prints the same item name twice under one BY heading; and a model with a single factor, which is not a bifactor model. It reads nothing from a file that is not an M<em>plus</em> output, and no value can be typed into it.</p>
 </section>
 
 <section aria-labelledby="h-input">
   <h2 id="h-input">Load the M<em>plus</em> output of the bifactor model</h2>
-  <div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-hint">
+  <div class="drop" id="drop">
     <strong>Drop the M<em>plus</em> <code>.out</code> file of the bifactor model here</strong>, or press Enter to choose one.
     <label class="visually-hidden" for="file">M<em>plus</em> output file of the bifactor model</label>
-    <input type="file" id="file" accept=".out,.txt,text/plain">
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
     <span class="file-name" id="file-name"></span>
   </div>
   <p id="drop-hint" class="hint">The file is read in your browser. Windows-1252, UTF-8 and UTF-16 output files are all decoded. When the output has more than one group the page asks which of them to read.</p>
   <div id="mplus-report" aria-live="polite"></div>
+  <div class="field" id="group-picker" hidden>
+    <label for="group-select">Read this group of the output</label>
+    <select id="group-select"></select>
+    <span class="hint">The output holds one standardized solution per group, and the indices describe one solution at a time. Choosing another group recomputes every table.</span>
+  </div>
   <div class="field" id="general-picker" hidden>
     <label for="general-select">Treat this factor as the general factor</label>
     <select id="general-select"></select>
@@ -66,7 +72,7 @@
 <section aria-labelledby="h-uni">
   <h2 id="h-uni">Load the unidimensional model as well, for relative parameter bias</h2>
   <p>Relative parameter bias compares the loading an item takes in a single-factor model with the loading it takes on the general factor of the bifactor model. The first of those is in a different run, so it comes from a second output file. Fit the same items as one factor, with <code>OUTPUT: STDYX;</code> in the input, and drop the resulting <code>.out</code> file here. Everything else on the page is computed without it.</p>
-  <div class="drop" id="drop-uni" tabindex="0" role="button" aria-describedby="drop-uni-hint">
+  <div class="drop" id="drop-uni" aria-describedby="drop-uni-hint">
     <strong>Drop the M<em>plus</em> <code>.out</code> file of the unidimensional model here</strong>, or press Enter to choose one.
     <label class="visually-hidden" for="file-uni">M<em>plus</em> output file of the unidimensional model</label>
     <input type="file" id="file-uni" accept=".out,.txt,text/plain">
@@ -78,7 +84,7 @@
 
 <section aria-labelledby="h-results">
   <h2 id="h-results">Results</h2>
-  <div id="results" aria-live="polite"><p class="hint">The indices appear here once the output of a bifactor model has been read.</p></div>
+  <div id="results"><p class="hint">The indices appear here once the output of a bifactor model has been read.</p></div>
 </section>
 
 <section aria-labelledby="h-export">
@@ -94,27 +100,30 @@
   </div>
 </section>
 
-<section class="tracks" aria-labelledby="h-guide">
-  <h2 id="h-guide">Reading the indices</h2>
+<details class="fold" id="fold-h-guide">
+  <summary><h2 id="h-guide">Reading the indices</h2></summary>
+  <div class="fold-body">
   <p>The values below are guidance taken from the sources named, not decision rules. None of them replaces an evaluation of the model as a whole, and each was proposed for a particular family of measures and simulation conditions.</p>
   <ul>
-    <li>Rodriguez, Reise and Haviland (2016a) treat an explained common variance above about .70 together with a percentage of uncontaminated correlations above about .70 as pointing to a general factor strong enough that fitting a unidimensional model to the same data would distort the structural parameters only slightly.</li>
+    <li>Rodriguez, Reise and Haviland (2016b) treat an explained common variance above about .70 together with a percentage of uncontaminated correlations above about .70 as pointing to a general factor strong enough that fitting a unidimensional model to the same data would distort the structural parameters only slightly.</li>
     <li>Reise, Scheines, Widaman and Haviland (2013) discuss the joint role of the three quantities: when the percentage of uncontaminated correlations is below about .80, they read a general explained common variance above about .60 together with an omega hierarchical above about .70 as multidimensionality that is not severe enough to prevent interpreting the instrument as primarily unidimensional.</li>
     <li>Bonifay, Reise, Scheines and Meijer (2015) relate the explained common variance to the size of the bias directly: in their conditions relative bias fell below 10% once the explained common variance exceeded about .70, and below 5% once it exceeded about .80.</li>
-    <li>Hancock and Mueller (2001) define construct replicability as the correlation between a factor and an optimally weighted composite of its indicators; values around .80 are discussed as an indication that the factor is well defined by the items measuring it.</li>
+    <li>Hancock and Mueller (2001) define construct replicability <var>H</var> as the squared correlation between a factor and the optimally weighted composite of its indicators; values around .80 are discussed as an indication that the factor is well defined by the items measuring it.</li>
     <li>Gorsuch (1983) discusses factor determinacy around .90 as the level below which factor score estimates should not be used in place of the factor itself.</li>
     <li>Reise, Bonifay and Haviland (2013) point out that a low omega hierarchical subscale value makes a subscale score hard to interpret as a distinct construct, because most of its reliable variance belongs to the general factor rather than to the specific factor.</li>
   </ul>
   <p>These indices describe the loading pattern of a model that has already been fitted. They cannot establish that a bifactor model is the correct account of the data, because they are computed from the bifactor solution itself and would be computed the same way from a solution that is wrong. Bonifay and Cai (2017) show that the bifactor item response model has a high fitting propensity: it fits a wide range of data patterns, including patterns produced by other structures and patterns that are random, so a good fit is weak evidence of a bifactor structure. Bonifay, Lane and Reise (2017) raise the same point for the bifactor model of psychopathology, together with the difficulty of interpreting specific factors whose reliable variance is small.</p>
-</section>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-methods">
-  <h2 id="h-methods">Methods and formulas</h2>
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
 
-  <p>Write λ<sub><var>ik</var></sub> for the standardized loading of item <var>i</var> on factor <var>k</var>, with <var>k</var> = G for the general factor and <var>k</var> = 1 … <var>S</var> for the specific factors. An item is treated as loading on a factor when that loading is present in the output and different from zero. The uniqueness of item <var>i</var> is</p>
+  <p>The indices are those of Rodriguez, Reise and Haviland (2016a), computed as in the Bifactor Indices Calculator of Dueber (2017). Write λ<sub><var>ik</var></sub> for the standardized loading of item <var>i</var> on factor <var>k</var>, with <var>k</var> = G for the general factor and <var>k</var> = 1 … <var>S</var> for the specific factors. An item is treated as loading on a factor when that loading is present in the output and different from zero. The uniqueness of item <var>i</var>, that is its standardized residual variance, is</p>
   <div class="eq"><math display="block"><mrow><msub><mi>&#x3B8;</mi><mi>i</mi></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mn>2</mn></msup></mrow></math></div>
   <p class="where">Here θ<sub><var>i</var></sub> is the uniqueness of item <var>i</var>, and the sum runs over the general factor and over every specific factor the item loads on, λ<sub><var>ik</var></sub> being its standardized loading on factor <var>k</var>.</p>
-  <p>When the standardized residual variances are printed in the output for every item, those values are used instead of this identity. A negative uniqueness is truncated at zero and reported as a warning, because a negative value is not a variance and would make the reproduced correlation matrix indefinite.</p>
+  <p>When the standardized residual variances are printed in the output for every item, those values are used instead of this identity. A uniqueness that comes out negative is read against the rounding of the output rather than against zero: the loadings are printed to three decimals, so the sum of their squares carries an error of at most <math><mrow><mn>0.001</mn><munder><mo movablelimits="false">&#x2211;</mo><mi>j</mi></munder><mrow><mo>|</mo><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>|</mo></mrow></mrow></math>, and a value negative by no more than that is set to zero and reported. A value more negative than the rounding can account for is a Heywood case: the common factors account for more than the whole variance of the item, the solution is inadmissible, and no index is computed from it.</p>
 
   <h3>Omega and omega hierarchical</h3>
   <p>For a factor <var>f</var>, let <var>I</var><sub><var>f</var></sub> be the set of items loading on it. Omega is the proportion of the variance of the unit-weighted total of those items that is accounted for by all the common factors together:</p>
@@ -126,19 +135,21 @@
   <p>For a specific factor <var>s</var> the same ratio is taken over the items of its own subscale:</p>
   <div class="eq"><math display="block"><mrow><mrow><msub><mi>&#x3C9;</mi><mi>HS</mi></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>s</mi></mrow></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B8;</mi><mi>i</mi></msub><mo>+</mo><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>)</mo></mrow><mn>2</mn></msup></mrow></mrow></mfrac></mrow></math></div>
   <p class="where">Here ω<sub>HS</sub>(<var>s</var>) is omega hierarchical subscale for the specific factor <var>s</var>, <var>i</var> runs over the items of that subscale, and λ<sub><var>is</var></sub> is the loading of item <var>i</var> on <var>s</var>.</p>
-  <p>For the general factor the items are all of them, so ω is the omega of the whole scale and ω<sub>H</sub> the part of it carried by the general factor; for a specific factor the items are those of the subscale, so ω is the omega of the subscale score and ω<sub>HS</sub> the part of it left once the general factor is partialled out. The general-factor omega is the omega of a multidimensional composite in the sense of Zinbarg, Revelle, Yovel and Li (2005). Relative omega is their ratio:</p>
+  <p>For the general factor the items are all of them, so ω is the omega of the whole scale and ω<sub>H</sub> the part of it carried by the general factor; for a specific factor the items are those of the subscale, so ω is the omega of the subscale score and ω<sub>HS</sub> the part of it left once the general factor is partialed out. The general-factor omega is the omega of a multidimensional composite in the sense of Zinbarg, Revelle, Yovel and Li (2005). Relative omega is their ratio:</p>
   <div class="eq"><math display="block"><mrow><mtext>relative&#xA0;</mtext><msub><mi>&#x3C9;</mi><mi>f</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>&#x3C9;</mi><mi mathvariant="normal">H</mi></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>f</mi><mo stretchy="false">)</mo></mrow></mrow><msub><mi>&#x3C9;</mi><mi>f</mi></msub></mfrac></mrow></math></div>
   <p class="where">Here ω<sub>H</sub>(<var>f</var>) is omega hierarchical for factor <var>f</var>, which for a specific factor is ω<sub>HS</sub>, and ω<sub><var>f</var></sub> is the omega of the same total.</p>
   <p>It is the share of the reliable variance of the composite that belongs to the factor of interest.</p>
 
+  <p>Every coefficient on this page is derived for a bifactor model whose residuals are uncorrelated. The covariance that a subset of items share beyond the general factor is what the specific factor of that subset stands for, so a residual covariance estimated alongside it is confounded with that factor, and Rodriguez, Reise and Haviland (2016a) write every index without one. An output that estimates such a covariance is refused with its name, rather than read into a formula that does not cover it. A shared method or a common wording belongs in a model of this kind as a further specific factor, orthogonal to the others; the reliability of a congeneric factor whose model does carry residual covariances is computed on the <a href="reliability.html">reliability page</a>, where that coefficient is defined.</p>
+
   <h3>Explained common variance</h3>
-  <p>The common variance of item <var>i</var> is <math><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mn>2</mn></msup></mrow></math>, and the explained common variance of a factor is its share of a sum of such quantities. Two sums are in use. Over all <var>N</var> items,</p>
+  <p>The common variance of item <var>i</var> is <math><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mn>2</mn></msup></mrow></math>, and the explained common variance of a factor is its share of a sum of such quantities. Two denominators are in use. Over all <var>N</var> items,</p>
   <div class="eq"><math display="block"><mrow><msub><mi>ECV</mi><mi>f</mi></msub><mo>=</mo><mfrac><mrow><munderover><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow></msub><mn>2</mn></msup></mrow><mrow><munderover><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>N</mi></munderover><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mn>2</mn></msup></mrow></mfrac></mrow></math></div>
   <p class="where">Here ECV<sub><var>f</var></sub> is the explained common variance of factor <var>f</var>, <var>N</var> the number of items in the instrument, λ<sub><var>if</var></sub> the loading of item <var>i</var> on <var>f</var>, and the inner sum over <var>k</var> runs over every factor.</p>
-  <p>For the general factor this is the quantity usually called ECV. For a specific factor it is the form given by Stucky and Edelen (2015), often written ECV<sub>SG</sub>, which measures the strength of that specific factor against all the common variance in the instrument, including the items that do not load on it. Restricting both sums to the items of the subscale gives the second form:</p>
+  <p>For the general factor this is the quantity usually called ECV (Reise, Scheines, Widaman &amp; Haviland, 2013). For a specific factor it is what Stucky and Edelen (2015) call the specific-dimension ECV, labeled ECV<sub>SG</sub> in the calculator of Dueber (2017): the strength of that specific factor against all the common variance in the instrument, including the items that do not load on it. Restricting both sums to the items of the subscale gives the second form, Dueber's ECV<sub>SS</sub>:</p>
   <div class="eq"><math display="block"><mrow><mrow><msub><mi>ECV</mi><mi>SS</mi></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>s</mi></mrow></msub><mn>2</mn></msup></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mn>2</mn></msup></mrow></mfrac></mrow></math></div>
   <p class="where">Here ECV<sub>SS</sub>(<var>s</var>) is the share of the common variance within the subscale of the specific factor <var>s</var> that belongs to <var>s</var> itself; both sums over <var>i</var> run over the items of that subscale, and the inner sum over <var>k</var> runs over every factor.</p>
-  <p>This is the strength of the specific factor within its own items. The share the general factor takes within the same items is reported alongside it:</p>
+  <p>This is the strength of the specific factor within its own items. The share the general factor takes within the same items, the within-domain ECV of Stucky and Edelen (2015), is reported alongside it:</p>
   <div class="eq"><math display="block"><mrow><mrow><msub><mi>ECV</mi><mi>GS</mi></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>s</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi mathvariant="normal">G</mi></mrow></msub><mn>2</mn></msup></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mn>2</mn></msup></mrow></mfrac></mrow></math></div>
   <p class="where">Here ECV<sub>GS</sub>(<var>s</var>) is the share of the same common variance that belongs to the general factor, λ<sub><var>i</var>G</sub> being the loading of item <var>i</var> on it; the sums over <var>i</var> run over the items of the subscale as before.</p>
   <p>ECV<sub>GS</sub> and ECV<sub>SS</sub> add to one when the items of the subscale load on the general factor and on that specific factor only; when some of them also load on another specific factor the two shares add to less than one, and the remainder belongs to the other specific factors. The same ratio taken one item at a time is the item explained common variance of Stucky, Thissen and Edelen (2013):</p>
@@ -174,23 +185,25 @@
   <p>When the output of the unidimensional model for the same items has been loaded as well, the relative parameter bias of item <var>i</var> is the difference between the loading in the unidimensional solution and the loading on the general factor in the bifactor solution, divided by the latter:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>RPB</mi><mi>i</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mo>,</mo><mtext>uni</mtext></mrow></msub><mo>&#x2212;</mo><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi mathvariant="normal">G</mi></mrow></msub></mrow><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi mathvariant="normal">G</mi></mrow></msub></mfrac></mrow></math></div>
   <p class="where">Here RPB<sub><var>i</var></sub> is the relative parameter bias of item <var>i</var>, λ<sub><var>i</var>,uni</sub> its standardized loading in the single-factor model read from the second file, and λ<sub><var>i</var>G</sub> its standardized loading on the general factor of the bifactor model.</p>
-  <p>A positive value therefore means that the unidimensional model gives the item a larger loading than the bifactor model does. This is the order used by Rodriguez, Reise and Haviland (2016b); the Bifactor Indices Calculator of Dueber (2017) takes the difference the other way round, so the values printed here have the opposite sign to the ones it prints, and the same absolute value. The average absolute relative parameter bias is the mean of |RPB<sub><var>i</var></sub>| over the items for which a unidimensional loading was read.</p>
+  <p>A positive value therefore means that the unidimensional model gives the item a larger loading than the bifactor model does. This is the order used by Rodriguez, Reise and Haviland (2016b); the Bifactor Indices Calculator of Dueber (2017) takes the difference the other way around, so the values printed here have the opposite sign to the ones it prints, and the same absolute value. The average absolute relative parameter bias is the mean of |RPB<sub><var>i</var></sub>| over the items for which a unidimensional loading was read.</p>
 
   <h3>What the page does not do</h3>
   <p>Every formula above assumes orthogonal factors, continuous indicators on a standardized metric, and one general factor. Correlated specific factors, second-order and higher-order models, two-tier models with more than one general factor, and the extra terms that categorical indicators bring to the reliability of an observed total score are outside what is computed here. With categorical indicators the loadings read from the STDYX section refer to the latent response variables, so the indices describe the model on that metric and not the metric of the observed responses.</p>
-  <p>Three structures are refused rather than computed. An output whose indicators include a latent variable is a second-order or hierarchical model, and none of the formulas above applies to it; a second-order model has to be refitted in the equivalent bifactor form, by the Schmid-Leiman transformation, and that run loaded instead. An output that prints the same item name twice under one BY heading would lose one of the two loadings when the table is built. An output with several groups holds a separate solution for each of them, and the page asks which group to read instead of taking the first one and reporting numbers for a group nobody chose. A specific factor with a single indicator is loaded and computed, because the arithmetic is defined, together with a message saying that its indices describe one item rather than a factor.</p>
-</section>
+  <p>Three structures are refused rather than computed. An output whose indicators include a latent variable is a second-order or hierarchical model, and none of the formulas above applies to it; the model has to be respecified and fitted as a bifactor model, and that run loaded instead. An output in which two factors have a non-zero correlation, read from the WITH lines of the STDYX section, violates the orthogonality every formula assumes. An output that prints the same item name twice under one BY heading would lose one of the two loadings when the table is built. Two further cases are computed with a message. An output with several groups holds a separate solution for each of them, and the page asks which group to read instead of taking the first. A specific factor with a single indicator is computed, because the arithmetic is defined, with a note that its indices describe one item rather than a factor.</p>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-refs">
-  <h2 id="h-refs">References</h2>
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
   <ul class="refs">
-    <li>Bonifay, W., &amp; Cai, L. (2017). On the complexity of item response theory models. <em>Multivariate Behavioral Research, 52</em>(4), 465–484. <a href="https://doi.org/10.1080/00273171.2017.1309262">https://doi.org/10.1080/00273171.2017.1309262</a></li>
+            <li>Bonifay, W., &amp; Cai, L. (2017). On the complexity of item response theory models. <em>Multivariate Behavioral Research, 52</em>(4), 465–484. <a href="https://doi.org/10.1080/00273171.2017.1309262">https://doi.org/10.1080/00273171.2017.1309262</a></li>
     <li>Bonifay, W., Lane, S. P., &amp; Reise, S. P. (2017). Three concerns with applying a bifactor model as a structure of psychopathology. <em>Clinical Psychological Science, 5</em>(1), 184–186. <a href="https://doi.org/10.1177/2167702616657069">https://doi.org/10.1177/2167702616657069</a></li>
     <li>Bonifay, W. E., Reise, S. P., Scheines, R., &amp; Meijer, R. R. (2015). When are multidimensional data unidimensional enough for structural equation modeling? An evaluation of the DETECT multidimensionality index. <em>Structural Equation Modeling, 22</em>(4), 504–516. <a href="https://doi.org/10.1080/10705511.2014.938596">https://doi.org/10.1080/10705511.2014.938596</a></li>
     <li>Dueber, D. M. (2017). <em>Bifactor Indices Calculator: A Microsoft Excel-based tool to calculate various indices relevant to bifactor CFA models</em> [Computer software]. <a href="https://doi.org/10.13023/edp.tool.01">https://doi.org/10.13023/edp.tool.01</a></li>
     <li>Gorsuch, R. L. (1983). <em>Factor analysis</em> (2nd ed.). Erlbaum.</li>
     <li>Hancock, G. R., &amp; Mueller, R. O. (2001). Rethinking construct reliability within latent variable systems. In R. Cudeck, S. du Toit, &amp; D. Sörbom (Eds.), <em>Structural equation modeling: Present and future</em> (pp. 195–216). Scientific Software International.</li>
-    <li>Reise, S. P., Bonifay, W. E., &amp; Haviland, M. G. (2013). Scoring and modeling psychological measures in the presence of multidimensionality. <em>Journal of Personality Assessment, 95</em>(2), 129–140. <a href="https://doi.org/10.1080/00223891.2012.725437">https://doi.org/10.1080/00223891.2012.725437</a></li>
+        <li>Reise, S. P., Bonifay, W. E., &amp; Haviland, M. G. (2013). Scoring and modeling psychological measures in the presence of multidimensionality. <em>Journal of Personality Assessment, 95</em>(2), 129–140. <a href="https://doi.org/10.1080/00223891.2012.725437">https://doi.org/10.1080/00223891.2012.725437</a></li>
     <li>Reise, S. P., Scheines, R., Widaman, K. F., &amp; Haviland, M. G. (2013). Multidimensionality and structural coefficient bias in structural equation modeling: A bifactor perspective. <em>Educational and Psychological Measurement, 73</em>(1), 5–26. <a href="https://doi.org/10.1177/0013164412449831">https://doi.org/10.1177/0013164412449831</a></li>
     <li>Rodriguez, A., Reise, S. P., &amp; Haviland, M. G. (2016a). Evaluating bifactor models: Calculating and interpreting statistical indices. <em>Psychological Methods, 21</em>(2), 137–150. <a href="https://doi.org/10.1037/met0000045">https://doi.org/10.1037/met0000045</a></li>
     <li>Rodriguez, A., Reise, S. P., &amp; Haviland, M. G. (2016b). Applying bifactor statistical indices in the evaluation of psychological measures. <em>Journal of Personality Assessment, 98</em>(3), 223–237. <a href="https://doi.org/10.1080/00223891.2015.1089249">https://doi.org/10.1080/00223891.2015.1089249</a></li>
@@ -198,7 +211,8 @@
     <li>Stucky, B. D., Thissen, D., &amp; Edelen, M. O. (2013). Using logistic approximations of marginal trace lines to develop short assessments. <em>Applied Psychological Measurement, 37</em>(1), 41–57. <a href="https://doi.org/10.1177/0146621612462759">https://doi.org/10.1177/0146621612462759</a></li>
     <li>Zinbarg, R. E., Revelle, W., Yovel, I., &amp; Li, W. (2005). Cronbach's α, Revelle's β, and McDonald's ω<sub>H</sub>: Their relations with each other and two alternative conceptualizations of reliability. <em>Psychometrika, 70</em>(1), 123–133. <a href="https://doi.org/10.1007/s11336-003-0974-7">https://doi.org/10.1007/s11336-003-0974-7</a></li>
   </ul>
-</section>
+</div>
+</details>
 
 </main>
 
@@ -217,13 +231,13 @@
    ================================================================== */
 /* The name of the software: an upright capital M with "plus" in italics. Every
    message on this page carries markup for this reason, so anything read from a
-   file is escaped where it is inserted, never afterwards. */
+   file is escaped where it is inserted, never afterward. */
 var MP = "<span class=\"mp\">M<em>plus</em></span>";
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
                   .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
-function escList(list) { return list.map(esc).join(", "); }
+function escList(list) { var a = list.map(esc); return a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : (a[0] || ""); }
 
 var BF = (function () {
 
@@ -324,24 +338,35 @@ var BF = (function () {
     for (j = 0; j < K; j++) if (j !== g) spec.push(j);
 
     /* uniquenesses */
-    var theta = new Array(n), common = new Array(n), truncated = [];
+    var theta = new Array(n), common = new Array(n), wasRounded = new Array(n), roundedNegative = [], inadmissibleNegative = [];
     for (i = 0; i < n; i++) {
       var c = 0;
       for (j = 0; j < K; j++) c += L[i][j] * L[i][j];
       common[i] = c;
       var t = (model.useResid && model.resid[i] !== null && isFinite(model.resid[i])) ? model.resid[i] : 1 - c;
-      if (t < 0) { truncated.push(names[i] + " (" + t.toFixed(3) + ")"); t = 0; }
+      var tol = 0.0005;
+      if (!(model.useResid && model.resid[i] !== null && isFinite(model.resid[i]))) {
+        var absSum = 0;
+        for (j = 0; j < K; j++) absSum += Math.abs(L[i][j]);
+        tol = Math.max(0.0005, 0.001 * absSum);
+      }
+      if (t < -tol) inadmissibleNegative.push(names[i] + " (" + t.toFixed(3) + ")");
+      else if (t < 0) { roundedNegative.push(names[i] + " (" + t.toFixed(3) + ")"); wasRounded[i] = true; t = 0; }
       theta[i] = t;
     }
-    if (truncated.length) {
-      warn.push("Negative uniqueness truncated at zero for " + escList(truncated) +
-        ". The squared loadings of these items sum to more than one, which happens with a Heywood " +
-        "case or with loadings copied from a solution that is not standardized. Every index below " +
-        "uses zero in place of the negative value, so omega for any factor these items belong to is " +
-        "an upper bound rather than an estimate. Check the solution before reporting the indices.");
+    if (inadmissibleNegative.length) {
+      return { empty: true, warnings: warn, errors: [(inadmissibleNegative.length === 1 ? "A negative uniqueness was found for " : "Negative uniquenesses were found for ") +
+        escList(inadmissibleNegative) + (inadmissibleNegative.length === 1 ? ". This is a Heywood case: the common factors account for " : ". These are Heywood cases: the common factors account for ") +
+        "more than the item's total variance, so the fitted solution is inadmissible. No index was " +
+        "computed. Inspect the " + MP + " warnings, the model specification and the data before rerunning the analysis."] };
+    }
+    if (roundedNegative.length) {
+      warn.push("A uniqueness printed just below zero for " + escList(roundedNegative) +
+        " was set to zero: the shortfall is no larger than the error the three-decimal printing of the " +
+        "loadings can produce. Check the unrounded estimate before reporting the indices.");
     }
     var zeroUniqueness = [];
-    for (i = 0; i < n; i++) if (theta[i] === 0 && truncated.indexOf(names[i] + " (" + (1 - common[i]).toFixed(3) + ")") < 0) zeroUniqueness.push(names[i]);
+    for (i = 0; i < n; i++) if (theta[i] === 0 && !wasRounded[i]) zeroUniqueness.push(names[i]);
     if (zeroUniqueness.length) {
       warn.push("The uniqueness of " + escList(zeroUniqueness) + " is zero, so the common factors " +
         "account for the whole of " + (zeroUniqueness.length === 1 ? "that item" : "those items") +
@@ -584,7 +609,7 @@ function normalizeShortcut(text) {
 }
 
 function emptyBlock(name) {
-  return { order: [], by: {}, resid: {}, variance: {}, group: name === undefined ? null : name,
+  return { order: [], by: {}, resid: {}, variance: {}, withs: [], group: name === undefined ? null : name,
            otherGroups: false, uncomputable: [], repeated: [] };
 }
 
@@ -616,7 +641,11 @@ function readResultsBlocks(lines, from) {
       if (byDest.order.indexOf(factor) < 0) { byDest.order.push(factor); byDest.by[factor] = []; }
       continue;
     }
-    if (/^\s+[A-Za-z][A-Za-z0-9_]*\s+WITH\s*$/i.test(l)) { section = "with"; factor = null; continue; }
+    /* "F1 WITH": the rows that follow are covariances of F1 with the variables
+       named on each row. Between two factors they are the correlations the
+       indices assume to be zero. */
+    var mw = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+WITH\s*$/i);
+    if (mw) { section = "with"; factor = mw[1].toUpperCase(); continue; }
     if (/^\s+[A-Za-z][A-Za-z0-9_]*\s+ON(\s|$)/i.test(l)) { section = "on"; factor = null; continue; }
     if (/^\s*Intercepts\s*$/i.test(l)) { section = "int"; factor = null; continue; }
     if (/^\s*Means\s*$/i.test(l)) { section = "means"; factor = null; continue; }
@@ -651,6 +680,7 @@ function readResultsBlocks(lines, from) {
       }
       into.by[factor].push({ item: name, est: est });
     }
+    else if (section === "with" && factor) into.withs.push({ a: factor, b: name, est: est });
     else if (section === "res") into.resid[name] = est;
     else if (section === "var") into.variance[name] = est;
   }
@@ -745,9 +775,24 @@ function mplusToGrid(parsed, generalName, groupIndex) {
       latentIndicators.map(esc).join(", ") + "), so it is a second-order or hierarchical model " +
       "rather than a bifactor one. Every index on this page is defined on a single layer of " +
       "orthogonal factors measured by observed items, and none of them applies to a structure with " +
-      "a factor loading on another factor. Nothing was loaded. A second-order model can be " +
-      "rewritten in the equivalent bifactor form by the Schmid-Leiman transformation, refitted, " +
-      "and the output of that run loaded here instead." };
+      "a factor loading on another factor. Nothing was loaded. Respecify the model as a bifactor " +
+      "model, with every item loading on the general factor and on one specific factor, fit it, and " +
+      "load the output of that run instead." };
+  }
+  /* A correlation between two factors, printed under "F WITH", makes the
+     orthogonal formulas below wrong by an unknown amount. A line fixed at
+     zero is printed as 0.000 and passes. */
+  var correlated = [];
+  src.withs.forEach(function (w) {
+    if (factors.indexOf(w.a) >= 0 && factors.indexOf(w.b) >= 0 && isFinite(w.est) && Math.abs(w.est) > 1e-9)
+      correlated.push(w.a + " – " + w.b + " (" + w.est.toFixed(3) + ")");
+  });
+  if (correlated.length) {
+    return { error: "The STDYX section reports a non-zero correlation between factors: " +
+      correlated.map(esc).join(", ") + ". Every index on this page assumes that the general factor " +
+      "and the specific factors are orthogonal, and a correlated solution would give values wrong " +
+      "by an unknown amount, so nothing was loaded. Fix the factor correlations at zero in the " +
+      "MODEL command (for example GEN WITH SF1@0;), run the model again and load that output." };
   }
   var gi = factors.indexOf(generalName);
   if (gi < 0) gi = 0;
@@ -768,6 +813,35 @@ function mplusToGrid(parsed, generalName, groupIndex) {
   for (i = 0; i < items.length; i++) {
     var v = src.resid[items[i]];
     if (typeof v === "number" && isFinite(v)) { resid.push(v); haveResid++; } else resid.push(null);
+  }
+  /* A "WITH" pair whose two names are both items is a residual covariance the
+     model estimated. In a bifactor model the covariance that a subset of items
+     share beyond the general factor is what the specific factor of that subset
+     stands for, so a residual covariance estimated alongside it is confounded
+     with that factor, and every index on this page is derived for a model
+     whose residuals are uncorrelated. */
+  var resCov = [];
+  src.withs.forEach(function (w) {
+    if (w.a !== w.b && isFinite(w.est) && Math.abs(w.est) > 1e-9 &&
+        Object.prototype.hasOwnProperty.call(seen, w.a) &&
+        Object.prototype.hasOwnProperty.call(seen, w.b))
+      resCov.push(w.a + " \u2013 " + w.b + " (" + w.est.toFixed(3) + ")");
+  });
+  if (resCov.length)
+    return { error: "The model estimates a covariance between the residuals of two items: " +
+      escList(resCov) + ". Every index on this page is defined for a bifactor model whose residuals " +
+      "are uncorrelated: the covariance that a subset of items share beyond the general factor is " +
+      "what the specific factor of that subset stands for, a residual covariance estimated alongside " +
+      "it is confounded with that factor, and Rodriguez, Reise and Haviland (2016a) derive every " +
+      "index without one. Nothing was loaded. A shared method or a common wording belongs in such a " +
+      "model as a further specific factor, orthogonal to the others, rather than as a correlation " +
+      "between two residuals. The reliability of a congeneric factor whose model does carry residual " +
+      "covariances is computed on the <a href=\"reliability.html\">reliability page</a>, where that " +
+      "coefficient is defined." };
+  if (!items.length) {
+    return { error: "No item was read from the STDYX section of this output. The section is there, but not one " +
+      "loading in it could be read as a number: the values may have been replaced or the file may have been " +
+      "edited after the run. Nothing was computed." };
   }
   return { factors: factors, general: gi, names: items, L: L, resid: resid, haveResid: haveResid,
            group: src.group, groupIndex: index, uncomputable: src.uncomputable.slice() };
@@ -852,7 +926,6 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     }
     for (i = 0; i < res.warnings.length; i++) out += statusBlock("warn", "Warning.", res.warnings[i]);
     if (res.fdNote) out += statusBlock("bad", "Factor determinacy.", res.fdNote);
-
     var G = res.per[res.general];
 
     /* model level */
@@ -897,8 +970,8 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     out += '<div class="table-wrap"><table aria-labelledby="cap-factors">';
     out += '<thead><tr><th scope="col">Factor</th><th scope="col">Role</th><th scope="col" class="num">Items</th>' +
       '<th scope="col" class="num">ω</th><th scope="col" class="num"><math><mrow><msub><mi>&#x3C9;</mi><mi mathvariant="normal">H</mi></msub></mrow></math></th><th scope="col" class="num">Relative ω</th>' +
-      '<th scope="col" class="num">ECV, all items</th><th scope="col" class="num">ECV within subscale</th><th scope="col" class="num">General share within subscale</th>' +
-      '<th scope="col" class="num">H</th><th scope="col" class="num">FD</th><th scope="col" class="num">FD²</th></tr></thead><tbody>';
+      '<th scope="col" class="num">ECV, all items (ECV<sub>SG</sub> for a specific factor)</th><th scope="col" class="num">ECV<sub>SS</sub>, within the subscale</th><th scope="col" class="num">ECV<sub>GS</sub>, general share within the subscale</th>' +
+      '<th scope="col" class="num"><var>H</var></th><th scope="col" class="num">FD</th><th scope="col" class="num">FD²</th></tr></thead><tbody>';
     var ordered = [res.per[res.general]];
     for (q = 0; q < res.spec.length; q++) ordered.push(res.per[res.spec[q]]);
     for (i = 0; i < ordered.length; i++) {
@@ -918,7 +991,7 @@ function mplusToGrid(parsed, generalName, groupIndex) {
       out += "</tr>";
     }
     out += "</tbody></table></div>";
-    out += "<p>For the general factor the items of the subscale are all the items, so the two forms of explained common variance coincide and only the first is shown. <math><mrow><msub><mi>&#x3C9;</mi><mi mathvariant=\"normal\">H</mi></msub></mrow></math> is omega hierarchical for the general factor and omega hierarchical subscale for a specific factor.</p>";
+    out += "<p>For the general factor the items of the subscale are all the items, so the three forms of explained common variance coincide and only the first is shown. <math><mrow><msub><mi>&#x3C9;</mi><mi mathvariant=\"normal\">H</mi></msub></mrow></math> is omega hierarchical for the general factor and omega hierarchical subscale for a specific factor. The symbols are those of the Methods section.</p>";
 
     /* item level */
     out += "<h3>Items</h3>";
@@ -951,22 +1024,25 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     return res;
   }
 
+  /* The same numbers, in the same format, as the tables above: proportions
+     and correlations without the leading zero, relative bias with it. */
   function buildExport(res) {
     var L = [], i, q, p;
-    var d3 = function (x) { return isFinite(x) ? Number(x).toFixed(3) : ""; };
+    var d3 = function (x) { return isFinite(x) ? p3(x) : ""; };
+    var r3 = function (x) { return isFinite(x) ? n3(x) : ""; };
     L.push("Model");
     L.push("Items\t" + res.n);
     L.push("Specific factors\t" + res.spec.length);
     L.push("ECV of the general factor\t" + d3(res.per[res.general].ecvAll));
-    L.push("Omega\t" + d3(res.per[res.general].omega));
+    L.push("Omega of the whole scale\t" + d3(res.per[res.general].omega));
     L.push("Omega hierarchical\t" + d3(res.per[res.general].omegaH));
-    L.push("PUC clean cluster formula\t" + d3(res.puc));
-    L.push("PUC generalized\t" + d3(res.pucGen));
+    L.push("PUC, clean cluster formula\t" + d3(res.puc));
+    L.push("PUC, generalized\t" + d3(res.pucGen));
     L.push("PUC that applies\t" + (res.cleanCluster ? "clean cluster formula" : "generalized"));
-    L.push("Average absolute relative parameter bias\t" + d3(res.arpb));
+    L.push("Average absolute relative parameter bias\t" + r3(res.arpb));
     L.push("");
     L.push("Factors");
-    L.push(["Factor", "Role", "Items", "omega", "omegaH", "relative omega", "ECV all items", "ECV within subscale", "general share within subscale", "H", "FD", "FD2"].join("\t"));
+    L.push(["Factor", "Role", "Items", "omega", "omegaH", "relative omega", "ECV all items (ECV_SG)", "ECV_SS within subscale", "ECV_GS general share within subscale", "H", "FD", "FD2"].join("\t"));
     var ordered = [res.per[res.general]];
     for (q = 0; q < res.spec.length; q++) ordered.push(res.per[res.spec[q]]);
     for (i = 0; i < ordered.length; i++) {
@@ -985,7 +1061,7 @@ function mplusToGrid(parsed, generalName, groupIndex) {
       var row = [it.name, Math.abs(it.loadings[res.general]) > 0 ? d3(it.loadings[res.general]) : ""];
       for (q = 0; q < res.spec.length; q++) row.push(Math.abs(it.loadings[res.spec[q]]) > 0 ? d3(it.loadings[res.spec[q]]) : "");
       row.push(d3(it.theta), d3(it.iecv), it.uni === null ? "" : d3(it.uni),
-        it.rpb === null ? "" : d3(it.rpb), it.rpb === null ? "" : d3(Math.abs(it.rpb)));
+        it.rpb === null ? "" : r3(it.rpb), it.rpb === null ? "" : r3(Math.abs(it.rpb)));
       L.push(row.join("\t"));
     }
     return L.join("\n");
@@ -1004,14 +1080,50 @@ function mplusToGrid(parsed, generalName, groupIndex) {
      came from, so that a message can say which is which. */
   var chosenGroup = 0, loadedName = "";
 
-  function applyMplus(parsed, generalName, groupIndex) {
+  /* The name beside the drop zone is that of the file whose results are on
+     the page; after a refusal the previous name is put back. */
+  function showLoadedName() { $("file-name").textContent = loadedName; }
+
+  /* One option per group of a multiple-group file, with a placeholder until a
+     group has been chosen; hidden for a single-group file. */
+  function renderGroupPicker(parsed, chosen) {
+    var sel = $("group-select"), picker = $("group-picker");
+    if (!parsed || parsed.stdBlocks.length < 2) { picker.hidden = true; sel.innerHTML = ""; return; }
+    var labels = parsed.stdBlocks.map(function (b, i) { return b.group || ("group " + (i + 1)); });
+    var options = (chosen === null ? '<option value="" selected>Choose a group</option>' : "");
+    labels.forEach(function (nm, i) {
+      options += '<option value="' + i + '"' + (chosen === i ? " selected" : "") + ">" + esc(nm) + "</option>";
+    });
+    sel.innerHTML = options;
+    picker.hidden = false;
+  }
+
+  var HIDE_ON_FAILURE = ["group-picker", "general-picker"];
+  /* Anything a refused file must not leave behind. The placeholders are taken
+     from the document as it was parsed, before any result was written. */
+  var EMPTY_HTML = {};
+  function rememberEmpty(ids) {
+    ids.forEach(function (id) { if ($(id)) EMPTY_HTML[id] = $(id).innerHTML; });
+  }
+  function clearAfterFailure() {
+    var id;
+    for (id in EMPTY_HTML) if (Object.prototype.hasOwnProperty.call(EMPTY_HTML, id) && $(id)) $(id).innerHTML = EMPTY_HTML[id];
+    HIDE_ON_FAILURE.forEach(function (h) { if ($(h)) $(h).hidden = true; });
+    if ($("file-name")) $("file-name").textContent = "";
+  }
+
+  function applyMplus(parsed, generalName, groupIndex, chosenByUser, fileName) {
     var g = mplusToGrid(parsed, generalName, groupIndex);
     if (g.error) {
+      state.items = []; state.factors = []; state.general = 0;
+      clearAfterFailure();
       setStatus($("mplus-report"), "bad", "Nothing was read from this file.",
-        g.error + " No index was computed, and whatever had been read before is unchanged.");
+        g.error + " No index was computed, and nothing read earlier is left on the page.");
       return;
     }
     chosenGroup = g.groupIndex;
+    if (fileName) { loadedName = fileName; showLoadedName(); }
+    renderGroupPicker(parsed, chosenGroup);
     state.factors = g.factors.slice();
     state.general = g.general;
     state.items = [];
@@ -1024,16 +1136,18 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     state.useResid = g.haveResid === g.names.length;
     applyUniLoadings();
     renderGeneralPicker();
-    var msg = "Read " + g.names.length + " items and " + g.factors.length + " factors from the STDYX section" +
+    var msg = "Read " + g.names.length + (g.names.length === 1 ? " item and " : " items and ") + g.factors.length + (g.factors.length === 1 ? " factor" : " factors") + " from the STDYX section" +
       (parsed.stdBlocks.length > 1 ? " of group " + esc(g.group || String(g.groupIndex + 1)) : "") + ". " +
-      "\u201c" + esc(g.factors[g.general]) + "\u201d is treated as the general factor, because it has the most " +
-      "items; an output does not record which factor was meant to be general, so change it in the menu below " +
-      "if that is not the one. " +
+      "\u201c" + esc(g.factors[g.general]) + "\u201d is treated as the general factor" +
+      (chosenByUser
+        ? ", as chosen in the menu below. "
+        : ", because it has the most items; an output does not record which factor was meant to be general, " +
+          "so change it in the menu below if the model was built around another factor. ") +
       (g.haveResid === g.names.length
         ? "Standardized residual variances were found for every item and are used as they stand."
         : (g.haveResid > 0
           ? ("Standardized residual variances were found for " + g.haveResid + " of " + g.names.length + " items; the uniquenesses are recomputed from the loadings for all of them, because mixing the two sources would put some items on one definition and some on another.")
-          : "No standardized residual variances were printed, so the uniquenesses are computed as one minus the sum of the squared loadings.")) +
+          : "No standardized residual variances were printed, so the uniqueness of each item is computed as one minus the sum of its squared loadings.")) +
       (uniLoadings
         ? " The loadings of the unidimensional model already loaded were matched to these items again."
         : " The loadings of a unidimensional model are in a different run, so relative parameter bias stays " +
@@ -1056,30 +1170,35 @@ function mplusToGrid(parsed, generalName, groupIndex) {
   /* A multiple-group output holds one solution per group, and the indices of
      one group are not the indices of another. The page asks which one rather
      than reading the first and reporting numbers for a group nobody chose. */
+  /* The factor with the most items is the usual general factor. */
+  function largestFactor(block) {
+    var order = block.order, best = order[0], f;
+    for (f = 0; f < order.length; f++) if (block.by[order[f]].length > block.by[best].length) best = order[f];
+    return best;
+  }
+
+  var pendingName = "";
+
   function offerGroupChoice(parsed) {
     var labels = parsed.stdBlocks.map(function (b, i) { return b.group || ("group " + (i + 1)); });
-    var options = '<option value="">Choose a group</option>';
-    labels.forEach(function (nm, i) { options += '<option value="' + i + '">' + esc(nm) + "</option>"; });
     $("mplus-report").innerHTML = statusBlock("warn", "Group not chosen.",
       "This output has " + parsed.stdBlocks.length + " groups (" + escList(labels) + "), and it holds a " +
       "separate standardized solution for each of them. The indices on this page describe one " +
-      "solution, and the loadings of one group are not those of another, so nothing was loaded " +
-      "until you say which group to read.") +
-      '<div class="panel"><div class="field">' +
-      '<label for="group-select">Group to read from this output</label>' +
-      '<select id="group-select">' + options + "</select></div></div>";
-    $("group-select").addEventListener("change", function () {
-      if (this.value === "") return;
-      var index = parseInt(this.value, 10);
-      var block = parsed.stdBlocks[index], order = block.order, best = order[0], f;
-      for (f = 0; f < order.length; f++) if (block.by[order[f]].length > block.by[best].length) best = order[f];
-      applyMplus(parsed, best, index);
-    });
+      "solution, and the loadings of one group are not those of another, so nothing is loaded " +
+      "until you choose a group in the menu below.");
+    /* The tables of the previous file would otherwise stay on screen under the
+       name of the new one. */
+    state.items = []; state.factors = []; state.general = 0;
+    renderGeneralPicker();
+    render();
+    loadedName = pendingName; showLoadedName();
+    renderGroupPicker(parsed, null);
   }
 
   function handleFile(file) {
-    $("file-name").textContent = file.name;
-    loadedName = file.name;
+    pendingName = file.name;
+    state.items = []; state.factors = []; state.general = 0;
+    clearAfterFailure();
     readTextFile(file, function (text) {
       var kind = diagnoseFile(String(text));
       if (kind === "empty" || kind === "blank") {
@@ -1087,7 +1206,7 @@ function mplusToGrid(parsed, generalName, groupIndex) {
           "The file <code>" + esc(file.name) + "</code> is " +
           (kind === "empty" ? "empty (zero bytes)" : "blank: it holds only spaces and line breaks") +
           ". " + MP + " writes the output as the run proceeds, so an empty file usually means the run " +
-          "was interrupted or the file was opened before it finished. Nothing was computed, and whatever had been read before is unchanged.");
+          "was interrupted or the file was opened before it finished. Nothing was computed, and nothing read earlier is left on the page.");
         return;
       }
       if (kind === "foreign") {
@@ -1096,7 +1215,16 @@ function mplusToGrid(parsed, generalName, groupIndex) {
           " output has (<code>INPUT INSTRUCTIONS</code>, <code>SUMMARY OF ANALYSIS</code>, " +
           "<code>MODEL RESULTS</code>, <code>MODEL FIT INFORMATION</code>). This page reads the " +
           "<code>.out</code> file, not the data file, the input file or a table of results saved " +
-          "elsewhere. Nothing was computed, and whatever had been read before is unchanged.");
+          "elsewhere. Nothing was computed, and nothing read earlier is left on the page.");
+        return;
+      }
+      if (/^\s*Within Level\s*$/m.test(String(text)) && /^\s*Between Level\s*$/m.test(String(text))) {
+        setStatus($("mplus-report"), "bad", "Nothing was read from this file.",
+          "MODEL RESULTS is split into a <em>Within Level</em> and a <em>Between Level</em> block, so this is a " +
+          "two-level model. Its loadings belong to two different levels and cannot be put in one table: adding a " +
+          "within-level and a between-level loading of the same item would give that item a communality larger " +
+          "than its variance, which would be read here as a Heywood case that is not there. The " +
+          "<a href=\"multilevel.html\">multilevel reliability page</a> reads this file.");
         return;
       }
       var parsed;
@@ -1133,10 +1261,7 @@ function mplusToGrid(parsed, generalName, groupIndex) {
       }
       lastParsed = parsed;
       if (parsed.stdBlocks.length > 1) { offerGroupChoice(parsed); return; }
-      /* the factor with the most items is the usual general factor */
-      var order = parsed.stdBlocks[0].order, best = order[0], f;
-      for (f = 0; f < order.length; f++) if (parsed.stdBlocks[0].by[order[f]].length > parsed.stdBlocks[0].by[best].length) best = order[f];
-      applyMplus(parsed, best, 0);
+      applyMplus(parsed, largestFactor(parsed.stdBlocks[0]), 0, false, file.name);
     }, function () {
       setStatus($("mplus-report"), "bad", "File not read.",
         "The browser could not open <code>" + esc(file.name) + "</code>. The file may have been " +
@@ -1149,7 +1274,15 @@ function mplusToGrid(parsed, generalName, groupIndex) {
      The loading an item takes in a single-factor model is estimated in a
      different run, so it is read from a second output rather than typed
      in. The items are matched by name; nothing else is taken from it. */
-  var uniLoadings = null;
+  var uniLoadings = null, uniLoadedName = "";
+
+  /* What a refused second file leaves in place: the loadings of the
+     unidimensional file loaded earlier, if there was one. */
+  function uniUnchanged() {
+    return uniLoadings
+      ? " The loadings of <code>" + esc(uniLoadedName) + "</code>, loaded earlier, stay in use for the bias."
+      : " Relative parameter bias is left empty.";
+  }
 
   function applyUniLoadings() {
     var i, nm, matched = 0, missing = [];
@@ -1167,8 +1300,6 @@ function mplusToGrid(parsed, generalName, groupIndex) {
   }
 
   function handleUniFile(file) {
-    $("file-uni-name").textContent = file.name;
-    state.uniName = file.name;
     readTextFile(file, function (text) {
       var kind = diagnoseFile(String(text));
       if (kind === "empty" || kind === "blank" || kind === "foreign") {
@@ -1177,7 +1308,13 @@ function mplusToGrid(parsed, generalName, groupIndex) {
           (kind === "foreign"
             ? "not an " + MP + " output: it carries none of the headings every output has"
             : (kind === "empty" ? "empty (zero bytes)" : "blank: it holds only spaces and line breaks")) +
-          ". Relative parameter bias is left empty; every other index is unaffected.");
+          ". Nothing was taken from it; every other index is unaffected." + uniUnchanged());
+        return;
+      }
+      if (/^\s*Within Level\s*$/m.test(String(text)) && /^\s*Between Level\s*$/m.test(String(text))) {
+        setStatus($("uni-report"), "bad", "Nothing was read from this file.",
+          "MODEL RESULTS is split into a <em>Within Level</em> and a <em>Between Level</em> block, so this is a " +
+          "two-level model. The loading of a unidimensional model has to come from a single-level run.");
         return;
       }
       var parsed;
@@ -1186,24 +1323,27 @@ function mplusToGrid(parsed, generalName, groupIndex) {
         setStatus($("uni-report"), "bad", "File not read.",
           "Reading <code>" + esc(file.name) + "</code> as " + MP + " output raised an error part way " +
           "through, so no unidimensional loading was taken from it. Check that it is the complete " +
-          "<code>.out</code> file of a finished run.");
+          "<code>.out</code> file of a finished run." + uniUnchanged());
         return;
       }
       if (!parsed.hasStdyx || !parsed.stdBlocks.length) {
         setStatus($("uni-report"), "bad", "STDYX not found.",
-          "This output has no STDYX Standardization section, and the bias compares standardized " +
-          "loadings with standardized loadings. Add <code>OUTPUT: STDYX;</code> to the input of the " +
-          "unidimensional model, run it again and drop the new <code>.out</code> file here.");
+          "<code>" + esc(file.name) + "</code> has no STDYX Standardization section, and the bias compares standardized " +
+          "loadings with standardized loadings. Add <code>STDYX</code> to the OUTPUT command of the " +
+          "unidimensional model, run it again and drop the new <code>.out</code> file here." + uniUnchanged());
         return;
       }
       var block = parsed.stdBlocks[0], order = block.order, i, q;
       if (order.length !== 1) {
         setStatus($("uni-report"), "bad", "Not a unidimensional model.",
-          "This output holds " + order.length + " factors (" + escList(order) + "). Relative parameter " +
+          "<code>" + esc(file.name) + "</code> holds " + order.length + " factors (" + escList(order) + "). Relative parameter " +
           "bias is the change in an item's loading when the same items are fitted as one factor, so " +
-          "the second file has to be the output of a single-factor model. Nothing was taken from it.");
+          "the second file has to be the output of a single-factor model. Nothing was taken from it." + uniUnchanged());
         return;
       }
+      $("file-uni-name").textContent = file.name;
+      state.uniName = file.name;
+      uniLoadedName = file.name;
       uniLoadings = {};
       var rows = block.by[order[0]];
       for (q = 0; q < rows.length; q++) if (isFinite(rows[q].est)) uniLoadings[rows[q].item] = rows[q].est;
@@ -1248,8 +1388,13 @@ function mplusToGrid(parsed, generalName, groupIndex) {
 
     $("general-select").addEventListener("change", function () {
       state.general = parseInt(this.value, 10);
-      if (lastParsed) applyMplus(lastParsed, state.factors[state.general], chosenGroup);
+      if (lastParsed) applyMplus(lastParsed, state.factors[state.general], chosenGroup, true);
       else render();
+    });
+    $("group-select").addEventListener("change", function () {
+      if (this.value === "" || !lastParsed) return;
+      var index = parseInt(this.value, 10);
+      applyMplus(lastParsed, largestFactor(lastParsed.stdBlocks[index]), index, false, pendingName);
     });
 
     var dropUni = $("drop-uni"), uniInput = $("file-uni");
@@ -1287,6 +1432,7 @@ function mplusToGrid(parsed, generalName, groupIndex) {
      and with a matrix inverse obtained by Gauss-Jordan elimination. */
   function selfTest() {
     var checks = [], failed = 0;
+    function okTrue(name, cond) { ok(name, !!cond, true); }
     function ok(name, got, want, tol) {
       var t = tol === undefined ? 1e-9 : tol;
       var good = (typeof want === "number") ? (isFinite(got) && Math.abs(got - want) <= t) : (got === want);
@@ -1303,6 +1449,16 @@ function mplusToGrid(parsed, generalName, groupIndex) {
       resid: [null, null, null, null, null, null], useResid: false
     };
     var r = BF.compute(m);
+
+    var badUniquenessModel = JSON.parse(JSON.stringify(m));
+    badUniquenessModel.L[0] = [0.90, 0.60, 0.00];
+    var badUniqueness = BF.compute(badUniquenessModel);
+    okTrue("a materially negative uniqueness is refused", badUniqueness.empty && badUniqueness.errors.length === 1);
+    okTrue("the Heywood refusal explains that no index was computed", /Heywood/.test(badUniqueness.errors[0]) && /No index/.test(badUniqueness.errors[0]));
+    var roundingModel = JSON.parse(JSON.stringify(m));
+    roundingModel.L[0] = [0.80, Math.sqrt(0.361), 0.00];
+    var roundingResult = BF.compute(roundingModel);
+    okTrue("a uniqueness within the three-decimal rounding tolerance remains computable", !roundingResult.empty && roundingResult.warnings.some(function(w){ return /three-decimal printing/.test(w); }));
 
     ok("theta[1]", r.theta[0], 0.26);
     ok("theta[3]", r.theta[2], 0.575);
@@ -1519,6 +1675,14 @@ function mplusToGrid(parsed, generalName, groupIndex) {
           picked.push(pick);
           row3[pick] = rnd() * 1.8 - 0.9;
         }
+        if (!useR) {
+          var rowNorm = 0;
+          for (var normIndex = 0; normIndex < row3.length; normIndex++) rowNorm += row3[normIndex] * row3[normIndex];
+          if (rowNorm > 0.95) {
+            var rowScale = Math.sqrt(0.95 / rowNorm);
+            for (normIndex = 0; normIndex < row3.length; normIndex++) row3[normIndex] *= rowScale;
+          }
+        }
         L3.push(row3);
         resid3.push(useR ? 0.001 + rnd() * 0.9 : null);
       }
@@ -1593,6 +1757,23 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     ok("the general factor is the one asked for", grid.factors[grid.general], "GEN");
     ok("a loading is read from the standardized section", grid.L[0][0], 0.7);
 
+    /* An output that estimates a covariance between two residuals is refused:
+       the indices are defined for a bifactor model without one. */
+    var withItems = " B1       WITH\n    B2                 0.200      0.040      5.000    0.000\n\n";
+    var rcFile = head.replace("GROUPS", "1") + "MODEL RESULTS\n\n" + block("", " 0.700") + withItems +
+      "\nSTANDARDIZED MODEL RESULTS\n\n\nSTDYX Standardization\n\n" + block("", " 0.700") + withItems +
+      "\nTECHNICAL 1 OUTPUT\n";
+    var rcGrid = mplusToGrid(parseMplus(rcFile), "GEN", 0);
+    ok("an output with a residual covariance between items is refused", typeof rcGrid.error, "string");
+    okTrue("the refusal names the two items", /B1/.test(rcGrid.error) && /B2/.test(rcGrid.error));
+    ok("an output with no such covariance is read", typeof grid.error, "undefined");
+    var corrFile = head.replace("GROUPS", "1") + "MODEL RESULTS\n\n" + block("", " 0.700") +
+      "\nSTANDARDIZED MODEL RESULTS\n\n\nSTDYX Standardization\n\n" + block("", " 0.700") +
+      " GEN      WITH\n    SF1                0.300      0.050      6.000    0.000\n\n" +
+      "\nTECHNICAL 1 OUTPUT\n";
+    ok("a correlation between two factors is still refused",
+       typeof mplusToGrid(parseMplus(corrFile), "GEN", 0).error, "string");
+
     var twoGroups = head.replace("GROUPS", "2") + "MODEL RESULTS\n\nGroup A\n\n" + block("", " 0.700") +
       "Group B\n\n" + block("", " 0.900") +
       "\nSTANDARDIZED MODEL RESULTS\n\n\nSTDYX Standardization\n\nGroup A\n\n" + block("", " 0.700") +
@@ -1625,6 +1806,13 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     var repeated = parseMplus(oneGroup.split("    B3                 0.550      0.030     18.000    0.000\n\n SF1").join(
       "    B3                 0.550      0.030     18.000    0.000\n    B2                 0.450      0.030     15.000    0.000\n\n SF1"));
     ok("a repeated item name is refused", /twice/.test(mplusToGrid(repeated, "GEN", 0).error || ""), true);
+
+    /* Correlated factors are refused; a correlation fixed at zero is not. */
+    var withBlock = " GEN      WITH\n    SF1                0.300      0.050      6.000    0.000\n\n";
+    var correlated = parseMplus(oneGroup.split(" SF2      BY\n    B3").join(withBlock + " SF2      BY\n    B3"));
+    ok("a non-zero factor correlation is refused", /correlation between factors/.test(mplusToGrid(correlated, "GEN", 0).error || ""), true);
+    var zeroWith = parseMplus(oneGroup.split(" SF2      BY\n    B3").join(withBlock.replace("0.300      0.050      6.000    0.000", "0.000      0.000    999.000  999.000") + " SF2      BY\n    B3"));
+    ok("a factor correlation fixed at zero is accepted", mplusToGrid(zeroWith, "GEN", 0).error === undefined, true);
 
     /* Names longer than the eight characters Mplus allows are still read. */
     var longNames = parseMplus(oneGroup.replace(/B1/g, "VERYLONGNAME1"));
@@ -1688,7 +1876,8 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     var noItems = BF.compute({ names: [], factors: ["G", "S"], general: 0, L: [], uni: [], resid: [], useResid: false });
     ok("a model with no item is refused", noItems.errors.length > 0, true);
 
-    return { checks: checks, failed: failed };
+    return { checks: checks, failed: failed, problems: problems,
+             minItems: Math.min.apply(null, sizes), maxItems: Math.max.apply(null, sizes) };
   }
 
   function showSelfTest() {
@@ -1699,7 +1888,8 @@ function mplusToGrid(parsed, generalName, groupIndex) {
     b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">" + (out.failed === 0 ? "✓" : "✗") + "</span> <span class=\"tag\">" +
       (out.failed === 0 ? "Self-test passed." : "Self-test failed.") + "</span> " +
       out.checks.length + " checks, " + out.failed + " failed. They cover every index against the " +
-      "formulas written out a second way over 300 random models of 2 to 200 items, the factor " +
+      "formulas written out a second way over " + out.problems + " random models of " + out.minItems + " to " +
+      out.maxItems + " items and one model of 200 items, the factor " +
       "determinacies against an inverse obtained by Gauss-Jordan elimination with full pivoting and " +
       "against the requirement that they lie between zero and one, and the file and model cases the " +
       "page has to refuse. Each check is listed in the browser console." +
@@ -1716,6 +1906,7 @@ function mplusToGrid(parsed, generalName, groupIndex) {
 
   function start() {
     renderGeneralPicker();
+    rememberEmpty(["results"]);
     wire();
     render();
     if (/[?&]selftest=1(&|$)/.test(window.location.search)) showSelfTest();
@@ -1728,6 +1919,136 @@ function mplusToGrid(parsed, generalName, groupIndex) {
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
   else start();
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>

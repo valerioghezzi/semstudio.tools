@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Describe a multiple-group confirmatory factor model and get the Mplus input files for a sequence of identified measurement invariance models, for continuous indicators and for ordered-categorical indicators following Wu and Estabrook (2016).">
+<meta name="description" content="Describe a multiple-group confirmatory factor model and get the Mplus input files for a sequence of identified measurement invariance models, for continuous indicators and for ordered categorical indicators following Wu and Estabrook (2016).">
 <title>Invariance Syntax Builder · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
@@ -51,25 +51,25 @@ p.pill { margin: 0.9rem 0 0.25rem; }
     <a href="index.html#tools">All tools</a>
   </nav>
   <h1>Invariance Syntax Builder</h1>
-  <p class="lede">Describe the model you mean to fit &mdash; its factors and their items, its groups, its estimator &mdash; and this page writes the M<em>plus</em> input for a sequence of identified multiple-group confirmatory factor models. For continuous indicators it writes the configural, metric, scalar and strict models and the optional structural steps; for ordered-categorical indicators it writes the sequence of Wu and Estabrook (2016) as applied by Svetina, Rutkowski and Rutkowski (2020), in which each level is identified on its own rather than by adding constraints to an identified baseline. Nothing is estimated here: what is written is input, to be run in M<em>plus</em> on your data.</p>
+  <p class="lede">Describe the model you mean to fit &mdash; its factors and their items, its groups, its estimator &mdash; and this page writes the M<em>plus</em> input for a sequence of identified multiple-group confirmatory factor models. For continuous indicators it writes the configural, metric, scalar and strict models and the optional structural steps; for ordered categorical indicators it writes the sequence of Wu and Estabrook (2016) as applied by Svetina, Rutkowski and Rutkowski (2020), in which each level is identified on its own rather than by adding constraints to an identified baseline. Nothing is estimated here: what is written is input, to be run in M<em>plus</em> on your data.</p>
   <div class="callout" role="note">
-    <strong>What every input written here asks for.</strong> Each one ends with <code>OUTPUT: TECH1 TECH4 STDYX;</code>. TECH1 prints the parameter specification group by group, which is the direct way to check that each equality constraint landed on the parameter it was meant for; TECH4 prints the estimated factor means, variances and covariances, which are the quantities the later levels license you to compare; STDYX gives the standardized loadings.
+    <strong>What every input written here asks for.</strong> Each one ends with <code>OUTPUT: TECH1 TECH4 STDYX;</code>. TECH1 prints the parameter specification group by group, which is the direct way to check that each equality constraint was placed on the intended parameter; TECH4 prints the estimated factor means, variances and covariances, which are the quantities the later levels license you to compare; STDYX gives the standardized loadings.
   </div>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
 <div id="selftest-banner" hidden></div>
 
 <section aria-labelledby="h-steps">
   <h2 id="h-steps">What to do</h2>
   <ol class="steps">
-    <li>Say whether the items are continuous or ordered categorical, in the first box under <em>The model</em>. That choice decides which of the two sequences is written and nothing else on the page can be answered without it.</li>
+    <li>Say whether the items are continuous or ordered categorical, in the first box under <em>The model</em>. That choice decides which of the two sequences is written, which estimators are offered, which levels can be ticked, and whether the number of response categories and the parameterization are asked for at all.</li>
     <li>Write the factor definitions, one factor to a line, exactly as they would be written in M<em>plus</em>: <code>F1 BY x1 x2 x3;</code> The hyphen range notation is read, so <code>F1 BY x1-x4;</code> is the same definition. Each item may belong to one factor only.</li>
     <li>Give the number of groups, the name of the grouping variable, and the code and the name of each group, written as <code>1 = male, 2 = female</code>. The code is the value the grouping variable takes in the data file; the name is what M<em>plus</em> calls that group, so it obeys the naming rules of a variable.</li>
     <li>Choose the estimator. Which difference test the sequence can use follows from it: with <code>MLMV</code>, <code>WLSMV</code> and <code>ULSMV</code> the page pairs a <code>SAVEDATA: DIFFTEST =</code> file to an <code>ANALYSIS: DIFFTEST =</code> file between consecutive levels, and with the others it does not.</li>
-    <li>With ordered-categorical items, give the number of response categories: one number for every item, and, for items that differ from it, a number of their own in the table under <em>Give particular items a different number of categories</em>. An item with fewer than four categories contributes nothing to the test of threshold invariance, which is why the number matters here.</li>
-    <li>Tick the levels of the sequence to write, choose how the factors are identified, and, with ordered-categorical items, choose the parameterization. These are the choices that are not part of the description of the model.</li>
+    <li>With ordered categorical items, give the number of response categories: one number for every item, and, for items that differ from it, a number of their own in the table under <em>Give particular items a different number of categories</em>. An item with fewer than four categories contributes nothing to the test of threshold invariance, which is why the number matters here.</li>
+    <li>Tick the levels of the sequence to write, choose how the factors are identified, and, with ordered categorical items, choose the parameterization. These are the choices that are not part of the description of the model.</li>
     <li>Press <em>Write the inputs</em>. Each input appears with the checks it passed under it. Copy one with the button beside its heading, or press <em>Download every input as a separate .inp file</em> to save them all, then run them in M<em>plus</em> in the order they are written.</li>
   </ol>
   <p>The page refuses a description it cannot write an identified sequence for, and says which part of the description is at fault: a line that is not a factor definition, an item listed on two factors, a name longer than the eight characters M<em>plus</em> allows or one of the words the language reserves, a group name used twice, fewer than two groups, or a number of categories below two or above twelve.</p>
@@ -81,7 +81,7 @@ p.pill { margin: 0.9rem 0 0.25rem; }
   <fieldset>
     <legend>Write the sequence for these indicators</legend>
     <label class="check"><input type="radio" name="family" id="famA" value="A" checked> Continuous indicators: configural, metric, scalar, strict</label>
-    <label class="check"><input type="radio" name="family" id="famB" value="B"> Ordered-categorical indicators: the sequence of Wu and Estabrook (2016)</label>
+    <label class="check"><input type="radio" name="family" id="famB" value="B"> Ordered categorical indicators: the sequence of Wu and Estabrook (2016)</label>
   </fieldset>
 
   <div class="field">
@@ -102,22 +102,23 @@ p.pill { margin: 0.9rem 0 0.25rem; }
     <div class="field">
       <label for="groupNames">Name the groups and give their codes</label>
       <input type="text" id="groupNames" value="1 = G1, 2 = G2" spellcheck="false" autocomplete="off" aria-describedby="groupNames-hint">
-      <span class="hint" id="groupNames-hint">Separated by commas, as <code>code = name</code>. The names go into the <code>GROUPING</code> statement and head the <code>MODEL</code> blocks, so they follow the same naming rules as variables. The first group named is the reference group.</span>
+      <span class="hint" id="groupNames-hint">Separated by commas, as <code>code = name</code>. The names go into the <code>GROUPING</code> statement and head the <code>MODEL</code> blocks, so they follow the same naming rules as variables. The first group named is the reference group. A group left out of the list takes its position as its code and <code>G</code> followed by that position as its name.</span>
     </div>
   </div>
 
   <div class="row">
     <div class="field wide">
       <label for="ident">Identify the factors in this way</label>
-      <select id="ident">
-        <option value="fixed" selected>Fixed factor: variance at one, mean at zero in the reference group</option>
+      <select id="ident" aria-describedby="ident-hint">
+        <option value="fixed" selected>Fixed factor: factor variance fixed at one, factor mean at zero</option>
         <option value="marker">Marker item: the first item of each factor has a loading of one</option>
       </select>
+      <span class="hint" id="ident-hint">Under the fixed-factor method the variance of each factor is fixed at one and its mean at zero in every group at the configural level, and in the first group only once the loadings, or the intercepts, are held equal. Under the marker method the loading of the first item of each factor is fixed at one in every group, the factor variances are free everywhere, and the factor means are fixed at zero until the intercepts are held equal.</span>
     </div>
     <div class="field">
       <label for="estimator">Estimate with</label>
       <select id="estimator" aria-describedby="est-hint"></select>
-      <span class="hint" id="est-hint">Maximum likelihood for continuous indicators, weighted or unweighted least squares for ordered-categorical ones; the words after each name say how its chi-square is adjusted. The menu holds the estimators the two sequences are written for, the first of them being the one the page starts from; one read from an output file is added to the menu as it stands. What follows from the choice is the difference test, named under the inputs.</span>
+      <span class="hint" id="est-hint">Maximum likelihood estimators for continuous indicators, weighted or unweighted least squares estimators for ordered categorical ones; the words after each name say how its chi-square is adjusted. The menu changes with the choice of indicators and starts from its first entry. The difference test follows from the estimator and is named under the inputs.</span>
     </div>
   </div>
 
@@ -128,12 +129,12 @@ p.pill { margin: 0.9rem 0 0.25rem; }
         <input type="number" id="catAll" min="2" max="12" step="1" value="4">
       </div>
       <div class="field">
-        <label for="param">Write the latent responses in this parameterization</label>
+        <label for="param">Parameterization of the latent response variables</label>
         <select id="param">
           <option value="DELTA" selected>DELTA: scale factors for the latent responses</option>
           <option value="THETA">THETA: residual variances of the latent responses</option>
         </select>
-        <span class="hint">Full measurement invariance needs THETA, because the residual variances of the latent responses are not parameters under DELTA.</span>
+        <span class="hint">Invariance of the residual variances of the latent responses can be imposed only under THETA, where those variances are parameters. Under DELTA the corresponding step fixes every scale factor to one in every group, which holds the total variance of each latent response equal across groups instead; the two coincide only when the factor variances are also equal across groups, so this page writes that step only under THETA.</span>
       </div>
     </div>
     <details id="cat-details">
@@ -193,42 +194,48 @@ p.pill { margin: 0.9rem 0 0.25rem; }
 <section id="secOut" aria-labelledby="h-out" hidden>
   <h2 id="h-out">The inputs</h2>
   <div class="status warn">
-    <p><span class="tag"><span aria-hidden="true">!</span> What this page cannot do.</span> The syntax written below is a starting point to be read and checked against your data and your model before it is run. The page cannot verify that a model is identified for every structure that can be described to it: cross-loadings, correlated residuals, an item belonging to more than one factor, factors with one or two indicators and empirically singular groups all change the identification argument, and the conditions used here are those given for a clustered pattern of non-negative loadings with each item on one factor.</p>
+    <p><span class="tag"><span aria-hidden="true">!</span> What this page cannot do.</span> The syntax written below is a starting point to be read and checked against your data and your model before it is run. The page cannot verify that a model is identified for every structure that can be described to it: cross-loadings, correlated residuals, an item belonging to more than one factor, factors with one or two indicators and groups in which the model is empirically underidentified all change the identification argument, and the conditions used here are those given for a clustered pattern of non-negative loadings with each item on one factor.</p>
   </div>
-  <div id="out" aria-live="polite"></div>
+  <div id="out"></div>
 </section>
 
-<section class="tracks" aria-labelledby="h-why">
-  <h2 id="h-why">Why the ordered-categorical sequence is not the familiar one</h2>
-  <p>With continuous indicators the observed variable has a metric of its own. Its mean and its variance are estimated in every group, so an intercept and a residual variance can be estimated in every group as well, and the sequence configural, metric, scalar, strict adds one type of constraint at a time to a model that is already identified.</p>
+<details class="fold" id="fold-h-why">
+  <summary><h2 id="h-why">Why the ordered categorical sequence differs from the continuous one</h2></summary>
+  <div class="fold-body">
+  <p>With continuous indicators the observed variable has a metric of its own. Its mean and its variance are estimated in every group, so an intercept and a residual variance can be estimated in every group as well, and the sequence configural, metric, scalar, strict (Millsap, 2011) adds one type of constraint at a time to a model that is already identified.</p>
   <p>With ordered categories nothing is observed but the proportion of respondents in each category and the association between items. The model puts a normally distributed latent response variable behind each item and cuts it at thresholds, and that latent response has no metric of its own: its location and its scale are conventions. Wu and Estabrook (2016) write the transformation that changes those conventions without changing the probability of any response pattern. It has four parts in each group: a shift and a rescaling for every latent response, and a shift and a rescaling for every factor, so <math><mrow><mn>2</mn><mrow><mo stretchy="false">(</mo><mi>p</mi><mo>+</mo><mi>m</mi><mo stretchy="false">)</mo></mrow></mrow></math> constraints per group are needed to identify a model with <var>p</var> items and <var>m</var> factors.</p>
   <p>The consequence is that the identification condition of a baseline model is not neutral with respect to the invariance tests that follow it. Once loadings are held equal across groups, a condition such as fixing the variance of every latent response to one in every group stops being a free choice of metric and becomes a restriction, and the same invariance hypothesis tested from two differently identified baselines gives two different chi-squares. Wu and Estabrook show a two-group example in which loading invariance is rejected under two identification conditions and retained under a third, with the same data and the same true parameters. Their answer is to identify each level of invariance separately, which is what this page writes.</p>
   <p>Three consequences follow for the sequence itself.</p>
   <ul>
-    <li>Invariance of loadings alone, of intercepts alone, and of residual variances alone cannot be tested. A model with only one of these constrained is statistically equivalent to the configural model, so the difference test has no degrees of freedom to spend. Thresholds have to be dealt with first.</li>
+    <li>Invariance of loadings alone, of intercepts alone, and of residual variances alone cannot be tested. A model with only one of these constrained is statistically equivalent to the configural model, so the difference test has no degrees of freedom to spend. Threshold invariance has to be established first (Wu &amp; Estabrook, 2016, Proposition 5 and Section 6).</li>
     <li>How much of threshold invariance can be tested depends on the number of categories. A shift and a rescaling of one latent response can always be chosen to make one threshold match, and can be chosen to make two thresholds match, but not three. An item with <var>C</var> categories therefore contributes <math><mrow><mrow><mo stretchy="false">(</mo><mi>C</mi><mo>&#x2212;</mo><mn>3</mn><mo stretchy="false">)</mo></mrow><mrow><mo stretchy="false">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy="false">)</mo></mrow></mrow></math> degrees of freedom to the test of threshold invariance across <var>G</var> groups: none at all for a binary or three-category item, one per extra group for a four-category item.</li>
-    <li>Binary items are a separate case. With one threshold per item, threshold invariance and threshold-and-loading invariance are both statistically equivalent to the configural model (Wu &amp; Estabrook, 2016, Propositions 3 and 6), and the model that holds thresholds invariant while freeing the intercepts and the scales of the other groups is not even identified. When any item is binary this page drops those two levels and goes from the configural model to the model with invariant thresholds, loadings and intercepts.</li>
+    <li>Binary items are a separate case. With one threshold per item, threshold invariance and threshold-and-loading invariance are both statistically equivalent to the configural model (Wu &amp; Estabrook, 2016, Propositions 3 and 6), and the model that holds thresholds invariant while freeing the intercepts and the scales of the other groups is not even identified. When any item is binary this page drops those two levels and goes from the configural model to the model with invariant thresholds, loadings and intercepts. The intercepts are not the only class that can carry that step: holding the residual variances of the latent responses equal instead, with the intercepts left free, imposes the same number of restrictions on the configural model, and applied accounts of the binary sequence often take that route. The two models are each a restriction of the configural one and neither is a restriction of the other, so a difference test between them is not defined; this page writes the first of the two and names it in the heading of the input.</li>
   </ul>
   <p>The two articles differ in how far they take the sequence and in what they call the levels. Wu and Estabrook (2016) name each model by the parameters it holds invariant and set out the whole hierarchy of sixteen models, of which ten are statistically distinct for polytomous items and five for binary items. Svetina, Rutkowski and Rutkowski (2020) follow the same identification conditions but write out three models only, which they name after the propositions they come from: the baseline model, Proposition 4 for threshold invariance and Proposition 7 for threshold and loading invariance. They also point out that the resulting order — thresholds first, then loadings — differs from the order in which applied work usually proceeds, where loadings are tested before thresholds and intercepts. One detail in their tutorial is a slip: the text and the annotation of the Proposition 7 input say that the item intercept is fixed at one in the first group and give <code>[y1-y4@1];</code>, while Condition 19 of Wu and Estabrook, which that step implements, sets those intercepts to zero. This page writes <code>@0</code>.</p>
-</section>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-methods">
-  <h2 id="h-methods">Methods</h2>
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods</h2></summary>
+  <div class="fold-body">
   <div id="methods"></div>
-</section>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-refs">
-  <h2 id="h-refs">References</h2>
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
   <ul class="refs">
-    <li>Meredith, W. (1993). Measurement invariance, factor analysis and factorial invariance. <em>Psychometrika, 58</em>(4), 525–543. https://doi.org/10.1007/BF02294825</li>
+    <li>Meredith, W. (1993). Measurement invariance, factor analysis and factorial invariance. <em>Psychometrika, 58</em>(4), 525–543. <a href="https://doi.org/10.1007/BF02294825">https://doi.org/10.1007/BF02294825</a></li>
     <li>Millsap, R. E. (2011). <em>Statistical approaches to measurement invariance</em>. Routledge.</li>
-    <li>Millsap, R. E., &amp; Yun-Tein, J. (2004). Assessing factorial invariance in ordered-categorical measures. <em>Multivariate Behavioral Research, 39</em>(3), 479–515. https://doi.org/10.1207/S15327906MBR3903_4</li>
+    <li>Millsap, R. E., &amp; Yun-Tein, J. (2004). Assessing factorial invariance in ordered categorical measures. <em>Multivariate Behavioral Research, 39</em>(3), 479–515. <a href="https://doi.org/10.1207/S15327906MBR3903_4">https://doi.org/10.1207/S15327906MBR3903_4</a></li>
     <li>Muthén, B., &amp; Asparouhov, T. (2002). <em>Latent variable analysis with categorical outcomes: Multiple-group and growth modeling in <span class="mp">M<em>plus</em></span></em> (<span class="mp">M<em>plus</em></span> Web Notes No. 4).</li>
-    <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using M<em>plus</em> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111–130. https://doi.org/10.1080/10705511.2019.1602776</li>
-    <li>Vandenberg, R. J., &amp; Lance, C. E. (2000). A review and synthesis of the measurement invariance literature: Suggestions, practices, and recommendations for organizational research. <em>Organizational Research Methods, 3</em>(1), 4–70. https://doi.org/10.1177/109442810031002</li>
-    <li>Wu, H., &amp; Estabrook, R. (2016). Identification of confirmatory factor analysis models of different levels of invariance for ordered categorical outcomes. <em>Psychometrika, 81</em>(4), 1014–1045. https://doi.org/10.1007/s11336-016-9506-0</li>
+    <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using M<em>plus</em> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111–130. <a href="https://doi.org/10.1080/10705511.2019.1602776">https://doi.org/10.1080/10705511.2019.1602776</a></li>
+    <li>Vandenberg, R. J., &amp; Lance, C. E. (2000). A review and synthesis of the measurement invariance literature: Suggestions, practices, and recommendations for organizational research. <em>Organizational Research Methods, 3</em>(1), 4–70. <a href="https://doi.org/10.1177/109442810031002">https://doi.org/10.1177/109442810031002</a></li>
+    <li>Wu, H., &amp; Estabrook, R. (2016). Identification of confirmatory factor analysis models of different levels of invariance for ordered categorical outcomes. <em>Psychometrika, 81</em>(4), 1014–1045. <a href="https://doi.org/10.1007/s11336-016-9506-0">https://doi.org/10.1007/s11336-016-9506-0</a></li>
   </ul>
-</section>
+</div>
+</details>
 
 </main>
 
@@ -318,7 +325,7 @@ function expandRange(tok) {
   }
   var a = parseInt(m[2], 10), b = parseInt(m[4], 10);
   if (b < a) {
-    return { error: { code: "revrange", html: "The range " + code(tok) + " runs backwards, from " +
+    return { error: { code: "revrange", html: "The range " + code(tok) + " runs backward, from " +
       a + " down to " + b + ". Write the smaller number first." } };
   }
   if (b - a + 1 > 5000) {
@@ -529,7 +536,7 @@ function buildStructure(cfg) {
           " is not a whole number." });
       } else if (c < 2) {
         errors.push({ code: "badcat", html: "The item " + code(items[i].name) + " is given " + c +
-          (c === 1 ? " category" : " categories") + ". An ordered-categorical item needs at least two; " +
+          (c === 1 ? " category" : " categories") + ". An ordered categorical item needs at least two; " +
           "give it its number in the table of categories, or make the indicators continuous." });
       } else if (c > 12) {
         errors.push({ code: "badcat", html: "The item " + code(items[i].name) + " is given " + c +
@@ -627,7 +634,11 @@ function availableLevels(cfg, S) {
       if (lv.key === "residuals" && cfg.param === "DELTA") {
         why = "the residual variances of the latent responses are not parameters under the delta " +
           "parameterization, where the scale factors are estimated instead, so their invariance cannot be " +
-          "written as an equality constraint. Choose the theta parameterization for this level.";
+          "written as an equality constraint. Choose the theta parameterization for this level. Fixing every " +
+          "scale factor to one in every group, which is sometimes written here instead, holds the total " +
+          "variance of each latent response equal across groups rather than its residual variance; the two " +
+          "restrictions coincide only when the factor variances are equal across groups as well, so this page " +
+          "does not write one in place of the other.";
       }
     }
     out.push({ def: lv, available: !why, why: why });
@@ -1289,7 +1300,7 @@ function readFactors(input, known) {
   return { factors: out, defs: defs };
 }
 
-/* How many categories each ordered-categorical item has. Mplus prints one
+/* How many categories each ordered categorical item has. Mplus prints one
    threshold per category boundary, so an item with the thresholds $1 to
    $3 has four categories; the proportions table under SAMPSTAT names the
    categories directly and is used when no threshold was printed. */
@@ -1430,7 +1441,7 @@ function readOutput(text, fileName) {
         code("OUTPUT: SAMPSTAT;") + " to that input, run it again and drop the new output." });
     if (ordItems.length !== allItems.length)
       r.notes.push({ html: "Some items of the model are declared " + code("CATEGORICAL") +
-        " and others are not. This page writes one sequence for the whole model, and the sequence for ordered-categorical items is the one it writes when any item is categorical." });
+        " and others are not. This page writes one sequence for the whole model, and the sequence for ordered categorical items is the one it writes when any item is categorical." });
   }
 
   var listA = EST_A, listB = EST_B;
@@ -1461,7 +1472,12 @@ function levelProse(cfg, S, lv) {
   var scaleWord = (cfg.param === "DELTA") ? "scale factors" : "residual variances of the latent responses";
   var idSentence = marker
     ? "The scale of each factor comes from its first item, whose loading is fixed at one in every group."
-    : "The scale of each factor comes from fixing its variance at one in " + ref + ".";
+    : "The scale of each factor comes from fixing its variance at one in every group.";
+  /* Wu and Estabrook write their conditions with the factor variances
+     fixed; they allow a reference loading in their place, which is what
+     the marker method does, so the condition is named with that caveat. */
+  var markerNote = marker ? ", with a reference loading fixed in place of the factor variance, " +
+    "which Wu and Estabrook allow" : "";
 
   if (lv.key === "configural" || lv.key === "baseline") {
     if (B) {
@@ -1470,8 +1486,8 @@ function levelProse(cfg, S, lv) {
         "in every group, and the factor " + (marker ? "means are fixed at zero" :
         "variances are fixed at one and the factor means at zero") + " in every group. " +
         "This is identification condition " + (cfg.param === "DELTA" ? "7" : "8") +
-        " of Wu and Estabrook (2016), applied group by group: <math><mrow><mn>2</mn><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>+</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow></mrow></math> constraints per " +
-        "group, which is exactly the number of arbitrary constants the model has.");
+        " of Wu and Estabrook (2016)" + markerNote + ", applied group by group: <math><mrow><mn>2</mn><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>+</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow></mrow></math> constraints per " +
+        "group, which is the number of free transformation constants each group has.");
       p.push("The level says that the same items load on the same factors everywhere. Nothing may be " +
         "compared across groups yet, and the fit of this model is the precondition for everything below it.");
     } else {
@@ -1490,8 +1506,8 @@ function levelProse(cfg, S, lv) {
       "and the " + scaleWord + " of those groups can be freed: they stay at zero and one in " + ref +
       " only. The factor " + (marker ? "means stay at zero in every group" :
       "variances stay at one and the factor means at zero in every group") + ". " +
-      "This is condition 15 of Wu and Estabrook (2016), the model Svetina, Rutkowski and Rutkowski (2020) " +
-      "call Proposition 4.");
+      "This is condition 15 of Wu and Estabrook (2016)" + markerNote + ", the model Svetina, Rutkowski and " +
+      "Rutkowski (2020) call Proposition 4.");
     p.push("An item with <var>C</var> categories contributes <math><mrow><mi>C</mi><mo>&#x2212;</mo><mn>3</mn></mrow></math> degrees of freedom per extra group " +
       "at this step, because a shift and a rescaling of one latent response can always be chosen to match " +
       "two of its thresholds. The level licenses no comparison of its own; it is the step that makes the " +
@@ -1506,8 +1522,8 @@ function levelProse(cfg, S, lv) {
           "constraints bind, and the factor variances stay free in every group."
         : "The factor variance is fixed at one in " + ref + " and freed in " + oth +
           ", because the common loadings now carry the scale of the factor.") +
-      " The factor means stay at zero in every group. This is condition 19 of Wu and Estabrook (2016), the " +
-      "model Svetina, Rutkowski and Rutkowski (2020) call Proposition 7.");
+      " The factor means stay at zero in every group. This is condition 19 of Wu and Estabrook (2016)" +
+      markerNote + ", the model Svetina, Rutkowski and Rutkowski (2020) call Proposition 7.");
     p.push("A unit of the factor now means the same thing in every group, so factor variances, factor " +
       "covariances and regressions among factors may be compared. Means may not.");
     return p;
@@ -1516,14 +1532,14 @@ function levelProse(cfg, S, lv) {
   if (lv.key === "intercepts") {
     p.push("The intercepts of the latent responses are held invariant as well, which under this " +
       "identification means fixing them at zero in every group. The factor mean is then freed in " + oth +
-      " and stays at zero in " + ref + ", so a difference between the groups in where the items sit is " +
+      " and stays at zero in " + ref + ", so a group difference in the location of the latent responses is " +
       "carried by the factor mean rather than by an item-specific intercept. This is condition 27 of Wu " +
-      "and Estabrook (2016).");
+      "and Estabrook (2016)" + markerNote + ".");
     p.push("The level licenses the comparison of factor means as well as of factor variances and " +
       "covariances. Wu and Estabrook show that with binary items this model is not identified on the part " +
       "of the parameter space where the ratio of threshold to loading is the same for every item of a " +
-      "factor; that subset has lower dimension, so it does not affect ordinary use, but a model that will " +
-      "not converge with binary items is worth reading in that light.");
+      "factor; that subset has lower dimension, so it does not affect ordinary use, but a model that fails " +
+      "to converge with binary items may lie near it.");
     return p;
   }
 
@@ -1531,8 +1547,8 @@ function levelProse(cfg, S, lv) {
     p.push("The residual variances of the latent responses are held invariant as well, which here means " +
       "fixing them at one in every group instead of in " + ref + " only. Fixing an invariant residual " +
       "variance is the same choice of metric as fixing the variance of the latent response in the first " +
-      "group, and it uses the same number of parameters, so it identifies the model of condition 9 of Wu " +
-      "and Estabrook (2016) without restricting it.");
+      "group, and it uses the same number of parameters, so it identifies the full measurement invariance " +
+      "model, which Wu and Estabrook (2016) identify by their condition 9, without restricting it.");
     p.push("Every item now carries the same amount of measurement error in every group, which is what " +
       "justifies comparing sums of the observed items rather than the factors behind them.");
     return p;
@@ -1565,8 +1581,9 @@ function levelProse(cfg, S, lv) {
       "item then carries the same amount of measurement error in every group.");
     p.push("This is the strict factorial invariance of Meredith (1993). It is what a comparison of " +
       "observed sum scores needs, since the reliability of the sum is then the same in every group. " +
-      "Vandenberg and Lance (2000) report that applied work often stops at the scalar level; the step is " +
-      "reported here so that the decision to stop is a decision and not an omission.");
+      "Vandenberg and Lance (2000) treat this step as a test of whether the items are equally reliable " +
+      "across groups rather than as a precondition for comparing factor means; it is written here so " +
+      "that leaving it out is a decision and not an omission.");
     return p;
   }
 
@@ -1583,8 +1600,8 @@ function levelProse(cfg, S, lv) {
 
   if (lv.key === "fmean") {
     p.push("The factor means are fixed at zero in every group, which tests the hypothesis that the groups " +
-      "do not differ on the construct. A significant worsening of fit at this step is the multivariate " +
-      "counterpart of a mean difference, and the size of the difference is read from the factor means of " +
+      "do not differ on the construct. The step is a joint test of the <math><mrow><mi>m</mi><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "differences in factor means, and the size of each difference is read from the factor means of " +
       "the preceding model rather than from this one.");
     return p;
   }
@@ -1596,9 +1613,9 @@ function testProse(cfg) {
   if (needsDifftest(e)) {
     return "The " + e + " chi-square is adjusted for its mean and its variance, and the adjustment is not " +
       "a single multiplier, so the difference between two of these statistics is not itself a chi-square. " +
-      "The less restricted model writes its derivatives with " + code("SAVEDATA: DIFFTEST = file;") +
+      "The less restricted model saves the derivatives the test needs with " + code("SAVEDATA: DIFFTEST = file;") +
       " and the more restricted model reads them with " + code("ANALYSIS: DIFFTEST = file;") +
-      " Both file names are filled in below, paired to the levels that follow one another.";
+      ". Both file names are filled in below, paired to the levels that follow one another.";
   }
   if (isScaled(e)) {
     return "The " + e + " chi-square is a single multiple of the usual statistic, so the two models are " +
@@ -2603,6 +2620,22 @@ return {
       ok("the categorical example: the threshold step spends", seq.levels[1].df, 8);
       ok("the categorical example: the loading step spends", seq.levels[2].df, 6);
     }
+
+    /* ---------------------------------------------------------------
+       The form: what is shown depends on the family
+       --------------------------------------------------------------- */
+    if (typeof document !== "undefined" && document.getElementById("cat-fields")) {
+      var isB = document.getElementById("famB").checked;
+      var catBox = document.getElementById("cat-fields");
+      okTrue("the parameterization and category controls are shown only for ordered categorical indicators",
+        catBox.hidden === !isB);
+      okTrue("and are disabled while hidden",
+        document.getElementById("param").disabled === !isB && document.getElementById("catAll").disabled === !isB);
+      var opts = document.getElementById("estimator").options, q, foreign = false;
+      var famList = isB ? IS.EST_B : IS.EST_A;
+      for (q = 0; q < opts.length; q++) if (famList.indexOf(opts[q].value) < 0) foreign = true;
+      okTrue("the estimator menu holds only estimators of the current family", !foreign);
+    }
     return { checks: checks, failed: failed };
   }
 
@@ -2675,23 +2708,24 @@ return {
      to be read in the menu; what it means for the difference test is
      said in full under the inputs. */
   var EST_NOTE = {
-    MLR: "robust",
-    ML: "ordinary",
-    MLM: "Satorra-Bentler",
+    MLR: "robust, scaled",
+    ML: "unadjusted",
+    MLM: "mean-adjusted",
     MLMV: "mean- and variance-adjusted",
     WLSMV: "mean- and variance-adjusted",
     WLSM: "mean-adjusted",
-    WLS: "ordinary",
+    WLS: "unadjusted",
     ULSMV: "mean- and variance-adjusted"
   };
 
-  /* The menu holds the estimators the sequence is written for. An output
-     file may name another one; it is added to the menu rather than
-     dropped, and the page says below what difference test it allows. */
+  /* The menu holds the estimators the sequence of the current family is
+     written for. An estimator of the other family is never kept: the
+     maximum likelihood estimators cannot take PARAMETERIZATION, and the
+     least squares ones are not offered for continuous indicators, so a
+     change of family starts from the first estimator of the new list. */
   function renderEstimator(keep) {
     var sel = $("estimator"), list = (family() === "A" ? IS.EST_A : IS.EST_B).slice();
-    var want = String(keep || sel.value || list[0]).toUpperCase(), html = "", i;
-    if (want && /^[A-Z0-9]+$/.test(want) && list.indexOf(want) < 0) list.push(want);
+    var want = String(keep || sel.value || "").toUpperCase(), html = "", i;
     for (i = 0; i < list.length; i++) {
       html += '<option value="' + esc(list[i]) + '">' + esc(list[i]) +
         (EST_NOTE[list[i]] ? ": " + esc(EST_NOTE[list[i]]) : "") + "</option>";
@@ -2742,7 +2776,7 @@ return {
     }
     box.innerHTML = html;
     var ins = box.querySelectorAll("input.cat-one");
-    for (i = 0; i < ins.length; i++) ins[i].addEventListener("change", build);
+    for (i = 0; i < ins.length; i++) ins[i].addEventListener("change", refresh);
   }
 
   function catsFromTable() {
@@ -2758,17 +2792,42 @@ return {
 
   /* ---- the list of levels ----------------------------------------- */
 
+  /* Which levels the current description rules out, and why: with a
+     binary item the two intermediate categorical levels are equivalent
+     to the configural model, and under the delta parameterization the
+     residual variances are not parameters. The rules are the ones the
+     generator applies (availableLevels); they are read here so that the
+     checkbox of a level that cannot be written is disabled in the form
+     rather than ticked and then dropped under the output. */
+  function unavailableLevels() {
+    var out = {}, cfg, S, av, i;
+    if (family() !== "B") return out;
+    cfg = cfgFromForm();
+    S = IS.buildStructure(cfg);
+    if (!S.items.length) return out;
+    av = IS.availableLevels(cfg, S);
+    for (i = 0; i < av.levels.length; i++) {
+      if (!av.levels[i].available) out[av.levels[i].def.key] = av.levels[i].why;
+    }
+    return out;
+  }
+
   function renderLevels() {
     var defs = IS.levelsFor(family()), box = $("levels-box"), html = "", i;
+    var off = unavailableLevels();
     for (i = 0; i < defs.length; i++) {
       var k = defs[i].key;
       if (!Object.prototype.hasOwnProperty.call(st.include, k)) {
         st.include[k] = (k !== "fvar" && k !== "fmean");
       }
       if (i === 0) st.include[k] = true;
+      var blocked = Object.prototype.hasOwnProperty.call(off, k);
       html += "<label class=\"check\"><input type=\"checkbox\" data-level=\"" + k + "\"" +
-        (st.include[k] ? " checked" : "") + (i === 0 ? " disabled" : "") + "> " + esc(defs[i].name) +
-        (i === 0 ? " \u2014 always written" : "") + "</label>";
+        (st.include[k] && !blocked ? " checked" : "") + (i === 0 || blocked ? " disabled" : "") +
+        (blocked ? " aria-describedby=\"level-why-" + k + "\"" : "") + "> " + esc(defs[i].name) +
+        (i === 0 ? " \u2014 always written" : "") +
+        (blocked ? " \u2014 cannot be written for this model</label><span class=\"hint\" id=\"level-why-" + k +
+          "\">Not written because " + off[k] + "</span>" : "</label>");
     }
     box.innerHTML = html;
     var boxes = box.querySelectorAll("input[type=checkbox]");
@@ -2799,8 +2858,13 @@ return {
       namesList: IS.nameList($("namesList").value),
       missing: $("missing").value.trim(),
       prefix: $("prefix").value.trim(),
-      include: st.include
+      include: copyOf(st.include)
     };
+  }
+  function copyOf(o) {
+    var c = {}, k;
+    for (k in o) if (Object.prototype.hasOwnProperty.call(o, k)) c[k] = o[k];
+    return c;
   }
 
   /* ---- filling the form in from a file ----------------------------- */
@@ -2833,8 +2897,8 @@ return {
     $("ident").value = "fixed";
     st.include = {};
     for (k in ex.include) if (Object.prototype.hasOwnProperty.call(ex.include, k)) st.include[k] = true;
+    if (f.family === "B") renderCatTable(f.cats);
     renderLevels();
-    renderCatTable(f.cats);
     st.fileName = "";
     $("form-report").innerHTML = status("info", "An example loaded.",
       "The form above now holds " + esc(ex.label) + ". " + ex.note +
@@ -2852,7 +2916,9 @@ return {
   }
 
   function build() {
-    var cfg = cfgFromForm();
+    var cfg = cfgFromForm(), off = unavailableLevels(), k;
+    /* a level whose checkbox is disabled in the form is not asked for */
+    for (k in off) if (Object.prototype.hasOwnProperty.call(off, k)) delete cfg.include[k];
     var seq = IS.buildSequence(cfg);
     var rep = "";
 
@@ -2914,7 +2980,7 @@ return {
       "<th scope=\"col\" class=\"num\">&Delta;df</th></tr></thead><tbody>";
     for (i = 0; i < seq.levels.length; i++) {
       var lv = seq.levels[i];
-      html += "<tr><td>" + esc(lv.name) + "</td><td class=\"mono\">" + esc(lv.file) +
+      html += "<tr><th scope=\"row\">" + esc(lv.name) + "</th><td class=\"mono\">" + esc(lv.file) +
         "</td><td class=\"num\">" + lv.params + "</td><td class=\"num\">" +
         (lv.df === null ? "&mdash;" : lv.df) + "</td></tr>";
     }
@@ -2927,7 +2993,7 @@ return {
     if (zero.length) {
       html += status("warn", "A step with no degrees of freedom.", "The step to " + esc(zero.join(", ")) +
         " spends no degrees of freedom, so the model it produces is statistically equivalent to the one " +
-        "above it and the difference test has nothing to test. With ordered-categorical items this happens " +
+        "above it and the difference test has nothing to test. With ordered categorical items this happens " +
         "when no item has four or more categories, since a shift and a rescaling of a latent response can " +
         "always be chosen to match two thresholds (Wu &amp; Estabrook, 2016, Proposition 2).");
     }
@@ -3066,7 +3132,7 @@ return {
     html += "<p>Write <var>p</var> for the number of items, <var>m</var> for the number of factors and <var>G</var> " +
       "for the number of groups. <b>&Lambda;</b> collects the loadings, <b>&nu;</b> the item intercepts, <b>&Theta;</b> " +
       "the residual variances, <b>&kappa;</b> the factor means and <b>&Phi;</b> the factor covariance matrix. " +
-      "With ordered-categorical items <b>T</b> collects the thresholds and <b>&Sigma;</b>* is the covariance " +
+      "With ordered categorical items <b>T</b> collects the thresholds and <b>&Sigma;</b>* is the covariance " +
       "matrix of the latent responses, whose diagonal the delta parameterization fixes through the scale factors. " +
       "A superscript in parentheses names the group, so <math><mrow><msup><mi mathvariant=\"bold\">&#x39B;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup></mrow></math> " +
       "is the loading matrix of group <var>g</var>, and a quantity written without one is held equal across groups.</p>";
@@ -3107,13 +3173,14 @@ return {
     html += "<li><b>Equal factor means.</b> <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
       "in every group. Spends <math><mrow><mi>m</mi><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
       "degrees of freedom.</li></ul>";
-    html += "<p>The two identification methods give the same fit and the same degrees of freedom at every level; they " +
-      "differ in what is assumed rather than tested. The marker method takes the metric of the factor from one " +
-      "item, so that item's loading, and from the scalar level its intercept, are held invariant by construction " +
-      "and never enter a test. The fixed-factor method standardizes the factor in the reference group instead, " +
-      "so every loading and every intercept is free to be tested, at the cost of a factor whose scale is defined " +
-      "by a group rather than by an item.</p>";
-    html += "<h3>Ordered-categorical indicators</h3>";
+    html += "<p>The two identification methods (Millsap, 2011) give the same fit and the same degrees of freedom at " +
+      "every level; they differ in what is assumed rather than tested. The marker method takes the metric of the " +
+      "factor from one item, so that item's loading is held invariant by construction and never enters the metric " +
+      "test; the intercepts, including the marker's, are all held equal at the scalar level while the factor " +
+      "means of the groups after the first are freed. The fixed-factor method standardizes the factor in the " +
+      "reference group instead, so every loading is free to be tested, at the cost of a factor whose scale is " +
+      "defined by a group rather than by an item.</p>";
+    html += "<h3>Ordered categorical indicators</h3>";
     html += "<p>An item with <var>C</var> categories has <math><mrow><mi>K</mi><mo>=</mo><mi>C</mi><mo>&#x2212;</mo><mn>1</mn></mrow></math> " +
       "thresholds cutting a latent response <var>y</var>*. Wu and Estabrook (2016) show that the parameters may " +
       "be changed by a shift and a positive rescaling of every latent response and of every factor without changing " +
@@ -3124,7 +3191,13 @@ return {
       "<math><mrow><mi mathvariant=\"bold\">&#x3BD;</mi><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
       "and <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A3;</mi><mo>&#x2217;</mo></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math>. " +
       "Under the theta parameterization it is condition 8, with <math><mrow><mi mathvariant=\"bold\">&#x398;</mi><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
-      "in place of the last constraint.</li>";
+      "in place of the last constraint. The same substitution is made at every level below: where a condition " +
+      "standardizes the latent responses of the first group, the page under theta fixes their residual variances " +
+      "at one in that group instead, which are the same number of constraints on the same scales. Under either " +
+      "parameterization a reference loading may be fixed in place of each factor variance, which is what the " +
+      "marker method does. The two parameterizations are those of M<em>plus</em> (Muth&eacute;n &amp; Asparouhov, 2002): " +
+      "under delta the scale factors of the latent responses are parameters and their residual variances are not, " +
+      "under theta the reverse.</li>";
     html += "<li><b>Equal thresholds</b> (condition 15, Proposition 4). <math><mrow><msup><mi mathvariant=\"bold\">T</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">T</mi></mrow></math>; " +
       "<math><mrow><msup><mi mathvariant=\"bold\">&#x3BD;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
       "and <math><mrow><mrow><mi>diag</mi><mo>&#x2061;</mo><mrow><mo stretchy=\"false\">(</mo><msup><mi mathvariant=\"bold\">&#x3A3;</mi><mrow><mo>&#x2217;</mo><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></msup><mo stretchy=\"false\">)</mo></mrow></mrow><mo>=</mo><mi mathvariant=\"bold\">I</mi></mrow></math> " +
@@ -3144,8 +3217,10 @@ return {
     html += "<li><b>Equal thresholds, loadings and intercepts</b> (condition 27). Also <math><mrow><mi mathvariant=\"bold\">&#x3BD;</mi><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
       "in every group, with <math><mrow><msup><mi mathvariant=\"bold\">&#x3BA;</mi><mrow><mo stretchy=\"false\">(</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">0</mi></mrow></math> " +
       "and factor means free elsewhere. Spends <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
-      "degrees of freedom when it follows the previous level, and <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mn>2</mn><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
-      "when it follows the configural model directly, which is the route taken with binary items.</li>";
+      "degrees of freedom when it follows the previous level. With binary items, where it follows the configural " +
+      "model directly, it spends <math><mrow><mrow><mo stretchy=\"false\">(</mo><mi>p</mi><mo>&#x2212;</mo><mn>2</mn><mi>m</mi><mo stretchy=\"false\">)</mo></mrow><mrow><mo stretchy=\"false\">(</mo><mi>G</mi><mo>&#x2212;</mo><mn>1</mn><mo stretchy=\"false\">)</mo></mrow></mrow></math> " +
+      "(Wu &amp; Estabrook, 2016, Table 4); with polytomous items written straight after the configural model it " +
+      "spends the sum of the two steps above and this one.</li>";
     html += "<li><b>Full measurement invariance</b> (condition 9). Also <math><mrow><msup><mi mathvariant=\"bold\">&#x398;</mi><mrow><mo stretchy=\"false\">(</mo><mi>g</mi><mo stretchy=\"false\">)</mo></mrow></msup><mo>=</mo><mi mathvariant=\"bold\">&#x398;</mi></mrow></math>, " +
       "written by fixing the residual variances of the latent responses at one in every group rather than in " +
       "the first only. Fixing an invariant <b>&Theta;</b> and standardizing <b>&Sigma;</b>* in the first group " +
@@ -3179,10 +3254,23 @@ return {
      here rather than left to be noticed later. */
   function onFamily(keepEstimator) {
     var B = (family() === "B");
-    $("cat-fields").hidden = !B;
+    var box = $("cat-fields"), ctl = box.querySelectorAll("input, select"), i;
+    box.hidden = !B;
+    /* the controls of the hidden block are disabled as well, so that
+       nothing that concerns the parameterization or the categories can
+       be reached from the keyboard while the indicators are continuous */
+    for (i = 0; i < ctl.length; i++) ctl[i].disabled = !B;
     renderEstimator(keepEstimator);
-    renderLevels();
     if (B) renderCatTable();
+    renderLevels();
+  }
+
+  /* The levels that can be written depend on the family, the number of
+     categories of every item and the parameterization, so the levels box
+     is rebuilt whenever one of those changes, before the inputs are. */
+  function refresh() {
+    renderLevels();
+    build();
   }
 
   function wire() {
@@ -3196,15 +3284,17 @@ return {
        for, so the table follows them. */
     $("defs").addEventListener("change", function () {
       if (family() === "B") renderCatTable();
-      build();
+      refresh();
     });
-    var live = ["nGroups", "groupVar", "groupNames", "ident", "estimator", "param", "catAll",
+    var live = ["nGroups", "groupVar", "groupNames", "ident", "estimator",
                 "title", "dataFile", "namesList", "missing", "prefix"];
     for (i = 0; i < live.length; i++) $(live[i]).addEventListener("change", build);
+    $("param").addEventListener("change", refresh);
+    $("catAll").addEventListener("change", refresh);
 
     $("write").addEventListener("click", function () {
       if (family() === "B") renderCatTable();
-      build();
+      refresh();
       var out = $("secOut");
       if (!out.hidden && out.scrollIntoView) out.scrollIntoView({ block: "start" });
     });
@@ -3237,7 +3327,7 @@ return {
 </script>
 <script>
 /* A table wider than the box that holds it scrolls inside that box. The shadow
-   at the edge of the box is a colour cue on its own, so the same thing is said
+   at the edge of the box is a color cue on its own, so the same thing is said
    in a line under the box, and the box is made focusable and given the name of
    the table, so that it can also be scrolled from the keyboard. */
 (function(){
@@ -3274,6 +3364,136 @@ return {
     new MutationObserver(later).observe(document.getElementById("main") || document.body,
       { childList: true, subtree: true });
   }
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>

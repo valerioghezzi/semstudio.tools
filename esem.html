@@ -1,0 +1,1894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Reliability and dimensionality indices for exploratory structural equation models and bifactor-ESEM solutions read from an Mplus output file, and the Mplus syntax for the family of models usually compared.">
+<title>ESEM and Bifactor-ESEM · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+/* A single long option name, FSDETERMINACY among them, would otherwise push
+   the page sideways on a narrow screen. */
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+.matrix td.num { font-variant-numeric: tabular-nums; }
+.target { font-weight: 600; }
+.zeroed { opacity: .65; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>ESEM and Bifactor-ESEM</h1>
+  <p class="lede">This page does two things with exploratory structural equation models. It reads the output of a fitted ESEM or bifactor-ESEM solution and reports the reliability and dimensionality indices that are defined for a loading matrix with cross-loadings, saying for each one what the literature defines and what it leaves open. And it writes the M<em>plus</em> input for the four models a construct-validation study usually compares: the independent cluster confirmatory model, the ESEM model, the bifactor confirmatory model and the bifactor-ESEM model.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: STDYX;</code> — every index here is defined on the completely standardized solution, which for an ESEM block is the rotated solution M<em>plus</em> prints under the <code>BY</code> headings of that section. The residual variances and any residual covariances printed there are read as well, and the echoed input under INPUT INSTRUCTIONS is read for the target pattern, that is for which loadings the rotation was asked to keep near zero.
+    A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Fit the model in M<em>plus</em>. The syntax for each of the four models can be written in the second half of this page.</li>
+    <li>Add <code>STDYX</code> to the OUTPUT command, so that the line reads <code>OUTPUT: STDYX;</code>, and run the model.</li>
+    <li>Drop the resulting <code>.out</code> file on the box below. The page reads the rotated standardized loadings of every factor, the correlations between the factors, the residual variances, the residual covariances, and the target pattern from the echoed MODEL command.</li>
+    <li>Read the indices with the notes beside them. A quantity the literature defines only for a solution without cross-loadings, or only for orthogonal factors, is reported as such and is not computed where its conditions fail.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="h-file">
+  <h2 id="h-file">The fitted model</h2>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file">M<em>plus</em> output file of the ESEM or bifactor-ESEM model</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere. Windows-1252, UTF-8 and UTF-16 output files are all decoded. When the output has more than one group the page asks which of them to read.</p>
+  <div id="report" aria-live="polite"></div>
+  <div class="field" id="group-picker" hidden>
+    <label for="group-select">Read this group of the output</label>
+    <select id="group-select"></select>
+    <span class="hint">The output holds one standardized solution per group, and the indices describe one solution at a time.</span>
+  </div>
+  <div class="field" id="general-picker" hidden>
+    <label for="general-select">Treat this factor as the general factor</label>
+    <select id="general-select"></select>
+    <span class="hint">A bifactor solution has one factor on which every item loads by design. The proposal is the factor whose target pattern covers every item; the indices that separate a general factor from the specific ones are reported only when one is designated.</span>
+  </div>
+</section>
+
+<section aria-labelledby="h-results">
+  <h2 id="h-results">Indices</h2>
+  <div id="results"><p class="hint">The indices appear here once an output file has been read.</p></div>
+  <div class="field" id="export-field" hidden>
+    <label for="export">The table above, as text to paste into a manuscript</label>
+    <textarea id="export" rows="8" readonly></textarea>
+    <p class="actions"><button type="button" id="copy-export">Copy the table</button> <span class="hint" id="copy-note" aria-live="polite"></span></p>
+  </div>
+</section>
+
+<section aria-labelledby="h-build">
+  <h2 id="h-build">Write the syntax</h2>
+  <p>Describe the model once and the page writes the four inputs that are usually compared, each identified in its TITLE. Nothing is estimated here: what is written is input, to be run in M<em>plus</em> on your data.</p>
+  <ol class="steps">
+    <li>Write the name of the data file, exactly as M<em>plus</em> will find it, and the list of variable names of that file.</li>
+    <li>Write one line per factor, in M<em>plus</em> form: <code>F1 BY x1 x2 x3;</code> The hyphen range is read, so <code>F1 BY x1-x3;</code> is the same line. These are the a priori target items of each factor; every other item becomes a targeted zero in the ESEM blocks.</li>
+    <li>Choose the estimator and, for the bifactor models, the rotation. Press <em>Write the inputs</em>.</li>
+  </ol>
+
+  <div class="field">
+    <label for="dataname">Data file</label>
+    <input type="text" id="dataname" value="mydata.dat" spellcheck="false">
+    <span class="hint">The name is written into the DATA command of every input.</span>
+  </div>
+  <div class="field">
+    <label for="varnames">Variable names of the data file</label>
+    <textarea id="varnames" rows="2" spellcheck="false">x1-x12</textarea>
+    <span class="hint">Written into the NAMES command as it stands. The hyphen range of M<em>plus</em> is allowed here.</span>
+  </div>
+  <div class="field">
+    <label for="defs">Factors and their target items</label>
+    <textarea id="defs" rows="4" spellcheck="false">F1 BY x1-x4;
+F2 BY x5-x8;
+F3 BY x9-x12;</textarea>
+    <span class="hint">One factor to a line. An item may be the target of one factor only; in the ESEM blocks it still receives a freely estimated cross-loading on the others, targeted at zero.</span>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label for="genname">Name of the general factor</label>
+      <input type="text" id="genname" value="GF" spellcheck="false">
+      <span class="hint">Used in the two bifactor inputs, where every item is one of its indicators.</span>
+    </div>
+    <div class="field">
+      <label for="estimator">Estimate with</label>
+      <select id="estimator">
+        <option value="MLR" selected>MLR: maximum likelihood, robust standard errors and scaled chi-square</option>
+        <option value="ML">ML: maximum likelihood</option>
+        <option value="WLSMV">WLSMV: weighted least squares, mean- and variance-adjusted</option>
+        <option value="ULSMV">ULSMV: unweighted least squares, mean- and variance-adjusted</option>
+      </select>
+      <span class="hint">WLSMV and ULSMV are the estimators for ordered categorical items; choosing one of them writes the CATEGORICAL command as well.</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field">
+      <label for="rotation">Rotation of the ESEM blocks</label>
+      <select id="rotation">
+        <option value="TARGET" selected>TARGET: oblique target rotation, and TARGET (ORTHOGONAL) in the bifactor input</option>
+        <option value="GEOMIN">GEOMIN for the ESEM input, and BI-GEOMIN (ORTHOGONAL) in the bifactor input</option>
+        <option value="BICF">GEOMIN for the ESEM input, and BI-CF-QUARTIMAX (ORTHOGONAL) in the bifactor input</option>
+      </select>
+      <span class="hint">Target rotation writes the a priori pattern into the syntax with the <code>~0</code> notation, so the solution is anchored to the model you describe. The two bifactor rotations of the second and third choices need no targets and let the data place the items.</span>
+    </div>
+    <div class="field">
+      <label for="starts">Random starts</label>
+      <input type="number" id="starts" min="0" max="5000" step="10" value="0">
+      <span class="hint">Written as <code>STARTS =</code> when it is above zero. A rotated bifactor solution has local optima, and several starts are the usual guard against reporting one of them.</span>
+    </div>
+  </div>
+  <fieldset>
+    <legend>Add to every input</legend>
+    <label class="check"><input type="checkbox" id="opt-fs"> <code>FSDETERMINACY</code> and <code>FSCOEFFICIENT</code>, for the factor score determinacies</label>
+    <label class="check"><input type="checkbox" id="opt-modind"> <code>MODINDICES</code></label>
+  </fieldset>
+  <p class="actions">
+    <button type="button" id="btn-write">Write the inputs</button>
+    <button type="button" id="btn-download" disabled>Download every input as a separate .inp file</button>
+  </p>
+  <div id="build-report" aria-live="polite"></div>
+  <div id="inputs"></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>What an ESEM solution is</h3>
+  <p>In a confirmatory factor model with an independent cluster structure every item loads on one factor and its loadings on the others are fixed at zero. Exploratory structural equation modeling estimates those cross-loadings instead of fixing them, and identifies the solution by rotation (Asparouhov &amp; Muthén, 2009). A set of factors estimated together in this way is written in M<em>plus</em> with the same label in parentheses after an asterisk, <code>(*1)</code>, and is identified by <var>m</var><sup>2</sup> restrictions for <var>m</var> factors, the number an exploratory factor analysis of the same order requires (Asparouhov &amp; Muthén, 2009). The consequence for measurement is that the correlations between the factors are no longer forced to absorb the covariance that the fixed zeros cannot carry, and are usually smaller than the ones an independent cluster model returns (Marsh, Morin, Parker, &amp; Kaur, 2014).</p>
+  <p>A bifactor model has a general factor on which every item loads and specific factors on which subsets of items load, all of them mutually orthogonal. Combining the two gives the bifactor-ESEM model, in which the specific factors are estimated as a set with cross-loadings, under an orthogonal rotation (Morin, Arens, &amp; Marsh, 2016). The four models the second half of this page writes are the ones that framework compares, and they are nested in the sense of what they allow rather than in the sense of a difference test: the confirmatory model forbids both cross-loadings and a general factor, the ESEM model allows the first, the bifactor confirmatory model the second, and the bifactor-ESEM model both.</p>
+
+  <h3>What the page reads</h3>
+  <p>From the STDYX section: the rotated standardized loading of every item on every factor, the correlations between the factors printed under the <code>WITH</code> headings whose two names are factors, the residual variances, and the residual covariances, which are the <code>WITH</code> pairs whose two names are items. From the echoed input under INPUT INSTRUCTIONS: the target pattern, that is which items each factor was asked to load on and which of its loadings the rotation was asked to keep near zero, written with the <code>~0</code> notation. Nothing is typed into this half of the page, and no index is computed from a quantity that was not read from the file.</p>
+  <p>The target pattern is what defines the subscale of a factor, and a coefficient of a subscale needs one. A rotation that specifies no targets, such as <code>BI-GEOMIN</code>, leaves the file with no statement of which items belong to which factor; the page then reports only the quantities that do not need a subscale and says which ones it left out.</p>
+
+  <h3>Communality with correlated factors</h3>
+  <p>With cross-loadings and correlated factors the variance of an item accounted for by the common factors is not the sum of its squared loadings: the covariance between the factors enters it as well.</p>
+  <div class="eq"><math display="block"><mrow><msubsup><mi>h</mi><mi>i</mi><mn>2</mn></msubsup><mo>=</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>l</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>l</mi></mrow></msub><msub><mi>&#x3C6;</mi><mrow><mi>k</mi><mi>l</mi></mrow></msub></mrow></math></div>
+  <p class="where">Here <var>h</var><sup>2</sup><sub><var>i</var></sub> is the communality of item <var>i</var>, <var>k</var> and <var>l</var> run over the factors, λ<sub><var>ik</var></sub> is the standardized loading of item <var>i</var> on factor <var>k</var>, and φ<sub><var>kl</var></sub> is the correlation between factors <var>k</var> and <var>l</var>, which is one when <var>k</var> and <var>l</var> are the same factor. With two factors the expression is λ<sup>2</sup><sub><var>i</var>1</sub> + λ<sup>2</sup><sub><var>i</var>2</sub> + 2λ<sub><var>i</var>1</sub>λ<sub><var>i</var>2</sub>φ<sub>21</sub>, and the ratio of the communality to the total variance of the item is the reliability of a single indicator in the sense of Fornell and Larcker (1981). With orthogonal factors every φ off the diagonal is zero and the communality is the sum of the squared loadings.</p>
+
+  <h3>Omega</h3>
+  <p>The model-based composite reliability of the total of the items targeted on one factor is McDonald's (1970) omega, in the form used for ESEM solutions by Tóth-Király, Bőthe, Rigó and Orosz (2017) and by Morin, Arens and Marsh (2016):</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>&#x3C9;</mi><mi>f</mi></msub><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mrow><mo>|</mo><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow></msub><mo>|</mo></mrow><mo>)</mo></mrow><mn>2</mn></msup><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mrow><mo>|</mo><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow></msub><mo>|</mo></mrow><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>+</mo><mn>2</mn><munder><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow></math></div>
+  <p class="where">Here ω<sub><var>f</var></sub> is the omega of the total of the items targeted on factor <var>f</var>, <var>i</var> and <var>j</var> run over those items, λ<sub><var>if</var></sub> is the standardized loading of item <var>i</var> on <var>f</var>, δ<sub><var>ii</var></sub> is the residual variance of item <var>i</var> and δ<sub><var>ij</var></sub> the error covariance between items <var>i</var> and <var>j</var>. The loadings enter in absolute value, as Tóth-Király and colleagues (2017) write them, so that an item keyed in the opposite direction does not cancel the others.</p>
+  <p>The last term of the denominator is there only when the model estimates residual covariances between the items of the factor. Bollen (1980) gave the coefficient in that form and Raykov (2001) derived it for the congeneric model with correlated errors; the same denominator is the sum of the elements of the reproduced covariance matrix of those items, which is the form Bentler (2009) works with. Where the model estimates none, the term is zero and the expression is the one printed above it.</p>
+  <p>A bifactor solution is the exception. There the covariance that a subset of items share beyond the general factor is what the specific factor of that subset stands for, so a residual covariance estimated alongside it is confounded with that factor, and the indices below are derived for a model whose residuals are uncorrelated. A bifactor output that estimates such a covariance is refused with the names of the two items rather than read into formulas that do not cover it; a shared method or a common wording belongs in that model as a further specific factor, orthogonal to the others.</p>
+
+  <h3>Average variance extracted</h3>
+  <div class="eq"><math display="block"><mrow><msub><mi>AVE</mi><mi>f</mi></msub><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow><mn>2</mn></msubsup></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow><mn>2</mn></msubsup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow></mfrac></mrow></math></div>
+  <p class="where">Here AVE<sub><var>f</var></sub> is the average variance extracted by factor <var>f</var>, <var>i</var> runs over the items targeted on it, λ<sub><var>if</var></sub> is the standardized loading of item <var>i</var> on <var>f</var> and δ<sub><var>ii</var></sub> its residual variance. This is the coefficient of Fornell and Larcker (1981), computed on the loadings of the factor of interest alone; the variance an item shares with the other factors of the solution is in neither the numerator nor the denominator, so with cross-loadings AVE is not the share of the item's total variance that the model accounts for. That share is the communality above.</p>
+
+  <h3>Indices that separate a general factor from the specific ones</h3>
+  <p>These are defined for a bifactor solution, in which the factors are mutually orthogonal. The page computes them when every correlation between factors read from the file is zero and one factor has been designated as the general one; with correlated factors it reports why it did not.</p>
+  <p>Omega for the total of a set of items, in the bifactor form of Rodriguez, Reise and Haviland (2016a), collects the squared sum of the loadings on every factor:</p>
+  <div class="eq"><math display="block"><mrow><mi>&#x3C9;</mi><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>)</mo></mrow><mn>2</mn></msup></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>+</mo><mn>2</mn><munder><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <var>k</var> runs over the factors of the model, <var>i</var> and <var>j</var> over the items of the total, λ<sub><var>ik</var></sub> is the standardized loading of item <var>i</var> on factor <var>k</var>, δ<sub><var>ii</var></sub> its residual variance and δ<sub><var>ij</var></sub> the residual covariance between two of them, the last term being present only where the model estimates such covariances (Bollen, 1980; Raykov, 2001).</p>
+  <p>Omega hierarchical keeps that denominator and retains in the numerator the general factor alone; omega hierarchical subscale does the same for a specific factor, over the items of its own subscale (Rodriguez, Reise, &amp; Haviland, 2016a):</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>&#x3C9;</mi><mi mathvariant="normal">H</mi></msub><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi mathvariant="normal">G</mi></mrow></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>+</mo><mn>2</mn><munder><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow></math></div>
+  <p class="where">Here ω<sub>H</sub> is omega hierarchical, λ<sub><var>i</var>G</sub> is the loading of item <var>i</var> on the general factor, and the remaining symbols are those of the formula above.</p>
+  <p>Explained common variance is the share of the common variance of the whole set of items that the general factor carries, and the same ratio taken on one item is its item-level explained common variance (Rodriguez, Reise, &amp; Haviland, 2016a):</p>
+  <div class="eq"><math display="block"><mrow><mi>ECV</mi><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mrow><mi>i</mi><mi mathvariant="normal">G</mi></mrow><mn>2</mn></msubsup></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>k</mi></munder><msubsup><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>k</mi></mrow><mn>2</mn></msubsup></mrow></mfrac></mrow></math></div>
+  <p class="where">Here the sums run over every item <var>i</var> of the model and every factor <var>k</var>, so that the denominator is the total common variance of the solution.</p>
+  <p>Construct replicability is the squared correlation between a factor and the best weighted composite of its items (Hancock &amp; Mueller, 2001), and factor determinacy the correlation between a factor and the regression estimate of its scores:</p>
+  <div class="eq"><math display="block"><mrow><mi>H</mi><mo>=</mo><mfrac><mn>1</mn><mrow><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mfrac><msubsup><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow><mn>2</mn></msubsup><mrow><mn>1</mn><mo>&#x2212;</mo><msubsup><mi>&#x3BB;</mi><mrow><mi>i</mi><mi>f</mi></mrow><mn>2</mn></msubsup></mrow></mfrac></mrow></mfrac></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><msub><mi>FD</mi><mi>f</mi></msub><mo>=</mo><msqrt><mrow><msubsup><mi mathvariant="bold">&#x3BB;</mi><mi>f</mi><mo>&#x2032;</mo></msubsup><msup><mi mathvariant="bold">&#x3A3;</mi><mrow><mo>&#x2212;</mo><mn>1</mn></mrow></msup><msub><mi mathvariant="bold">&#x3BB;</mi><mi>f</mi></msub></mrow></msqrt></mrow></math></div>
+  <p class="where">Here <var>H</var> is the construct replicability of factor <var>f</var>, <var>i</var> runs over the items targeted on it, and λ<sub><var>if</var></sub> is the standardized loading of item <var>i</var> on <var>f</var>. FD<sub><var>f</var></sub> is the factor determinacy of the same factor, <b>λ</b><sub><var>f</var></sub> is the column of the loading matrix belonging to it, and <b>Σ</b> is the correlation matrix the model reproduces, <b>Σ</b> = <b>ΛΛ</b>′ + <b>Δ</b>, whose off-diagonal cells carry the residual covariances where the model estimates them. Rodriguez, Reise and Haviland (2016a) give factor determinacy in matrix form for the whole loading matrix at once, of which this is one diagonal element.</p>
+  <p>The percentage of uncontaminated correlations is the share of the pairs of items whose correlation carries the general factor alone, counted from the target pattern: a pair is contaminated when both items are targeted on the same specific factor (Rodriguez, Reise, &amp; Haviland, 2016a).</p>
+
+  <h3>What the page does not compute, and why</h3>
+  <p>Rodriguez, Reise and Haviland (2016a) write these indices for a bifactor model with an independent cluster structure, in which every item loads on the general factor and on one specific factor and no cross-loading is estimated, and they say that the indices can also be computed for exploratory bifactor solutions without giving a modified formula for that case. This page applies their formulas to the matrix as it stands, so that a cross-loading enters the sums of the factor it belongs to, and reports beside the table that this is an application of formulas written for a stricter structure. The alternative, computing the coefficients on the target loadings alone and discarding the cross-loadings, would report a variance the model does not imply.</p>
+  <p>With correlated factors, omega hierarchical, explained common variance and the percentage of uncontaminated correlations are not reported. The variance of a total is then not the sum of the parts each factor contributes, because the covariances between the factors belong to it as well, and a share attributed to one of several correlated factors is not determined by the model. Omega for each factor, the average variance extracted, construct replicability and the communalities are reported, since none of them requires that partition.</p>
+  <p>Factor determinacy is computed from the reproduced correlation matrix when the factors are orthogonal. M<em>plus</em> prints the determinacies of any solution directly when the OUTPUT command carries <code>FSDETERMINACY</code>, and that is the value to report for a solution with correlated factors; the option is refused for models whose indicators are all categorical.</p>
+  <p>Nothing on this page is a difference test between the four models. Their fit is compared as they are estimated, and the comparison rests on the fit indices, on the size and the pattern of the cross-loadings and, for the bifactor models, on whether the specific factors retain enough variance to be interpretable, which is what omega hierarchical subscale reports.</p>
+
+  <h3>The syntax the page writes</h3>
+  <p>The four inputs differ only in the MODEL command and in the ANALYSIS command. The confirmatory input writes one <code>BY</code> statement per factor with its target items. The ESEM input writes the same factors as one set, marked <code>(*1)</code>, with every non-target item listed with the <code>~0</code> notation under target rotation, which asks the rotation to keep those loadings near zero without fixing them (Asparouhov &amp; Muthén, 2009; Morin, Arens, &amp; Marsh, 2016). The bifactor confirmatory input adds a general factor on every item and fixes every correlation between factors at zero. The bifactor-ESEM input writes the general factor and the specific factors as one set under an orthogonal rotation, which makes them orthogonal by construction, in the form used by Morin, Arens and Marsh (2016). Where the rotation chosen is <code>BI-GEOMIN</code> or <code>BI-CF-QUARTIMAX</code>, the bifactor input lists every item on every factor of the set and lets the rotation place them.</p>
+  <p>Each input ends with <code>OUTPUT: STDYX;</code>, which is what the first half of this page reads, and with whatever else was ticked. No input carries a MODEL CONSTRAINT block: the coefficients are computed here, from the standardized solution the run prints, and writing them a second time inside the input would put two answers to the same question in front of the reader.</p>
+
+  <h3>Self-test</h3>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the communality with correlated factors against a matrix product computed a second way, omega and the average variance extracted against their formulas on random loading matrices, the effect of a residual covariance on the coefficients defined on the variance of a total and its absence from those defined on single items, the bifactor indices against the values the independent cluster case gives, factor determinacy against an inverse obtained by Gauss-Jordan elimination, the reading of the target pattern from the echoed input, and the syntax the builder writes for each of the four models.</p>
+</div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>Asparouhov, T., &amp; Muthén, B. (2009). Exploratory structural equation modeling. <em>Structural Equation Modeling, 16</em>(3), 397–438. <a href="https://doi.org/10.1080/10705510903008204">https://doi.org/10.1080/10705510903008204</a></li>
+    <li>Bentler, P. M. (2009). Alpha, dimension-free, and model-based internal consistency reliability. <em>Psychometrika, 74</em>(1), 137–143. <a href="https://doi.org/10.1007/s11336-008-9100-1">https://doi.org/10.1007/s11336-008-9100-1</a></li>
+    <li>Bollen, K. A. (1980). Issues in the comparative measurement of political democracy. <em>American Sociological Review, 45</em>(3), 370–390. <a href="https://doi.org/10.2307/2095172">https://doi.org/10.2307/2095172</a></li>
+    <li>Fornell, C., &amp; Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. <em>Journal of Marketing Research, 18</em>(1), 39–50. <a href="https://doi.org/10.1177/002224378101800104">https://doi.org/10.1177/002224378101800104</a></li>
+    <li>Hancock, G. R., &amp; Mueller, R. O. (2001). Rethinking construct reliability within latent variable systems. In R. Cudeck, S. du Toit, &amp; D. Sörbom (Eds.), <em>Structural equation modeling: Present and future</em> (pp. 195–216). Scientific Software International.</li>
+    <li>Marsh, H. W., Morin, A. J. S., Parker, P. D., &amp; Kaur, G. (2014). Exploratory structural equation modeling: An integration of the best features of exploratory and confirmatory factor analysis. <em>Annual Review of Clinical Psychology, 10</em>, 85–110. <a href="https://doi.org/10.1146/annurev-clinpsy-032813-153700">https://doi.org/10.1146/annurev-clinpsy-032813-153700</a></li>
+    <li>McDonald, R. P. (1970). The theoretical foundations of principal factor analysis, canonical factor analysis, and alpha factor analysis. <em>British Journal of Mathematical and Statistical Psychology, 23</em>(1), 1–21. <a href="https://doi.org/10.1111/j.2044-8317.1970.tb00432.x">https://doi.org/10.1111/j.2044-8317.1970.tb00432.x</a></li>
+    <li>Morin, A. J. S., Arens, A. K., &amp; Marsh, H. W. (2016). A bifactor exploratory structural equation modeling framework for the identification of distinct sources of construct-relevant psychometric multidimensionality. <em>Structural Equation Modeling, 23</em>(1), 116–139. <a href="https://doi.org/10.1080/10705511.2014.961800">https://doi.org/10.1080/10705511.2014.961800</a></li>
+    <li>Raykov, T. (2001). Estimation of congeneric scale reliability using covariance structure analysis with nonlinear constraints. <em>British Journal of Mathematical and Statistical Psychology, 54</em>(2), 315–323. <a href="https://doi.org/10.1348/000711001159582">https://doi.org/10.1348/000711001159582</a></li>
+    <li>Rodriguez, A., Reise, S. P., &amp; Haviland, M. G. (2016a). Evaluating bifactor models: Calculating and interpreting statistical indices. <em>Psychological Methods, 21</em>(2), 137–150. <a href="https://doi.org/10.1037/met0000045">https://doi.org/10.1037/met0000045</a></li>
+    <li>Tóth-Király, I., Bőthe, B., Rigó, A., &amp; Orosz, G. (2017). An illustration of the exploratory structural equation modeling (ESEM) framework on the Passion Scale. <em>Frontiers in Psychology, 8</em>, 1968. <a href="https://doi.org/10.3389/fpsyg.2017.01968">https://doi.org/10.3389/fpsyg.2017.01968</a></li>
+    <li>Viladrich, C., Angulo-Brunet, A., &amp; Doval, E. (2017). A journey around alpha and omega to estimate internal consistency reliability. <em>Anales de Psicología, 33</em>(3), 755–782. <a href="https://doi.org/10.6018/analesps.33.3.268401">https://doi.org/10.6018/analesps.33.3.268401</a></li>
+  </ul>
+</div>
+</details>
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+/* ==================================================================
+   Numerical core. Every function here is a pure function of its
+   arguments, so that the self-test can drive it without the page.
+   ================================================================== */
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function escList(list) { var a = list.map(esc); return a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : (a[0] || ""); }
+var MP = "M<em>plus</em>";
+
+var ES = (function () {
+  function cholesky(A) {
+    var n = A.length, L = [], i, j, k, s, big = 0;
+    for (i = 0; i < n; i++) if (A[i][i] > big) big = A[i][i];
+    var tol = Math.max(big, 1) * 1e-12;
+    for (i = 0; i < n; i++) { L.push(new Array(n)); for (j = 0; j < n; j++) L[i][j] = 0; }
+    for (i = 0; i < n; i++) {
+      for (j = 0; j <= i; j++) {
+        s = A[i][j];
+        for (k = 0; k < j; k++) s -= L[i][k] * L[j][k];
+        if (i === j) {
+          if (!(s > tol)) return { ok: false, at: i, pivot: s };
+          L[i][i] = Math.sqrt(s);
+        } else {
+          L[i][j] = s / L[j][j];
+        }
+      }
+    }
+    return { ok: true, L: L };
+  }
+
+  /* Solves A X = B for X, given the Cholesky factor of A. */
+  function cholSolve(L, B) {
+    var n = L.length, m = B[0].length, X = [], i, j, c, s;
+    for (i = 0; i < n; i++) { X.push(new Array(m)); }
+    for (c = 0; c < m; c++) {
+      var y = new Array(n);
+      for (i = 0; i < n; i++) {
+        s = B[i][c];
+        for (j = 0; j < i; j++) s -= L[i][j] * y[j];
+        y[i] = s / L[i][i];
+      }
+      for (i = n - 1; i >= 0; i--) {
+        s = y[i];
+        for (j = i + 1; j < n; j++) s -= L[j][i] * X[j][c];
+        X[i][c] = s / L[i][i];
+      }
+    }
+    return X;
+  }
+
+  /* LU with partial pivoting. Kept as an independent route to the
+     same quantities, used by the self-test to check the Cholesky
+     solution and available when a matrix has to be inverted outright. */
+  function luInverse(A) {
+    var n = A.length, M = [], p = [], i, j, k, r, s, big, piv;
+    for (i = 0; i < n; i++) { M.push(A[i].slice()); p.push(i); }
+    for (k = 0; k < n; k++) {
+      big = Math.abs(M[k][k]); r = k;
+      for (i = k + 1; i < n; i++) if (Math.abs(M[i][k]) > big) { big = Math.abs(M[i][k]); r = i; }
+      if (big < 1e-13) return null;
+      if (r !== k) { s = M[k]; M[k] = M[r]; M[r] = s; j = p[k]; p[k] = p[r]; p[r] = j; }
+      piv = M[k][k];
+      for (i = k + 1; i < n; i++) {
+        M[i][k] /= piv;
+        for (j = k + 1; j < n; j++) M[i][j] -= M[i][k] * M[k][j];
+      }
+    }
+    var X = [];
+    for (i = 0; i < n; i++) { X.push(new Array(n)); }
+    for (var c = 0; c < n; c++) {
+      var y = new Array(n);
+      for (i = 0; i < n; i++) {
+        s = (p[i] === c) ? 1 : 0;
+        for (j = 0; j < i; j++) s -= M[i][j] * y[j];
+        y[i] = s;
+      }
+      for (i = n - 1; i >= 0; i--) {
+        s = y[i];
+        for (j = i + 1; j < n; j++) s -= M[i][j] * X[j][c];
+        X[i][c] = s / M[i][i];
+      }
+    }
+    return X;
+  }
+
+  /* ---- the indices ------------------------------------------------
+     model = { names:[], factors:[], general:index, L:[[...]],
+               uni:[number|null], resid:[number|null], useResid:bool } */
+  /* The indices, from the loading matrix, the factor correlations, the
+     uniquenesses, the residual covariances and the target pattern. */
+  function compute(model) {
+    var names = model.names, factors = model.factors, L = model.L, Phi = model.Phi;
+    var n = names.length, K = factors.length, g = (typeof model.general === "number") ? model.general : -1;
+    var warn = [], err = [], i, j, k, l, f, q;
+
+    if (n === 0) return { empty: true, warnings: warn, errors: ["No item was read from the file."] };
+    if (K === 0) return { empty: true, warnings: warn, errors: ["No factor was read from the file."] };
+
+    /* Orthogonality of the factors, read from the file rather than assumed. */
+    var maxOff = 0;
+    for (k = 0; k < K; k++)
+      for (l = k + 1; l < K; l++) if (Math.abs(Phi[k][l]) > maxOff) maxOff = Math.abs(Phi[k][l]);
+    /* A bifactor reading needs at least two factors: with one factor there is
+       no off-diagonal correlation to inspect and no general factor to separate
+       from a specific one. */
+    var orth = K >= 2 && maxOff <= 1e-6;
+
+    /* Communality with correlated factors: the covariance between two
+       factors belongs to the variance of an item that loads on both. */
+    var h2 = new Array(n), theta = new Array(n), roundedNegative = [], inadmissibleNegative = [];
+    for (i = 0; i < n; i++) {
+      var c = 0;
+      for (k = 0; k < K; k++) for (l = 0; l < K; l++) c += L[i][k] * L[i][l] * Phi[k][l];
+      h2[i] = c;
+      var t = (model.useResid && model.resid[i] !== null && isFinite(model.resid[i])) ? model.resid[i] : 1 - c;
+      var tol = 0.0005;
+      if (!(model.useResid && model.resid[i] !== null && isFinite(model.resid[i]))) {
+        var dl = 0, dp = 0;
+        for (k = 0; k < K; k++) for (l = 0; l < K; l++) {
+          dl += Math.abs(L[i][l] * Phi[k][l]) + Math.abs(L[i][k] * Phi[k][l]);
+          dp += Math.abs(L[i][k] * L[i][l]);
+        }
+        tol = Math.max(0.0005, 0.0005 * (dl + dp));
+      }
+      if (t < -tol) inadmissibleNegative.push(names[i] + " (" + t.toFixed(3) + ")");
+      else if (t < 0) { roundedNegative.push(names[i] + " (" + t.toFixed(3) + ")"); t = 0; }
+      theta[i] = t;
+    }
+    if (inadmissibleNegative.length)
+      return { empty: true, warnings: warn, errors: [(inadmissibleNegative.length === 1 ? "A negative uniqueness was found for " : "Negative uniquenesses were found for ") +
+        escList(inadmissibleNegative) + (inadmissibleNegative.length === 1 ? ". This is a Heywood case: the common factors account for more " : ". These are Heywood cases: the common factors account for more ") +
+        "than the item's total variance, so the fitted solution is inadmissible. No coefficient was " +
+        "computed. Inspect the " + MP + " warnings, the model specification and the data before rerunning the analysis."] };
+    if (roundedNegative.length)
+      warn.push("A uniqueness printed just below zero for " + escList(roundedNegative) +
+        " was set to zero: the shortfall is no larger than the error the three-decimal printing of the " +
+        "loadings and of the factor correlations can produce. Check the unrounded estimate before " +
+        "reporting the coefficients.");
+
+    var resCov = [], resCovOf = {};
+    (model.resCov || []).forEach(function (rc) {
+      if (rc && isFinite(rc.est) && rc.i !== rc.j && rc.i >= 0 && rc.j >= 0 && rc.i < n && rc.j < n) {
+        var a = Math.min(rc.i, rc.j), b = Math.max(rc.i, rc.j);
+        if (!Object.prototype.hasOwnProperty.call(resCovOf, a + "," + b)) {
+          resCov.push({ i: a, j: b, est: rc.est });
+          resCovOf[a + "," + b] = rc.est;
+        }
+      }
+    });
+    function covWithin(I) {
+      var s = 0, u1, u2;
+      for (u1 = 0; u1 < I.length; u1++)
+        for (u2 = u1 + 1; u2 < I.length; u2++) {
+          var key = Math.min(I[u1], I[u2]) + "," + Math.max(I[u1], I[u2]);
+          if (Object.prototype.hasOwnProperty.call(resCovOf, key)) s += 2 * resCovOf[key];
+        }
+      return s;
+    }
+
+    /* A bifactor solution whose model estimates a covariance between two
+       residuals is refused. The covariance a subset of items share beyond the
+       general factor is what the specific factor of that subset stands for, so
+       a residual covariance estimated alongside it is confounded with that
+       factor, and the bifactor indices are derived without one (Rodriguez,
+       Reise, & Haviland, 2016a). */
+    if (resCov.length && orth && g >= 0) {
+      var pairs = resCov.map(function (c) { return names[c.i] + " \u2013 " + names[c.j] + " (" + c.est.toFixed(3) + ")"; });
+      return { empty: true, warnings: warn, errors: ["This is a bifactor solution, and the model estimates a " +
+        "covariance between the residuals of two items: " + escList(pairs) + ". The covariance that a subset of " +
+        "items share beyond the general factor is what the specific factor of that subset stands for, a residual " +
+        "covariance estimated alongside it is confounded with that factor, and the indices of a bifactor solution " +
+        "are derived for a model whose residuals are uncorrelated. Nothing was computed. A shared method or a " +
+        "common wording belongs in such a model as a further specific factor, orthogonal to the others."] };
+    }
+
+    /* The subscale of a factor is its set of target items, read from the
+       echoed MODEL command. Without one, no coefficient of a subscale. */
+    var target = model.target || null;
+    var setOf = [], haveTargets = !!target;
+    for (f = 0; f < K; f++) {
+      var I = [];
+      if (target) { for (i = 0; i < n; i++) if (target[i][f]) I.push(i); }
+      setOf.push(I);
+    }
+
+    var totalCommon = 0;
+    for (i = 0; i < n; i++) for (k = 0; k < K; k++) totalCommon += L[i][k] * L[i][k];
+
+    var per = [];
+    for (f = 0; f < K; f++) {
+      var T = setOf[f], sumAbs = 0, sumSq = 0, res = 0, hAcc = 0, hBad = false;
+      for (q = 0; q < T.length; q++) {
+        var lam = L[T[q]][f], l2 = lam * lam;
+        sumAbs += Math.abs(lam);
+        sumSq += l2;
+        res += theta[T[q]];
+        if (l2 >= 1) hBad = true; else hAcc += l2 / (1 - l2);
+      }
+      var cov = covWithin(T);
+      var denM = sumAbs * sumAbs + res + cov;
+      var row = {
+        index: f, name: factors[f], isGeneral: f === g, nItems: T.length, items: T.slice(),
+        sumAbs: sumAbs, resCovPart: cov,
+        omega: (T.length && denM > 0) ? (sumAbs * sumAbs) / denM : NaN,
+        ave: (T.length && (sumSq + res) > 0) ? sumSq / (sumSq + res) : NaN,
+        H: (T.length && !hBad && hAcc > 0) ? 1 / (1 + 1 / hAcc) : NaN,
+        omegaBif: NaN, omegaH: NaN, ecvAll: NaN, ecvSS: NaN, ecvGS: NaN, fd: NaN
+      };
+      if (orth && T.length) {
+        var colSum = new Array(K), sqAll = 0;
+        for (k = 0; k < K; k++) {
+          var s2 = 0;
+          for (q = 0; q < T.length; q++) s2 += L[T[q]][k];
+          colSum[k] = s2; sqAll += s2 * s2;
+        }
+        var denB = sqAll + res + cov;
+        row.omegaBif = denB > 0 ? sqAll / denB : NaN;
+        row.omegaH = denB > 0 ? (colSum[f] * colSum[f]) / denB : NaN;
+        row.relOmega = row.omegaBif > 0 ? row.omegaH / row.omegaBif : NaN;
+        var sub = 0, own = 0, gen = 0;
+        for (q = 0; q < T.length; q++) { sub += h2[T[q]]; own += L[T[q]][f] * L[T[q]][f]; if (g >= 0) gen += L[T[q]][g] * L[T[q]][g]; }
+        row.ecvSS = sub > 0 ? own / sub : NaN;
+        row.ecvGS = (g >= 0 && sub > 0) ? gen / sub : NaN;
+      }
+      if (orth) {
+        var sqCol = 0;
+        for (i = 0; i < n; i++) sqCol += L[i][f] * L[i][f];
+        row.ecvAll = totalCommon > 0 ? sqCol / totalCommon : NaN;
+      }
+      per.push(row);
+    }
+
+    /* Factor determinacy, from the correlation matrix the model reproduces,
+       whose off-diagonal cells carry the residual covariances. Defined here
+       for orthogonal factors, which is the case the formula is written for. */
+    var Sigma = null, fdNote = "";
+    if (orth) {
+      Sigma = [];
+      for (i = 0; i < n; i++) {
+        var rr = new Array(n);
+        for (j = 0; j < n; j++) {
+          var sv = 0;
+          for (k = 0; k < K; k++) sv += L[i][k] * L[j][k];
+          if (i !== j) {
+            var key2 = Math.min(i, j) + "," + Math.max(i, j);
+            if (Object.prototype.hasOwnProperty.call(resCovOf, key2)) sv += resCovOf[key2];
+          }
+          rr[j] = (i === j) ? sv + theta[i] : sv;
+        }
+        Sigma.push(rr);
+      }
+      var ch = cholesky(Sigma);
+      if (!ch.ok) {
+        fdNote = "The reproduced correlation matrix is not positive definite: the factorization fails at " +
+          esc(names[ch.at]) + ", where the pivot is " + ch.pivot.toExponential(3) +
+          ". Factor determinacy is not defined for such a matrix and is not reported.";
+      } else {
+        var X = cholSolve(ch.L, L);
+        for (f = 0; f < K; f++) {
+          var acc = 0;
+          for (i = 0; i < n; i++) acc += L[i][f] * X[i][f];
+          per[f].fd = acc >= 0 ? Math.sqrt(acc) : NaN;
+        }
+      }
+    }
+
+    /* Item level. The item-level explained common variance needs a general
+       factor and orthogonality, like the model-level one. */
+    var items = [];
+    for (i = 0; i < n; i++) {
+      var lo = [];
+      for (k = 0; k < K; k++) lo.push(L[i][k]);
+      items.push({
+        name: names[i], loadings: lo, theta: theta[i], h2: h2[i],
+        iecv: (orth && g >= 0 && h2[i] > 0) ? (L[i][g] * L[i][g]) / h2[i] : NaN
+      });
+    }
+
+    /* Percentage of uncontaminated correlations, counted from the target
+       pattern: a pair is contaminated when both items are targeted on the
+       same specific factor. */
+    var puc = NaN, pucNote = "", totalPairs = n * (n - 1) / 2, contaminated = 0;
+    if (orth && g >= 0 && haveTargets && totalPairs > 0) {
+      var a2, b2;
+      for (a2 = 0; a2 < n; a2++)
+        for (b2 = a2 + 1; b2 < n; b2++) {
+          var shared = false;
+          for (f = 0; f < K; f++) if (f !== g && target[a2][f] && target[b2][f]) { shared = true; break; }
+          if (shared) contaminated++;
+        }
+      puc = 1 - contaminated / totalPairs;
+    } else if (!haveTargets) {
+      pucNote = "no target pattern was read from the file";
+    } else if (!orth) {
+      pucNote = "the factors of this solution are correlated";
+    } else if (g < 0) {
+      pucNote = "no factor was designated as the general one";
+    }
+
+    return {
+      empty: false, warnings: warn, errors: err,
+      n: n, K: K, factors: factors, general: g, orth: orth, maxOff: maxOff,
+      haveTargets: haveTargets, per: per, items: items, theta: theta, h2: h2,
+      totalCommon: totalCommon, resCov: resCov, Sigma: Sigma, fdNote: fdNote,
+      puc: puc, pucNote: pucNote, contaminated: contaminated, totalPairs: totalPairs
+    };
+  }
+
+  return { compute: compute, cholesky: cholesky, cholSolve: cholSolve };
+})();
+
+/* ==================================================================
+   Reading an Mplus output file
+   ================================================================== */
+function decodeBuffer(ab) {
+  var u8 = new Uint8Array(ab), i, s;
+  if (typeof TextDecoder === "undefined") {
+    s = "";
+    for (i = 0; i < u8.length; i++) s += String.fromCharCode(u8[i]);
+    return s;
+  }
+  if (u8.length >= 2 && u8[0] === 0xFF && u8[1] === 0xFE) { try { return new TextDecoder("utf-16le").decode(u8.subarray(2)); } catch (e) {} }
+  if (u8.length >= 2 && u8[0] === 0xFE && u8[1] === 0xFF) { try { return new TextDecoder("utf-16be").decode(u8.subarray(2)); } catch (e) {} }
+  if (u8.length >= 3 && u8[0] === 0xEF && u8[1] === 0xBB && u8[2] === 0xBF) u8 = u8.subarray(3);
+  try { return new TextDecoder("utf-8", { fatal: true }).decode(u8); } catch (e) {}
+  try { return new TextDecoder("windows-1252").decode(u8); } catch (e) {}
+  return new TextDecoder("utf-8").decode(u8);
+}
+
+function readTextFile(file, then, fail) {
+  var r = new FileReader();
+  r.onerror = function () { if (fail) fail(); };
+  if (typeof r.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined") {
+    r.onload = function (e) {
+      var res = (e && e.target) ? e.target.result : r.result, text;
+      /* Only a failure to decode belongs to the file; an error raised further
+         on belongs to the reading of it, and saying the browser could not open
+         the file would send the reader after the wrong thing. */
+      try { text = decodeBuffer(res); } catch (err) { if (fail) fail(err); return; }
+      then(text);
+    };
+    r.readAsArrayBuffer(file);
+  } else {
+    r.onload = function (e) { then(((e && e.target) ? e.target.result : r.result) || ""); };
+    r.readAsText(file);
+  }
+}
+
+/* With MODEL = CONFIGURAL METRIC SCALAR, Mplus writes several models
+   into one file and renames every heading, so "MODEL RESULTS" and
+   "STDYX Standardization" never appear on a line of their own. The
+   sections of the first model are extracted and their headings put
+   back into the usual form. */
+function normalizeShortcut(text) {
+  var lines = String(text).replace(/\r\n/g, "\n").split("\n");
+  var rx = /^([A-Z][A-Z0-9 ]*?) FOR THE ([A-Z][A-Z ]*?) MODEL\s*$/;
+  var first = -1, i;
+  for (i = 0; i < lines.length; i++) if (rx.test(lines[i])) { first = i; break; }
+  if (first < 0) return null;
+  var order = [], parts = {}, current = null, m;
+  for (i = first; i < lines.length; i++) {
+    m = rx.exec(lines[i]);
+    if (m) {
+      current = m[2].replace(/\s+$/, "");
+      if (!parts[current]) { parts[current] = []; order.push(current); }
+      parts[current].push(m[1].replace(/\s+$/, ""));
+      continue;
+    }
+    if (current) parts[current].push(lines[i]);
+  }
+  if (order.length < 2) return null;
+  return { text: lines.slice(0, first).join("\n") + "\n" + parts[order[0]].join("\n"), models: order, first: order[0] };
+}
+
+function emptyBlock(name) {
+  return { order: [], by: {}, resid: {}, variance: {}, withs: [], group: name === undefined ? null : name,
+           otherGroups: false, uncomputable: [], repeated: [] };
+}
+
+/* Reads the BY sections and the residual variances that follow one heading,
+   one block per group. A multiple-group output repeats every section for each
+   group, and reading loadings from one group and residual variances from
+   another is the mistake this avoids. */
+function readResultsBlocks(lines, from) {
+  var blocks = [], dest = null, factor = null, section = null, k;
+  function current() {
+    if (!dest) { dest = emptyBlock(null); blocks.push(dest); }
+    return dest;
+  }
+  for (k = from; k < lines.length; k++) {
+    var l = lines[k], t = l.trim();
+    if (/^(STANDARDIZED MODEL RESULTS|R-SQUARE|QUALITY OF NUMERICAL RESULTS|MODEL MODIFICATION INDICES|CONFIDENCE INTERVALS|TOTAL, TOTAL INDIRECT|SAVEDATA INFORMATION|DIAGRAM INFORMATION|MUTHEN & MUTHEN|TECHNICAL \d+ OUTPUT|Beginning Time)/.test(t)) break;
+    if (/^(STDYX Standardization|STDY Standardization|STD Standardization)/.test(t)) break;
+    var mg = l.match(/^\s{0,4}Group\s+([A-Za-z0-9_.]+)\s*$/);
+    if (mg) {
+      dest = emptyBlock(mg[1]);
+      blocks.push(dest);
+      section = null; factor = null;
+      continue;
+    }
+    var mb = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+BY\s*$/i);
+    if (mb) {
+      factor = mb[1].toUpperCase(); section = "by";
+      var byDest = current();
+      if (byDest.order.indexOf(factor) < 0) { byDest.order.push(factor); byDest.by[factor] = []; }
+      continue;
+    }
+    /* "F1 WITH": the rows that follow are covariances of F1 with the variables
+       named on each row. Between two factors they are the correlations the
+       indices assume to be zero. */
+    var mw = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+WITH\s*$/i);
+    if (mw) { section = "with"; factor = mw[1].toUpperCase(); continue; }
+    if (/^\s+[A-Za-z][A-Za-z0-9_]*\s+ON(\s|$)/i.test(l)) { section = "on"; factor = null; continue; }
+    if (/^\s*Intercepts\s*$/i.test(l)) { section = "int"; factor = null; continue; }
+    if (/^\s*Means\s*$/i.test(l)) { section = "means"; factor = null; continue; }
+    if (/^\s*Thresholds\s*$/i.test(l)) { section = "thr"; factor = null; continue; }
+    if (/^\s*Scales\s*$/i.test(l)) { section = "scale"; factor = null; continue; }
+    if (/^\s*Variances\s*$/i.test(l)) { section = "var"; factor = null; continue; }
+    if (/^\s*Residual Variances\s*$/i.test(l)) { section = "res"; factor = null; continue; }
+    if (/^\s*New\/Additional Parameters\s*$/i.test(l)) { section = "new"; factor = null; continue; }
+    /* Estimate, standard error, ratio and p value. An overflowing value
+       is printed as a row of asterisks; the estimate is still there. */
+    var mv = l.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#]*)\s+(-?\d+\.\d+(?:[EeDd][-+]?\d+)?)\s+(-?\d+\.\d+(?:[EeDd][-+]?\d+)?|\*+)\s+(-?\d+\.\d+(?:[EeDd][-+]?\d+)?|\*+)\s+(-?\d+\.\d+(?:[EeDd][-+]?\d+)?|\*+)\s*$/);
+    if (!mv) {
+      if (t !== "" && !/\d/.test(l)) { section = null; factor = null; }
+      continue;
+    }
+    var name = mv[1].toUpperCase();
+    var num = function (s) { return /^\*/.test(s) ? NaN : parseFloat(String(s).replace(/[Dd]([-+]?\d)/, "E$1")); };
+    var est = num(mv[2]), se = num(mv[3]), z = num(mv[4]), pv = num(mv[5]);
+    /* 999.000 on all four columns is the sentinel for a quantity Mplus
+       could not compute; read as a number it becomes a loading of 999. */
+    if (est === 999 && se === 999 && z === 999 && pv === 999) {
+      var sentinelDest = current();
+      if (sentinelDest.uncomputable.indexOf(name) < 0) sentinelDest.uncomputable.push(name);
+      continue;
+    }
+    var into = current();
+    if (section === "by" && factor) {
+      /* The same name twice under one BY heading would put the item in the
+         table once and lose one of the two loadings. */
+      if (into.by[factor].some(function (r) { return r.item === name; })) {
+        if (into.repeated.indexOf(name) < 0) into.repeated.push(name);
+      }
+      into.by[factor].push({ item: name, est: est });
+    }
+    else if (section === "with" && factor) into.withs.push({ a: factor, b: name, est: est });
+    else if (section === "res") into.resid[name] = est;
+    else if (section === "var") into.variance[name] = est;
+  }
+  if (!blocks.length) blocks.push(emptyBlock(null));
+  return blocks;
+}
+
+/* Headings that only an Mplus output contains, and the block every finished
+   run writes at the end. */
+var MPLUS_SIGNATURE = /(^|\n)[ \t]*(Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION|THE MODEL ESTIMATION|TESTS OF MODEL FIT)/;
+var CLOSING_BLOCK = /(^|\n)[ \t]*(Beginning Time:|Ending Time:|Elapsed Time:|MUTHEN & MUTHEN|TECHNICAL \d+ OUTPUT|SAVEDATA INFORMATION|DIAGRAM INFORMATION|QUALITY OF NUMERICAL RESULTS)/;
+
+function diagnoseFile(text) {
+  if (typeof text !== "string" || text.length === 0) return "empty";
+  if (!/\S/.test(text)) return "blank";
+  if (!MPLUS_SIGNATURE.test(text)) return "foreign";
+  return "mplus";
+}
+
+function parseMplus(text) {
+  var sc = normalizeShortcut(text);
+  var body = sc ? sc.text : text;
+  var lines = body.split(/\r?\n/);
+  var raw = null, std = null, i;
+  for (i = 0; i < lines.length; i++) {
+    if (!raw && /^MODEL RESULTS\s*$/.test(lines[i])) raw = readResultsBlocks(lines, i + 1);
+    if (!std && /^STDYX Standardization\s*$/.test(lines[i].trim())) std = readResultsBlocks(lines, i + 1);
+  }
+  var hasModelResults = raw !== null;
+  if (!raw) raw = [emptyBlock(null)];
+  if (!std) std = [];
+  var out = {
+    shortcut: sc, hasModelResults: hasModelResults,
+    hasStdyx: std.some(function (b) { return b.order.length > 0; }),
+    stdBlocks: std, rawBlocks: raw,
+    std: std.length ? std[0] : emptyBlock(null), raw: raw[0],
+    estimator: null, categorical: [], nGroups: 1,
+    converged: /THE MODEL ESTIMATION TERMINATED NORMALLY/.test(body),
+    warnings: (body.match(/^\s*\*\*\* WARNING[^\n]*/gm) || []).length
+  };
+  var resultsAt = body.indexOf("\nMODEL RESULTS");
+  out.truncated = hasModelResults
+    ? !CLOSING_BLOCK.test(body.slice(resultsAt < 0 ? 0 : resultsAt + 1))
+    : !CLOSING_BLOCK.test(body);
+  var me = /^\s*Estimator\s+([A-Z]+)/m.exec(body);
+  if (me) out.estimator = me[1];
+  var mgN = /^Number of groups\s+(\d+)\s*$/m.exec(body);
+  if (mgN) out.nGroups = parseInt(mgN[1], 10);
+  if (std.length > out.nGroups) out.nGroups = std.length;
+  var mc = /^\s*Binary and ordered categorical \(ordinal\)[^\n]*\n((?:[^\n]*\n)*?)\s*\n/m.exec(body);
+  if (mc) out.categorical = mc[1].trim().split(/\s+/);
+  /* Names that stand for latent variables: the SUMMARY OF ANALYSIS list, and
+     every name on the left of a BY statement. An indicator that is one of them
+     makes the model second-order rather than bifactor. */
+  out.latent = {};
+  var ml = /^\s*Continuous latent variables\s*\n((?:[^\n]*\n)*?)\s*\n/m.exec(body);
+  if (ml) ml[1].trim().split(/\s+/).forEach(function (n) { if (n) out.latent[n.toUpperCase()] = 1; });
+  std.concat(raw).forEach(function (b) { b.order.forEach(function (f) { out.latent[f] = 1; }); });
+  return out;
+}
+
+/* Turns a parsed output into the model: factor list, item list
+   in order of first appearance, loading matrix and residual variances. */
+
+/* The echoed input under INPUT INSTRUCTIONS is the only place in the file
+   that says which items each factor was asked to load on, and which of its
+   loadings the rotation was asked to keep near zero. */
+function echoedInput(text) {
+  var m = /INPUT INSTRUCTIONS\s*\r?\n([\s\S]*?)\r?\n[ \t]*(?:INPUT READING TERMINATED|SUMMARY OF ANALYSIS|\*\*\* ERROR)/.exec(text);
+  return m ? m[1] : null;
+}
+
+var MPLUS_COMMANDS = "TITLE|DATA|VARIABLE|DEFINE|ANALYSIS|MODEL|OUTPUT|SAVEDATA|PLOT|MONTECARLO";
+
+/* The text of one command of the input, up to the next command. */
+function commandBlock(input, name) {
+  if (!input) return null;
+  var start = new RegExp("^[ \\t]*" + name + "[ \\t]*:", "im").exec(input);
+  if (!start) return null;
+  var from = start.index + start[0].length;
+  var rest = input.slice(from);
+  var next = new RegExp("^[ \\t]*(?:" + MPLUS_COMMANDS + ")[ \\t]*(?:[A-Za-z0-9_ ]*)?:", "m").exec(rest);
+  return next ? rest.slice(0, next.index) : rest;
+}
+
+/* The NAMES list of the VARIABLE command, in the order the data file has
+   them, which is the order a hyphen range refers to. */
+function namesInOrder(input) {
+  var v = commandBlock(input, "VARIABLE");
+  if (!v) return null;
+  var m = /\bNAMES\b[ \t]*(?:ARE|=)?([\s\S]*?);/i.exec(v);
+  if (!m) return null;
+  var toks = m[1].replace(/!.*$/gm, "").trim().split(/\s+/).filter(function (t) { return t.length; });
+  var out = [], i;
+  for (i = 0; i < toks.length; i++) {
+    var r = expandRange(toks[i].toUpperCase(), null);
+    if (r) { out = out.concat(r); } else out.push(toks[i].toUpperCase());
+  }
+  return out.length ? out : null;
+}
+
+/* "x1-x4" written between two names of the same stem. Without a list to
+   read the range against, the numbers of the two ends are used. */
+function expandRange(token, order) {
+  var m = /^([A-Za-z][A-Za-z0-9_]*)-([A-Za-z][A-Za-z0-9_]*)$/.exec(token);
+  if (!m) return null;
+  var a = m[1].toUpperCase(), b = m[2].toUpperCase(), out = [], i;
+  if (order && order.length) {
+    var ia = order.indexOf(a), ib = order.indexOf(b);
+    if (ia >= 0 && ib >= ia) { for (i = ia; i <= ib; i++) out.push(order[i]); return out; }
+  }
+  var ma = /^(.*?)(\d+)$/.exec(a), mb = /^(.*?)(\d+)$/.exec(b);
+  if (ma && mb && ma[1] === mb[1]) {
+    var lo = parseInt(ma[2], 10), hi = parseInt(mb[2], 10);
+    if (hi >= lo && hi - lo < 5000) { for (i = lo; i <= hi; i++) out.push(ma[1] + i); return out; }
+  }
+  return null;
+}
+
+/* Every BY statement of the MODEL command, with the items it names, which
+   of them carry the ~ notation of a targeted zero, and whether the factor
+   belongs to a set of ESEM factors, written (*label). */
+function readModelPattern(input, order) {
+  var block = commandBlock(input, "MODEL");
+  if (!block) return null;
+  var text = block.replace(/!.*$/gm, " ");
+  var statements = text.split(";"), out = [], s, i;
+  for (s = 0; s < statements.length; s++) {
+    var st = statements[s];
+    var mb = /([A-Za-z][A-Za-z0-9_]*)[ \t\r\n]+BY[ \t\r\n]+([\s\S]*)$/i.exec(st);
+    if (!mb) continue;
+    var factor = mb[1].toUpperCase(), body = mb[2];
+    var setLabel = null;
+    var msl = /\([ \t]*\*[ \t]*([A-Za-z0-9_]+)[ \t]*\)/.exec(body);
+    if (msl) { setLabel = msl[1]; body = body.replace(msl[0], " "); }
+    body = body.replace(/\([^)]*\)/g, " ");
+    var toks = body.trim().split(/\s+/).filter(function (t) { return t.length; });
+    var targets = [], zeros = [];
+    for (i = 0; i < toks.length; i++) {
+      var tok = toks[i];
+      var isZero = tok.indexOf("~") >= 0;
+      var bare = tok.split("~")[0].split("*")[0].split("@")[0];
+      if (!bare) continue;
+      bare = bare.toUpperCase();
+      var range = expandRange(bare, order);
+      var list = range ? range : [bare];
+      if (isZero) zeros = zeros.concat(list); else targets = targets.concat(list);
+    }
+    out.push({ factor: factor, targets: targets, zeros: zeros, set: setLabel });
+  }
+  return out.length ? out : null;
+}
+
+/* The parsed output and the pattern together give the model the indices
+   are computed from. */
+function buildModel(parsed, echoed, groupIndex, generalName) {
+  var index = (typeof groupIndex === "number" && parsed.stdBlocks[groupIndex]) ? groupIndex : 0;
+  var src = parsed.stdBlocks.length ? parsed.stdBlocks[index] : parsed.std;
+  var factors = src.order.slice(), i, j, f, q;
+  if (factors.length < 1)
+    return { error: "The STDYX section of this output names no factor, so there is nothing to compute the " +
+      "indices from. Check that the model was fitted and that <code>STDYX</code> was in the OUTPUT command." };
+  if (src.repeated.length)
+    return { error: "The same item name is printed twice under one BY heading (" + escList(src.repeated) +
+      "). One of the two loadings would be lost, so nothing was read." };
+  var latentIndicators = [];
+  factors.forEach(function (ff) {
+    src.by[ff].forEach(function (r) {
+      if (parsed.latent[r.item] && latentIndicators.indexOf(r.item) < 0) latentIndicators.push(r.item);
+    });
+  });
+  if (latentIndicators.length)
+    return { error: "The indicators of this model include latent variables (" + escList(latentIndicators) +
+      "), so the model has a layer above the one these indices are defined on. Nothing was read." };
+
+  var items = [], seen = {};
+  for (f = 0; f < factors.length; f++) {
+    var rows = src.by[factors[f]];
+    for (q = 0; q < rows.length; q++)
+      if (!Object.prototype.hasOwnProperty.call(seen, rows[q].item)) { seen[rows[q].item] = items.length; items.push(rows[q].item); }
+  }
+  var n = items.length, K = factors.length;
+  var L = [];
+  for (i = 0; i < n; i++) { L.push(new Array(K)); for (f = 0; f < K; f++) L[i][f] = 0; }
+  for (f = 0; f < K; f++) {
+    var rr = src.by[factors[f]];
+    for (q = 0; q < rr.length; q++) L[seen[rr[q].item]][f] = rr[q].est;
+  }
+  var Phi = [];
+  for (f = 0; f < K; f++) { Phi.push(new Array(K)); for (j = 0; j < K; j++) Phi[f][j] = (f === j) ? 1 : 0; }
+  var resCov = [];
+  src.withs.forEach(function (w) {
+    var fa = factors.indexOf(w.a), fb = factors.indexOf(w.b);
+    if (fa >= 0 && fb >= 0 && fa !== fb && isFinite(w.est)) { Phi[fa][fb] = w.est; Phi[fb][fa] = w.est; return; }
+    if (w.a !== w.b && isFinite(w.est) &&
+        Object.prototype.hasOwnProperty.call(seen, w.a) && Object.prototype.hasOwnProperty.call(seen, w.b))
+      resCov.push({ i: seen[w.a], j: seen[w.b], a: w.a, b: w.b, est: w.est });
+  });
+  var resid = [], haveResid = 0;
+  for (i = 0; i < n; i++) {
+    var v = src.resid[items[i]];
+    if (typeof v === "number" && isFinite(v)) { resid.push(v); haveResid++; } else resid.push(null);
+  }
+
+  /* The target pattern, from the echoed input. A factor named there but not
+     in the output, or an item named there that the output does not have, is
+     reported rather than dropped in silence. */
+  var pattern = readModelPattern(echoed, namesInOrder(echoed) || items.slice());
+  var target = null, patternNotes = [], anyEsemSet = false;
+  if (pattern) {
+    target = [];
+    for (i = 0; i < n; i++) { target.push(new Array(K)); for (f = 0; f < K; f++) target[i][f] = false; }
+    var unknownItems = [], unknownFactors = [], covered = 0;
+    pattern.forEach(function (st) {
+      if (st.set) anyEsemSet = true;
+      var fi = factors.indexOf(st.factor);
+      if (fi < 0) { if (unknownFactors.indexOf(st.factor) < 0) unknownFactors.push(st.factor); return; }
+      st.targets.forEach(function (nm) {
+        if (Object.prototype.hasOwnProperty.call(seen, nm)) { target[seen[nm]][fi] = true; covered++; }
+        else if (unknownItems.indexOf(nm) < 0) unknownItems.push(nm);
+      });
+    });
+    if (unknownFactors.length)
+      patternNotes.push("The echoed MODEL command names " + escList(unknownFactors) +
+        " on the left of a BY statement, and the STDYX section has no such factor.");
+    if (unknownItems.length)
+      patternNotes.push("The echoed MODEL command names " + escList(unknownItems) +
+        " as an indicator, and the STDYX section has no such item.");
+    if (!covered) { target = null; patternNotes.push("No BY statement of the echoed MODEL command could be matched to the factors of the output."); }
+  }
+
+  var general = -1;
+  if (target) {
+    for (f = 0; f < K; f++) {
+      var all = true;
+      for (i = 0; i < n; i++) if (!target[i][f]) { all = false; break; }
+      if (all) { general = f; break; }
+    }
+  }
+  if (generalName) {
+    var gi = factors.indexOf(String(generalName).toUpperCase());
+    general = (gi >= 0) ? gi : general;
+  }
+
+  return {
+    factors: factors, names: items, L: L, Phi: Phi, resid: resid, haveResid: haveResid,
+    resCov: resCov, target: target, general: general, anyEsemSet: anyEsemSet,
+    patternNotes: patternNotes, group: src.group, groupIndex: index,
+    uncomputable: src.uncomputable.slice()
+  };
+}
+
+/* ==================================================================
+   Page
+   ================================================================== */
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function p3(x) {
+    if (x === null || x === undefined || !isFinite(x)) return "—";
+    return Number(x).toFixed(3).replace(/^(-?)0\./, "$1.");
+  }
+  function n3(x) {
+    if (x === null || x === undefined || !isFinite(x)) return "—";
+    return Number(x).toFixed(3);
+  }
+  function statusBlock(kind, tag, text) {
+    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
+  }
+  function setStatus(el, kind, tag, text) { el.innerHTML = statusBlock(kind, tag, text); }
+
+  var loaded = null;      /* the parsed output */
+  var echoed = null;      /* the echoed input */
+  var chosenGroup = 0;
+  var chosenGeneral = null;
+  var loadedName = "";
+
+  function showLoadedName() { $("file-name").textContent = loadedName; }
+
+  function renderGroupPicker(parsed, chosen) {
+    var wrap = $("group-picker"), sel = $("group-select");
+    if (!parsed || parsed.stdBlocks.length < 2) { wrap.hidden = true; sel.innerHTML = ""; return; }
+    var labels = parsed.stdBlocks.map(function (b, i) { return b.group || ("group " + (i + 1)); });
+    sel.innerHTML = "";
+    labels.forEach(function (nm, i) {
+      var o = document.createElement("option");
+      o.value = String(i); o.textContent = nm; if (i === chosen) o.selected = true;
+      sel.appendChild(o);
+    });
+    wrap.hidden = false;
+  }
+
+  function renderGeneralPicker(model) {
+    var wrap = $("general-picker"), sel = $("general-select");
+    if (!model || !model.factors || model.factors.length < 2) { wrap.hidden = true; sel.innerHTML = ""; return; }
+    sel.innerHTML = "";
+    var none = document.createElement("option");
+    none.value = ""; none.textContent = "none: the solution has no general factor";
+    sel.appendChild(none);
+    model.factors.forEach(function (nm, i) {
+      var o = document.createElement("option");
+      o.value = nm; o.textContent = nm;
+      if (i === model.general) o.selected = true;
+      sel.appendChild(o);
+    });
+    if (model.general < 0) none.selected = true;
+    wrap.hidden = false;
+  }
+
+  function currentModel() {
+    if (!loaded) return null;
+    return buildModel(loaded, echoed, chosenGroup, chosenGeneral);
+  }
+
+  function render() {
+    var m = currentModel();
+    if (!m) {
+      $("results").innerHTML = '<p class="hint">The indices appear here once an output file has been read.</p>';
+      $("export-field").hidden = true;
+      return null;
+    }
+    if (m.error) {
+      $("results").innerHTML = statusBlock("bad", "Nothing was computed.", m.error);
+      $("export-field").hidden = true;
+      return null;
+    }
+    var res = ES.compute({
+      names: m.names, factors: m.factors, L: m.L, Phi: m.Phi,
+      resid: m.resid, useResid: m.haveResid === m.names.length,
+      resCov: m.resCov, target: m.target, general: m.general
+    });
+    var out = "", i, f, q;
+    if (res.errors && res.errors.length) {
+      for (i = 0; i < res.errors.length; i++) out += statusBlock("bad", "Cannot compute.", res.errors[i]);
+      $("results").innerHTML = out;
+      $("export-field").hidden = true;
+      return res;
+    }
+    for (i = 0; i < res.warnings.length; i++) out += statusBlock("warn", "Warning.", res.warnings[i]);
+
+    /* What kind of solution this is, in the terms the indices depend on. */
+    var kind = (res.factors && res.factors.length < 2)
+      ? "a unidimensional solution: the output names one factor, so there is nothing to correlate and no general factor to separate from a specific one. Omega and the average variance extracted are reported; the indices that describe how the variance is divided between a general factor and specific ones are not defined here"
+      : res.orth
+        ? (res.general >= 0 ? "a bifactor solution: the factors are uncorrelated and one of them is designated as general"
+                            : "a solution with uncorrelated factors and no general factor")
+        : "a solution with correlated factors, the largest correlation in absolute value being " + p3(res.maxOff);
+    out += statusBlock("info", "The solution.", "This is " + kind + ". " +
+      (m.anyEsemSet ? "The echoed MODEL command marks at least one set of factors as an ESEM block. " : "") +
+      (res.haveTargets
+        ? "The target pattern was read from the echoed MODEL command, so the subscale of each factor is known."
+        : "No target pattern could be read from the echoed MODEL command, so the coefficients of a subscale are not computed. Only the quantities defined on the whole set of items or on single items are reported below.") +
+      (m.patternNotes.length ? " " + m.patternNotes.join(" ") : ""));
+
+    if (res.resCov.length) {
+      var rc = res.resCov.map(function (c) {
+        return esc(res.items[c.i].name) + " with " + esc(res.items[c.j].name) + " (" + p3(c.est) + ")";
+      });
+      out += statusBlock("info", "Residual covariances read.",
+        "The model estimates " + res.resCov.length + " residual covariance" + (res.resCov.length === 1 ? "" : "s") +
+        " between items: " + rc.join(", ") + ". Twice each of them belongs to the variance of any total that " +
+        "contains both items, so they enter the denominator of omega and of the coefficients derived from it, and " +
+        "the reproduced matrix from which factor determinacy is computed (Bollen, 1980; Raykov, 2001). The average " +
+        "variance extracted, the explained common variance, the item-level ECV, the percentage of uncontaminated " +
+        "correlations and construct replicability are defined on the variances of single items and are unchanged.");
+    }
+    if (res.fdNote) out += statusBlock("bad", "Factor determinacy.", res.fdNote);
+
+    /* Factors */
+    out += "<h3>Factors</h3>";
+    out += '<p class="table-note">One row per factor. The subscale is the set of items the echoed MODEL command targets on it.</p>';
+    out += '<div class="table-wrap"><table><caption class="visually-hidden">Coefficients of each factor</caption><tr>' +
+      "<th>Factor</th><th>Items</th><th>ω</th><th>AVE</th><th>H</th>" +
+      (res.orth ? "<th>ω of the total</th><th>ω hierarchical</th><th>ECV</th><th>ECV within</th><th>FD</th>" : "") +
+      "</tr>";
+    for (f = 0; f < res.per.length; f++) {
+      var r = res.per[f];
+      out += "<tr><th scope=\"row\">" + esc(r.name) + ((r.isGeneral && res.factors.length > 1) ? " (general)" : "") + "</th>" +
+        '<td class="num">' + (res.haveTargets ? r.nItems : "—") + "</td>" +
+        '<td class="num">' + p3(r.omega) + "</td>" +
+        '<td class="num">' + p3(r.ave) + "</td>" +
+        '<td class="num">' + p3(r.H) + "</td>";
+      if (res.orth)
+        out += '<td class="num">' + p3(r.omegaBif) + "</td>" +
+          '<td class="num">' + p3(r.omegaH) + "</td>" +
+          '<td class="num">' + p3(r.ecvAll) + "</td>" +
+          '<td class="num">' + p3(r.ecvSS) + "</td>" +
+          '<td class="num">' + p3(r.fd) + "</td>";
+      out += "</tr>";
+    }
+    out += "</table></div>";
+    out += '<p class="hint">ω is McDonald\'s coefficient in the form used for ESEM solutions, on the target loadings of the factor in absolute value. AVE is the average variance extracted by that factor, H the construct replicability.' +
+      (res.orth ? " The last five columns are the bifactor indices, computed on the whole loading matrix, cross-loadings included; Rodriguez, Reise and Haviland (2016a) write them for a solution without cross-loadings, so with an ESEM block they are that formula applied to a matrix of a kind their derivation does not cover. ω of the total is the reliability of the same total counting every common factor, ω hierarchical the part of it that belongs to this factor alone, ECV the share of the common variance of the whole set that this factor carries, ECV within the same share inside its own subscale, FD the factor determinacy." : "") + "</p>";
+    if (!res.orth)
+      out += statusBlock("info", "Not computed here.",
+        "The factors of this solution are correlated, so the variance of a total is not the sum of the parts the " +
+        "factors contribute and a share attributed to one of them is not determined by the model. Omega " +
+        "hierarchical, the explained common variance and the percentage of uncontaminated correlations are " +
+        "therefore not reported. Factor determinacy for a solution with correlated factors is printed by " + MP +
+        " itself when the OUTPUT command carries <code>FSDETERMINACY</code>.");
+    if (res.orth && res.general < 0)
+      out += statusBlock("info", "No general factor.",
+        "No factor covers every item in the target pattern and none was chosen in the menu above, so the " +
+        "item-level explained common variance and the percentage of uncontaminated correlations, which are " +
+        "defined against a general factor, are not reported.");
+    if (isFinite(res.puc))
+      out += '<p>Percentage of uncontaminated correlations: <b>' + p3(res.puc) + "</b>, that is " +
+        (res.totalPairs - res.contaminated) + " of the " + res.totalPairs + " pairs of items carry the general factor alone.</p>";
+    else if (res.pucNote)
+      out += '<p class="hint">The percentage of uncontaminated correlations is not reported because ' + res.pucNote + ".</p>";
+
+    /* Items */
+    out += "<h3>Items</h3>";
+    out += '<div class="table-wrap"><table class="matrix"><caption class="visually-hidden">Standardized loadings and item-level quantities</caption><tr><th>Item</th>';
+    for (f = 0; f < res.factors.length; f++) out += "<th>" + esc(res.factors[f]) + "</th>";
+    out += "<th>h²</th><th>δ</th>" + (isFinite(res.items[0].iecv) ? "<th>I-ECV</th>" : "") + "</tr>";
+    for (i = 0; i < res.items.length; i++) {
+      var it = res.items[i];
+      out += "<tr><th scope=\"row\">" + esc(it.name) + "</th>";
+      for (f = 0; f < res.factors.length; f++) {
+        var isTarget = res.haveTargets && m.target[i][f];
+        out += '<td class="num' + (isTarget ? " target" : " zeroed") + '">' + p3(it.loadings[f]) + "</td>";
+      }
+      out += '<td class="num">' + p3(it.h2) + '</td><td class="num">' + p3(it.theta) + "</td>";
+      if (isFinite(res.items[0].iecv)) out += '<td class="num">' + p3(it.iecv) + "</td>";
+      out += "</tr>";
+    }
+    out += "</table></div>";
+    out += '<p class="hint">The loadings in bold are the target loadings of the factor; the others are the cross-loadings the rotation was asked to keep near zero. h² is the communality, which with correlated factors carries the covariance between them as well, δ the residual variance' +
+      (isFinite(res.items[0].iecv) ? ", and I-ECV the share of the communality of that item carried by the general factor" : "") + ".</p>";
+
+    $("results").innerHTML = out;
+    $("export").value = buildExport(res, m);
+    $("export-field").hidden = false;
+    return res;
+  }
+
+  function buildExport(res, m) {
+    var lines = [], f, i;
+    lines.push("Factor\tItems\tomega\tAVE\tH" + (res.orth ? "\tomega total\tomega hierarchical\tECV\tECV within\tFD" : ""));
+    for (f = 0; f < res.per.length; f++) {
+      var r = res.per[f];
+      var row = [r.name, res.haveTargets ? r.nItems : "", p3(r.omega), p3(r.ave), p3(r.H)];
+      if (res.orth) row = row.concat([p3(r.omegaBif), p3(r.omegaH), p3(r.ecvAll), p3(r.ecvSS), p3(r.fd)]);
+      lines.push(row.join("\t"));
+    }
+    lines.push("");
+    lines.push("Item\t" + res.factors.join("\t") + "\th2\tdelta" + (isFinite(res.items[0].iecv) ? "\tI-ECV" : ""));
+    for (i = 0; i < res.items.length; i++) {
+      var it = res.items[i], r2 = [it.name];
+      for (f = 0; f < res.factors.length; f++) r2.push(p3(it.loadings[f]));
+      r2.push(p3(it.h2)); r2.push(p3(it.theta));
+      if (isFinite(res.items[0].iecv)) r2.push(p3(it.iecv));
+      lines.push(r2.join("\t"));
+    }
+    if (isFinite(res.puc)) lines.push("", "PUC\t" + p3(res.puc));
+    return lines.join("\n");
+  }
+
+  var HIDE_ON_FAILURE = ["group-picker", "general-picker", "export-field"];
+  /* Anything a refused file must not leave behind. The placeholders are taken
+     from the document as it was parsed, before any result was written. */
+  var EMPTY_HTML = {};
+  function rememberEmpty(ids) {
+    ids.forEach(function (id) { if ($(id)) EMPTY_HTML[id] = $(id).innerHTML; });
+  }
+  function clearAfterFailure() {
+    var id;
+    for (id in EMPTY_HTML) if (Object.prototype.hasOwnProperty.call(EMPTY_HTML, id) && $(id)) $(id).innerHTML = EMPTY_HTML[id];
+    HIDE_ON_FAILURE.forEach(function (h) { if ($(h)) $(h).hidden = true; });
+    if ($("file-name")) $("file-name").textContent = "";
+  }
+
+  function handleFile(file) {
+    readTextFile(file, function (text) {
+      loaded = null; echoed = null; loadedName = "";
+      clearAfterFailure();
+      var d = diagnoseFile(text);
+      if (d !== "mplus") {
+        setStatus($("report"), "bad", "Nothing was read from this file.",
+          d === "foreign"
+            ? "The file carries none of the headings an " + MP + " output has. Check that it is the <code>.out</code> file of a run rather than the input, the data or a document."
+            : (d === "blank" ? "The file holds nothing but blank space." : "The file is empty."));
+        return;
+      }
+      if (/^\s*Within Level\s*$/m.test(text) && /^\s*Between Level\s*$/m.test(text)) {
+        setStatus($("report"), "bad", "Nothing was read from this file.",
+          "MODEL RESULTS is split into a <em>Within Level</em> and a <em>Between Level</em> block, so this is a " +
+          "two-level model. Its loadings belong to two different levels and cannot be put in one table: adding a " +
+          "within-level and a between-level loading of the same item would give that item a communality larger than " +
+          "its variance. The <a href=\"multilevel.html\">multilevel reliability page</a> reads this file.");
+        return;
+      }
+      var parsed = parseMplus(text);
+      if (!parsed.hasStdyx) {
+        setStatus($("report"), "bad", "Nothing was read from this file.",
+          "The output has no <code>STDYX Standardization</code> section, and every index on this page is defined " +
+          "on the completely standardized solution. Add <code>STDYX</code> to the OUTPUT command, run the model " +
+          "again and drop the new <code>.out</code> file here.");
+        return;
+      }
+      loaded = parsed;
+      echoed = echoedInput(text);
+      chosenGroup = 0;
+      chosenGeneral = null;
+      loadedName = file.name || "";
+      showLoadedName();
+      renderGroupPicker(parsed, chosenGroup);
+      var m = currentModel();
+      renderGeneralPicker(m.error ? null : m);
+      var extra = [];
+      if (!echoed) extra.push("The echoed input under INPUT INSTRUCTIONS is not in this file, so the target pattern could not be read.");
+      if (parsed.truncated) extra.push("The file ends without the closing block " + MP + " writes after every run, so it was cut short.");
+      if (!parsed.converged) extra.push("The line reporting normal termination was not found, so check that the model converged.");
+      if (parsed.categorical.length) extra.push("The indicators are categorical, so the loadings refer to the latent response variables and every index describes the model on that metric.");
+      if (parsed.warnings) extra.push("The output carries " + parsed.warnings + " warning" + (parsed.warnings === 1 ? "" : "s") + " from " + MP + "; read them before using these indices.");
+      if (m.error) {
+        setStatus($("report"), "bad", "Nothing was computed.", m.error);
+      } else {
+        setStatus($("report"), extra.length ? "warn" : "ok", extra.length ? "Read with reservations." : "File read.",
+          "Read " + m.names.length + (m.names.length === 1 ? " item and " : " items and ") + m.factors.length + (m.factors.length === 1 ? " factor" : " factors") + " from the STDYX section" +
+          (parsed.stdBlocks.length > 1 ? " of group " + esc(m.group || String(m.groupIndex + 1)) : "") + ". " +
+          (m.haveResid === m.names.length
+            ? "Standardized residual variances were found for every item and are used as they stand."
+            : "Not every item has a standardized residual variance in the file, so the uniquenesses are computed as one minus the communality for all of them.") +
+          (extra.length ? " " + extra.join(" ") : ""));
+      }
+      render();
+    }, function () {
+      setStatus($("report"), "bad", "The file could not be read.", "The browser refused to open it. Check that it is a file on this computer and try again.");
+    });
+  }
+
+  function wire() {
+    var drop = $("drop"), fileInput = $("file");
+    drop.addEventListener("click", function () { fileInput.click(); });
+    drop.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+    });
+    drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+    drop.addEventListener("drop", function (e) {
+      e.preventDefault(); drop.classList.remove("over");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener("change", function () { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+    $("group-select").addEventListener("change", function () {
+      chosenGroup = parseInt($("group-select").value, 10) || 0;
+      chosenGeneral = null;
+      var m = currentModel();
+      renderGeneralPicker(m && !m.error ? m : null);
+      render();
+    });
+    $("general-select").addEventListener("change", function () {
+      chosenGeneral = $("general-select").value || null;
+      render();
+    });
+    $("copy-export").addEventListener("click", function () {
+      var ta = $("export"), note = $("copy-note");
+      ta.select();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(ta.value).then(
+          function () { note.textContent = "Copied."; },
+          function () { note.textContent = "The browser refused to copy; select the text and copy it by hand."; });
+      } else {
+        note.textContent = "Select the text and copy it by hand.";
+      }
+    });
+  }
+  rememberEmpty(["results"]);
+  wire();
+  window.ESEM_PAGE = { render: render, handleFileText: function (text, name) {
+    var parsed = parseMplus(text);
+    loaded = parsed; echoed = echoedInput(text); chosenGroup = 0; chosenGeneral = null;
+    loadedName = name || ""; return render();
+  } };
+})();
+
+/* ==================================================================
+   The syntax builder. Nothing here reads a file: the model is
+   described in the form and the page writes the inputs.
+   ================================================================== */
+var BUILD = (function () {
+  var RESERVED = ("ALL AND ARE BY IS ON NOT OR WITH WITHIN BETWEEN PWITH XWITH AT DO DIFFTEST TO" +
+    " USEVARIABLES NAMES CATEGORICAL MISSING CLUSTER WEIGHT GROUPING CONSTRAINT").split(/\s+/);
+
+  function tokens(text) {
+    return String(text).replace(/!.*$/gm, " ").trim().split(/[\s,;]+/).filter(function (t) { return t.length; });
+  }
+  function expand(list) {
+    var out = [], i;
+    for (i = 0; i < list.length; i++) {
+      var r = expandRange(list[i].toUpperCase(), null);
+      if (r) out = out.concat(r); else out.push(list[i].toUpperCase());
+    }
+    return out;
+  }
+  function badName(nm) {
+    if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(nm)) return "is not a name " + MP + " accepts";
+    if (nm.length > 8) return "is longer than the eight characters " + MP + " allows";
+    if (RESERVED.indexOf(nm.toUpperCase()) >= 0) return "is a word the " + MP + " language reserves";
+    return null;
+  }
+  /* No line of an Mplus input may pass the ninetieth column. */
+  function wrap(prefix, items, suffix, indent) {
+    var lines = [], cur = prefix, i;
+    var pad = indent || "    ";
+    for (i = 0; i < items.length; i++) {
+      var piece = (cur === prefix && !prefix.length ? "" : " ") + items[i];
+      if ((cur + piece).length > 86) { lines.push(cur); cur = pad + items[i]; }
+      else cur += piece;
+    }
+    if (suffix) {
+      var sep = /^[);]/.test(suffix) ? "" : " ";
+      if ((cur + sep + suffix).length > 86) { lines.push(cur); cur = pad + suffix; }
+      else cur += sep + suffix;
+    }
+    lines.push(cur);
+    return lines.join("\n");
+  }
+
+  function readForm(form) {
+    var errors = [], notes = [];
+    var dataName = String(form.dataName || "").trim();
+    if (!dataName) errors.push("The name of the data file is empty; it is written into the DATA command of every input.");
+    var names = expand(tokens(form.varNames));
+    if (!names.length) errors.push("No variable name was given for the data file.");
+    var lines = String(form.defs || "").split(/\r?\n/), factors = [], seen = {}, i;
+    for (i = 0; i < lines.length; i++) {
+      var raw = lines[i].replace(/!.*$/, "").trim();
+      if (!raw) continue;
+      var m = /^([A-Za-z][A-Za-z0-9_]*)\s+BY\s+(.+?);?$/i.exec(raw);
+      if (!m) { errors.push("This line is not a factor definition: " + esc(raw) + ". A definition is written <code>F1 BY x1 x2 x3;</code>"); continue; }
+      var fname = m[1].toUpperCase(), why = badName(fname);
+      if (why) errors.push("The factor name " + esc(fname) + " " + why + ".");
+      var items = expand(tokens(m[2]));
+      if (items.length < 2) errors.push("The factor " + esc(fname) + " is given fewer than two items.");
+      items.forEach(function (it) {
+        var w = badName(it);
+        if (w) errors.push("The item name " + esc(it) + " " + w + ".");
+        if (Object.prototype.hasOwnProperty.call(seen, it))
+          errors.push("The item " + esc(it) + " is listed on more than one factor, and each item is the target of one factor only.");
+        seen[it] = fname;
+      });
+      if (factors.some(function (f) { return f.name === fname; }))
+        errors.push("The factor " + esc(fname) + " is defined twice.");
+      factors.push({ name: fname, items: items });
+    }
+    if (factors.length < 2) errors.push("An ESEM block needs at least two factors.");
+    if (factors.length > 25) errors.push("This page writes at most twenty-five specific factors, which is the number of parameter labels it can keep apart.");
+    var general = String(form.general || "").trim().toUpperCase();
+    if (!general) errors.push("The general factor has no name.");
+    else {
+      var wg = badName(general);
+      if (wg) errors.push("The name of the general factor " + esc(general) + " " + wg + ".");
+      if (factors.some(function (f) { return f.name === general; }))
+        errors.push("The general factor carries the name of one of the specific factors, " + esc(general) + ".");
+    }
+    var all = [];
+    factors.forEach(function (f) { all = all.concat(f.items); });
+    if (names.length) {
+      var missing = all.filter(function (it) { return names.indexOf(it) < 0; });
+      if (missing.length) notes.push("These items are not in the list of variable names of the data file: " + escList(missing) + ". " + MP + " will stop at USEVARIABLES unless the names list is corrected.");
+    }
+    factors.forEach(function (f) {
+      if (f.items.length < 3) notes.push("The factor " + esc(f.name) + " has " + f.items.length + " target items. A factor with fewer than three indicators is identified only through what it shares with the rest of the model.");
+    });
+    return { errors: errors, notes: notes, dataName: dataName, names: names, factors: factors, general: general, items: all };
+  }
+
+  function header(title, spec, extra) {
+    var s = "TITLE: " + title + ";\n\n";
+    s += "DATA: FILE IS " + spec.dataName + ";\n\n";
+    s += "VARIABLE:\n" + wrap("  NAMES ARE", spec.names, ";") + "\n";
+    s += wrap("  USEVARIABLES ARE", spec.items, ";") + "\n";
+    if (spec.categorical) s += wrap("  CATEGORICAL ARE", spec.items, ";") + "\n";
+    s += "\nANALYSIS:\n  ESTIMATOR = " + spec.estimator + ";\n";
+    if (extra) s += extra;
+    return s;
+  }
+
+  function outputLine(spec) {
+    var opts = ["STDYX"];
+    if (spec.fs) { opts.push("FSDETERMINACY"); opts.push("FSCOEFFICIENT"); }
+    if (spec.modind) opts.push("MODINDICES");
+    return "\nOUTPUT: " + opts.join(" ") + ";\n";
+  }
+
+  function inputs(spec) {
+    var out = [], f, i;
+    var allItems = spec.items;
+
+    /* 1. independent cluster confirmatory factor model */
+    var m1 = "MODEL:\n";
+    for (f = 0; f < spec.factors.length; f++)
+      m1 += wrap("  " + spec.factors[f].name + " BY", spec.factors[f].items, ";") + "\n";
+    out.push({
+      key: "icm-cfa", title: "Independent cluster confirmatory factor model",
+      note: null,
+      text: header("ICM-CFA", spec) + "\n" + m1 + outputLine(spec)
+    });
+
+    /* 2. ESEM */
+    var rotEsem = (spec.rotation === "TARGET") ? "  ROTATION = TARGET;\n" : "  ROTATION = GEOMIN;\n";
+    var m2 = "MODEL:\n";
+    if (spec.rotation === "TARGET") {
+      for (f = 0; f < spec.factors.length; f++) {
+        var toks = spec.factors[f].items.slice();
+        for (i = 0; i < allItems.length; i++)
+          if (spec.factors[f].items.indexOf(allItems[i]) < 0) toks.push(allItems[i] + "~0");
+        m2 += wrap("  " + spec.factors[f].name + " BY", toks, "(*1);") + "\n";
+      }
+    } else {
+      m2 += wrap("  " + spec.factors.map(function (x) { return x.name; }).join(" ") + " BY", allItems, "(*1);") + "\n";
+    }
+    out.push({
+      key: "esem", title: "Exploratory structural equation model",
+      text: header("ESEM", spec, rotEsem + (spec.starts ? "  STARTS = " + spec.starts + ";\n" : "")) + "\n" + m2 + outputLine(spec)
+    });
+
+    /* 3. bifactor confirmatory factor model */
+    var m3 = "MODEL:\n";
+    m3 += wrap("  " + spec.general + " BY", allItems, ";") + "\n";
+    for (f = 0; f < spec.factors.length; f++)
+      m3 += wrap("  " + spec.factors[f].name + " BY", spec.factors[f].items, ";") + "\n";
+    var zeros = [], names3 = [spec.general].concat(spec.factors.map(function (x) { return x.name; }));
+    for (i = 0; i < names3.length; i++)
+      for (f = i + 1; f < names3.length; f++) zeros.push("  " + names3[i] + " WITH " + names3[f] + "@0;");
+    m3 += zeros.join("\n") + "\n";
+    out.push({
+      key: "bifactor-cfa", title: "Bifactor confirmatory factor model",
+      note: null,
+      text: header("Bifactor CFA", spec) + "\n" + m3 + outputLine(spec)
+    });
+
+    /* 4. bifactor-ESEM */
+    var rot4 = spec.rotation === "TARGET" ? "  ROTATION = TARGET (ORTHOGONAL);\n"
+             : (spec.rotation === "GEOMIN" ? "  ROTATION = BI-GEOMIN (ORTHOGONAL);\n"
+                                           : "  ROTATION = BI-CF-QUARTIMAX (ORTHOGONAL);\n");
+    var m4 = "MODEL:\n";
+    if (spec.rotation === "TARGET") {
+      m4 += wrap("  " + spec.general + " BY", allItems, "(*1);") + "\n";
+      for (f = 0; f < spec.factors.length; f++) {
+        var t4 = spec.factors[f].items.slice();
+        for (i = 0; i < allItems.length; i++)
+          if (spec.factors[f].items.indexOf(allItems[i]) < 0) t4.push(allItems[i] + "~0");
+        m4 += wrap("  " + spec.factors[f].name + " BY", t4, "(*1);") + "\n";
+      }
+    } else {
+      m4 += wrap("  " + [spec.general].concat(spec.factors.map(function (x) { return x.name; })).join(" ") + " BY", allItems, "(*1);") + "\n";
+    }
+    out.push({
+      key: "bifactor-esem", title: "Bifactor exploratory structural equation model",
+      text: header("Bifactor ESEM", spec, rot4 + (spec.starts ? "  STARTS = " + spec.starts + ";\n" : "")) + "\n" + m4 + outputLine(spec)
+    });
+
+    return out;
+  }
+
+  function checksOf(inp, spec) {
+    var lines = inp.text.split("\n"), out = [], i;
+    var longLines = lines.filter(function (l) { return l.length > 90; });
+    out.push({ ok: longLines.length === 0, text: longLines.length === 0
+      ? "Every line is within the ninety columns " + MP + " reads."
+      : longLines.length + " lines pass the ninetieth column and would be cut." });
+    var opens = (inp.text.match(/\(/g) || []).length, closes = (inp.text.match(/\)/g) || []).length;
+    out.push({ ok: opens === closes, text: opens === closes ? "The parentheses balance." : "The parentheses do not balance." });
+    var named = {}, i2;
+    spec.items.forEach(function (it) { named[it] = false; });
+    var body = inp.text.slice(inp.text.indexOf("MODEL:"));
+    spec.items.forEach(function (it) {
+      if (new RegExp("\\b" + it + "\\b").test(body)) named[it] = true;
+    });
+    var missing = Object.keys(named).filter(function (k) { return !named[k]; });
+    out.push({ ok: missing.length === 0, text: missing.length === 0
+      ? "Every item of the model is named in the MODEL command."
+      : "These items are in USEVARIABLES and in no statement of the MODEL command: " + escList(missing) + "." });
+    if (inp.key === "bifactor-cfa") {
+      var need = (spec.factors.length + 1) * spec.factors.length / 2;
+      var got = (inp.text.match(/WITH[^\n]*@0;/g) || []).length;
+      out.push({ ok: got === need, text: got === need
+        ? "Every pair of factors is fixed at zero, which is what makes the general and the specific factors orthogonal."
+        : "The model fixes " + got + " correlations at zero and the model needs " + need + "." });
+    }
+    if (inp.key === "bifactor-esem" && spec.rotation === "TARGET") {
+      var zeroCount = (inp.text.match(/~0/g) || []).length;
+      var expect = spec.factors.reduce(function (a, f) { return a + (spec.items.length - f.items.length); }, 0);
+      out.push({ ok: zeroCount === expect, text: zeroCount === expect
+        ? "Each specific factor carries a targeted zero for every item that is not one of its targets."
+        : "The targeted zeros number " + zeroCount + " and the pattern asks for " + expect + "." });
+    }
+    return out;
+  }
+
+  return { readForm: readForm, inputs: inputs, checksOf: checksOf, wrap: wrap, expand: expand };
+})();
+
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function statusBlock(kind, tag, text) {
+    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
+  }
+  var written = null;
+
+  function spec() {
+    var form = BUILD.readForm({
+      dataName: $("dataname").value, varNames: $("varnames").value,
+      defs: $("defs").value, general: $("genname").value
+    });
+    form.estimator = $("estimator").value;
+    form.categorical = (form.estimator === "WLSMV" || form.estimator === "ULSMV");
+    form.rotation = $("rotation").value === "TARGET" ? "TARGET" : ($("rotation").value === "GEOMIN" ? "GEOMIN" : "BICF");
+    form.starts = Math.max(0, parseInt($("starts").value, 10) || 0);
+    form.fs = $("opt-fs").checked;
+    form.modind = $("opt-modind").checked;
+    return form;
+  }
+
+  function write() {
+    var s = spec();
+    if (s.errors.length) {
+      $("build-report").innerHTML = statusBlock("bad", "No input was written.",
+        "The description has to be corrected first.") +
+        '<ul><li>' + s.errors.join("</li><li>") + "</li></ul>";
+      $("inputs").innerHTML = "";
+      $("btn-download").disabled = true;
+      written = null;
+      return null;
+    }
+    var list = BUILD.inputs(s);
+    written = list;
+    var html = "", i, j;
+    for (i = 0; i < list.length; i++) {
+      var inp = list[i], checks = BUILD.checksOf(inp, s);
+      html += '<div class="panel"><div class="block-head"><h3>' + esc(inp.title) + "</h3>" +
+        '<button type="button" class="copy-inp" data-i="' + i + '">Copy this input</button></div>';
+      html += "<pre><code>" + esc(inp.text) + "</code></pre>";
+      if (inp.note) html += '<p class="hint">' + inp.note + "</p>";
+      html += '<ul class="checks">';
+      for (j = 0; j < checks.length; j++)
+        html += '<li class="' + (checks[j].ok ? "ok" : "bad") + '"><span class="glyph" aria-hidden="true">' +
+          (checks[j].ok ? "✓" : "✗") + '</span><span><span class="visually-hidden">' +
+          (checks[j].ok ? "Passed: " : "Failed: ") + "</span>" + checks[j].text + "</span></li>";
+      html += "</ul></div>";
+    }
+    $("inputs").innerHTML = html;
+    $("btn-download").disabled = false;
+    var notes = s.notes.length ? '<ul><li>' + s.notes.join("</li><li>") + "</li></ul>" : "";
+    $("build-report").innerHTML = statusBlock(s.notes.length ? "warn" : "ok",
+      s.notes.length ? "Four inputs written, with reservations." : "Four inputs written.",
+      "The four models are written from the same description, so their fit is comparable. Run them in the order " +
+      "they appear and read the four outputs with the first half of this page.") + notes;
+    Array.prototype.forEach.call(document.querySelectorAll(".copy-inp"), function (b) {
+      b.addEventListener("click", function () {
+        var t = written[parseInt(b.getAttribute("data-i"), 10)].text;
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t);
+      });
+    });
+    return list;
+  }
+
+  function download() {
+    if (!written) return;
+    written.forEach(function (inp) {
+      var blob = new Blob([inp.text], { type: "text/plain" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = inp.key + ".inp";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    });
+  }
+
+  $("btn-write").addEventListener("click", write);
+  $("btn-download").addEventListener("click", download);
+  window.ESEM_BUILD = { write: write, spec: spec };
+})();
+
+/* ==================================================================
+   Self-test. The expected values were computed separately with NumPy
+   and, for the matrix inverse, with a Gauss-Jordan elimination.
+   ================================================================== */
+function selfTest() {
+  var checks = [], failed = 0;
+  function ok(name, got, want, tol) {
+    var t = tol === undefined ? 1e-9 : tol;
+    var good = (typeof want === "number") ? (isFinite(got) && Math.abs(got - want) <= t) : (got === want);
+    if (!good) failed++;
+    checks.push({ name: name, got: got, want: want, ok: good });
+  }
+  function okTrue(name, cond) { ok(name, !!cond, true); }
+
+  /* An oblique ESEM solution: the communality carries the covariance
+     between the factors, and only the coefficients that need no partition
+     of the variance are reported. */
+  var names6 = ["I1", "I2", "I3", "I4", "I5", "I6"];
+  var Lo = [[0.75, 0.10], [0.70, 0.05], [0.65, -0.08], [0.12, 0.72], [-0.06, 0.68], [0.09, 0.60]];
+  var Po = [[1, 0.30], [0.30, 1]];
+  var To = [[true, false], [true, false], [true, false], [false, true], [false, true], [false, true]];
+  var ro = ES.compute({ names: names6, factors: ["F1", "F2"], L: Lo, Phi: Po,
+    resid: [null, null, null, null, null, null], useResid: false, resCov: [], target: To, general: -1 });
+  var badLo = Lo.map(function(row){ return row.slice(); });
+  badLo[0] = [0.95, 0.60];
+  var badUniqueness = ES.compute({ names: names6, factors: ["F1", "F2"], L: badLo, Phi: Po,
+    resid: [null, null, null, null, null, null], useResid: false, resCov: [], target: To, general: -1 });
+  okTrue("a materially negative ESEM uniqueness is refused", badUniqueness.empty && badUniqueness.errors.length === 1);
+  okTrue("the ESEM Heywood refusal explains that no coefficient was computed", /Heywood/.test(badUniqueness.errors[0]) && /No coefficient/.test(badUniqueness.errors[0]));
+  ok("the solution is read as one with correlated factors", ro.orth, false);
+  ok("communality with correlated factors", ro.h2[0], 0.6175);
+  ok("communality of an item with a negative cross-loading", ro.h2[2], 0.3977);
+  ok("omega of the first factor", ro.per[0].omega, 0.7498342203254382);
+  ok("omega of the second factor", ro.per[1].omega, 0.7177024907864943);
+  ok("average variance extracted of the first factor", ro.per[0].ave, 0.5006279061874216);
+  ok("construct replicability of the first factor", ro.per[0].H, 0.7486237357572654);
+  okTrue("omega hierarchical is not reported with correlated factors", !isFinite(ro.per[0].omegaH));
+  okTrue("the explained common variance is not reported with correlated factors", !isFinite(ro.per[0].ecvAll));
+  okTrue("factor determinacy is not reported with correlated factors", !isFinite(ro.per[0].fd));
+  okTrue("the percentage of uncontaminated correlations is not reported", !isFinite(ro.puc));
+  /* A loading of the opposite sign does not cancel the others. */
+  var flipped = Lo.map(function (r) { return r.slice(); });
+  flipped[2][0] = -0.65;
+  var rf = ES.compute({ names: names6, factors: ["F1", "F2"], L: flipped, Phi: [[1, 0], [0, 1]],
+    resid: [null, null, null, null, null, null], useResid: false, resCov: [], target: To, general: -1 });
+  var rs = ES.compute({ names: names6, factors: ["F1", "F2"], L: Lo, Phi: [[1, 0], [0, 1]],
+    resid: [null, null, null, null, null, null], useResid: false, resCov: [], target: To, general: -1 });
+  ok("a reversed item is taken in absolute value, so omega is unchanged", rf.per[0].omega, rs.per[0].omega, 1e-12);
+
+  /* An orthogonal bifactor-ESEM solution. */
+  var Lb = [[0.70, 0.45, 0.05], [0.65, 0.40, -0.06], [0.60, 0.38, 0.08],
+            [0.68, 0.07, 0.44], [0.55, -0.05, 0.36], [0.50, 0.09, 0.30]];
+  var Pb = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  var Tb = [[true, true, false], [true, true, false], [true, true, false],
+            [true, false, true], [true, false, true], [true, false, true]];
+  var rb = ES.compute({ names: names6, factors: ["GF", "S1", "S2"], L: Lb, Phi: Pb,
+    resid: [null, null, null, null, null, null], useResid: false, resCov: [], target: Tb, general: 0 });
+  ok("the solution is read as orthogonal", rb.orth, true);
+  ok("omega of the general factor", rb.per[0].omega, 0.8304705370119397);
+  ok("omega of the total, counting every common factor", rb.per[0].omegaBif, 0.8580225356163400);
+  ok("omega hierarchical of the general factor", rb.per[0].omegaH, 0.6955021210596055);
+  ok("omega hierarchical subscale of the first specific factor", rb.per[1].omegaH, 0.2317413148704123);
+  ok("omega hierarchical subscale of the second specific factor", rb.per[2].omegaH, 0.2096545032401151);
+  ok("explained common variance of the general factor", rb.per[0].ecvAll, 0.7069695564827694);
+  ok("explained common variance of the first specific factor", rb.per[1].ecvAll, 0.1614588162571473);
+  ok("explained common variance within the first subscale", rb.per[1].ecvSS, 0.2828840895139238);
+  ok("factor determinacy of the general factor", rb.per[0].fd, 0.8415412090380846, 1e-9);
+  ok("factor determinacy of the first specific factor", rb.per[1].fd, 0.5793381242286900, 1e-9);
+  ok("item-level explained common variance of the first item", rb.items[0].iecv, 0.7050359712230216);
+  ok("the percentage of uncontaminated correlations", rb.puc, 1 - 6 / 15);
+  ok("the pairs counted as contaminated", rb.contaminated, 6);
+
+  /* Residual covariances enter the total of a factor of an ESEM solution,
+     and a bifactor solution that carries one is refused. */
+  var rcO = ES.compute({ names: names6, factors: ["F1", "F2"], L: Lo, Phi: Po,
+    resid: [null, null, null, null, null, null], useResid: false,
+    resCov: [{ i: 0, j: 1, est: 0.20 }], target: To, general: -1 });
+  ok("twice the covariance is counted for a total that holds both items", rcO.per[0].resCovPart, 0.4);
+  ok("it is not counted for a total that holds neither", rcO.per[1].resCovPart, 0);
+  ok("omega of the first factor with a residual covariance", rcO.per[0].omega, 0.7020839635107382);
+  ok("omega of the second factor is unchanged", rcO.per[1].omega, ro.per[1].omega);
+  ok("the average variance extracted is unchanged", rcO.per[0].ave, ro.per[0].ave);
+  ok("a covariance of an item with itself is discarded",
+     ES.compute({ names: names6, factors: ["F1", "F2"], L: Lo, Phi: Po,
+       resid: [null, null, null, null, null, null], useResid: false,
+       resCov: [{ i: 2, j: 2, est: 0.30 }], target: To, general: -1 }).resCov.length, 0);
+  ok("a covariance given in the other order is counted once",
+     ES.compute({ names: names6, factors: ["F1", "F2"], L: Lo, Phi: Po,
+       resid: [null, null, null, null, null, null], useResid: false,
+       resCov: [{ i: 1, j: 0, est: 0.20 }], target: To, general: -1 }).per[0].omega, rcO.per[0].omega, 1e-12);
+  var rcB = ES.compute({ names: names6, factors: ["GF", "S1", "S2"], L: Lb, Phi: Pb,
+    resid: [null, null, null, null, null, null], useResid: false,
+    resCov: [{ i: 0, j: 1, est: 0.20 }], target: Tb, general: 0 });
+  okTrue("a bifactor solution with a residual covariance is refused", rcB.errors.length === 1);
+  okTrue("the refusal names the two items", /I1/.test(rcB.errors[0]) && /I2/.test(rcB.errors[0]));
+
+  /* Without a target pattern, no coefficient of a subscale. */
+  var rn = ES.compute({ names: names6, factors: ["GF", "S1", "S2"], L: Lb, Phi: Pb,
+    resid: [null, null, null, null, null, null], useResid: false, resCov: [], target: null, general: 0 });
+  ok("no target pattern is reported as such", rn.haveTargets, false);
+  okTrue("omega is not computed without a subscale", !isFinite(rn.per[1].omega));
+  ok("the explained common variance, which needs no subscale, is still computed", rn.per[0].ecvAll, rb.per[0].ecvAll);
+
+  /* Reading the target pattern from an echoed input. */
+  var echo = "TITLE: t;\nDATA: FILE IS d.dat;\nVARIABLE: NAMES ARE y1-y6;\n" +
+    " USEVARIABLES ARE y1-y6;\nANALYSIS: ROTATION = TARGET (ORTHOGONAL);\n" +
+    "MODEL:\n GF BY y1-y6 (*1);\n S1 BY y1-y3 y4~0 y5~0 y6~0 (*1);\n" +
+    " S2 BY y4-y6 y1~0 y2~0 y3~0 (*1);\nOUTPUT: STDYX;\n";
+  var order = namesInOrder(echo);
+  ok("the names of the data file are read in order", order.join(" "), "Y1 Y2 Y3 Y4 Y5 Y6");
+  var pat = readModelPattern(echo, order);
+  ok("three BY statements are read", pat.length, 3);
+  ok("the general factor targets every item", pat[0].targets.length, 6);
+  ok("a specific factor targets its own items", pat[1].targets.join(" "), "Y1 Y2 Y3");
+  ok("the targeted zeros are kept apart from the targets", pat[1].zeros.join(" "), "Y4 Y5 Y6");
+  ok("the ESEM set label is read", pat[1].set, "1");
+  ok("a range inside a BY statement is expanded", pat[2].targets.join(" "), "Y4 Y5 Y6");
+  ok("a MODEL command is found even when other commands follow",
+     readModelPattern("MODEL:\n F1 BY x1 x2;\nOUTPUT: STDYX;\n", null).length, 1);
+  ok("no MODEL command gives no pattern", readModelPattern("OUTPUT: STDYX;\n", null), null);
+
+  /* The syntax builder. */
+  var form = BUILD.readForm({ dataName: "d.dat", varNames: "x1-x9",
+    defs: "F1 BY x1-x3;\nF2 BY x4-x6;\nF3 BY x7-x9;", general: "GF" });
+  ok("the description is read without errors", form.errors.length, 0);
+  ok("three factors are read", form.factors.length, 3);
+  ok("nine items are read", form.items.length, 9);
+  form.estimator = "MLR"; form.categorical = false; form.rotation = "TARGET";
+  form.starts = 0; form.omega = false; form.fs = false; form.modind = false;
+  var built = BUILD.inputs(form);
+  ok("four inputs are written", built.length, 4);
+  ok("the first is the confirmatory model", built[0].key, "icm-cfa");
+  okTrue("the ESEM input marks a set of factors", built[1].text.indexOf("(*1);") > 0);
+  okTrue("the ESEM input writes the targeted zeros", built[1].text.indexOf("~0") > 0);
+  okTrue("the bifactor confirmatory input fixes the factor correlations at zero",
+     (built[2].text.match(/WITH[^\n]*@0;/g) || []).length === 6);
+  okTrue("the bifactor-ESEM input rotates orthogonally",
+     built[3].text.indexOf("ROTATION = TARGET (ORTHOGONAL);") > 0);
+  okTrue("no line of any input passes the ninetieth column",
+     built.every(function (b) { return b.text.split("\n").every(function (l) { return l.length <= 90; }); }));
+  built.forEach(function (b) {
+    okTrue("every check passes for " + b.key, BUILD.checksOf(b, form).every(function (c) { return c.ok; }));
+  });
+  var geo = { errors: [], notes: [], dataName: "d.dat", names: form.names, factors: form.factors,
+    general: "GF", items: form.items, estimator: "MLR", categorical: false, rotation: "GEOMIN",
+    starts: 100, omega: false, fs: false, modind: false };
+  var builtGeo = BUILD.inputs(geo);
+  okTrue("the bi-geomin rotation is written when it is chosen",
+     builtGeo[3].text.indexOf("ROTATION = BI-GEOMIN (ORTHOGONAL);") > 0);
+  okTrue("a rotation without targets writes no targeted zero", builtGeo[3].text.indexOf("~0") < 0);
+  okTrue("random starts are written when asked for", builtGeo[3].text.indexOf("STARTS = 100;") > 0);
+  var cat = BUILD.inputs({ errors: [], notes: [], dataName: "d.dat", names: form.names,
+    factors: form.factors, general: "GF", items: form.items, estimator: "WLSMV", categorical: true,
+    rotation: "TARGET", starts: 0, fs: false, modind: false });
+  okTrue("categorical items are declared with a least squares estimator",
+     cat[0].text.indexOf("CATEGORICAL ARE") > 0);
+  var om = BUILD.inputs({ errors: [], notes: [], dataName: "d.dat", names: form.names,
+    factors: form.factors, general: "GF", items: form.items, estimator: "MLR", categorical: false,
+    rotation: "TARGET", starts: 0, fs: false, modind: false });
+  okTrue("no input carries a MODEL CONSTRAINT block",
+     om.every(function (x) { return x.text.indexOf("MODEL CONSTRAINT") < 0; }));
+  okTrue("no input asks for a confidence interval of a constrained parameter",
+     om.every(function (x) { return x.text.indexOf("CINTERVAL") < 0; }));
+  okTrue("every input carries the standardized solution the page reads",
+     om.every(function (x) { return x.text.indexOf("STDYX") > 0; }));
+  var bad = BUILD.readForm({ dataName: "d.dat", varNames: "x1-x9",
+    defs: "F1 BY x1-x3;\nF2 BY x3-x6;", general: "GF" });
+  okTrue("an item on two factors is refused", bad.errors.length > 0);
+  var longName = BUILD.readForm({ dataName: "d.dat", varNames: "x1-x9",
+    defs: "FACTORNAME BY x1-x3;\nF2 BY x4-x6;", general: "GF" });
+  okTrue("a factor name longer than eight characters is refused", longName.errors.length > 0);
+  var clash = BUILD.readForm({ dataName: "d.dat", varNames: "x1-x9",
+    defs: "F1 BY x1-x3;\nF2 BY x4-x6;", general: "F1" });
+  okTrue("a general factor with the name of a specific factor is refused", clash.errors.length > 0);
+
+  return { checks: checks, failed: failed };
+}
+
+(function () {
+  if (!/[?&]selftest=1(&|$)/.test(window.location.search)) return;
+  var out;
+  try { out = selfTest(); }
+  catch (err) { out = { checks: [{ name: "the self-test raised an error: " + (err && err.message ? err.message : String(err)), ok: false }], failed: 1 }; }
+  var b = document.getElementById("selftest-banner"), i;
+  b.hidden = false;
+  b.className = "status " + (out.failed ? "bad" : "ok");
+  b.innerHTML = '<p><span aria-hidden="true">' + (out.failed ? "✗" : "✓") + '</span> <span class="tag">' +
+    (out.failed ? "Self-test failed." : "Self-test passed.") + "</span> " + out.checks.length + " checks, " +
+    out.failed + " failed. They cover the communality with correlated factors, omega, the average variance " +
+    "extracted and construct replicability against values computed separately, the bifactor indices and the " +
+    "factor determinacies of an orthogonal solution, the effect of a residual covariance on the coefficients " +
+    "defined on the variance of a total and its absence from the others, the reading of the target pattern from " +
+    "the echoed input, and the four inputs the builder writes. Each check is listed in the browser console.</p>";
+  var lines = out.checks.map(function (c) {
+    return (c.ok ? "ok   " : "FAIL ") + c.name + (c.ok ? "" : "  got " + c.got + ", wanted " + c.want);
+  });
+  if (out.failed) console.error(lines.join("\n")); else console.log(lines.join("\n"));
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

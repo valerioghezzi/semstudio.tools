@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Free browser-based tools that compute psychometric indices from Mplus output: reliability, bifactor indices, invariance tables and syntax, nested-model tests, interaction plots, composite weights and item parcels.">
+<meta name="description" content="Free browser-based tools that compute from Mplus output what Mplus does not print: reliability and bifactor indices, ESEM coefficients, invariance tables and syntax, nested-model tests, fit and local fit, interaction plots, composite weights, item parcels, multilevel reliability and variance explained, intensive longitudinal reliability, latent class enumeration, power and missing data.">
 <title>semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
@@ -13,8 +13,8 @@
 <a class="skip" href="#tools">Skip to the tools</a>
 
 <header class="hero">
-  <h1 class="logo">
-    <svg class="mark" viewBox="0 0 120 132" role="img" aria-label="A flower with six petals in the colours of the three groups of tools">
+  <h1 class="logo" aria-label="semstudio.tools">
+    <svg class="mark" viewBox="0 0 120 132" role="img" aria-hidden="true" focusable="false">
       <path d="M60 56 C 60 90, 60 100, 60 128" stroke="#009E73" stroke-width="7" fill="none" stroke-linecap="round"/>
       <path d="M60 92 C 44 88, 34 96, 33 108 C 46 111, 57 105, 60 92 Z" fill="#009E73"/>
       <path d="M60 106 C 76 102, 86 110, 87 122 C 74 125, 63 119, 60 106 Z" fill="#009E73" opacity=".8"/>
@@ -28,10 +28,10 @@
     </svg>
     <span class="wordmark"><span class="w1">semstudio</span><span class="w2">.tools</span></span>
   </h1>
-  <p class="tagline">A workbench for structural equation modeling with Mplus</p>
+  <p class="tagline">A workbench for structural equation modeling with M<em>plus</em></p>
 </header>
 
-<main id="tools">
+<main id="tools" tabindex="-1">
 
   <nav class="group" style="--accent:#009E73" aria-labelledby="g-measurement">
     <h2 id="g-measurement">Measurement</h2>
@@ -39,6 +39,7 @@
       <li><a class="tile" href="reliability.html"><span class="t">Reliability Coefficients</span><span class="s">omega, AVE, ordinal omega</span></a></li>
       <li><a class="tile" href="bifactor.html"><span class="t">Bifactor Indices</span><span class="s">ECV, PUC, omega hierarchical</span></a></li>
       <li><a class="tile" href="parceling.html"><span class="t">Item Parceling</span><span class="s">parcel-building strategies</span></a></li>
+      <li><a class="tile" href="esem.html"><span class="t">ESEM Models</span><span class="s">indices and bifactor-ESEM syntax</span></a></li>
     </ul>
   </nav>
 
@@ -46,8 +47,7 @@
     <h2 id="g-invariance">Invariance</h2>
     <ul class="tiles">
       <li><a class="tile" href="invariance.html"><span class="t">Invariance Tables</span><span class="s">fit, constraints, difference tests</span></a></li>
-      <li><a class="tile" href="invariance-syntax.html"><span class="t">Invariance Syntax Builder</span><span class="s">continuous and ordered-categorical items</span></a></li>
-      <li><a class="tile" href="chi-square-difference.html"><span class="t">Model Comparison</span><span class="s">chi-square difference tests</span></a></li>
+      <li><a class="tile" href="invariance-syntax.html"><span class="t">Invariance Syntax Builder</span><span class="s">continuous and ordered categorical items</span></a></li>
     </ul>
   </nav>
 
@@ -59,6 +59,38 @@
     </ul>
   </nav>
 
+  <nav class="group" style="--accent:#000000" aria-labelledby="g-fit">
+    <h2 id="g-fit">Fit and Comparison</h2>
+    <ul class="tiles">
+      <li><a class="tile" href="fit.html"><span class="t">Model Fit and Local Fit</span><span class="s">fit table, residuals, modification indices</span></a></li>
+      <li><a class="tile" href="chi-square-difference.html"><span class="t">Model Comparison</span><span class="s">chi-square difference tests</span></a></li>
+    </ul>
+  </nav>
+
+  <nav class="group" style="--accent:#E69F00" aria-labelledby="g-multilevel">
+    <h2 id="g-multilevel">Multilevel</h2>
+    <ul class="tiles">
+      <li><a class="tile" href="multilevel.html"><span class="t">Multilevel Reliability</span><span class="s">nested data, level-specific fit</span></a></li>
+      <li><a class="tile" href="dsem.html"><span class="t">Intensive Longitudinal</span><span class="s">dynamic models, reliability over time</span></a></li>
+      <li><a class="tile" href="multilevel-r2.html"><span class="t">Multilevel Variance Explained</span><span class="s">the twelve R-squared measures</span></a></li>
+    </ul>
+  </nav>
+
+  <nav class="group" style="--accent:#56B4E9" aria-labelledby="g-mixture">
+    <h2 id="g-mixture">Mixtures</h2>
+    <ul class="tiles">
+      <li><a class="tile" href="latent-class.html"><span class="t">Latent Class Enumeration</span><span class="s">criteria, Bayes factors, class separation</span></a></li>
+    </ul>
+  </nav>
+
+  <nav class="group" style="--accent:#CC79A7" aria-labelledby="g-design">
+    <h2 id="g-design">Design and Data</h2>
+    <ul class="tiles">
+      <li><a class="tile" href="power.html"><span class="t">Power Analysis</span><span class="s">sample size, design analysis, simulation</span></a></li>
+      <li><a class="tile" href="missing.html"><span class="t">Missing Data</span><span class="s">patterns, coverage, missing information</span></a></li>
+    </ul>
+  </nav>
+
   <section class="note" aria-labelledby="how">
     <h2 id="how">How these tools work</h2>
     <p>Every tool is a single page that runs inside your browser. Output files stay on your computer: nothing is uploaded, no cookies are set, no usage is recorded. Each result comes with the formula behind it and the reference it comes from, and every interpretive cutoff is reported as guidance rather than as a rule.</p>
@@ -66,7 +98,7 @@
 
   <section class="note" aria-labelledby="cite">
     <h2 id="cite">How to cite this page</h2>
-    <p class="citation">Ghezzi, V. (2026). <em>semstudio.tools: A workbench for structural equation modeling with Mplus</em> [Computer software]. https://semstudio.tools</p>
+    <p class="citation">Ghezzi, V. (2026). <em>semstudio.tools: A workbench for structural equation modeling with M</em><em>plus</em> [Computer software]. https://semstudio.tools</p>
     <p>The code is released under the MIT License and may be inspected, copied and modified freely.</p>
   </section>
 

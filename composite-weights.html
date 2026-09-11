@@ -32,14 +32,14 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Composite weights</h1>
-  <p class="lede">This page carries out the first step of the two-step approach of Treiblmaier, Bentler and Mair (2011): it divides a set of formative indicators into two or more composites and computes the weights that make those composites as highly correlated as possible, by canonical correlation analysis with two blocks and by generalized canonical correlation analysis with three or more. It then writes the M<em>plus</em> input for the common factor that the composites define in the second step. It reads the raw data file of the analysis together with the <code>TYPE = BASIC</code> output that describes it; every number it computes with comes from those two files, and none of them can be typed in.</p>
+  <h1>Composite Weights</h1>
+  <p class="lede">This page carries out the first step of the two-step approach of Treiblmaier, Bentler and Mair (2011): it divides a set of formative indicators into two or more composites and computes the weights that make those composites as highly correlated as possible, by canonical correlation analysis with two blocks and by generalized canonical correlation analysis with three or more. It then writes the M<em>plus</em> input for the common factor that the composites define in the second step. It reads the raw data file of the analysis together with the <code>TYPE = BASIC</code> output that describes it.</p>
   <div class="callout" role="note">
     <strong>What to request from M<em>plus</em>.</strong> <code>ANALYSIS: TYPE = BASIC;</code> together with <code>OUTPUT: SAMPSTAT;</code>. The output is read for the variable names, for <code>USEVARIABLES</code>, <code>CATEGORICAL</code> and the missing value codes, and the sample means it prints are compared with the means recomputed from the data file, which is how a data file read with the wrong number of columns or with an undeclared missing value code is detected.
   </div>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
 <div id="selftest-banner" hidden></div>
 
@@ -57,23 +57,23 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <li>Press <em>Compute the weights</em>. Read the canonical correlations, the weights, the standardized weights and the structure coefficients, and the checks under them.</li>
     <li>Copy the second-step M<em>plus</em> input printed at the end, which builds the composites with <code>DEFINE</code> and fits the common factor on them, and run it.</li>
   </ol>
-  <p>The page refuses to compute anything until both files are loaded, because the data file alone gives no variable names, no missing value codes and no <code>CATEGORICAL</code> declaration, and the output alone gives no cases. It refuses a data file that produced no usable row, and it reports rather than hides a disagreement between the means it recomputed and the means M<em>plus</em> printed, which is what a data file read with the wrong number of columns or with an undeclared missing value code looks like. Nothing on this page can be typed in: the sample size, the variable names, the values and the summary statistics all come from those two files, and the only decisions left to you are how many composites to form, which indicator goes into which of them, and how the weights within a block are set.</p>
+  <p>The page refuses to compute anything until both files are loaded, because the data file alone gives no variable names, no missing value codes and no <code>CATEGORICAL</code> declaration, and the output alone gives no cases. It refuses a data file that produced no usable row, and it reports a disagreement between the means it recomputed and the means M<em>plus</em> printed, which is what a data file read with the wrong number of columns or with an undeclared missing value code looks like. Nothing on this page can be typed in: the sample size, the variable names, the values and the summary statistics all come from those two files, and the only decisions left to you are how many composites to form, which indicator goes into which of them, and how the weights within a block are set.</p>
 </section>
 
 <section aria-labelledby="h-input">
   <h2 id="h-input">Load the data file and the <code>TYPE = BASIC</code> output</h2>
   <p>Drop the raw data file on the first box and the M<em>plus</em> output that describes it on the second, in either order. Both are needed: the output supplies the variable names, the missing value codes and the <code>CATEGORICAL</code> declaration, and the data file supplies the cases.</p>
-  <div class="row" id="routes">
+  <div class="row stretch" id="routes">
     <div class="field" style="flex:1 1 16rem">
-      <div class="drop" id="drop-dat" tabindex="0" role="button" aria-describedby="drop-hint">
+      <div class="drop" id="drop-dat">
         <strong>Drop the raw data file here</strong>, or press Enter to choose one.
         <label class="visually-hidden" for="file-dat">Choose the raw data file to read</label>
-        <input type="file" id="file-dat" accept=".dat,.txt,.csv,.raw,text/plain,text/csv">
+        <input type="file" id="file-dat" accept=".dat,.txt,.csv,.raw,text/plain,text/csv" aria-describedby="drop-hint">
         <span class="file-name" id="name-dat"></span>
       </div>
     </div>
     <div class="field" style="flex:1 1 16rem">
-      <div class="drop" id="drop-out" tabindex="0" role="button" aria-describedby="drop-hint">
+      <div class="drop" id="drop-out" aria-describedby="drop-hint">
         <strong>Drop the <code>TYPE = BASIC</code> output here</strong>, or press Enter to choose one.
         <label class="visually-hidden" for="file-out">Choose the M<em>plus</em> output file to read</label>
         <input type="file" id="file-out" accept=".out,.txt,.log,text/plain">
@@ -108,17 +108,18 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     </div>
   </div>
   <div class="actions">
-    <button type="button" class="secondary" id="btn-oddeven">Assign the indicators alternately, one composite after the other</button>
-    <button type="button" class="secondary" id="btn-search">Search for the division with the highest correlation</button>
+    <button type="button" class="secondary" id="btn-oddeven" disabled>Assign the indicators alternately, one composite after the other</button>
+    <button type="button" class="secondary" id="btn-search" disabled>Search for the division with the highest correlation</button>
   </div>
-  <label class="check" for="opt-balanced"><input type="checkbox" id="opt-balanced"> Restrict the search to divisions whose two blocks differ in size by at most one</label>
+  <label class="check" for="opt-balanced"><input type="checkbox" id="opt-balanced" disabled> Restrict the search to divisions whose two composites differ in size by at most one</label>
+  <p class="hint" id="search-note" hidden>The search divides the indicators into two composites. It is available when the number of composites is set to two.</p>
   <div id="search-wrap" hidden>
     <label for="prog">Progress of the search</label>
     <progress id="prog" max="100" value="0"></progress>
     <p class="hint" id="prog-text" aria-live="polite"></p>
   </div>
 
-  <p id="vars-note" class="table-note">Indicators read from the output. The composite column decides which composite each indicator enters.</p>
+  <p id="vars-note" class="table-note">Indicators read from the output. <em>Composite</em> decides which composite the indicator enters; <em>Scale level</em> decides whether its values are used as measurements (numerical) or replaced by optimal quantifications (ordinal, nominal); <em>Valid</em> is the number of cases with a value that is not missing, <em>Mean</em> and <em>SD</em> are computed from them, and <em>Distinct</em> is the number of different values.</p>
   <div class="table-wrap">
     <table id="vars" aria-labelledby="vars-note">
       <thead><tr id="vars-head"></tr></thead>
@@ -127,14 +128,14 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   </div>
 
   <div class="actions">
-    <button type="button" id="btn-run">Compute the weights</button>
+    <button type="button" id="btn-run" disabled>Compute the weights</button>
     <span id="run-msg" aria-live="polite"></span>
   </div>
 </section>
 
 <section aria-labelledby="h-results">
   <h2 id="h-results">Results</h2>
-  <div id="results" aria-live="polite"><div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop the raw data file and the <code>TYPE = BASIC</code> output on the two boxes above, assign the indicators to composites, then press <em>Compute the weights</em>.</div></div>
+  <div id="results"><div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop the raw data file and the <code>TYPE = BASIC</code> output on the two boxes above, assign the indicators to composites, then press <em>Compute the weights</em>.</div></div>
 </section>
 
 <section aria-labelledby="h-syntax">
@@ -142,8 +143,9 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <div id="syntax"><p class="hint">The M<em>plus</em> input for the second step appears here once the weights have been computed.</p></div>
 </section>
 
-<section class="tracks" aria-labelledby="h-methods">
-  <h2 id="h-methods">Methods and formulas</h2>
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
 
   <h3>The two steps</h3>
   <p>A formative latent variable is written by Treiblmaier, Bentler and Mair (2011) as</p>
@@ -159,10 +161,10 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <p>The article lists at least four ways of dividing <var>P</var>. Two of them fix the weights from outside the data, and this page does not compute them, because the numbers they need are in no file: the <strong>a priori split</strong>, in which the indicators are divided on theoretical grounds and the original coefficients <math><mrow><msub><mi>b</mi><mi>i</mi></msub></mrow></math> are applied within each set, as in the odd and even sums <math><mrow><msub><mi>P</mi><mn>1</mn></msub><mo>=</mo><mrow><msub><mi>b</mi><mn>1</mn></msub><msub><mi>V</mi><mn>1</mn></msub></mrow><mo>+</mo><mrow><msub><mi>b</mi><mn>3</mn></msub><msub><mi>V</mi><mn>3</mn></msub></mrow><mo>+</mo><mi>&#x2026;</mi></mrow></math> and <math><mrow><msub><mi>P</mi><mn>2</mn></msub><mo>=</mo><mrow><msub><mi>b</mi><mn>2</mn></msub><msub><mi>V</mi><mn>2</mn></msub></mrow><mo>+</mo><mrow><msub><mi>b</mi><mn>4</mn></msub><msub><mi>V</mi><mn>4</mn></msub></mrow><mo>+</mo><mi>&#x2026;</mi></mrow></math>; and the <strong>split with original weights</strong>, in which each indicator is itself decomposed as <math><mrow><msub><mi>V</mi><mi>i</mi></msub><mo>=</mo><msub><mi>V</mi><mrow><mi>i</mi><mn>1</mn></mrow></msub><mo>+</mo><msub><mi>V</mi><mrow><mi>i</mi><mn>2</mn></mrow></msub></mrow></math> and the same coefficient is applied to both halves. Both require the coefficients <math><mrow><msub><mi>b</mi><mi>i</mi></msub></mrow></math> to be supplied, and a coefficient supplied by hand is a datum this page will not take. The article describes both, and a reader who has such coefficients can write the two <code>DEFINE</code> statements directly.</p>
   <p>The two the page computes take their weights from the data:</p>
   <ul>
-    <li><strong>Split with replicated weights.</strong> The weighting procedure is run separately in each half. The version computed here takes the first principal component of the correlation matrix of each block, which is the procedure the article names, and rescales it so that the composite has unit variance. Because the weights are estimated independently in the two halves they are free to differ, and the article observes that the parts may then be less highly correlated than under the original weights.</li>
+    <li><strong>Split with replicated weights.</strong> The weighting procedure is run separately in each half. The article gives principal component analysis as its example of a weighting procedure (p. 8) and, for <var>P</var>, leaves the choice between the correlation and the covariance matrix to the researcher (p. 7); the version computed here takes the first principal component of the correlation matrix of each block and rescales it so that the composite has unit variance. Because the weights are estimated independently in the two halves they are free to differ, and the article observes that the parts may then be less highly correlated than under the original weights.</li>
     <li><strong>Split with weights for maximal correlation.</strong> The weights are chosen so that the two composites correlate as highly as they can. This is canonical correlation analysis (Hotelling, 1936), and it is the method the article uses in both of its examples.</li>
   </ul>
-  <p>Equal weights are offered as well, as the case of the replicated split in which every indicator counts once. The article adds that all of these methods can be used when <var>P</var> is to be divided into three or more parts, with canonical analysis of several sets of variables in the sense of Kettenring (1971) in place of ordinary canonical correlation analysis.</p>
+  <p>Equal weights are offered as well; they are the centroid weighting the article lists among the traditional choices for <var>P</var> (p. 7), applied within each composite. The article describes the replicated and the maximal-correlation splits on halves of each indicator, <var>V</var><sub><var>i</var></sub> = <var>V</var><sub><var>i</var>1</sub> + <var>V</var><sub><var>i</var>2</sub> (p. 8); its illustration and its empirical example apply canonical weights to a division of whole indicators into two sets (pp. 9&ndash;11), which is what this page does. The article adds that all of these methods can be used when <var>P</var> is to be divided into three or more parts, with canonical analysis of several sets of variables in the sense of Kettenring (1971) in place of ordinary canonical correlation analysis.</p>
 
   <h3>Maximally correlated composites: two blocks</h3>
   <p>Write <b>S</b> for the covariance matrix of the indicators, partitioned into <b>S</b><sub><var>xx</var></sub>, <b>S</b><sub><var>yy</var></sub> and <b>S</b><sub><var>xy</var></sub> according to the division. The problem is to find weight vectors <b>a</b> and <b>b</b> that maximize</p>
@@ -186,7 +188,7 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <li><strong>SUMCOR</strong> maximizes the sum of the correlations between all pairs of composites.</li>
     <li><strong>SSQCOR</strong> maximizes the sum of the squared correlations between all pairs, so a strong negative relation counts as much as a strong positive one.</li>
     <li><strong>MAXVAR</strong> maximizes the largest eigenvalue of <b>R</b><sub><var>P</var></sub>, that is, the variance accounted for by the first principal component of the composites.</li>
-    <li><strong>MINVAR</strong> minimizes the smallest eigenvalue of <b>R</b><sub><var>P</var></sub>, which drives the composites towards a linearly dependent set.</li>
+    <li><strong>MINVAR</strong> minimizes the smallest eigenvalue of <b>R</b><sub><var>P</var></sub>, which drives the composites toward a linearly dependent set.</li>
     <li><strong>GENVAR</strong> minimizes the determinant of <b>R</b><sub><var>P</var></sub>, the generalized variance of the composites.</li>
   </ul>
   <p>This page uses MAXVAR, in the formulation of Horst (1961) and Carroll (1968), because it is the criterion that matches the second step: what the second step extracts from the composites is a single common factor, and the largest eigenvalue of <b>R</b><sub><var>P</var></sub> is exactly the variance one such dimension can account for. The computation stacks the blocks into one matrix whose blocks are</p>
@@ -206,7 +208,7 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <p class="where">Here <var>r</var>(<var>V</var><sub><var>i</var></sub>, <var>P</var><sub><var>j</var></sub>) is the correlation between indicator <var>i</var> and composite <var>j</var>, (<b>S</b><sub><var>jj</var></sub><b>w</b><sub><var>j</var></sub>)<sub><var>i</var></sub> is the <var>i</var>-th element of the covariance matrix of the block multiplied by its weight vector, and the two standard deviations are those of the indicator and of the composite.</p>
   <p>It is a simple correlation, so what the other indicators do does not affect it.</p>
   <p>The article is explicit about which of the three to read: “In CCA, the canonical coefficients are typically not used; the correlations between the variables and the new canonical variates are interpreted instead. These are commonly referred to as loadings and can be interpreted as ordinary factor or component loadings” (Treiblmaier, Bentler, &amp; Mair, 2011, p. 11). The reason is the usual one for regression coefficients: when the indicators are correlated, a weight can be small, or negative, merely because another indicator in the same block already carries that part of the variance, and the weight then says nothing about whether the indicator is related to the composite. The structure coefficient answers that question directly. A weight is a statement about a linear combination, not a measure of the importance of an indicator; the two coincide only when the indicators within a block are uncorrelated. The page prints all three and marks any block whose weights are of both signs, because such a composite is a contrast between groups of indicators rather than a weighted sum of them.</p>
-  <p>The sign of a whole canonical pair is arbitrary: replacing <b>a</b> by <math><mrow><mo>&#x2212;</mo><mi mathvariant="bold">a</mi></mrow></math> and <b>b</b> by <math><mrow><mo>&#x2212;</mo><mi mathvariant="bold">b</mi></mrow></math> leaves the correlation unchanged, and nothing in the data chooses between them. The page fixes the sign by making the sum of the structure coefficients of the first block positive, so that the composite runs in the same direction as the majority of its indicators. The relative signs within a block are not arbitrary and carry the meaning described above.</p>
+  <p>The sign of a whole canonical pair is arbitrary: replacing <b>a</b> by <math><mrow><mo>&#x2212;</mo><mi mathvariant="bold">a</mi></mrow></math> and <b>b</b> by <math><mrow><mo>&#x2212;</mo><mi mathvariant="bold">b</mi></mrow></math> leaves the correlation unchanged, and nothing in the data chooses between them. With two composites the page fixes the sign by making the sum of the structure coefficients of the first block positive, so that the composite runs in the same direction as the majority of its indicators; with three or more it makes the sum of all the weights positive. The relative signs within a block are not arbitrary and carry the meaning described above.</p>
   <p>The published raw coefficients of an example are not always recoverable from a published matrix. The privacy example of the article reports raw canonical coefficients of .0197 and .0220 in the first block and .0292 and .0176 in the second, obtained from variables measured on a slider from 1 to 100. The canonical correlations and the structure coefficients are scale free: multiplying an indicator by a constant leaves them unchanged, so they can be reproduced from a correlation matrix. The raw coefficients are not: they carry the factor <math><mrow><mn>1</mn><mo>/</mo><msub><mi>&#x3C3;</mi><msub><mi>V</mi><mi>i</mi></msub></msub></mrow></math>, and the standard deviations are not published. That example, and the six-variable illustration, are checked in the self-test of this page rather than offered as an input route, because a matrix copied out of an article is a number typed by hand.</p>
 
   <h3>How many dimensions, and how much is explained</h3>
@@ -217,53 +219,56 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <div class="eq"><math display="block"><mrow><msup><mi>&#x3C7;</mi><mn>2</mn></msup><mo>=</mo><mo>&#x2212;</mo><mrow><mo>[</mo><mi>n</mi><mo>&#x2212;</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><mo stretchy="false">(</mo><mi>p</mi><mo>+</mo><mi>q</mi><mo>+</mo><mn>1</mn><mo stretchy="false">)</mo></mrow><mn>2</mn></mfrac><mo>]</mo></mrow><mi>ln</mi><mspace width="0.17em"></mspace><msub><mi mathvariant="normal">&#x39B;</mi><mi>k</mi></msub><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>d</mi><mi>f</mi><mo>=</mo><mrow><mo stretchy="false">(</mo><mi>p</mi><mo>&#x2212;</mo><mi>k</mi><mo stretchy="false">)</mo></mrow><mrow><mo stretchy="false">(</mo><mi>q</mi><mo>&#x2212;</mo><mi>k</mi><mo stretchy="false">)</mo></mrow></mrow></math></div>
   <p class="where">Here χ² is the test statistic, <var>n</var> the number of complete cases, <var>p</var> and <var>q</var> the numbers of indicators in the two blocks, <var>k</var> the number of canonical correlations already extracted, Λ<sub><var>k</var></sub> Wilks's lambda just defined, and <var>df</var> the degrees of freedom the statistic is referred to.</p>
   <p>The test at <math><mrow><mi>k</mi><mo>=</mo><mn>0</mn></mrow></math> asks whether the two blocks are related at all; a test that is significant at <math><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow></math> as well says that a single pair of composites does not exhaust the relation between the blocks, which matters because the second step keeps only the first pair. The chi-square tail is computed from the upper incomplete gamma function evaluated by its continued fraction rather than as one minus the lower tail, which would lose every significant digit and return exactly zero for a probability below about <math><mrow><msup><mn>10</mn><mrow><mo>&#x2212;</mo><mn>16</mn></mrow></msup></mrow></math>.</p>
-  <p>The redundancy index of Stewart and Love (1968) is the proportion of the total variance of one set of indicators accounted for by the <em>other</em> set's canonical variate:</p>
+  <p>The redundancy of one set of indicators on the <var>j</var>-th pair of canonical variates (Stewart &amp; Love, 1968) is the proportion of the total variance of that set accounted for by the <em>other</em> set's <var>j</var>-th canonical variate:</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Rd</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>X</mi><mo>|</mo><msub><mi>W</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><mn>1</mn><mi>p</mi></mfrac><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msup><mrow><mi>r</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>V</mi><mi>i</mi></msub><mo>,</mo><msub><mi>W</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mn>2</mn></msup><mo>=</mo><msup><msub><mi>&#x3C1;</mi><mi>j</mi></msub><mn>2</mn></msup><mspace width="0.17em"></mspace><mfrac><mn>1</mn><mi>p</mi></mfrac><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msup><mrow><mi>r</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>V</mi><mi>i</mi></msub><mo>,</mo><msub><mi>U</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mn>2</mn></msup></mrow></math></div>
   <p class="where">Here Rd(<var>X</var> | <var>W</var><sub><var>j</var></sub>) is the redundancy of the first set given the <var>j</var>-th variate of the second, <var>p</var> is the number of indicators in the first set, <var>V</var><sub><var>i</var></sub> is one of them, <var>U</var><sub><var>j</var></sub> and <var>W</var><sub><var>j</var></sub> are the <var>j</var>-th canonical variates of the first and of the second set, and ρ<sub><var>j</var></sub> is the <var>j</var>-th canonical correlation.</p>
-  <p>The two expressions are equal because the correlation of an indicator with the other set's variate is the canonical correlation times its correlation with its own, so the index is also the mean squared structure coefficient of the set multiplied by the squared canonical correlation. The page computes it the first way and checks it against the second; a difference above 10<sup>−6</sup> would mean a numerical failure and is reported as one. Across two thousand randomly generated problems, including deliberately near-singular ones, the largest difference observed was 1.6 × 10<sup>−9</sup>. The index is asymmetric: the redundancy of the first set is generally not the redundancy of the second. A high canonical correlation with a low redundancy means that the composites are strongly related to each other and weakly related to the indicators they are built from, which is the situation in which the second-step factor represents very little of the material the formative construct was supposed to summarize.</p>
+  <p>The two expressions are equal because the correlation of an indicator with the other set's variate is the canonical correlation times its correlation with its own, so the index is also the mean squared structure coefficient of the set multiplied by the squared canonical correlation. The redundancy index of Stewart and Love is the sum of these terms over the pairs; the page reports the terms, one per dimension, because the second step keeps only the first pair. The page computes each term the first way and checks it against the second; a difference above 10<sup>−6</sup> would mean a numerical failure and is reported as one. Across two thousand randomly generated problems, including deliberately near-singular ones, the largest difference observed was 1.6 × 10<sup>−9</sup>. The index is asymmetric: the redundancy of the first set is generally not the redundancy of the second. A high canonical correlation with a low redundancy means that the composites are strongly related to each other and weakly related to the indicators they are built from, which is the situation in which the second-step factor represents very little of the material the formative construct was supposed to summarize.</p>
 
   <h3>Categorical indicators and optimal scaling</h3>
-  <p>When the M<em>plus</em> output declares indicators as <code>CATEGORICAL</code>, the numbers in the data file are category labels rather than measurements, and treating them as measurements assumes that the distance between category 1 and category 2 equals the distance between category 3 and category 4. The page replaces the labels by optimal quantifications: each category receives a numerical value, and those values are estimated jointly with the weights so as to maximize the fit between the composites, under a monotonicity constraint that keeps the quantifications in the order of the original categories when the level is ordinal and no constraint at all when it is nominal. This is the nonlinear canonical correlation analysis of Gifi (1990) as implemented in the OVERALS algorithm of van der Burg, de Leeuw and Verdegaal (1988): the loss function is the sum over blocks of the squared distance between a common object score matrix and each block's weighted sum of quantified variables; it is minimized by alternating least squares, one block at a time, with the monotone regression step carried out by the pool-adjacent-violators algorithm. Categories held by fewer than three cases, or by fewer than one per cent of the sample, are merged with the adjacent least frequent category before quantification, because a category held by two or three cases gets a quantification determined by those cases alone; the merges are reported. Because alternating least squares converges to a stationary point that depends on where it starts, the page restarts the algorithm from two deterministic configurations — the original category values, and the expected normal scores of the ranks — and then from random ones, and keeps the best solution, stopping once the same value of the loss function has been reached six times. When every indicator is numerical the quantification is a linear function of the original values, the alternating step has a closed-form solution, and the result is ordinary canonical correlation analysis; the self-test checks that equality.</p>
-  <p>Once the quantifications are fixed the quantified variables are treated as the observed variables: their covariance matrix is formed and every quantity on this page — weights, standardized weights, structure coefficients, canonical correlations, Wilks's lambda, redundancy — is computed from it in exactly the same way as for numerical indicators. The results show, for each categorical indicator, the weight applied to the quantified variable together with the quantification of every original category and the number of cases in it, so that the recoding can be checked; the generated syntax contains the same recoding as a sequence of <code>IF</code> statements, so the analysis is reproducible from the syntax alone. When the monotone fit assigns the same value to neighbouring categories the page says so, because the indicator is then being used as a coarser variable than it was measured.</p>
+  <p>When the M<em>plus</em> output declares indicators as <code>CATEGORICAL</code>, the numbers in the data file are category labels rather than measurements, and treating them as measurements assumes that the distance between category 1 and category 2 equals the distance between category 3 and category 4. The page replaces the labels by optimal quantifications: each category receives a numerical value, and those values are estimated jointly with the weights so as to maximize the fit between the composites, under a monotonicity constraint that keeps the quantifications in the order of the original categories when the level is ordinal and no constraint at all when it is nominal. This is the nonlinear canonical correlation analysis of Gifi (1990) as implemented in the OVERALS algorithm of van der Burg, de Leeuw and Verdegaal (1988): the loss function is the sum over blocks of the squared distance between a common object score matrix and each block's weighted sum of quantified variables; it is minimized by alternating least squares, one block at a time, with the monotone regression step carried out by the pool-adjacent-violators algorithm. Categories held by fewer than three cases, or by fewer than one percent of the sample, are merged with the adjacent least frequent category before quantification, because a category held by two or three cases gets a quantification determined by those cases alone; the merges are reported. Because alternating least squares converges to a stationary point that depends on where it starts, the page restarts the algorithm from two deterministic configurations — the original category values, and the normal quantiles at the midpoints of the cumulative proportions of the categories — and then from random ones, and keeps the best solution, stopping once the same value of the loss function has been reached six times. When every indicator is numerical the quantification is a linear function of the original values, the alternating step has a closed-form solution, and the result is ordinary canonical correlation analysis; the self-test checks that equality.</p>
+  <p>Once the quantifications are fixed the quantified variables are treated as the observed variables: their covariance matrix is formed and every quantity on this page — weights, standardized weights, structure coefficients, canonical correlations, Wilks's lambda, redundancy — is computed from it in exactly the same way as for numerical indicators. The results show, for each categorical indicator, the weight applied to the quantified variable together with the quantification of every original category and the number of cases in it, so that the recoding can be checked; the generated syntax contains the same recoding as a sequence of <code>IF</code> statements, so the analysis is reproducible from the syntax alone. When the monotone fit assigns the same value to neighboring categories the page says so, because the indicator is then being used as a coarser variable than it was measured.</p>
 
   <h3>Step 2: the factor on the composites</h3>
   <p>The composites are entered as reflective indicators of a common factor:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>P</mi><mn>1</mn></msub><mo>=</mo><msub><mi>&#x3B2;</mi><mn>1</mn></msub><msup><mi>F</mi><mo>&#x2217;</mo></msup><mo>+</mo><msub><mi>E</mi><mn>1</mn></msub><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><msub><mi>P</mi><mn>2</mn></msub><mo>=</mo><msub><mi>&#x3B2;</mi><mn>2</mn></msub><msup><mi>F</mi><mo>&#x2217;</mo></msup><mo>+</mo><msub><mi>E</mi><mn>2</mn></msub></mrow></math></div>
   <p class="where">Here <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub> are the two composites, <var>F</var>* is the common factor of the second step, β<sub>1</sub> and β<sub>2</sub> are its loadings on them, and <var>E</var><sub>1</sub> and <var>E</var><sub>2</sub> are two residuals uncorrelated with each other.</p>
-  <p>With two composites this model is not identified as it stands: two loadings, two residual variances and the factor variance are five parameters against the three distinct elements of the covariance matrix of <code>P₁</code> and <code>P₂</code>. Fixing the factor variance at one and constraining the two loadings to be equal leaves three free parameters against three moments, which is a just-identified model; the article applies exactly this restriction, and justifies it both by the standard cautions for two-indicator factors and by the composites being built from equivalent sets of indicators. Constraining the two residual variances to be equal as well leaves two free parameters and one degree of freedom, so the equivalence of the two composites becomes a testable restriction rather than an assumption. The generated syntax imposes both constraints and says in comments what each of them does. When the composites are standardized to unit variance, as the weights on this page make them, the standardized loading is the square root of the correlation between them: the article's .746 for the a priori split of the six-variable illustration and .894 for the canonical split, and .681 for the privacy example.</p>
-  <p>With three or more composites the loadings need no equality constraint: the factor variance is fixed at one, and the loadings and the residual variances are all free. With three composites the model is again just identified; with four or more it has degrees of freedom. The generated syntax is read back by the page and checked before it is shown, and the checklist under it reports what was verified: that every variable used on the right-hand side of a <code>DEFINE</code> statement is either declared in <code>NAMES</code> or created earlier in <code>DEFINE</code>, that every composite appears in <code>USEVARIABLES</code>, that no intermediate quantified variable has been left there, that no name exceeds the eight characters M<em>plus</em> allows and no line the ninety it reads, and that the coefficients read back out of the <code>DEFINE</code> statements match the weights in the table. The check on the intermediate variables matters because a variable created in <code>DEFINE</code> and listed in <code>USEVARIABLES</code> enters the model as an observed variable: the quantified variables would then be analyzed alongside the composites, and M<em>plus</em> would return a fit that has nothing to do with the intended model. Only the composites belong in <code>USEVARIABLES</code>.</p>
+  <p>With two composites this model is not identified as it stands: two loadings, two residual variances and the factor variance are five parameters against the three distinct elements of the covariance matrix of <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub>. Fixing the factor variance at one and constraining the two loadings to be equal leaves three free parameters against three moments, which is a just-identified model; the article applies exactly this restriction (pp. 9, 11), and justifies it both by the standard cautions for two-indicator factors and by the composites being built from equivalent sets of indicators. The generated syntax imposes these two constraints and says in comments what each of them does. The residual variances are left free. Constraining them equal as well, which makes the two composites parallel indicators, is the further restriction usually recommended for a factor with two indicators; here it is unnecessary, because the weights standardize both composites to unit variance on the same data, so their two sample variances are equal exactly, the constraint holds by construction, and its one degree of freedom tests nothing. When the composites are standardized to unit variance, as the weights on this page make them, the standardized loading is the square root of the correlation between them: the article's .746 for the a priori split of the six-variable illustration and .894 for the canonical split, and .681 for the privacy example.</p>
+  <p>With three or more composites the loadings need no equality constraint: the factor variance is fixed at one, and the loadings and the residual variances are all free. With three composites the model is again just identified; with four or more it has degrees of freedom. The results panel still reports the square root of the mean correlation between the composites as the loading a model with equal loadings would give; with three or more composites it is a summary of the correlations, and the loadings the second step estimates are free to differ from it. The generated syntax is read back by the page and checked before it is shown, and the checklist under it reports what was verified: that every variable used on the right-hand side of a <code>DEFINE</code> statement is either declared in <code>NAMES</code> or created earlier in <code>DEFINE</code>, that every composite appears in <code>USEVARIABLES</code>, that no intermediate quantified variable has been left there, that no name exceeds the eight characters M<em>plus</em> allows and no line the ninety it reads, and that the coefficients read back out of the <code>DEFINE</code> statements match the weights in the table. The check on the intermediate variables matters because a variable created in <code>DEFINE</code> and listed in <code>USEVARIABLES</code> enters the model as an observed variable: the quantified variables would then be analyzed alongside the composites, and M<em>plus</em> would return a fit that has nothing to do with the intended model. Only the composites belong in <code>USEVARIABLES</code>.</p>
 
   <h3>Choosing the division from the data</h3>
   <p>The exploratory search examines the ways of dividing the selected indicators into two blocks and reports the one whose first canonical correlation is highest. A division is represented as an integer with one bit per indicator, the first indicator held in the first block so that a division and its mirror image are not counted twice; the number of distinct divisions of <em>k</em> indicators is therefore 2<sup><em>k</em>−1</sup> − 1, which is 15 for five indicators. Bit tests and the population count are done by division rather than by the bitwise operators of the language: those coerce their operands to signed 32-bit integers, so <code>1 &lt;&lt; 32</code> wraps round to 1 and a population count written with <code>&gt;&gt;=</code> never terminates once bit 31 is set. Division is exact up to 2<sup>53</sup>, and the search is limited to 50 indicators, which is well inside that. The self-test checks the population count at and above 32 bits. The search runs in chunks of a few tens of milliseconds with the page yielding between them, so the tab stays responsive and the progress bar advances; the enumeration is exhaustive up to 200000 divisions, which is 18 indicators, and switches to hill climbing from random starting divisions beyond that, in which case the division found is not certainly the best one and the page says so.</p>
-  <p>Two things have to be held together here. The article does say that, for its purposes, the best division is the one that yields highly correlated parts, and Proposition 2 gives the reason. But the article obtains a high correlation by choosing the <em>weights</em> optimally within a division fixed on substantive grounds, and choosing the division itself by the same criterion on the same data is a further step it does not take. The canonical correlation is already a maximum over all weight vectors, so it is biased upwards in any sample; maximizing it over the divisions as well adds a second layer of capitalization on chance, and the value that comes out is not an estimate of a population quantity. The search is useful for seeing how much the answer depends on the division and whether one indicator is consistently isolated, and its result is a hypothesis to be checked on other data rather than the division to report. A division defensible on content grounds, with the weights then chosen for maximal correlation, is what the article proposes.</p>
+  <p>The article does say that, for its purposes, the best division is the one that yields highly correlated parts, and Proposition 2 gives the reason. But the article obtains a high correlation by choosing the <em>weights</em> optimally within a division fixed on substantive grounds, and choosing the division itself by the same criterion on the same data is a further step it does not take. The canonical correlation is already a maximum over all weight vectors, so it is biased upward in any sample; maximizing it over the divisions as well adds a second layer of capitalization on chance, and the value that comes out is not an estimate of a population quantity. The search is useful for seeing how much the answer depends on the division and whether one indicator is consistently isolated, and its result is a hypothesis to be checked on other data rather than the division to report. A division defensible on content grounds, with the weights then chosen for maximal correlation, is what the article proposes.</p>
 
   <h3>Missing data</h3>
   <p>Cases are deleted listwise: a case is used only if it has a valid value on every indicator assigned to a composite, and indicators left out of the analysis do not cause a case to be dropped. The page reports the number of complete cases used, the number dropped, and the number of cases available on each indicator separately, so that a single indicator responsible for most of the loss can be identified. Values matching a missing value code declared in the M<em>plus</em> output, and the codes <code>.</code> and <code>*</code>, are treated as missing; the numeric codes are compared as numbers, so that −99, −99.0 and −99.000 are recognized as the same code. No imputation and no full-information estimation is available here, because the first step is a computation on a covariance matrix rather than a model fitted by maximum likelihood. When the proportion of dropped cases is large, the covariance matrix is that of the complete cases and generalizes to the rest of the sample only under an assumption this page cannot check.</p>
 
   <h3>What this page does not do</h3>
-  <p>The disturbance <code>D</code> of the formative construct is not estimated, and cannot be: proceeding without it is the point of the two-step approach, so the correlation between <code>F*</code> and the intended <code>F</code> is unknown in any application, as the article states. Nothing here decides whether a construct should be measured formatively at all; that argument is conducted in Bollen and Lennox (1991), Diamantopoulos and Winklhofer (2001) and Bollen (2002), and it has to be settled before these computations are of any use. The weights are sample quantities with no standard errors attached, and the canonical correlation is a maximum over weight vectors, so it is biased upwards in small samples; the page reports the ratio of complete cases to indicators and warns below five cases per indicator. The exploratory search works on the covariance matrix of the raw values even when indicators are categorical, because a quantification would have to be recomputed for every division. The page reads a raw data file, so the covariance matrix it works from is on the metric of the variables themselves and the <code>DEFINE</code> statements it writes apply to them unchanged.</p>
+  <p>The disturbance <var>D</var> of the formative construct is not estimated, and cannot be: proceeding without it is the point of the two-step approach, so the correlation between <var>F</var>* and the intended <var>F</var> is unknown in any application, as the article states (p. 9). Nothing here decides whether a construct should be measured formatively at all; that argument is conducted in Bollen and Lennox (1991), Diamantopoulos and Winklhofer (2001) and Bollen (2002), and it has to be settled before these computations are of any use. The weights are sample quantities with no standard errors attached, and the canonical correlation is a maximum over weight vectors, so it is biased upward in small samples; the page reports the ratio of complete cases to indicators and warns below five cases per indicator. The exploratory search works on the covariance matrix of the raw values even when indicators are categorical, because a quantification would have to be recomputed for every division. The page reads a raw data file, so the covariance matrix it works from is on the metric of the variables themselves and the <code>DEFINE</code> statements it writes apply to them unchanged.</p>
 
   <h3>Self-test</h3>
-  <p>Adding <code>?selftest=1</code> to the address of this page runs the numerical checks in the browser and prints the result at the top of the page and in the console. They cover the two published benchmarks of Treiblmaier, Bentler and Mair (2011), which appear here and nowhere else on the page, because a matrix copied out of an article is a number typed by hand: the six-variable illustration end to end — the a priori weights .5, .6 and .7 giving composite variances of 1.1, a covariance of .612, a correlation of .5564 and an equal standardized loading of .746, and the canonical correlation of .8 giving .894 — and the canonical correlations, the structure coefficients and the loading of .681 of the privacy example; the agreement of the generalized routine with canonical correlation analysis when there are two blocks; Wilks's lambda, Bartlett's statistic and its degrees of freedom against their definitions; the chi-square tail below the point where one minus the lower tail returns zero; the pseudo-inverse path and the truncation of dimensions on a rank-deficient block; the enumeration of the divisions of five indicators and the population count at 2<sup>31</sup>, 2<sup>32</sup>, 2<sup>40</sup> and 2<sup>49</sup>; the redundancy index computed both ways and agreeing; the free-format data parser, the matrix parser, the variable-range expander and the M<em>plus</em> input parser on embedded samples; the pool-adjacent-violators algorithm against monotone fits worked out by hand; optimal scaling with numerical levels reproducing canonical correlation analysis and an ordinal quantification coming out monotone; the generated syntax for two and for three composites, read back and checked; and a randomized run of 220 problems asserting that every composite has unit variance, that the correlation between the composites equals the first canonical correlation, that the stationarity conditions <code>S<sub>xy</sub>b = ρS<sub>xx</sub>a</code> and <code>S<sub>yx</sub>a = ρS<sub>yy</sub>b</code> hold, that the canonical correlations lie between zero and one and do not increase, and that they agree with an independent computation through the eigenvalues of <code>S<sub>xx</sub><sup>−1</sup>S<sub>xy</sub>S<sub>yy</sub><sup>−1</sup>S<sub>yx</sub></code> obtained by a Gauss–Jordan inverse and unshifted QR iteration, which share no code with the routines they check.</p>
-</section>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs the numerical checks in the browser and prints the result at the top of the page and in the console. They cover the two published benchmarks of Treiblmaier, Bentler and Mair (2011), which appear here and nowhere else on the page, because a matrix copied out of an article is a number typed by hand: the six-variable illustration end to end — the a priori weights .5, .6 and .7 giving composite variances of 1.1, a covariance of .612, a correlation of .5564 and an equal standardized loading of .746, and the canonical correlation of .8 giving .894 — and the canonical correlations, the structure coefficients and the loading of .681 of the privacy example; the agreement of the generalized routine with canonical correlation analysis when there are two blocks; Wilks's lambda, Bartlett's statistic and its degrees of freedom against their definitions; the chi-square tail below the point where one minus the lower tail returns zero; the pseudo-inverse path and the truncation of dimensions on a rank-deficient block; the enumeration of the divisions of five indicators and the population count at 2<sup>31</sup>, 2<sup>32</sup>, 2<sup>40</sup> and 2<sup>49</sup>; the redundancy index computed both ways and agreeing; the free-format data parser, the matrix parser, the variable-range expander and the M<em>plus</em> input parser on embedded samples; the pool-adjacent-violators algorithm against monotone fits worked out by hand; optimal scaling with numerical levels reproducing canonical correlation analysis and an ordinal quantification coming out monotone; the generated syntax for two and for three composites, read back and checked, with the equal loadings and the free residual variances of the two-composite model; and a randomized run of 220 problems asserting that every composite has unit variance, that the correlation between the composites equals the first canonical correlation, that the stationarity conditions <span class="eq-in"><b>S</b><sub><var>xy</var></sub><b>b</b> = ρ<b>S</b><sub><var>xx</var></sub><b>a</b></span> and <span class="eq-in"><b>S</b><sub><var>yx</var></sub><b>a</b> = ρ<b>S</b><sub><var>yy</var></sub><b>b</b></span> hold, that the canonical correlations lie between zero and one and do not increase, and that they agree with an independent computation through the eigenvalues of <span class="eq-in"><b>S</b><sub><var>xx</var></sub><sup>−1</sup><b>S</b><sub><var>xy</var></sub><b>S</b><sub><var>yy</var></sub><sup>−1</sup><b>S</b><sub><var>yx</var></sub></span> obtained by a Gauss–Jordan inverse and unshifted QR iteration, which share no code with the routines they check.</p>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-refs">
-  <h2 id="h-refs">References</h2>
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
   <ul class="refs">
-    <li>Bartlett, M. S. (1941). The statistical significance of canonical correlations. <em>Annals of Eugenics, 11</em>(1), 63–76.</li>
-    <li>Bollen, K. A. (2002). Latent variables in psychology and the social sciences. <em>Annual Review of Psychology, 53</em>, 605–634. https://doi.org/10.1146/annurev.psych.53.100901.135239</li>
-    <li>Bollen, K. A., &amp; Lennox, R. (1991). Conventional wisdom on measurement: A structural equation perspective. <em>Psychological Bulletin, 110</em>(2), 305–314. https://doi.org/10.1037/0033-2909.110.2.305</li>
+    <li>Bartlett, M. S. (1941). The statistical significance of canonical correlations. <em>Biometrika, 32</em>(1), 29–37. <a href="https://doi.org/10.1093/biomet/32.1.29">https://doi.org/10.1093/biomet/32.1.29</a></li>
+    <li>Bollen, K. A. (2002). Latent variables in psychology and the social sciences. <em>Annual Review of Psychology, 53</em>(1), 605–634. <a href="https://doi.org/10.1146/annurev.psych.53.100901.135239">https://doi.org/10.1146/annurev.psych.53.100901.135239</a></li>
+    <li>Bollen, K. A., &amp; Lennox, R. (1991). Conventional wisdom on measurement: A structural equation perspective. <em>Psychological Bulletin, 110</em>(2), 305–314. <a href="https://doi.org/10.1037/0033-2909.110.2.305">https://doi.org/10.1037/0033-2909.110.2.305</a></li>
     <li>Carroll, J. D. (1968). Generalization of canonical correlation analysis to three or more sets of variables. <em>Proceedings of the 76th Annual Convention of the American Psychological Association, 3</em>, 227–228.</li>
-    <li>Diamantopoulos, A., &amp; Winklhofer, H. M. (2001). Index construction with formative indicators: An alternative to scale development. <em>Journal of Marketing Research, 38</em>(2), 269–277. https://doi.org/10.1509/jmkr.38.2.269.18845</li>
+    <li>Diamantopoulos, A., &amp; Winklhofer, H. M. (2001). Index construction with formative indicators: An alternative to scale development. <em>Journal of Marketing Research, 38</em>(2), 269–277. <a href="https://doi.org/10.1509/jmkr.38.2.269.18845">https://doi.org/10.1509/jmkr.38.2.269.18845</a></li>
     <li>Gifi, A. (1990). <em>Nonlinear multivariate analysis</em>. Wiley.</li>
-    <li>Horst, P. (1961). Relations among <em>m</em> sets of measures. <em>Psychometrika, 26</em>(2), 129–149. https://doi.org/10.1007/BF02289710</li>
-    <li>Hotelling, H. (1936). Relations between two sets of variates. <em>Biometrika, 28</em>(3–4), 321–377. https://doi.org/10.1093/biomet/28.3-4.321</li>
-    <li>Kettenring, J. R. (1971). Canonical analysis of several sets of variables. <em>Biometrika, 58</em>(3), 433–451. https://doi.org/10.1093/biomet/58.3.433</li>
-    <li>Stewart, D., &amp; Love, W. (1968). A general canonical correlation index. <em>Psychological Bulletin, 70</em>(3), 160–163. https://doi.org/10.1037/h0026143</li>
-    <li>Treiblmaier, H., Bentler, P. M., &amp; Mair, P. (2011). Formative constructs implemented via common factors. <em>Structural Equation Modeling, 18</em>(1), 1–17. https://doi.org/10.1080/10705511.2011.532693</li>
-    <li>van der Burg, E., de Leeuw, J., &amp; Verdegaal, R. (1988). Homogeneity analysis with <em>k</em> sets of variables: An alternating least squares method with optimal scaling features. <em>Psychometrika, 53</em>(2), 177–197. https://doi.org/10.1007/BF02294131</li>
+    <li>Horst, P. (1961). Relations among <em>m</em> sets of measures. <em>Psychometrika, 26</em>(2), 129–149. <a href="https://doi.org/10.1007/BF02289710">https://doi.org/10.1007/BF02289710</a></li>
+    <li>Hotelling, H. (1936). Relations between two sets of variates. <em>Biometrika, 28</em>(3–4), 321–377. <a href="https://doi.org/10.1093/biomet/28.3-4.321">https://doi.org/10.1093/biomet/28.3-4.321</a></li>
+    <li>Kettenring, J. R. (1971). Canonical analysis of several sets of variables. <em>Biometrika, 58</em>(3), 433–451. <a href="https://doi.org/10.1093/biomet/58.3.433">https://doi.org/10.1093/biomet/58.3.433</a></li>
+    <li>Stewart, D., &amp; Love, W. (1968). A general canonical correlation index. <em>Psychological Bulletin, 70</em>(3), 160–163. <a href="https://doi.org/10.1037/h0026143">https://doi.org/10.1037/h0026143</a></li>
+    <li>Treiblmaier, H., Bentler, P. M., &amp; Mair, P. (2011). Formative constructs implemented via common factors. <em>Structural Equation Modeling, 18</em>(1), 1–17. <a href="https://doi.org/10.1080/10705511.2011.532693">https://doi.org/10.1080/10705511.2011.532693</a></li>
+    <li>van der Burg, E., de Leeuw, J., &amp; Verdegaal, R. (1988). Homogeneity analysis with <em>k</em> sets of variables: An alternating least squares method with optimal scaling features. <em>Psychometrika, 53</em>(2), 177–197. <a href="https://doi.org/10.1007/BF02294131">https://doi.org/10.1007/BF02294131</a></li>
   </ul>
-</section>
+</div>
+</details>
 
 </main>
 
@@ -1599,6 +1604,10 @@ var CWREAD = (function () {
     if (x == null || !isFinite(x)) return "—";
     return (x < 0 ? "−" : "") + Math.abs(x).toFixed(d == null ? 3 : d);
   }
+  /* A category value as it stands in the data file, with an ASCII minus:
+     it goes into an IF statement that Mplus has to read, so it is neither
+     rounded nor typeset. */
+  function catStr(x) { return String(x); }
   /* Wilks's lambda cannot leave the interval from zero to one, so it is
      printed without a leading zero like a correlation; a value that would
      round to zero at three decimals is reported as smaller than that
@@ -1641,6 +1650,8 @@ var CWREAD = (function () {
     last: null         /* the last result object */
   };
   var busy = null;     /* the identifier of a running chunked job */
+  var shown = null;    /* what the results panel holds: "weights", "search" or nothing */
+  var SYNTAX_PLACEHOLDER = '<p class="hint">The M<em>plus</em> input for the second step appears here once the weights have been computed.</p>';
 
   /* ================================================================
      Reading the input
@@ -1671,6 +1682,8 @@ var CWREAD = (function () {
       st.S = p.S;
       st.isCorr = p.isCorr;
       st.n = Math.max(4, parseInt(sampleSize, 10) || 0);
+      st.last = null;
+      shown = null;
       resetTable(p.names);
       st.declaredCategorical = [];
       var msg = "";
@@ -1815,6 +1828,14 @@ var CWREAD = (function () {
       "measurements instead.");
 
     $("load-report").innerHTML = msg;
+    /* A new pair of files replaces the data every result was computed from,
+       so anything on screen from an earlier pair is taken down with them. */
+    st.last = null;
+    shown = null;
+    $("results").innerHTML = status("info", "Both files read.",
+      " Assign each indicator to a composite in the table above, choose how the weights inside a composite are " +
+      "set, then press <em>Compute the weights</em>.");
+    $("syntax").innerHTML = SYNTAX_PLACEHOLDER;
     renderVars();
     say("Both files read. Assign the indicators to composites, then compute the weights.");
   }
@@ -1851,7 +1872,7 @@ var CWREAD = (function () {
     head.innerHTML = "<th scope=\"col\">Indicator</th><th scope=\"col\">Composite</th>" +
       (showLevel ? "<th scope=\"col\">Scale level</th><th scope=\"col\" class=\"num\">Valid</th>" +
                    "<th scope=\"col\" class=\"num\">Mean</th><th scope=\"col\" class=\"num\">SD</th>" +
-                   "<th scope=\"col\" class=\"num\">Values</th>"
+                   "<th scope=\"col\" class=\"num\">Distinct</th>"
                  : "<th scope=\"col\" class=\"num\">Variance</th>");
     var rows = [];
     for (var i = 0; i < st.names.length; i++) {
@@ -1881,12 +1902,42 @@ var CWREAD = (function () {
     }
     body.innerHTML = rows.join("");
     Array.prototype.forEach.call(body.querySelectorAll("[data-bk]"), function (el) {
-      el.addEventListener("change", function () { st.block[+el.getAttribute("data-bk")] = +el.value; });
+      el.addEventListener("change", function () { st.block[+el.getAttribute("data-bk")] = +el.value; invalidate("The assignment of " + esc(st.names[+el.getAttribute("data-bk")]) + " changed."); });
     });
     Array.prototype.forEach.call(body.querySelectorAll("[data-lv]"), function (el) {
-      el.addEventListener("change", function () { st.level[+el.getAttribute("data-lv")] = el.value; });
+      el.addEventListener("change", function () { st.level[+el.getAttribute("data-lv")] = el.value; invalidate("The scale level of " + esc(st.names[+el.getAttribute("data-lv")]) + " changed."); });
     });
-    $("btn-search").disabled = false;
+    refreshControls();
+  }
+  /* Every button needs both files, so none of them is usable before the two
+     files have been read, and none while a chunked job is running. The
+     exploratory search divides the indicators into two composites, so its
+     button and its option are usable only when two composites are asked for. */
+  function refreshControls() {
+    var ready = st.names.length > 0, free = !busy;
+    var two = parseInt($("nblocks").value, 10) === 2;
+    $("btn-run").disabled = !ready || !free;
+    $("btn-oddeven").disabled = !ready || !free;
+    $("btn-search").disabled = !ready || !free || !two;
+    $("opt-balanced").disabled = !ready || !two;
+    $("search-note").hidden = two;
+  }
+  /* Results and syntax describe one set of inputs. When an input changes they
+     are taken down, so that a table never sits under inputs it was not
+     computed from. The results panel holds either the weights of a division
+     or the division the search returned, and both go stale for the same
+     reason, so both are taken down here. */
+  function invalidate(reason) {
+    if (!shown) return;
+    var was = shown;
+    st.last = null;
+    shown = null;
+    $("results").innerHTML = status("info", "Inputs changed.", " " + reason +
+      (was === "weights" ? " The results computed before the change have been removed; press <em>Compute the weights</em> to compute them for the current inputs."
+     : was === "search" ? " The division the search reported is no longer the division in the table, so it has been removed; press <em>Compute the weights</em> for the division now in the table, or search again."
+     : " Press <em>Compute the weights</em> to compute the results for the current inputs."));
+    $("syntax").innerHTML = SYNTAX_PLACEHOLDER;
+    say("The inputs changed. Press “Compute the weights” to compute the results for the current inputs.");
   }
 
   function say(t) { $("run-msg").textContent = t; }
@@ -1942,6 +1993,7 @@ var CWREAD = (function () {
   function runChunked(job, onProgress, onDone) {
     var id = {};
     busy = id;
+    refreshControls();
     function step() {
       if (busy !== id) return;
       var t0 = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
@@ -1952,7 +2004,7 @@ var CWREAD = (function () {
         if (t1 - t0 > 40) break;
       }
       onProgress(job.progress ? job.progress() : null);
-      if (done) { busy = null; onDone(); }
+      if (done) { busy = null; onDone(); refreshControls(); }
       else if (typeof requestAnimationFrame === "function") requestAnimationFrame(step);
       else setTimeout(step, 0);
     }
@@ -1984,21 +2036,32 @@ var CWREAD = (function () {
      The main computation
      ================================================================ */
 
+  /* A message in the results panel that describes why nothing was computed.
+     It is registered like a result, so that changing an input takes it down
+     with the rest and no stale complaint outlives the state that caused it. */
+  function refuse(tag, html) {
+    shown = "message";
+    $("results").innerHTML = status("bad", tag, html);
+    $("syntax").innerHTML = SYNTAX_PLACEHOLDER;
+  }
+
   function run() {
-    if (busy) { say("A search is running; wait for it to finish."); return; }
-    if (!st.names.length) { say("Load a data file or a matrix first."); return; }
+    if (busy) { say("A job is running; wait for it to finish."); return; }
+    if (!st.names.length) { say("Load the data file and the TYPE = BASIC output first."); return; }
     var sets = collectSets(), m = sets.length, j;
     for (j = 0; j < m; j++) {
       if (sets[j].length < 1) {
-        $("results").innerHTML = status("bad", "Empty composite.",
+        refuse("Empty composite.",
           " Composite P" + (j + 1) + " has no indicators. Assign at least one indicator to every composite, " +
           "or reduce the number of composites.");
+        say("Composite P" + (j + 1) + " has no indicators.");
         return;
       }
     }
     var idx = usedIndices();
     if (idx.length < 2) {
-      $("results").innerHTML = status("bad", "Too few indicators.", " At least two indicators must be assigned.");
+      refuse("Too few indicators.", " At least two indicators must be assigned.");
+      say("At least two indicators must be assigned.");
       return;
     }
 
@@ -2007,8 +2070,9 @@ var CWREAD = (function () {
     /* raw data: listwise deletion, then optional optimal scaling */
     var cc = completeCases(idx);
     if (cc.rows.length < 5) {
-      $("results").innerHTML = status("bad", "Too few complete cases.",
-        " " + cc.rows.length + " cases have a valid value on every indicator assigned to a block.");
+      refuse("Too few complete cases.",
+        " " + cc.rows.length + " cases have a valid value on every indicator assigned to a composite.");
+      say(cc.rows.length + " complete cases: too few to compute a covariance matrix from.");
       return;
     }
     var miss = { complete: cc.rows.length, dropped: cc.dropped, perIndicator: perIndicatorValid(idx) };
@@ -2091,6 +2155,7 @@ var CWREAD = (function () {
                 unitVariance: unitVariance, ev: ev, repTied: repTied,
                 cca: opt.cca || null, gcca: opt.gcca || null, method: method, miss: miss,
                 quant: quant, idxMap: idxMap, comparison: comparison, isCorr: st.isCorr, m: m };
+    shown = "weights";
     renderResults();
     renderSyntax();
     say("Weights computed.");
@@ -2130,11 +2195,13 @@ var CWREAD = (function () {
         head += "<dt>Equal unstandardized loading, the square root of the covariance</dt><dd>" +
           num(Math.sqrt(ev.cov[0][1]), 4) + "</dd>";
     } else {
-      head += "<dt>Mean correlation between composites</dt><dd>" + f3(ev.meanCorr) + "</dd>";
+      head += "<dt>Mean correlation between the composites</dt><dd>" + f3(ev.meanCorr) + "</dd>";
     }
     head += "<dt>Largest eigenvalue of the composite correlation matrix</dt><dd>" + num(ev.eigenvalue, 3) +
       " (" + num(100 * ev.proportion, 1) + "% of " + m + ")</dd>";
-    head += "<dt>Equal standardized loading, the square root of the correlation</dt><dd>" + f3(ev.loading) + "</dd>";
+    head += (m === 2
+      ? "<dt>Equal standardized loading, the square root of the correlation</dt><dd>"
+      : "<dt>Square root of the mean correlation, the standardized loading if the " + m + " loadings were held equal (the generated syntax leaves them free)</dt><dd>") + f3(ev.loading) + "</dd>";
     head += "</dl>";
     out.push(head);
     if (!R.unitVariance) out.push(status("info", "The composites are not standardized.",
@@ -2178,8 +2245,16 @@ var CWREAD = (function () {
     var nInd = R.sets.reduce(function (a, s) { return a + s.length; }, 0);
     if (R.n / nInd < 5) warn.push(status("warn", "Few cases per indicator.",
       " " + num(R.n / nInd, 1) + " cases per indicator. The canonical correlation is a maximum over weight " +
-      "vectors, so it is biased upwards, and the bias is large when the sample is small relative to the number " +
+      "vectors, so it is biased upward, and the bias is large when the sample is small relative to the number " +
       "of indicators."));
+    if (R.quant && R.quant.quant) {
+      var many = R.quant.quant.filter(function (v) { return v.level !== "numerical" && v.nCatOrig > 20; });
+      if (many.length) warn.push(status("warn", "Many categories.",
+        " " + many.map(function (v) { return esc(st.names[v.index]) + " (" + v.nCatOrig + " distinct values)"; }).join(", ") +
+        (many.length > 1 ? " are" : " is") + " set to an ordinal or nominal level, so every distinct value is treated as a category " +
+        "and receives its own quantification, and the generated syntax recodes each of them. A variable with this many distinct " +
+        "values is usually a measurement; set its level to numerical unless the values are category codes."));
+    }
     if (R.repTied && R.repTied.length) warn.push(status(R.method === "replicated" ? "warn" : "info",
       "The first principal component is not unique.",
       " In block" + (R.repTied.length > 1 ? "s " : " ") +
@@ -2242,8 +2317,8 @@ var CWREAD = (function () {
       if (pos && neg) mixed.push("P" + (j + 1));
     }
     if (mixed.length) out.push(status("warn", "Weights of both signs.",
-      " Composite" + (mixed.length > 1 ? "s " : " ") + mixed.join(", ") + " has weights of both signs, so it is a " +
-      "contrast between groups of indicators rather than a weighted sum of them. Compare the weights with the " +
+      " Composite" + (mixed.length > 1 ? "s " : " ") + mixed.join(", ") + (mixed.length > 1 ? " have" : " has") + " weights of both signs, so " +
+      (mixed.length > 1 ? "each is" : "it is") + " a contrast between groups of indicators, not a weighted sum of them. Compare the weights with the " +
       "structure coefficients: an indicator with a negative weight and a positive structure coefficient is being " +
       "used to remove from the composite what another indicator in the same block already carries, and it is not " +
       "a negative marker of the construct."));
@@ -2274,16 +2349,17 @@ var CWREAD = (function () {
       }).join("");
       var rdWorst = 0;
       R.cca.tests.forEach(function (t) { rdWorst = Math.max(rdWorst, t.rdCheck); });
-      out.push('<p class="table-note" id="d-note">Canonical dimensions. Wilks’s lambda and Bartlett’s ' +
-        'test refer to the hypothesis that this canonical correlation and all the following ones are zero in the ' +
-        'population. The redundancy indices of Stewart and Love (1968) are the proportions of the total variance ' +
-        'of each set of indicators accounted for by the other set’s canonical variate.</p>' +
+      out.push('<p class="table-note" id="d-note">Canonical dimensions. <var>r</var> is the canonical correlation ' +
+        'of the dimension and <var>r</var>² its square; Wilks’s Λ, χ² (Bartlett, 1941), <var>df</var> and <var>p</var> ' +
+        'refer to the hypothesis that this canonical correlation and all the following ones are zero in the ' +
+        'population. Rd (Stewart &amp; Love, 1968) is the proportion of the total variance of the indicators of one ' +
+        'composite accounted for by the other composite’s canonical variate on that dimension.</p>' +
         '<div class="table-wrap"><table aria-labelledby="d-note"><thead><tr>' +
         '<th scope="col" class="num">Dimension</th><th scope="col" class="num">r</th>' +
         '<th scope="col" class="num">r²</th><th scope="col" class="num">Wilks’s Λ</th>' +
         '<th scope="col" class="num">χ²</th><th scope="col" class="num">df</th>' +
-        '<th scope="col" class="num">p</th><th scope="col" class="num">Rd (P1)</th>' +
-        '<th scope="col" class="num">Rd (P2)</th></tr></thead><tbody>' + trows + "</tbody></table></div>");
+        '<th scope="col" class="num">p</th><th scope="col" class="num">Rd, indicators of P1</th>' +
+        '<th scope="col" class="num">Rd, indicators of P2</th></tr></thead><tbody>' + trows + "</tbody></table></div>");
       if (rdWorst > 1e-6) out.push(status("bad", "The redundancy indices disagree with themselves.",
         " The redundancy computed from the correlations between the indicators of one set and the canonical " +
         "variate of the other set differs by " + rdWorst.toExponential(2) + " from the same quantity computed as " +
@@ -2324,11 +2400,12 @@ var CWREAD = (function () {
         "</th><td class=\"num\">" + f3(c.meanCorr) + "</td><td class=\"num\">" + f3(c.loading) +
         "</td><td class=\"num\">" + num(c.eigenvalue, 3) + "</td></tr>";
     }).join("");
-    out.push('<p class="table-note" id="m-note">The weighting methods compared on this split. The correlation ' +
+    out.push('<p class="table-note" id="m-note">The weighting methods compared on this division. The correlation ' +
       'is the correlation between the two composites, or the mean correlation when there are more than two; ' +
-      'the loading is its square root, which is the equal standardized loading the second step would give.</p>' +
+      (m === 2 ? 'the loading is its square root, which is the equal standardized loading the second step gives.'
+               : 'the loading is its square root, the standardized loading a model with equal loadings would give; the generated syntax leaves the loadings free.') + '</p>' +
       '<div class="table-wrap"><table aria-labelledby="m-note"><thead><tr><th scope="col">Method</th>' +
-      '<th scope="col" class="num">Correlation</th><th scope="col" class="num">Equal standardized loading</th>' +
+      '<th scope="col" class="num">Correlation</th><th scope="col" class="num">' + (m === 2 ? 'Equal standardized loading' : 'Square root of the mean correlation') + '</th>' +
       '<th scope="col" class="num">Largest eigenvalue</th></tr></thead><tbody>' + crows + "</tbody></table></div>");
 
     /* ---- quantifications ---- */
@@ -2340,15 +2417,20 @@ var CWREAD = (function () {
         "loss had been confirmed the required number of times, so the solution shown may not be the best one") +
         ".") + "</p>");
       if (R.quant.merges && R.quant.merges.length) {
+        /* Each merged group is set in braces and its members separated by a
+           comma and a space: a group written as a run of values joined by a
+           sign has no break opportunity in it, and a variable with many
+           categories then produces a line wider than a narrow screen. */
         qout.push("<p>Categories merged before quantification because they were held by too few cases: " +
           R.quant.merges.map(function (mm) {
-            return esc(st.names[mm.index]) + " (" + mm.merges.map(function (g) { return g.join("+"); }).join(", ") + ")";
+            return esc(st.names[mm.index]) + ": " +
+              mm.merges.map(function (g) { return "{" + esc(g.map(catStr).join(", ")) + "}"; }).join(", ");
           }).join("; ") + ".</p>");
       }
       R.quant.quant.forEach(function (v) {
         if (v.level === "numerical") return;
         var trs = v.table.map(function (t) {
-          return "<tr><td class=\"num\">" + num(t.cat, 0) + "</td><td class=\"num\">" + t.freq + "</td>" +
+          return "<tr><td class=\"num\">" + esc(catStr(t.cat)) + "</td><td class=\"num\">" + t.freq + "</td>" +
             '<td class="num">' + num(t.quant, 4) + "</td>" + (t.merged ? "<td>merged</td>" : "<td></td>") + "</tr>";
         }).join("");
         qout.push('<p class="table-note" id="q-note-' + v.index + '">Quantification of ' + esc(st.names[v.index]) +
@@ -2363,9 +2445,9 @@ var CWREAD = (function () {
             " The quantification of " + esc(st.names[v.index]) + " takes only " + v.nDistinct + " distinct values " +
             "for " + v.nCat + " categories, so the monotone fit has merged almost every category. The indicator is " +
             "being used as a far coarser variable than it was measured."));
-        } else if (v.tied) qout.push(status("info", "Neighbouring categories share a value.",
+        } else if (v.tied) qout.push(status("info", "Neighboring categories share a value.",
           " The quantification of " + esc(st.names[v.index]) + " takes " + v.nDistinct + " distinct values for " +
-          v.nCat + " categories: the monotone fit has given the same value to neighbouring categories, which is " +
+          v.nCat + " categories: the monotone fit has given the same value to neighboring categories, which is " +
           "what the ordinal constraint does when the data do not order them. Those categories are not " +
           "distinguished in the composite."));
       });
@@ -2448,7 +2530,7 @@ var CWREAD = (function () {
         var seen = [];
         v.table.forEach(function (t) {
           var key = t.quant.toFixed(6);
-          L.push("  IF (" + src + " EQ " + num(t.cat, 0) + ") THEN " + q + " = " + t.quant.toFixed(6) + ";");
+          L.push("  IF (" + src + " EQ " + catStr(t.cat) + ") THEN " + q + " = " + t.quant.toFixed(6) + ";");
           if (seen.indexOf(key) < 0) seen.push(key);
         });
       });
@@ -2474,13 +2556,12 @@ var CWREAD = (function () {
       L.push("  ! parameters and is not identified. Fixing the factor variance");
       L.push("  ! at one and holding the two loadings equal, as the article does");
       L.push("  ! for equivalent splits, leaves three parameters for three");
-      L.push("  ! moments. Holding the residual variances equal as well leaves");
-      L.push("  ! two parameters and one degree of freedom, which turns the");
-      L.push("  ! equivalence of the two composites into a testable restriction.");
+      L.push("  ! moments. The residual variances are left free: the composites");
+      L.push("  ! have unit variance by construction, so a constraint of equal");
+      L.push("  ! residual variances would hold exactly and test nothing.");
       L.push("  FSTAR BY " + comp[0] + "* (LAM)");
       L.push("           " + comp[1] + "  (LAM);");
       L.push("  FSTAR@1;");
-      L.push("  " + comp[0] + " " + comp[1] + " (RES);");
     } else {
       L.push("  ! With " + m + " composites the loadings need no equality constraint:");
       L.push("  ! the factor variance is fixed at one and the loadings and the");
@@ -2557,7 +2638,8 @@ var CWREAD = (function () {
     add(leaked.length === 0, leaked.length
       ? "Intermediate quantified variables left in <code>USEVARIABLES</code>: " + esc(leaked.join(", ")) +
         ". They would enter the model as observed variables."
-      : (qs.length ? "The " + qs.length + " intermediate quantified variables stay out of <code>USEVARIABLES</code>, " +
+      : (qs.length ? (qs.length === 1 ? "The intermediate quantified variable " + esc(qs[0]) + " stays out of <code>USEVARIABLES</code>, "
+                                       : "The " + qs.length + " intermediate quantified variables stay out of <code>USEVARIABLES</code>, ") +
           "so only the composites enter the model."
                    : "No intermediate variables were needed; only the composites are in <code>USEVARIABLES</code>."));
 
@@ -2569,7 +2651,7 @@ var CWREAD = (function () {
       : "Every variable in <code>USEVARIABLES</code> is either read from the file or created in <code>DEFINE</code>.");
 
     var modVars = (modSec.match(/[A-Za-z_][A-Za-z0-9_]*/g) || []).filter(function (v) {
-      return ["BY", "ON", "WITH", "FSTAR", "LAM", "RES"].indexOf(v.toUpperCase()) < 0;
+      return ["BY", "ON", "WITH", "FSTAR", "LAM"].indexOf(v.toUpperCase()) < 0;
     });
     var badModel = modVars.filter(function (v) { return uvU.indexOf(v.toUpperCase()) < 0; });
     add(badModel.length === 0, badModel.length
@@ -2595,11 +2677,40 @@ var CWREAD = (function () {
       add(labels === 2, labels === 2
         ? "The two loadings carry the same label, so they are constrained equal, and the factor variance is fixed at one."
         : "The equality constraint on the two loadings is missing.");
-      add(/\(\s*RES\s*\)/i.test(modSec), "The two residual variances carry the same label, so they are constrained equal.");
+      add(!/\(\s*RES\s*\)/i.test(modSec), "The two residual variances are free; with unit-variance composites an equality constraint on them would hold by construction.");
     } else {
       add(!/\(\s*LAM\s*\)/i.test(modSec), "The loadings are free, as they should be with more than two composites.");
     }
     add(/FSTAR@1;/.test(modSec), "The factor variance is fixed at one.");
+
+    /* The recoding of a quantified indicator: one IF statement per original
+       category, each category once, and only characters Mplus reads. Two
+       statements for the same category would overwrite each other. */
+    add(!/[^\x00-\x7F]/.test(defSec), /[^\x00-\x7F]/.test(defSec)
+      ? "The <code>DEFINE</code> section contains a character outside ASCII, which M<em>plus</em> does not read."
+      : "The <code>DEFINE</code> section contains only ASCII characters.");
+    var qnames = Object.keys(syn.qname).map(function (k) { return syn.qname[k]; });
+    var dupes = [], countBad = [];
+    qnames.forEach(function (q) {
+      var re = new RegExp("IF\\s*\\(\\s*([A-Za-z_][A-Za-z0-9_]*)\\s+EQ\\s+([-+]?[0-9.eE+-]+)\\s*\\)\\s*THEN\\s+" + q + "\\s*=", "gi");
+      var mm, seenCat = {}, cnt = 0;
+      while ((mm = re.exec(defSec))) {
+        cnt++;
+        var key = String(Number(mm[2]));
+        if (seenCat[key]) dupes.push(q + ": " + mm[1] + " EQ " + mm[2]); else seenCat[key] = 1;
+      }
+      var want = 0;
+      if (st.last.quant) st.last.quant.quant.forEach(function (v) { if (syn.qname[v.index] === q) want = v.table.length; });
+      if (cnt !== want) countBad.push(q + " (" + cnt + " statements for " + want + " categories)");
+    });
+    if (qnames.length) {
+      add(dupes.length === 0, dupes.length
+        ? "The same category is recoded more than once: " + esc(dupes.slice(0, 5).join("; ")) + (dupes.length > 5 ? " …" : "") + "."
+        : "Every category of every quantified indicator is recoded exactly once.");
+      add(countBad.length === 0, countBad.length
+        ? "The number of <code>IF</code> statements does not match the number of categories: " + esc(countBad.join(", ")) + "."
+        : "Each quantified indicator has one <code>IF</code> statement per original category.");
+    }
 
     /* the weights in the syntax reproduce the weights in the table */
     var worst = 0;
@@ -2656,13 +2767,10 @@ var CWREAD = (function () {
 
   function startSearch() {
     if (busy) { say("A search is already running."); return; }
+    if (!st.names.length) { say("Load the data file and the TYPE = BASIC output first."); return; }
+    if (parseInt($("nblocks").value, 10) !== 2) { say("The search divides the indicators into two composites; set the number of composites to two."); return; }
     var idx = usedIndices();
-    if (idx.length < 2) { say("Assign at least two indicators before searching."); return; }
-    if (parseInt($("nblocks").value, 10) !== 2) {
-      $("results").innerHTML = status("bad", "The search is for two composites.",
-        " The exploratory search enumerates divisions into two blocks. Set the number of composites to two.");
-      return;
-    }
+    if (idx.length < 2) { say("Assign at least two indicators to composites before searching."); return; }
     var S, n;
     if (st.source === "matrix") { S = st.S; n = st.n; }
     else {
@@ -2676,12 +2784,14 @@ var CWREAD = (function () {
     try {
       job = SPLIT.searchSplits(S, idx, n, { balanced: $("opt-balanced").checked });
     } catch (e) {
-      $("results").innerHTML = status("bad", "The search cannot run.", " " + esc(e.message));
+      /* Reported beside the button rather than in the results panel: results
+         already on screen were computed from inputs that have not changed. */
+      say("The search cannot run: " + e.message);
       return;
     }
     $("search-wrap").hidden = false;
     $("prog").max = 100; $("prog").value = 0;
-    $("btn-search").disabled = true;
+    refreshControls();
     $("prog-text").textContent = job.exhaustive
       ? "Enumerating all " + job.total.toLocaleString() + " divisions of " + idx.length + " indicators…"
       : "There are " + job.total.toExponential(2) + " divisions of " + idx.length + " indicators, too many to " +
@@ -2689,28 +2799,34 @@ var CWREAD = (function () {
     runChunked(job,
       function (p) { if (p) { $("prog").value = Math.round(100 * p.fraction); } },
       function () {
-        $("btn-search").disabled = false;
         var best = job.best();
         $("search-wrap").hidden = true;
-        if (!best) { $("results").innerHTML = status("bad", "No usable division was found.", ""); return; }
+        if (!best) {
+          say("No division of the assigned indicators gave a usable canonical correlation.");
+          return;
+        }
         for (var i = 0; i < st.names.length; i++) st.block[i] = 0;
         best.set1.forEach(function (c) { st.block[c] = 1; });
         best.set2.forEach(function (c) { st.block[c] = 2; });
+        st.last = null;
+        shown = "search";
         renderVars();
         $("wmethod").value = "canonical";
-        var note = status("warn", "This split was chosen by maximizing the canonical correlation.",
+        $("syntax").innerHTML = SYNTAX_PLACEHOLDER;
+        var note = status("warn", "This division was chosen by maximizing the canonical correlation.",
           " " + best.examined.toLocaleString() + " divisions were evaluated" +
           (best.exhaustive ? ", which is all of them" : " out of " + best.total.toExponential(2) +
             ", by hill climbing from random starting divisions, so the division found is not certainly the best one") +
           ". The highest first canonical correlation was " + f3(best.r) + ", for P1 = " +
           esc(best.set1.map(function (c) { return st.names[c]; }).join(", ")) + " and P2 = " +
           esc(best.set2.map(function (c) { return st.names[c]; }).join(", ")) +
-          ". The canonical correlation is already a maximum over weight vectors and is therefore biased upwards " +
+          ". The canonical correlation is already a maximum over weight vectors and is therefore biased upward " +
           "in any sample; maximizing it over the divisions as well adds a second layer of capitalization on " +
           "chance, and the value is not an estimate of a population quantity. Treiblmaier, Bentler and Mair " +
           "(2011) do prefer a split that yields highly correlated parts, but they fix the split on substantive " +
           "grounds and choose only the weights by that criterion. Treat this division as a hypothesis for other " +
-          "data, not as the division to report.");
+          "data, not as the division to report. The indicator table now shows this division and the weighting method " +
+          "has been set to maximal correlation; press <em>Compute the weights</em> to analyze it.");
         $("results").innerHTML = note;
         say("Search finished. Press “Compute the weights” to analyze this division.");
       });
@@ -2744,15 +2860,57 @@ var CWREAD = (function () {
      Wiring
      ================================================================ */
 
+  /* The block that names what is still missing lives in one place, so that the
+     page cannot say at the same time that a file has been read and that nothing
+     has been loaded. */
+  function syncWaiting() {
+    var box = $("results");
+    if (!box) return;
+    if (pendingDat && pendingOut) return;
+    if (!pendingDat && !pendingOut)
+      box.innerHTML = status("info", "Waiting for two files",
+        " Nothing has been loaded yet. Drop the raw data file and the <code>TYPE = BASIC</code> output on the two " +
+        "boxes above, assign the indicators to composites, then press <em>Compute the weights</em>.");
+    else if (pendingDat)
+      box.innerHTML = status("info", "Waiting for the output",
+        " The raw data file has been read. The <code>TYPE = BASIC</code> output goes on the second box.");
+    else
+      box.innerHTML = status("info", "Waiting for the data file",
+        " The <code>TYPE = BASIC</code> output has been read. The raw data file it refers to goes on the first box.");
+  }
+
   function init() {
     hookDrop("drop-dat", "file-dat", "name-dat", function (file, res) {
       pendingDat = { text: res.text, encoding: res.encoding, name: file.name };
       st.dataName = file.name;
-      afterFiles();
+      syncWaiting();
+      if (pendingOut) afterFiles();
+      else $("load-report").innerHTML = status("info", "Data file read; the output is still missing.",
+        " The raw data file has been read. Now drop on the second box the <code>TYPE = BASIC</code> output of the " +
+        "analysis that read it: the data file supplies the cases, and the output supplies the variable names, the " +
+        "missing value codes and the <code>CATEGORICAL</code> declaration, none of which the data file carries.");
     });
     hookDrop("drop-out", "file-out", "name-out", function (file, res) {
+      var body = String(res.text || "");
+      if (!body.replace(/\s/g, "").length) {
+        pendingOut = null; st.outName = "";
+        syncWaiting(); $("load-report").innerHTML = status("bad", "Nothing to read.",
+          " The file <code>" + esc(file.name) + "</code> holds nothing. M<em>plus</em> writes the output as the run " +
+          "proceeds, so an empty file usually means the run was interrupted or the file was opened before it " +
+          "finished. Load the <code>.out</code> file of a finished <code>TYPE = BASIC</code> run.");
+        return;
+      }
+      if (!/Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|SAMPLE STATISTICS/i.test(body)) {
+        pendingOut = null; st.outName = "";
+        syncWaiting(); $("load-report").innerHTML = status("bad", "The output file was not read.",
+          " The file <code>" + esc(file.name) + "</code> carries none of the headings every M<em>plus</em> output has, " +
+          "so it was not read. This box takes the <code>.out</code> file of the <code>TYPE = BASIC</code> run; the " +
+          "raw data file goes in the first box.");
+        return;
+      }
       pendingOut = { text: res.text, encoding: res.encoding, name: file.name };
       st.outName = file.name;
+      syncWaiting();
       if (pendingDat) afterFiles();
       else $("load-report").innerHTML = status("info", "Output read; the data file is still missing.",
         " The <code>TYPE = BASIC</code> output has been read. Now drop on the first box the raw data file it " +
@@ -2763,12 +2921,18 @@ var CWREAD = (function () {
     $("nblocks").addEventListener("change", function () {
       var m = parseInt($("nblocks").value, 10) || 2;
       for (var i = 0; i < st.block.length; i++) if (st.block[i] > m) st.block[i] = 0;
-      renderVars();
+      if (st.names.length) renderVars(); else refreshControls();
+      invalidate("The number of composites changed to " + m + ".");
+    });
+    $("wmethod").addEventListener("change", function () {
+      invalidate("The weighting method changed.");
     });
     $("btn-oddeven").addEventListener("click", function () {
+      if (!st.names.length) { say("Load the data file and the TYPE = BASIC output first."); return; }
       var m = parseInt($("nblocks").value, 10) || 2;
       for (var i = 0; i < st.names.length; i++) st.block[i] = (i % m) + 1;
       renderVars();
+      invalidate("The indicators were reassigned.");
       say("The indicators were assigned alternately, in the order of the table: the first to P1, the second to P2, and so on.");
     });
     $("btn-search").addEventListener("click", startSearch);
@@ -3093,7 +3257,7 @@ var CWREAD = (function () {
     chk("a range between two named variables expands in the order of NAMES",
         ex.join(" ") === "v1 v2 v3 v4", ex.join(" "));
     var ex2 = READ.expandRange(["x3-x1"], ["x1", "x2", "x3"]);
-    chk("a range written backwards expands backwards", ex2.join(" ") === "x3 x2 x1", ex2.join(" "));
+    chk("a range written backward expands backward", ex2.join(" ") === "x3 x2 x1", ex2.join(" "));
     var ex3 = READ.expandRange(["q1-q3"], []);
     chk("a numeric range with no NAMES to consult expands on the stem",
         ex3.join(" ") === "q1 q2 q3", ex3.join(" "));
@@ -3319,7 +3483,7 @@ var CWREAD = (function () {
 </script>
 <script>
 /* A table wider than the box that holds it scrolls inside that box. The shadow
-   at the edge of the box is a colour cue on its own, so the same thing is said
+   at the edge of the box is a color cue on its own, so the same thing is said
    in a line under the box, and the box is made focusable and given the name of
    the table, so that it can also be scrolled from the keyboard. */
 (function(){
@@ -3356,6 +3520,136 @@ var CWREAD = (function () {
     new MutationObserver(later).observe(document.getElementById("main") || document.body,
       { childList: true, subtree: true });
   }
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>

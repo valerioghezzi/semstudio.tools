@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Latent class and latent profile enumeration from several Mplus output files: the consistent Akaike information criterion, the approximate weight of evidence, Bayes factors and correct model probabilities, the classification diagnostics, and the homogeneity and separation of the classes.">
+<title>Latent Class Enumeration &#183; semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+table.enum td.num, table.enum th.num { font-variant-numeric: tabular-nums; text-align: right; }
+table.enum td.best { font-weight: 700; }
+.filelist { list-style: none; padding: 0; margin: 1rem 0 0; }
+.filelist li { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline;
+  padding: 0.5rem 0.75rem; border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 0.5rem; background: var(--panel); }
+.filelist .nm { font-weight: 600; overflow-wrap: anywhere; }
+.filelist .meta { color: var(--muted); font-size: 0.92em; }
+.filelist button { margin-left: auto; }
+.flag { font-weight: 600; }
+.flag.hi { color: #005AB5; }
+.flag.lo { color: #A24A00; }
+svg.chart { max-width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Latent Class Enumeration</h1>
+  <p class="lede">Deciding how many classes a mixture model needs is done by comparing a series of fitted models, and the comparison rests in part on quantities M<em>plus</em> does not print. This page reads the output files of the whole series at once and assembles the enumeration table: the criteria M<em>plus</em> prints, the two it does not, the Bayes factor between adjacent models and the probability that each model in the set is the correct one, the classification diagnostics, and the homogeneity and separation of the classes of the model that is being considered.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> Fit the models from one class upward, each in its own run, and add <code>OUTPUT: TECH11 TECH14;</code> so that the two likelihood ratio tests are printed. For a latent class analysis of categorical indicators the item probabilities are printed on their own; for a latent profile analysis of continuous indicators the class means are in <code>MODEL RESULTS</code>. Nothing else is needed: every number this page uses is in the files. A warning printed by M<em>plus</em> is counted and reported; it does not remove a model from the table. What does remove it is a loglikelihood that was not replicated or a run that did not terminate normally.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Run the series of models, one file per number of classes.</li>
+    <li>Drop all the <code>.out</code> files on the box below at once, or choose them together. The number of classes is read from each file, so the order in which they arrive does not matter.</li>
+    <li>Read the enumeration table, then open the model you are considering to see its class sizes, its classification and the homogeneity and separation of its classes.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> files here</strong>, or press Enter to choose them.
+    <label class="visually-hidden" for="file">M<em>plus</em> output files</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" multiple aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The files are read in your browser and are not sent anywhere. Several files can be added in more than one go; a file that is dropped twice replaces the earlier copy.</p>
+  <ul class="filelist" id="filelist"></ul>
+  <div id="report" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-table">
+  <h2 id="h-table">The enumeration table</h2>
+  <div class="row">
+    <div class="field"><label class="check"><input type="checkbox" id="awe-alt"> Compute the approximate weight of evidence without the factor of two</label>
+      <span class="hint">The two forms in circulation are set out under Methods. The page uses the one Masyn (2013, Eq. 17) gives unless this is ticked.</span></div>
+  </div>
+  <div id="results"><p class="hint">The table appears here once the output files have been read.</p></div>
+</section>
+
+<section aria-labelledby="h-plot">
+  <h2 id="h-plot">The criteria against the number of classes</h2>
+  <div id="plot"><p class="hint">The plot appears here once at least two models have been read.</p></div>
+</section>
+
+<section aria-labelledby="h-one">
+  <h2 id="h-one">One model in detail</h2>
+  <div class="row">
+    <div class="field w2"><label for="pick">Model</label><select id="pick"><option value="">&#8212;</option></select>
+      <span class="hint">Class sizes, classification, homogeneity and separation are reported for the model chosen here.</span></div>
+    <div class="field w2"><label for="cat">Category plotted, for indicators with more than two categories</label><select id="cat"><option value="last">the highest category</option><option value="1">category 1</option><option value="2">category 2</option><option value="3">category 3</option><option value="4">category 4</option><option value="5">category 5</option></select>
+      <span class="hint">Read only for a latent class analysis of categorical indicators.</span></div>
+  </div>
+  <div id="detail"><p class="hint">Choose a model above.</p></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>What the page reads</h3>
+  <p>From each file: the number of free parameters, the number of observations, the loglikelihood and the message that says whether its best value was replicated, the information criteria M<em>plus</em> prints, the entropy, the three tables of class counts and proportions, the table of average latent class probabilities, the two likelihood ratio tests of <code>TECH11</code> and <code>TECH14</code>, and either the results in the probability scale or the class means, whichever the model carries. The number of classes is read from the class counts table, and from the echoed <code>CLASSES</code> statement when that table is absent. What is missing from a file is named rather than assumed.</p>
+
+  <h3>The two criteria M<em>plus</em> does not print</h3>
+  <p>M<em>plus</em> prints the Akaike information criterion, the Bayesian information criterion and the sample-size adjusted Bayesian information criterion. Two further criteria are used in the enumeration literature and have to be computed by hand from the loglikelihood, the number of free parameters and the sample size, all of which are in the output. The consistent Akaike information criterion (Bozdogan, 1987) is</p>
+  <div class="eq"><math display="block"><mrow><mi>CAIC</mi><mo>=</mo><mo>&#x2212;</mo><mn>2</mn><mo>(</mo><mi>LL</mi><mo>)</mo><mo>+</mo><mi>d</mi><mo>[</mo><mi>log</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>+</mo><mn>1</mn><mo>]</mo></mrow></math></div>
+  <p>and the approximate weight of evidence criterion (Banfield &amp; Raftery, 1993) is</p>
+  <div class="eq"><math display="block"><mrow><mi>AWE</mi><mo>=</mo><mo>&#x2212;</mo><mn>2</mn><mo>(</mo><mi>LL</mi><mo>)</mo><mo>+</mo><mn>2</mn><mi>d</mi><mo>[</mo><mi>log</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>+</mo><mn>1.5</mn><mo>]</mo></mrow></math></div>
+  <p>The two sources give the criterion in different forms. Masyn (2013, Eq. 17) writes it as above, with the factor of two, attributing it to Banfield and Raftery (1993); Nylund-Gibson and Choi (2018, Table 1) write the same expression without that factor. The factor of two doubles the weight of the penalty, so the two forms can be smallest at different numbers of classes. The page computes the first and the box above the table switches it to the second, so that a table can be built in whichever form the work it is being compared with used.</p>
+  <p class="where">Here <var>LL</var> is the loglikelihood, <var>d</var> the number of free parameters and <var>n</var> the sample size; the logarithm is natural. Both are given in this form by Masyn (2013, Eqs. 16 and 17), and both are read the way the Bayesian criterion is read: the smaller value is preferred, and a series of values is worth looking at as a whole, for the number of classes after which the decrement becomes small.</p>
+  <p>The page recomputes the Bayesian criterion from the same three numbers and compares it with the printed one. They agree to the rounding of the output unless the file has been edited or the sample size has been read wrongly, which is why the check is made and reported.</p>
+
+  <h3>The Bayes factor and the correct model probability</h3>
+  <p>Both are functions of the Bayesian information criterion alone. Writing the Schwarz information criterion as <math><mrow><mi>SIC</mi><mo>=</mo><mo>&#x2212;</mo><mn>0.5</mn><mo>(</mo><mi>BIC</mi><mo>)</mo></mrow></math>, the Bayes factor comparing a model <var>A</var> with a model <var>B</var> is</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>BF</mi><mrow><mi>A</mi><mo>,</mo><mi>B</mi></mrow></msub><mo>=</mo><mi>exp</mi><mo>[</mo><msub><mi>SIC</mi><mi>A</mi></msub><mo>&#x2212;</mo><msub><mi>SIC</mi><mi>B</mi></msub><mo>]</mo></mrow></math></div>
+  <p class="where">The table gives it for each model against the one with a class more. Masyn (2013, Eq. 18) prints the exponent with a plus sign and Nylund-Gibson and Choi (2018, Table 1) with a minus; the page uses the difference, which is what both texts describe in words and what the correct model probability below reduces to. Read on Jeffreys' scale as both sources give it, a value between 1 and 3 is weak evidence for the model with fewer classes, between 3 and 10 moderate, above 10 strong. A value below 1 points the other way, to the model with a class more, and its reciprocal measures that evidence on the same scale.</p>
+  <p>The correct model probability of a model is its share of the evidence within the set of models that were fitted, on the assumption that the correct model is one of them:</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>cmP</mi><mi>A</mi></msub><mo>=</mo><mfrac><mrow><mi>exp</mi><mo>[</mo><msub><mi>SIC</mi><mi>A</mi></msub><mo>&#x2212;</mo><msub><mi>SIC</mi><mi>max</mi></msub><mo>]</mo></mrow><mrow><munderover><mo>&#x2211;</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><mi>exp</mi><mo>[</mo><msub><mi>SIC</mi><mi>j</mi></msub><mo>&#x2212;</mo><msub><mi>SIC</mi><mi>max</mi></msub><mo>]</mo></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <math><msub><mi>SIC</mi><mi>max</mi></msub></math> is the largest of the <var>J</var> values in the set. This is Masyn (2013, Eq. 20); the same formula in Nylund-Gibson and Choi (2018, Table 1) carries a transcription slip in the summation, whose index is the one written here and the one that makes the values sum to one, which is the property both texts state in words. Subtracting the largest value before taking the exponential changes nothing in the ratio and keeps it computable when the differences are large. Because the probabilities are shares within the set, adding or removing a model changes them all. They say which of the models fitted is best supported, and they say nothing about whether the set contains the right one.</p>
+
+  <h3>The entropy of the classification, and the integrated completed likelihood</h3>
+  <p>M<em>plus</em> prints one classification summary, the relative entropy of the solution, which Masyn (2013, Eq. 23) defines as</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>E</mi><mi>K</mi></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><munderover><mo>&#x2211;</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><mo>[</mo><mo>&#x2212;</mo><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub><mi>ln</mi><mo>(</mo><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>)</mo><mo>]</mo></mrow><mrow><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <math><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub></math> is the posterior probability that case <var>i</var> belongs to class <var>k</var>. The double sum in the numerator is the entropy of the classification itself, in the units of the loglikelihood; the division by <math><mrow><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math> turns it into the proportion between 0 and 1 that is printed. The page reverses that division: the entropy of the classification is <math><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>E</mi><mi>K</mi></msub><mo>)</mo><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math>, and with one class it is zero, since there is nothing to be uncertain about.</p>
+  <p>That quantity is what separates the Bayesian criterion from the integrated completed likelihood of Biernacki, Celeux and Govaert (2000). Their criterion (Eq. 3.11) is the completed loglikelihood, that is the loglikelihood of the data together with the class memberships, penalized as the Bayesian criterion penalizes the loglikelihood of the data alone; and the completed loglikelihood is the ordinary one less the entropy of the classification (Eq. 2.4). Written on the scale the table uses, where the smaller value is preferred,</p>
+  <div class="eq"><math display="block"><mrow><mi>ICL</mi><mo>-</mo><mi>BIC</mi><mo>=</mo><mi>BIC</mi><mo>+</mo><mn>2</mn><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>E</mi><mi>K</mi></msub><mo>)</mo><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math></div>
+  <p class="where">which is the description its authors give of it in the first of their comments on that equation: the ordinary Bayesian criterion penalized by the estimated mean entropy. A solution whose classes overlap is penalized twice, once for the parameters it spends and once for the cases it cannot place, which is why this criterion tends to fewer classes than the Bayesian one and is the criterion to use when the classes are meant to be used as groups rather than as a description of the distribution.</p>
+  <p>One qualification. The equation the authors write uses the entropy of the classification each case is actually assigned to, which is a sum over the individual posterior probabilities and is in the file only when it has been saved with <code>SAVEDATA</code>. What the printed relative entropy gives back is the entropy of the whole posterior distribution, which is what the same authors call the estimated mean entropy and equate the penalty with. The two coincide when the classification is sharp and differ when it is not, in the direction of the sharper solution.</p>
+
+  <h3>Classification</h3>
+  <p>Relative entropy summarizes in one number how sharply the cases are assigned; values above .80 indicate good classification of individual cases (Clark &amp; Muthén, 2009, as reported by Nylund-Gibson &amp; Choi, 2018). It is a summary of the model as fitted, and Masyn (2013) is explicit that it was never intended as a criterion for choosing the number of classes, since classification uncertainty can grow with the number of classes for reasons that have nothing to do with the model being right. Three further diagnostics are class-specific, and all three are computable from what M<em>plus</em> prints.</p>
+  <p>The <em>average posterior class probability</em> of a class is the mean posterior probability of that class among the cases assigned to it (Masyn, 2013, Eq. 24). It is the diagonal of the table of average latent class probabilities for most likely class membership, which M<em>plus</em> prints in full. Nagin (2005, §5.5.1) sets the working minimum at .70 for every class. The page reports the diagonal, its smallest value, and for each class the class into which its cases are most often confused, which the off-diagonal of the same table gives directly.</p>
+  <p>The <em>odds of correct classification</em> put that probability against what assigning at random would achieve (Nagin, 2005, Eq. 5.2; Masyn, 2013, Eq. 25):</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>OCC</mi><mi>k</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>AvePP</mi><mi>k</mi></msub><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>AvePP</mi><mi>k</mi></msub><mo>)</mo></mrow><mrow><msub><mover><mi>&#x3C0;</mi><mo>^</mo></mover><mi>k</mi></msub><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mover><mi>&#x3C0;</mi><mo>^</mo></mover><mi>k</mi></msub><mo>)</mo></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <math><msub><mover><mi>&#x3C0;</mi><mo>^</mo></mover><mi>k</mi></msub></math> is the proportion the model estimates for class <var>k</var>. The denominator is the odds of placing a case in that class correctly by drawing at random with probability equal to its size, so a rule that does no better than chance gives 1. This is why the diagnostic is worth having next to the average posterior probability: a class that holds nine cases in ten is easy to assign to, and a high average posterior probability there says little. Nagin (2005, §5.5.2) concludes from his simulations that a value above 5 for every class indicates high assignment accuracy.</p>
+  <p>The <em>modal class assignment proportion</em> is the share of the sample assigned to a class by the most likely class membership, <math><mrow><msub><mi>mcaP</mi><mi>k</mi></msub><mo>=</mo><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mi>I</mi><mo>{</mo><msub><mover><mi>c</mi><mo>^</mo></mover><mrow><mi>modal</mi><mo>,</mo><mi>i</mi></mrow></msub><mo>=</mo><mi>k</mi><mo>}</mo><mo>/</mo><mi>n</mi></mrow></math> (Masyn, 2013, Eq. 26), and M<em>plus</em> prints it in the third of its three class counts tables. With perfect assignment it equals the proportion the model estimates; the gap between the two is another reading of the assignment error, and it is the third of Nagin's (2005, §5.5.3) diagnostics. The page gives both proportions and their difference. Masyn compares each modal proportion with a confidence interval for the estimated proportion obtained by bootstrap; no such interval is in the output, so the page reports the discrepancy itself and leaves the interval to a bootstrap run.</p>
+
+  <h3>Homogeneity and separation of the classes</h3>
+  <p>Two further readings of the same solution are recommended alongside the classification diagnostics (Nylund-Gibson &amp; Choi, 2018, drawing on Masyn, 2013). <em>Homogeneity</em> is how alike the cases within a class are in their responses: with categorical indicators, conditional item probabilities above .70 or below .30 indicate high homogeneity, since they say that the members of the class nearly all respond in the same way to that item. <em>Separation</em> is how unlike the classes are in their responses: the odds ratio of an item probability between two classes above 5, or below .20, indicates high separation on that item.</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>OR</mi><mrow><mi>k</mi><msup><mi>k</mi><mo>&#x2032;</mo></msup><mo>,</mo><mi>i</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>p</mi><mrow><mi>i</mi><mo>|</mo><mi>k</mi></mrow></msub><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>p</mi><mrow><mi>i</mi><mo>|</mo><mi>k</mi></mrow></msub><mo>)</mo></mrow><mrow><msub><mi>p</mi><mrow><mi>i</mi><mo>|</mo><msup><mi>k</mi><mo>&#x2032;</mo></msup></mrow></msub><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>p</mi><mrow><mi>i</mi><mo>|</mo><msup><mi>k</mi><mo>&#x2032;</mo></msup></mrow></msub><mo>)</mo></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <math><msub><mi>p</mi><mrow><mi>i</mi><mo>|</mo><mi>k</mi></mrow></msub></math> is the probability of the plotted category of item <var>i</var> in class <var>k</var>. The page marks every item as homogeneous or not within each class, and every pair of classes as separated or not on each item, and reports for each pair of classes how many items separate them, which is where a pair of classes that differ on one indicator only becomes visible.</p>
+  <p>With continuous indicators neither heuristic applies as stated, since both are written for probabilities. The page reports instead the standardized difference between the class means of each item,</p>
+  <div class="eq"><math display="block"><mrow><mi>d</mi><mo>=</mo><mfrac><mrow><msub><mi>&#x3BC;</mi><mrow><mi>i</mi><mo>|</mo><mi>k</mi></mrow></msub><mo>&#x2212;</mo><msub><mi>&#x3BC;</mi><mrow><mi>i</mi><mo>|</mo><msup><mi>k</mi><mo>&#x2032;</mo></msup></mrow></msub></mrow><msqrt><mfrac><mrow><msub><mi>n</mi><mi>k</mi></msub><msubsup><mi>&#x3C3;</mi><mrow><mi>i</mi><mo>|</mo><mi>k</mi></mrow><mn>2</mn></msubsup><mo>+</mo><msub><mi>n</mi><msup><mi>k</mi><mo>&#x2032;</mo></msup></msub><msubsup><mi>&#x3C3;</mi><mrow><mi>i</mi><mo>|</mo><msup><mi>k</mi><mo>&#x2032;</mo></msup></mrow><mn>2</mn></msubsup></mrow><mrow><msub><mi>n</mi><mi>k</mi></msub><mo>+</mo><msub><mi>n</mi><msup><mi>k</mi><mo>&#x2032;</mo></msup></msub></mrow></mfrac></msqrt></mfrac></mrow></math></div>
+  <p class="where">the difference between the two class means divided by the within-class standard deviation pooled over the two classes and weighted by their sizes, which is Cohen's (1988) <var>d</var> computed on the model's own estimates. When the variances are constrained equal across classes, which is the M<em>plus</em> default for a latent profile analysis, the denominator is that common standard deviation and the quantity is exactly Cohen's. No cutoff is attached to it here.</p>
+
+  <h3>The likelihood ratio tests, and the replication of the loglikelihood</h3>
+  <p>The two tests are read from the file rather than computed: the Vuong-Lo-Mendell-Rubin test and its adjusted form from <code>TECH11</code>, the parametric bootstrapped test from <code>TECH14</code>. Both compare a model with <var>K</var> classes against one with <var>K</var>&#8201;&#8722;&#8201;1, and a p value that is not significant supports the model with fewer classes (Lo, Mendell &amp; Rubin, 2001; McLachlan &amp; Peel, 2000; Nylund, Asparouhov &amp; Muthén, 2007). The page places each p value on the row of the model that requested it and states plainly when the section is missing from a file, since a series in which <code>TECH11</code> and <code>TECH14</code> were not requested is a series in which those columns are empty rather than one in which the tests were passed.</p>
+  <p>The page also reads the message about the replication of the best loglikelihood. A model whose best loglikelihood was not replicated has not been shown to have reached its maximum, and its criteria are the criteria of whatever local maximum the run stopped at; the row is marked and the marking is not removed by anything else in the table. The remedy is the one M<em>plus</em> states: more random starts.</p>
+
+  <h3>What this page does not compute, and why</h3>
+  <p>Two things are left out. The first is the bootstrap confidence interval for the estimated class proportions that Masyn (2013) puts next to the modal proportions: it comes from a resampling run and not from the output of a single fit. The second is the exact integrated completed likelihood, which needs the posterior probabilities of the individual cases; the version in the table uses the quantity the printed relative entropy gives back, as the section above sets out. The rule this site follows is that a formula is taken from the work that states it and from nowhere else, and that a quantity which cannot be computed from the file is named rather than approximated in silence.</p>
+
+  <h3>Self-test</h3>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of every section from synthetic outputs written for the purpose, the two criteria against their formulas written out a second way, the Bayes factor and the correct model probabilities against their definitions and against the requirement that they sum to one, the homogeneity and separation flags at their cutoffs, the standardized difference against its formula, and the cases the page has to refuse.</p>
+  </div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>Banfield, J. D., &amp; Raftery, A. E. (1993). Model-based Gaussian and non-Gaussian clustering. <em>Biometrics, 49</em>(3), 803&#8211;821. <a href="https://doi.org/10.2307/2532201">https://doi.org/10.2307/2532201</a></li>
+    <li>Biernacki, C., Celeux, G., &amp; Govaert, G. (2000). Assessing a mixture model for clustering with the integrated completed likelihood. <em>IEEE Transactions on Pattern Analysis and Machine Intelligence, 22</em>(7), 719&#8211;725. <a href="https://doi.org/10.1109/34.865189">https://doi.org/10.1109/34.865189</a></li>
+    <li>Bozdogan, H. (1987). Model selection and Akaike's information criterion (AIC): The general theory and its analytical extensions. <em>Psychometrika, 52</em>(3), 345&#8211;370. <a href="https://doi.org/10.1007/BF02294361">https://doi.org/10.1007/BF02294361</a></li>
+    <li>Clark, S. L., &amp; Muthén, B. (2009). <em>Relating latent class analysis results to variables not included in the analysis</em>. Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/relatinglca.pdf">https://www.statmodel.com/download/relatinglca.pdf</a></li>
+    <li>Cohen, J. (1988). <em>Statistical power analysis for the behavioral sciences</em> (2nd ed.). Lawrence Erlbaum. <a href="https://doi.org/10.4324/9780203771587">https://doi.org/10.4324/9780203771587</a></li>
+    <li>Lo, Y., Mendell, N. R., &amp; Rubin, D. B. (2001). Testing the number of components in a normal mixture. <em>Biometrika, 88</em>(3), 767&#8211;778. <a href="https://doi.org/10.1093/biomet/88.3.767">https://doi.org/10.1093/biomet/88.3.767</a></li>
+    <li>Masyn, K. E. (2013). Latent class analysis and finite mixture modeling. In T. D. Little (Ed.), <em>The Oxford handbook of quantitative methods</em> (Vol. 2, pp. 551&#8211;611). Oxford University Press. <a href="https://doi.org/10.1093/oxfordhb/9780199934898.013.0025">https://doi.org/10.1093/oxfordhb/9780199934898.013.0025</a></li>
+    <li>McLachlan, G., &amp; Peel, D. (2000). <em>Finite mixture models</em>. Wiley. <a href="https://doi.org/10.1002/0471721182">https://doi.org/10.1002/0471721182</a></li>
+    <li>Nagin, D. S. (2005). <em>Group-based modeling of development</em>. Harvard University Press. <a href="https://doi.org/10.4159/9780674041318">https://doi.org/10.4159/9780674041318</a></li>
+    <li>Nylund, K. L., Asparouhov, T., &amp; Muthén, B. O. (2007). Deciding on the number of classes in latent class analysis and growth mixture modeling: A Monte Carlo simulation study. <em>Structural Equation Modeling, 14</em>(4), 535&#8211;569. <a href="https://doi.org/10.1080/10705510701575396">https://doi.org/10.1080/10705510701575396</a></li>
+    <li>Nylund-Gibson, K., &amp; Choi, A. Y. (2018). Ten frequently asked questions about latent class analysis. <em>Translational Issues in Psychological Science, 4</em>(4), 440&#8211;461. <a href="https://doi.org/10.1037/tps0000176">https://doi.org/10.1037/tps0000176</a></li>
+    <li>Ramaswamy, V., DeSarbo, W. S., Reibstein, D. J., &amp; Robinson, W. T. (1993). An empirical pooling approach for estimating marketing mix elasticities with PIMS data. <em>Marketing Science, 12</em>(1), 103&#8211;124. <a href="https://doi.org/10.1287/mksc.12.1.103">https://doi.org/10.1287/mksc.12.1.103</a></li>
+    <li>Schwarz, G. (1978). Estimating the dimension of a model. <em>The Annals of Statistics, 6</em>(2), 461&#8211;464. <a href="https://doi.org/10.1214/aos/1176344136">https://doi.org/10.1214/aos/1176344136</a></li>
+    <li>Sclove, S. L. (1987). Application of model-selection criteria to some problems in multivariate analysis. <em>Psychometrika, 52</em>(3), 333&#8211;343. <a href="https://doi.org/10.1007/BF02294360">https://doi.org/10.1007/BF02294360</a></li>
+    <li>Wagenmakers, E.-J. (2007). A practical solution to the pervasive problems of p values. <em>Psychonomic Bulletin &amp; Review, 14</em>(5), 779&#8211;804. <a href="https://doi.org/10.3758/BF03194105">https://doi.org/10.3758/BF03194105</a></li>
+    <li>Wasserman, L. (2000). Bayesian model selection and model averaging. <em>Journal of Mathematical Psychology, 44</em>(1), 92&#8211;107. <a href="https://doi.org/10.1006/jmps.1999.1278">https://doi.org/10.1006/jmps.1999.1278</a></li>
+  </ul>
+  </div>
+</details>
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function $(id) { return document.getElementById(id); }
+var MP = "M<em>plus</em>";
+var PALETTE = ["#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#000000", "#8C6D31"];
+/* The same eight hues darkened to the point where a label set in them reads
+   against white at the ratio text needs; the lines keep the lighter hue. */
+var PALETTE_TEXT = ["#0072B2", "#B34E00", "#00755A", "#8F4A6B", "#8A5F00", "#1E6F9F", "#000000", "#6E5526"];
+/* Axis ticks at round values: a step of 1, 2, 2.5 or 5 times a power of ten. */
+function niceTicks(lo, hi, wanted) {
+  if (!(hi > lo)) return [lo];
+  var raw = (hi - lo) / (wanted || 5);
+  var mag = Math.pow(10, Math.floor(Math.log(raw) / Math.LN10)), norm = raw / mag;
+  var step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+  var out = [], v = Math.ceil(lo / step) * step;
+  for (; v <= hi + step * 1e-9 && out.length < 40; v += step) out.push(Math.abs(v) < step * 1e-9 ? 0 : v);
+  return out;
+}
+
+/* ==================================================================
+   Reading a file
+   ================================================================== */
+
+function diagnoseFile(text) {
+  if (!text || !text.replace(/\s/g, "").length) return "empty";
+  if (/Mplus VERSION/i.test(text) || /MODEL FIT INFORMATION/.test(text) ||
+      /INPUT INSTRUCTIONS/.test(text) || /TESTS OF MODEL FIT/.test(text)) return "mplus";
+  return "foreign";
+}
+
+function firstNumberAfter(lines, from, label, limit) {
+  var re = new RegExp("^\\s*" + label + "\\s+(-?[0-9]+(?:\\.[0-9]+)?)\\s*$");
+  var stop = Math.min(lines.length, from + (limit || 40));
+  for (var i = from; i < stop; i++) {
+    var m = lines[i].match(re);
+    if (m) return parseFloat(m[1]);
+  }
+  return NaN;
+}
+
+function findLine(lines, re, from) {
+  for (var i = from || 0; i < lines.length; i++) if (re.test(lines[i])) return i;
+  return -1;
+}
+
+/* a heading of a top-level section is written at the left margin in capitals */
+function isHeading(line) {
+  return /^[A-Z0-9][A-Z0-9 ,.\-()'\/]*$/.test(line) && line.trim().length > 3;
+}
+
+function readCountsTable(lines, start) {
+  var rows = [], i, seen = false, stop = Math.min(lines.length, start + 40);
+  for (i = start; i < stop; i++) {
+    if (/^\s*(Average Latent Class|Classification Probabilities|CLASSIFICATION|FINAL CLASS|MODEL RESULTS|RESULTS IN|TECHNICAL)/i.test(lines[i])) break;
+    var m = lines[i].match(/^\s*(\d+)\s+(-?[\d.]+)\s+([\d.]+)\s*$/);
+    if (m) { rows.push({ k: parseInt(m[1], 10), count: parseFloat(m[2]), prop: parseFloat(m[3]) }); seen = true; continue; }
+    if (seen && lines[i].trim()) break;
+  }
+  return rows;
+}
+
+function readSquareTable(lines, start, k) {
+  var rows = [], i, stop = Math.min(lines.length, start + 60);
+  for (i = start; i < stop && rows.length < (k || 99); i++) {
+    var t = lines[i].trim();
+    if (!t) continue;
+    if (/^(Classification Probabilities|Logits|CLASSIFICATION|MODEL RESULTS|RESULTS IN|TECHNICAL)/i.test(t)) break;
+    var parts = t.split(/\s+/);
+    if (!/^\d+$/.test(parts[0])) { if (rows.length) break; else continue; }
+    var vals = [], j, ok = true;
+    for (j = 1; j < parts.length; j++) {
+      var v = parseFloat(parts[j]);
+      if (!isFinite(v)) { ok = false; break; }
+      vals.push(v);
+    }
+    if (!ok || !vals.length || (k && vals.length !== k)) { if (rows.length) break; else continue; }
+    rows.push(vals);
+  }
+  return rows;
+}
+
+function readProbabilityScale(lines, start) {
+  var classes = {}, cur = null, item = null, i;
+  for (i = start; i < lines.length; i++) {
+    var line = lines[i], t = line.trim();
+    if (!t) continue;
+    if (/^[A-Z][A-Z0-9 ,.\-()'\/]*$/.test(line) && !/^LATENT CLASS/.test(line) && line[0] !== " ") break;
+    var mc = t.match(/^Latent Class\s+(\S+)$/i);
+    if (mc) { cur = mc[1]; classes[cur] = classes[cur] || {}; item = null; continue; }
+    var mcat = t.match(/^Category\s+(\d+)\s+(-?[\d.]+)/i);
+    if (mcat && cur && item) {
+      classes[cur][item] = classes[cur][item] || [];
+      classes[cur][item][parseInt(mcat[1], 10) - 1] = parseFloat(mcat[2]);
+      continue;
+    }
+    if (/^[A-Za-z][A-Za-z0-9_]*$/.test(t)) { item = t; if (cur) classes[cur][item] = classes[cur][item] || []; continue; }
+  }
+  return classes;
+}
+
+function readModelResults(lines, start) {
+  var classes = {}, cur = null, kind = null, i;
+  for (i = start; i < lines.length; i++) {
+    var line = lines[i], t = line.trim();
+    if (!t) continue;
+    if (/^Categorical Latent Variables/i.test(t)) break;
+    if (line[0] !== " " && isHeading(line)) break;
+    var mc = t.match(/^Latent Class\s+(\S+)$/i);
+    if (mc) { cur = mc[1]; classes[cur] = classes[cur] || { means: {}, vars: {}, thr: {} }; kind = null; continue; }
+    if (/^Means$/i.test(t)) { kind = "means"; continue; }
+    if (/^Variances$/i.test(t)) { kind = "vars"; continue; }
+    if (/^Intercepts$/i.test(t)) { kind = "means"; continue; }
+    if (/^Thresholds$/i.test(t)) { kind = "thr"; continue; }
+    if (/^(Residual Variances)$/i.test(t)) { kind = "vars"; continue; }
+    var mv = t.match(/^(\S+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/);
+    if (mv && kind) {
+      if (cur === null) { cur = "1"; classes[cur] = { means: {}, vars: {}, thr: {} }; }
+      classes[cur][kind][mv[1]] = parseFloat(mv[2]);
+    }
+  }
+  return classes;
+}
+
+function readOut(text, name) {
+  var lines = text.split(/\r?\n/);
+  var f = { name: name, notes: [] };
+  var i;
+  f.nWarnings = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
+
+  f.npar = NaN;
+  i = findLine(lines, /Number of Free Parameters/);
+  if (i >= 0) { var m = lines[i].match(/(\d+)\s*$/); if (m) f.npar = parseInt(m[1], 10); }
+
+  f.n = NaN;
+  i = findLine(lines, /^\s*Number of observations\s+\d+/);
+  if (i >= 0) f.n = parseInt(lines[i].match(/(\d+)\s*$/)[1], 10);
+
+  f.ll = NaN;
+  i = findLine(lines, /^\s*Loglikelihood\s*$/);
+  if (i >= 0) f.ll = firstNumberAfter(lines, i + 1, "H0 Value", 8);
+  if (!isFinite(f.ll)) {
+    i = findLine(lines, /H0 Value/);
+    if (i >= 0) { var mm = lines[i].match(/(-?[\d.]+)\s*$/); if (mm) f.ll = parseFloat(mm[1]); }
+  }
+
+  f.aic = NaN; f.bic = NaN; f.sabic = NaN;
+  i = findLine(lines, /Information Criteria/);
+  if (i >= 0) {
+    f.aic = firstNumberAfter(lines, i, "Akaike \\(AIC\\)", 12);
+    f.bic = firstNumberAfter(lines, i, "Bayesian \\(BIC\\)", 12);
+    f.sabic = firstNumberAfter(lines, i, "Sample-Size Adjusted BIC", 12);
+  }
+
+  f.entropy = NaN;
+  i = findLine(lines, /^\s*Entropy\s+[\d.]+\s*$/);
+  if (i >= 0) f.entropy = parseFloat(lines[i].match(/([\d.]+)\s*$/)[1]);
+
+  f.replicated = null;
+  if (/BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED/.test(text)) f.replicated = true;
+  if (/BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED/.test(text)) f.replicated = false;
+  f.terminated = !/THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY/.test(text);
+  f.singular = /ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY/.test(text);
+
+  f.model = []; f.modal = []; f.posterior = [];
+  for (i = 0; i < lines.length; i++) {
+    if (!/FINAL CLASS COUNTS AND PROPORTIONS/.test(lines[i])) continue;
+    var head = (lines[i] + " " + (lines[i + 1] || "") + " " + (lines[i + 2] || "")).toUpperCase();
+    var rows = readCountsTable(lines, i + 1);
+    if (/MOST LIKELY/.test(head)) f.modal = rows;
+    else if (/ESTIMATED POSTERIOR/.test(head)) f.posterior = rows;
+    else if (/ESTIMATED MODEL/.test(head)) f.model = rows;
+    else if (!f.model.length) f.model = rows;
+  }
+
+  f.k = f.model.length || f.modal.length || f.posterior.length;
+  if (!f.k) {
+    var mk = text.match(/CLASSES\s*(?:ARE|=)\s*[A-Za-z][A-Za-z0-9_]*\s*\(\s*(\d+)\s*\)/i);
+    if (mk) f.k = parseInt(mk[1], 10);
+  }
+
+  f.avepp = [];
+  i = findLine(lines, /Average Latent Class Probabilities for Most Likely/);
+  if (i >= 0) f.probTable = readSquareTable(lines, i + 1, f.k);
+  else f.probTable = null;
+  if (f.probTable && f.probTable.length) {
+    for (var r = 0; r < f.probTable.length; r++) f.avepp.push(f.probTable[r][r]);
+  }
+
+  f.vlmr = NaN; f.lmr = NaN; f.blrt = NaN;
+  i = findLine(lines, /VUONG-LO-MENDELL-RUBIN LIKELIHOOD RATIO TEST/);
+  if (i >= 0) f.vlmr = firstNumberAfter(lines, i, "P-Value", 20);
+  i = findLine(lines, /LO-MENDELL-RUBIN ADJUSTED LRT TEST/);
+  if (i >= 0) f.lmr = firstNumberAfter(lines, i, "P-Value", 12);
+  i = findLine(lines, /PARAMETRIC BOOTSTRAPPED LIKELIHOOD RATIO TEST/);
+  if (i >= 0) {
+    f.blrt = firstNumberAfter(lines, i, "Approximate P-Value", 20);
+    f.draws = firstNumberAfter(lines, i, "Successful Bootstrap Draws", 24);
+  }
+  f.hasTech11 = /TECHNICAL 11 OUTPUT/.test(text);
+  f.hasTech14 = /TECHNICAL 14 OUTPUT/.test(text);
+
+  i = findLine(lines, /^RESULTS IN PROBABILITY SCALE/);
+  f.probs = i >= 0 ? readProbabilityScale(lines, i + 1) : null;
+  i = findLine(lines, /^MODEL RESULTS/);
+  f.results = i >= 0 ? readModelResults(lines, i + 1) : null;
+
+  return f;
+}
+
+/* ==================================================================
+   The quantities the page computes
+   ================================================================== */
+
+function caic(ll, d, n) { return -2 * ll + d * (Math.log(n) + 1); }
+function awe(ll, d, n, halved) { return -2 * ll + (halved ? 1 : 2) * d * (Math.log(n) + 1.5); }
+function aweHalved() { var el = $("awe-alt"); return !!(el && el.checked); }
+
+/* The entropy of the fuzzy classification, recovered from the relative entropy
+   Mplus prints, by inverting Masyn (2013, Eq. 23). */
+function classificationEntropy(relative, n, k) {
+  if (!(k > 1)) return 0;
+  if (!isFinite(relative) || !isFinite(n)) return NaN;
+  return (1 - relative) * n * Math.log(k);
+}
+function iclBic(bic, relative, n, k) {
+  var e = classificationEntropy(relative, n, k);
+  return isFinite(e) ? bic + 2 * e : NaN;
+}
+function occ(avepp, pi) {
+  if (!(avepp > 0 && avepp < 1) || !(pi > 0 && pi < 1)) return NaN;
+  return (avepp / (1 - avepp)) / (pi / (1 - pi));
+}
+function bicFrom(ll, d, n) { return -2 * ll + d * Math.log(n); }
+function sic(bic) { return -0.5 * bic; }
+function bayesFactor(bicA, bicB) { return Math.exp(sic(bicA) - sic(bicB)); }
+
+function correctModelProbabilities(bics) {
+  var s = [], i, mx = -Infinity, tot = 0, out = [];
+  for (i = 0; i < bics.length; i++) { s.push(sic(bics[i])); if (s[i] > mx) mx = s[i]; }
+  for (i = 0; i < s.length; i++) { out.push(Math.exp(s[i] - mx)); tot += out[i]; }
+  for (i = 0; i < out.length; i++) out[i] = out[i] / tot;
+  return out;
+}
+
+function oddsRatio(p, q) {
+  if (!(p > 0 && p < 1) || !(q > 0 && q < 1)) return NaN;
+  return (p / (1 - p)) / (q / (1 - q));
+}
+
+function cohenD(m1, m2, v1, v2, n1, n2) {
+  var sd = Math.sqrt((n1 * v1 + n2 * v2) / (n1 + n2));
+  return sd > 0 ? (m1 - m2) / sd : NaN;
+}
+
+function homogeneous(p) { return p > 0.70 || p < 0.30; }
+function separated(or_) { return or_ > 5 || or_ < 0.20; }
+
+/* ==================================================================
+   Formatting
+   ================================================================== */
+
+function fx(v, d) { return isFinite(v) ? v.toFixed(d === undefined ? 3 : d) : "&#8212;"; }
+function fp(v) {
+  if (!isFinite(v)) return "&#8212;";
+  if (v < 0.001) return "&lt;.001";
+  return v.toFixed(3).replace(/^0/, "");
+}
+function fdec(v, d) {
+  if (!isFinite(v)) return "&#8212;";
+  return v.toFixed(d === undefined ? 3 : d).replace(/^(-?)0\./, "$1.");
+}
+function fbf(v) {
+  if (!isFinite(v)) return "&#8212;";
+  if (v >= 1000) return v.toExponential(2).replace("e+", " &#215; 10<sup>") + "</sup>";
+  if (v < 0.001) return v.toExponential(2).replace("e-", " &#215; 10<sup>&#8722;") + "</sup>";
+  return v.toFixed(v < 10 ? 2 : 1);
+}
+function bfWords(v) {
+  if (!isFinite(v)) return "";
+  if (v > 10) return "strong";
+  if (v > 3) return "moderate";
+  if (v > 1) return "weak";
+  return "";
+}
+
+/* ==================================================================
+   State
+   ================================================================== */
+
+var FILES = [];
+
+function sortFiles() {
+  FILES.sort(function (a, b) { return (a.k || 0) - (b.k || 0); });
+}
+
+function addFile(text, name) {
+  var d = diagnoseFile(text);
+  if (d === "empty") return { error: "The file " + esc(name) + " is empty." };
+  if (d === "foreign") return { error: "The file " + esc(name) + " is not an " + MP + " output file. Nothing was read from it." };
+  var f;
+  try { f = readOut(text, name); }
+  catch (err) { return { error: "The file " + esc(name) + " could not be read: " + esc(err.message) + "." }; }
+  if (!f.k) return { error: "The file " + esc(name) + " carries no class counts table and no CLASSES statement, so the number of classes cannot be read from it. Nothing was loaded from that file." };
+  if (!isFinite(f.ll) || !isFinite(f.npar) || !isFinite(f.n))
+    return { error: "The file " + esc(name) + " is missing the loglikelihood, the number of free parameters or the number of observations, all three of which every criterion is computed from. Nothing was loaded from that file." };
+  var i;
+  for (i = 0; i < FILES.length; i++) {
+    if (FILES[i].k === f.k) { FILES.splice(i, 1); i--; }
+    else if (FILES[i].name === f.name) { FILES.splice(i, 1); i--; }
+  }
+  FILES.push(f);
+  sortFiles();
+  return { ok: true, file: f };
+}
+
+/* ==================================================================
+   The enumeration table
+   ================================================================== */
+
+function crossChecks() {
+  var msgs = [], i;
+  if (!FILES.length) return msgs;
+  var n0 = FILES[0].n, differ = false;
+  for (i = 1; i < FILES.length; i++) if (FILES[i].n !== n0) differ = true;
+  if (differ) {
+    var ns = FILES.map(function (f) { return f.k + " classes: " + f.n; }).join("; ");
+    msgs.push({ kind: "bad", text: "The models were not fitted on the same number of cases (" + esc(ns) + "). Information criteria and Bayes factors compare likelihoods of the same data, so a table across these files would not mean anything. Check that the same analysis sample was used throughout." });
+  }
+  var ks = FILES.map(function (f) { return f.k; }), gap = [];
+  for (i = 1; i < ks.length; i++) if (ks[i] !== ks[i - 1] + 1) gap.push(ks[i - 1] + " and " + ks[i]);
+  if (gap.length) msgs.push({ kind: "warn", text: "The series has a gap between " + esc(gap.join(", and between ")) + ". The Bayes factor of a row compares it with the next row present, not with the model with one class more, and the correct model probabilities are shares within the set that was loaded." });
+  var badLL = FILES.filter(function (f) { return f.replicated === false; });
+  if (badLL.length) msgs.push({ kind: "bad", text: "The best loglikelihood was not replicated for " + esc(badLL.map(function (f) { return f.k + " classes"; }).join(", ")) + ". Those solutions have not been shown to be maxima; rerun them with more random starts before reading anything else in the table." });
+  var noRep = FILES.filter(function (f) { return f.replicated === null && f.k > 1; });
+  if (noRep.length) msgs.push({ kind: "warn", text: "No message about the replication of the best loglikelihood was found for " + esc(noRep.map(function (f) { return f.k + " classes"; }).join(", ")) + ". " + MP + " prints one whenever more than one random start is used, so either the run used a single start or the message was removed from the file." });
+  var noTerm = FILES.filter(function (f) { return !f.terminated; });
+  if (noTerm.length) msgs.push({ kind: "bad", text: "The estimation did not terminate normally for " + esc(noTerm.map(function (f) { return f.k + " classes"; }).join(", ")) + "." });
+  var warned = FILES.filter(function (f) { return f.nWarnings > 0; });
+  if (warned.length) msgs.push({ kind: "warn", text: MP + " printed one or more <b>*** WARNING</b> messages for " +
+    esc(warned.map(function (f) { return f.k + " classes (" + f.nWarnings + ")"; }).join(", ")) +
+    ". The available estimates remain in the table because warnings are not estimation errors; read each warning before choosing the number of classes." });
+  var sing = FILES.filter(function (f) { return f.singular; });
+  if (sing.length) msgs.push({ kind: "warn", text: "One or more parameters were fixed to avoid a singularity for " + esc(sing.map(function (f) { return f.k + " classes"; }).join(", ")) + ", which usually means a class has collapsed or an item probability has reached zero or one." });
+  var mism = [];
+  for (i = 0; i < FILES.length; i++) {
+    var f = FILES[i];
+    if (isFinite(f.bic) && Math.abs(bicFrom(f.ll, f.npar, f.n) - f.bic) > 0.05) mism.push(f.k + " classes");
+  }
+  if (mism.length) msgs.push({ kind: "bad", text: "The Bayesian criterion recomputed from the loglikelihood, the number of parameters and the sample size does not match the printed one for " + esc(mism.join(", ")) + ". Something in those files is not what it seems, and the two criteria this page computes would be wrong as well." });
+  return msgs;
+}
+
+function enumerationTable() {
+  if (!FILES.length) return "<p class=\"hint\">The table appears here once the output files have been read.</p>";
+  var i, f, rows = [], bics = [];
+  for (i = 0; i < FILES.length; i++) {
+    f = FILES[i];
+    bics.push(isFinite(f.bic) ? f.bic : bicFrom(f.ll, f.npar, f.n));
+  }
+  var cmp = correctModelProbabilities(bics);
+  var cols = ["bic", "sabic", "caic", "awe", "aic", "icl"];
+  var best = {}, j;
+  for (j = 0; j < cols.length; j++) best[cols[j]] = { v: Infinity, i: -1 };
+  var vals = [];
+  for (i = 0; i < FILES.length; i++) {
+    f = FILES[i];
+    var v = { bic: bics[i], sabic: f.sabic, caic: caic(f.ll, f.npar, f.n),
+              awe: awe(f.ll, f.npar, f.n, aweHalved()), aic: f.aic,
+              icl: iclBic(bics[i], f.entropy, f.n, f.k) };
+    vals.push(v);
+    for (j = 0; j < cols.length; j++) if (isFinite(v[cols[j]]) && v[cols[j]] < best[cols[j]].v) best[cols[j]] = { v: v[cols[j]], i: i };
+  }
+  var html = "<div class=\"table-wrap\"><table class=\"enum\"><caption>Every model that was loaded. The smallest value of each criterion is in bold. The Bayes factor of a row compares that model with the next row of the table; the correct model probabilities sum to one over the models loaded.</caption><thead><tr>" +
+    "<th scope=\"col\">Classes</th><th scope=\"col\" class=\"num\">Parameters</th><th scope=\"col\" class=\"num\">Loglikelihood</th>" +
+    "<th scope=\"col\" class=\"num\">AIC</th><th scope=\"col\" class=\"num\">BIC</th><th scope=\"col\" class=\"num\">SABIC</th>" +
+    "<th scope=\"col\" class=\"num\">CAIC</th><th scope=\"col\" class=\"num\">AWE</th>" +
+    "<th scope=\"col\" class=\"num\">ICL-BIC</th>" +
+    "<th scope=\"col\" class=\"num\">VLMR p</th><th scope=\"col\" class=\"num\">LMR p</th><th scope=\"col\" class=\"num\">BLRT p</th>" +
+    "<th scope=\"col\" class=\"num\">BF</th><th scope=\"col\" class=\"num\">cmP</th>" +
+    "<th scope=\"col\" class=\"num\">Entropy</th><th scope=\"col\" class=\"num\">Smallest class</th></tr></thead><tbody>";
+  for (i = 0; i < FILES.length; i++) {
+    f = FILES[i];
+    var v = vals[i];
+    var smallest = NaN, smallestN = NaN;
+    if (f.modal.length) {
+      smallest = Math.min.apply(null, f.modal.map(function (r) { return r.prop; }));
+      smallestN = Math.min.apply(null, f.modal.map(function (r) { return r.count; }));
+    } else if (f.model.length) {
+      smallest = Math.min.apply(null, f.model.map(function (r) { return r.prop; }));
+      smallestN = Math.min.apply(null, f.model.map(function (r) { return r.count; }));
+    }
+    var bf = (i + 1 < FILES.length) ? bayesFactor(bics[i], bics[i + 1]) : NaN;
+    var mark = f.replicated === false ? " <span class=\"flag lo\" title=\"the best loglikelihood was not replicated\">&#9888;</span>" : "";
+    html += "<tr><th scope=\"row\">" + f.k + mark + "</th>" +
+      "<td class=\"num\">" + f.npar + "</td>" +
+      "<td class=\"num\">" + fx(f.ll, 2) + "</td>";
+    for (j = 0; j < cols.length; j++) {
+      var key = ["aic", "bic", "sabic", "caic", "awe", "icl"][j];
+      var cls = "num" + (best[key].i === i ? " best" : "");
+      html += "<td class=\"" + cls + "\">" + fx(v[key], 2) + "</td>";
+    }
+    html += "<td class=\"num\">" + fp(f.vlmr) + "</td><td class=\"num\">" + fp(f.lmr) + "</td><td class=\"num\">" + fp(f.blrt) + "</td>" +
+      "<td class=\"num\">" + fbf(bf) + "</td><td class=\"num\">" + fdec(cmp[i], 3) + "</td>" +
+      "<td class=\"num\">" + fdec(f.entropy, 3) + "</td>" +
+      "<td class=\"num\">" + (isFinite(smallest) ? fdec(smallest, 3) + " (" + Math.round(smallestN) + ")" : "&#8212;") + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+
+  var missing = [];
+  if (FILES.filter(function (f) { return f.k > 1 && !f.hasTech11; }).length)
+    missing.push("<code>TECH11</code> was not requested for " + esc(FILES.filter(function (f) { return f.k > 1 && !f.hasTech11; }).map(function (f) { return f.k; }).join(", ")) + " classes, so the two Vuong-Lo-Mendell-Rubin columns are empty there rather than not significant");
+  if (FILES.filter(function (f) { return f.k > 1 && !f.hasTech14; }).length)
+    missing.push("<code>TECH14</code> was not requested for " + esc(FILES.filter(function (f) { return f.k > 1 && !f.hasTech14; }).map(function (f) { return f.k; }).join(", ")) + " classes, so the bootstrapped column is empty there rather than not significant");
+  if (missing.length) html += "<p class=\"hint\">" + missing.join(". ") + ".</p>";
+
+  var bfLines = [];
+  for (i = 0; i + 1 < FILES.length; i++) {
+    var b = bayesFactor(bics[i], bics[i + 1]), w = bfWords(b);
+    if (w) bfLines.push(FILES[i].k + " classes over " + FILES[i + 1].k + ": " + w);
+  }
+  if (bfLines.length) html += "<p class=\"hint\">Read as Nylund-Gibson and Choi (2018) read it, the Bayes factor gives " + esc(bfLines.join("; ")) + " support.</p>";
+  return html;
+}
+
+/* ==================================================================
+   The plot of the criteria
+   ================================================================== */
+
+function criteriaPlot() {
+  if (FILES.length < 2) return "<p class=\"hint\">The plot appears here once at least two models have been read.</p>";
+  var series = [
+    { key: "aic", label: "AIC" },
+    { key: "bic", label: "BIC" },
+    { key: "sabic", label: "SABIC" },
+    { key: "caic", label: "CAIC" },
+    { key: "awe", label: "AWE" },
+    { key: "icl", label: "ICL-BIC" }
+  ];
+  var i, s, data = {}, lo = Infinity, hi = -Infinity;
+  for (s = 0; s < series.length; s++) {
+    data[series[s].key] = [];
+    for (i = 0; i < FILES.length; i++) {
+      var f = FILES[i], v;
+      if (series[s].key === "aic") v = f.aic;
+      else if (series[s].key === "bic") v = isFinite(f.bic) ? f.bic : bicFrom(f.ll, f.npar, f.n);
+      else if (series[s].key === "sabic") v = f.sabic;
+      else if (series[s].key === "caic") v = caic(f.ll, f.npar, f.n);
+      else if (series[s].key === "awe") v = awe(f.ll, f.npar, f.n, aweHalved());
+      else v = iclBic(isFinite(f.bic) ? f.bic : bicFrom(f.ll, f.npar, f.n), f.entropy, f.n, f.k);
+      data[series[s].key].push(v);
+      if (isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; }
+    }
+  }
+  if (!isFinite(lo) || !isFinite(hi)) return "<p class=\"hint\">No criterion could be computed for these files.</p>";
+  if (hi === lo) { hi = lo + 1; lo = lo - 1; }
+  var pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+  var W = 720, H = 420, L = 92, R = 132, T = 24, B = 56;
+  var ks = FILES.map(function (f) { return f.k; });
+  var kmin = ks[0], kmax = ks[ks.length - 1];
+  function X(k) { return kmax === kmin ? L + (W - L - R) / 2 : L + (k - kmin) / (kmax - kmin) * (W - L - R); }
+  function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+  var svg = "<svg class=\"chart\" viewBox=\"0 0 " + W + " " + H + "\" role=\"img\" aria-label=\"The information criteria against the number of classes\">";
+  svg += "<rect x=\"0\" y=\"0\" width=\"" + W + "\" height=\"" + H + "\" fill=\"none\"></rect>";
+  var t, tickVals = niceTicks(lo, hi, 5);
+  for (t = 0; t < tickVals.length; t++) {
+    var vv = tickVals[t], yy = Y(vv);
+    svg += "<line x1=\"" + L + "\" y1=\"" + yy.toFixed(1) + "\" x2=\"" + (W - R) + "\" y2=\"" + yy.toFixed(1) + "\" stroke=\"#D8D8D8\" stroke-width=\"1\"></line>";
+    svg += "<text x=\"" + (L - 8) + "\" y=\"" + (yy + 5).toFixed(1) + "\" text-anchor=\"end\" fill=\"#444\">" + Math.round(vv) + "</text>";
+  }
+  svg += "<text transform=\"translate(20," + ((T + H - B) / 2).toFixed(1) + ") rotate(-90)\" text-anchor=\"middle\" fill=\"#333\">criterion value</text>";
+  for (i = 0; i < ks.length; i++) {
+    var xx = X(ks[i]);
+    svg += "<text x=\"" + xx.toFixed(1) + "\" y=\"" + (H - B + 22) + "\" text-anchor=\"middle\" fill=\"#444\">" + ks[i] + "</text>";
+  }
+  svg += "<line x1=\"" + L + "\" y1=\"" + (H - B) + "\" x2=\"" + (W - R) + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
+  svg += "<line x1=\"" + L + "\" y1=\"" + T + "\" x2=\"" + L + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
+  svg += "<text x=\"" + ((L + W - R) / 2) + "\" y=\"" + (H - 8) + "\" text-anchor=\"middle\" fill=\"#333\">Number of classes</text>";
+  var labelY = [];
+  for (s = 0; s < series.length; s++) {
+    var lastIdx = ks.length - 1;
+    while (lastIdx >= 0 && !isFinite(data[series[s].key][lastIdx])) lastIdx--;
+    labelY.push({ s: s, y: lastIdx >= 0 ? Y(data[series[s].key][lastIdx]) : NaN });
+  }
+  var placed = labelY.filter(function (o) { return isFinite(o.y); }).sort(function (a, b) { return a.y - b.y; });
+  for (i = 1; i < placed.length; i++) if (placed[i].y - placed[i - 1].y < 17) placed[i].y = placed[i - 1].y + 17;
+  var shift = placed.length ? Math.max(0, placed[placed.length - 1].y - (H - B)) : 0;
+  for (i = 0; i < placed.length; i++) placed[i].y -= shift;
+  var labelFor = {};
+  for (i = 0; i < placed.length; i++) labelFor[placed[i].s] = placed[i].y;
+  for (s = 0; s < series.length; s++) {
+    var pts = [], col = PALETTE[s % PALETTE.length];
+    for (i = 0; i < ks.length; i++) {
+      var val = data[series[s].key][i];
+      if (!isFinite(val)) continue;
+      pts.push(X(ks[i]).toFixed(1) + "," + Y(val).toFixed(1));
+    }
+    if (pts.length < 1) continue;
+    svg += "<polyline points=\"" + pts.join(" ") + "\" fill=\"none\" stroke=\"" + col + "\" stroke-width=\"2.2\"></polyline>";
+    for (i = 0; i < ks.length; i++) {
+      var v2 = data[series[s].key][i];
+      if (!isFinite(v2)) continue;
+      svg += "<circle cx=\"" + X(ks[i]).toFixed(1) + "\" cy=\"" + Y(v2).toFixed(1) + "\" r=\"3.4\" fill=\"" + col + "\"></circle>";
+    }
+    if (isFinite(labelFor[s])) svg += "<text x=\"" + (W - R + 10) + "\" y=\"" + (labelFor[s] + 5).toFixed(1) + "\" fill=\"" + PALETTE_TEXT[s % PALETTE_TEXT.length] + "\">" + series[s].label + "</text>";
+  }
+  svg += "</svg>";
+  return svg + "<p class=\"hint\">The criteria are on one scale, so the lines can be read against each other as well as along themselves. What is being looked for is the number of classes after which a line flattens: a criterion that keeps falling to the last model fitted says that the series has not gone far enough, not that the last model is right.</p>";
+}
+
+/* ==================================================================
+   One model in detail
+   ================================================================== */
+
+function classSizeTable(f) {
+  var html = "<h3>Class sizes and classification</h3><div class=\"table-wrap\"><table class=\"enum\"><caption>The model-estimated class proportion, the proportion the most likely class membership assigns, the average posterior probability of the class and the odds of correct classification.</caption><thead><tr><th scope=\"col\">Class</th><th scope=\"col\" class=\"num\">Estimated count</th><th scope=\"col\" class=\"num\">&#960;&#770;</th><th scope=\"col\" class=\"num\">Modal count</th><th scope=\"col\" class=\"num\">mcaP</th><th scope=\"col\" class=\"num\">mcaP &#8722; &#960;&#770;</th><th scope=\"col\" class=\"num\">AvePP</th><th scope=\"col\" class=\"num\">OCC</th><th scope=\"col\">Most confused with</th></tr></thead><tbody>";
+  var i;
+  for (i = 0; i < f.k; i++) {
+    var m = f.model[i], md = f.modal[i], ap = f.avepp[i];
+    var conf = "&#8212;";
+    if (f.probTable && f.probTable[i]) {
+      var row = f.probTable[i], bestJ = -1, bestV = -1, j;
+      for (j = 0; j < row.length; j++) if (j !== i && row[j] > bestV) { bestV = row[j]; bestJ = j; }
+      if (bestJ >= 0) conf = "class " + (bestJ + 1) + " (" + fdec(bestV, 3) + ")";
+    }
+    var flag = isFinite(ap) ? (ap > 0.70 ? "" : " <span class=\"flag lo\">below .70</span>") : "";
+    var pi = m ? m.prop : (md ? md.prop : NaN);
+    var o = occ(ap, pi);
+    var oflag = isFinite(o) ? (o > 5 ? "" : " <span class=\"flag lo\">below 5</span>") : "";
+    var gap = (md && m) ? md.prop - m.prop : NaN;
+    html += "<tr><th scope=\"row\">" + (i + 1) + "</th>" +
+      "<td class=\"num\">" + (m ? m.count.toFixed(2) : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + (m ? fdec(m.prop, 3) : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + (md ? Math.round(md.count) : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + (md ? fdec(md.prop, 3) : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + fdec(gap, 3) + "</td>" +
+      "<td class=\"num\">" + fdec(ap, 3) + flag + "</td>" +
+      "<td class=\"num\">" + (isFinite(o) ? (o >= 100 ? o.toExponential(1) : o.toFixed(2)) : "&#8212;") + oflag + "</td>" +
+      "<td>" + conf + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  var notes = [];
+  if (isFinite(f.entropy)) notes.push("Entropy is " + fdec(f.entropy, 3) + ", " + (f.entropy > 0.80 ? "above" : "below") + " the value of .80 above which classification of individual cases is called good.");
+  if (f.avepp.length) {
+    var mn = Math.min.apply(null, f.avepp);
+    notes.push("The smallest average posterior probability is " + fdec(mn, 3) + ", " + (mn > 0.70 ? "above" : "below") + " the value of .70 above which classes are called well separated.");
+    var occs = [], q;
+    for (q = 0; q < f.k; q++) {
+      var pr = f.model[q] ? f.model[q].prop : (f.modal[q] ? f.modal[q].prop : NaN);
+      var ov = occ(f.avepp[q], pr);
+      if (isFinite(ov)) occs.push(ov);
+    }
+    if (occs.length) {
+      var mo = Math.min.apply(null, occs);
+      notes.push("The smallest odds of correct classification is " + (mo >= 100 ? mo.toExponential(1) : mo.toFixed(2)) + ", " + (mo > 5 ? "above" : "below") + " the value of 5 above which assignment accuracy is called high.");
+    }
+    var gaps = [], r2;
+    for (r2 = 0; r2 < f.k; r2++) if (f.model[r2] && f.modal[r2]) gaps.push(Math.abs(f.modal[r2].prop - f.model[r2].prop));
+    if (gaps.length) notes.push("The largest discrepancy between the proportion the model estimates and the proportion the most likely class membership assigns is " + fdec(Math.max.apply(null, gaps), 3) + ".");
+  }
+  if (isFinite(f.entropy) && f.k > 1 && isFinite(f.n))
+    notes.push("The entropy of the classification recovered from it is " + classificationEntropy(f.entropy, f.n, f.k).toFixed(2) + "; twice that is what the integrated completed likelihood in the table adds to the Bayesian criterion.");
+  if (notes.length) html += "<p class=\"hint\">" + notes.join(" ") + "</p>";
+  return html;
+}
+
+function itemsOf(f) {
+  var names = [], seen = {}, cls, it;
+  if (f.probs) {
+    for (cls in f.probs) for (it in f.probs[cls]) if (!seen[it] && f.probs[cls][it] && f.probs[cls][it].length) { seen[it] = 1; names.push(it); }
+  } else if (f.results) {
+    for (cls in f.results) for (it in f.results[cls].means) if (!seen[it]) { seen[it] = 1; names.push(it); }
+  }
+  return names;
+}
+
+function probabilityOf(f, k, item, choice) {
+  var arr = f.probs && f.probs[String(k)] ? f.probs[String(k)][item] : null;
+  if (!arr || !arr.length) return NaN;
+  var idx;
+  if (choice === "last") idx = arr.length - 1;
+  else { idx = parseInt(choice, 10) - 1; if (!(idx >= 0 && idx < arr.length)) idx = arr.length - 1; }
+  return arr[idx];
+}
+
+function profilePlot(f, items, valueOf, ylab, lo, hi) {
+  var W = 760, H = 400, L = 74, R = 128, T = 22, B = 84;
+  var i, k;
+  var vals = [];
+  for (k = 1; k <= f.k; k++) for (i = 0; i < items.length; i++) { var v = valueOf(k, items[i]); if (isFinite(v)) vals.push(v); }
+  if (!vals.length) return "";
+  if (!isFinite(lo)) { lo = Math.min.apply(null, vals); hi = Math.max.apply(null, vals); var p = (hi - lo) * 0.1 || 1; lo -= p; hi += p; }
+  function X(i) { return items.length === 1 ? L + (W - L - R) / 2 : L + i / (items.length - 1) * (W - L - R); }
+  function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+  var svg = "<svg class=\"chart\" viewBox=\"0 0 " + W + " " + H + "\" role=\"img\" aria-label=\"" + esc(ylab) + " by class\">";
+  var t;
+  for (t = 0; t <= 5; t++) {
+    var vv = lo + (hi - lo) * t / 5, yy = Y(vv);
+    svg += "<line x1=\"" + L + "\" y1=\"" + yy.toFixed(1) + "\" x2=\"" + (W - R) + "\" y2=\"" + yy.toFixed(1) + "\" stroke=\"#D8D8D8\"></line>";
+    svg += "<text x=\"" + (L - 8) + "\" y=\"" + (yy + 5).toFixed(1) + "\" text-anchor=\"end\" fill=\"#444\">" + (Math.abs(hi - lo) < 3 ? vv.toFixed(2) : vv.toFixed(1)) + "</text>";
+  }
+  svg += "<line x1=\"" + L + "\" y1=\"" + (H - B) + "\" x2=\"" + (W - R) + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
+  svg += "<line x1=\"" + L + "\" y1=\"" + T + "\" x2=\"" + L + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
+  for (i = 0; i < items.length; i++) {
+    svg += "<text transform=\"translate(" + X(i).toFixed(1) + "," + (H - B + 14) + ") rotate(45)\" fill=\"#444\">" + esc(items[i]) + "</text>";
+  }
+  for (k = 1; k <= f.k; k++) {
+    var col = PALETTE[(k - 1) % PALETTE.length], pts = [];
+    for (i = 0; i < items.length; i++) { var v3 = valueOf(k, items[i]); if (isFinite(v3)) pts.push(X(i).toFixed(1) + "," + Y(v3).toFixed(1)); }
+    if (!pts.length) continue;
+    svg += "<polyline points=\"" + pts.join(" ") + "\" fill=\"none\" stroke=\"" + col + "\" stroke-width=\"2.2\"></polyline>";
+    for (i = 0; i < items.length; i++) { var v4 = valueOf(k, items[i]); if (isFinite(v4)) svg += "<circle cx=\"" + X(i).toFixed(1) + "\" cy=\"" + Y(v4).toFixed(1) + "\" r=\"3.4\" fill=\"" + col + "\"></circle>"; }
+    svg += "<text x=\"" + (W - R + 10) + "\" y=\"" + (T + 18 + (k - 1) * 22) + "\" fill=\"" + PALETTE_TEXT[(k - 1) % PALETTE_TEXT.length] + "\">Class " + k + "</text>";
+  }
+  svg += "</svg>";
+  return svg;
+}
+
+function homogeneityTable(f, items, choice) {
+  var html = "<h3>Homogeneity within the classes</h3><p class=\"hint\">A conditional item probability above .70 or below .30 indicates high homogeneity: the members of the class nearly all answer that item the same way. Values between the two are printed without a mark.</p><div class=\"table-wrap\"><table class=\"enum\"><thead><tr><th scope=\"col\">Item</th>";
+  var k, i;
+  for (k = 1; k <= f.k; k++) html += "<th scope=\"col\" class=\"num\">Class " + k + "</th>";
+  html += "<th scope=\"col\" class=\"num\">Homogeneous in</th></tr></thead><tbody>";
+  for (i = 0; i < items.length; i++) {
+    html += "<tr><th scope=\"row\">" + esc(items[i]) + "</th>";
+    var count = 0;
+    for (k = 1; k <= f.k; k++) {
+      var p = probabilityOf(f, k, items[i], choice);
+      var hom = isFinite(p) && homogeneous(p);
+      if (hom) count++;
+      html += "<td class=\"num\">" + fdec(p, 3) + (hom ? " <span class=\"flag hi\">&#9679;</span>" : "") + "</td>";
+    }
+    html += "<td class=\"num\">" + count + " of " + f.k + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  return html;
+}
+
+function separationTable(f, items, choice) {
+  var html = "<h3>Separation between the classes</h3><p class=\"hint\">The odds ratio of the item probability between two classes, above 5 or below .20, indicates high separation on that item. The count says on how many items a pair of classes is separated; a pair separated on one item only is a pair the solution rests on very little.</p><div class=\"table-wrap\"><table class=\"enum\"><thead><tr><th scope=\"col\">Pair</th>";
+  var i, a, b;
+  for (i = 0; i < items.length; i++) html += "<th scope=\"col\" class=\"num\">" + esc(items[i]) + "</th>";
+  html += "<th scope=\"col\" class=\"num\">Separated on</th></tr></thead><tbody>";
+  for (a = 1; a <= f.k; a++) for (b = a + 1; b <= f.k; b++) {
+    html += "<tr><th scope=\"row\">" + a + " vs " + b + "</th>";
+    var count = 0;
+    for (i = 0; i < items.length; i++) {
+      var or_ = oddsRatio(probabilityOf(f, a, items[i], choice), probabilityOf(f, b, items[i], choice));
+      var sep = isFinite(or_) && separated(or_);
+      if (sep) count++;
+      html += "<td class=\"num\">" + (isFinite(or_) ? (or_ >= 100 ? or_.toExponential(1) : or_.toFixed(2)) : "&#8212;") + (sep ? " <span class=\"flag hi\">&#9679;</span>" : "") + "</td>";
+    }
+    html += "<td class=\"num\">" + count + " of " + items.length + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  return html;
+}
+
+function meanSeparationTable(f, items) {
+  var html = "<h3>Separation between the classes</h3><p class=\"hint\">The standardized difference between the class means of each item, on the within-class standard deviation pooled over the two classes. No cutoff is attached to it: it is reported so that a pair of classes that differ on one indicator only, or that differ on none, is visible.</p><div class=\"table-wrap\"><table class=\"enum\"><thead><tr><th scope=\"col\">Pair</th>";
+  var i, a, b;
+  for (i = 0; i < items.length; i++) html += "<th scope=\"col\" class=\"num\">" + esc(items[i]) + "</th>";
+  html += "<th scope=\"col\" class=\"num\">Largest</th></tr></thead><tbody>";
+  function sizeOf(k) {
+    var r = f.model[k - 1] || f.modal[k - 1];
+    return r ? r.count : 1;
+  }
+  for (a = 1; a <= f.k; a++) for (b = a + 1; b <= f.k; b++) {
+    html += "<tr><th scope=\"row\">" + a + " vs " + b + "</th>";
+    var mx = 0;
+    for (i = 0; i < items.length; i++) {
+      var ca = f.results[String(a)], cb = f.results[String(b)];
+      var d = NaN;
+      if (ca && cb) {
+        var va = ca.vars[items[i]], vb = cb.vars[items[i]];
+        if (!isFinite(va) && f.results["1"]) va = f.results["1"].vars[items[i]];
+        if (!isFinite(vb) && f.results["1"]) vb = f.results["1"].vars[items[i]];
+        d = cohenD(ca.means[items[i]], cb.means[items[i]], va, vb, sizeOf(a), sizeOf(b));
+      }
+      if (isFinite(d) && Math.abs(d) > mx) mx = Math.abs(d);
+      html += "<td class=\"num\">" + fx(d, 2) + "</td>";
+    }
+    html += "<td class=\"num\">" + fx(mx, 2) + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  return html;
+}
+
+function detailFor(f, choice) {
+  if (!f) return "<p class=\"hint\">Choose a model above.</p>";
+  var html = "<p><strong>" + f.k + " classes</strong>, from <code>" + esc(f.name) + "</code>, " + f.npar + " free parameters, " + f.n + " observations.</p>";
+  html += classSizeTable(f);
+  var items = itemsOf(f);
+  if (!items.length) {
+    html += "<p class=\"hint\">Neither the results in the probability scale nor the class means were found in this file, so the profiles, the homogeneity and the separation cannot be reported for it.</p>";
+    return html;
+  }
+  if (f.probs && Object.keys(f.probs).length) {
+    html += "<h3>Conditional item probabilities</h3>" +
+      profilePlot(f, items, function (k, it) { return probabilityOf(f, k, it, choice); }, "Probability", 0, 1);
+    html += homogeneityTable(f, items, choice);
+    html += separationTable(f, items, choice);
+  } else {
+    html += "<h3>Class means</h3>" +
+      profilePlot(f, items, function (k, it) { var c = f.results[String(k)]; return c ? c.means[it] : NaN; }, "Mean", NaN, NaN);
+    html += meanSeparationTable(f, items);
+  }
+  return html;
+}
+
+/* ==================================================================
+   The interface
+   ================================================================== */
+
+function renderFileList() {
+  var ul = $("filelist");
+  if (!ul) return;
+  if (!FILES.length) { ul.innerHTML = ""; return; }
+  var html = "", i;
+  for (i = 0; i < FILES.length; i++) {
+    var f = FILES[i];
+    html += "<li><span class=\"nm\">" + esc(f.name) + "</span>" +
+      "<span class=\"meta\">" + f.k + " classes &#183; " + f.npar + " parameters &#183; n = " + f.n +
+      " &#183; loglikelihood " + fx(f.ll, 2) + (f.replicated === false ? " &#183; not replicated" : "") + "</span>" +
+      "<button type=\"button\" class=\"ghost\" data-drop=\"" + i + "\">Remove</button></li>";
+  }
+  ul.innerHTML = html;
+  var btns = ul.querySelectorAll("button[data-drop]"), j;
+  for (j = 0; j < btns.length; j++) {
+    btns[j].addEventListener("click", function (e) {
+      FILES.splice(parseInt(e.currentTarget.getAttribute("data-drop"), 10), 1);
+      renderAll();
+    });
+  }
+}
+
+function renderPicker() {
+  var sel = $("pick");
+  if (!sel) return;
+  var prev = sel.value, html = "<option value=\"\">&#8212;</option>", i;
+  for (i = 0; i < FILES.length; i++) html += "<option value=\"" + FILES[i].k + "\">" + FILES[i].k + " classes</option>";
+  sel.innerHTML = html;
+  var keep = "";
+  for (i = 0; i < FILES.length; i++) if (String(FILES[i].k) === prev) keep = prev;
+  if (!keep && FILES.length) keep = String(FILES[FILES.length - 1].k);
+  sel.value = keep;
+}
+
+function currentFile() {
+  var sel = $("pick");
+  if (!sel || !sel.value) return null;
+  var i;
+  for (i = 0; i < FILES.length; i++) if (String(FILES[i].k) === sel.value) return FILES[i];
+  return null;
+}
+
+function renderAll() {
+  renderFileList();
+  renderPicker();
+  $("results").innerHTML = enumerationTable();
+  $("plot").innerHTML = criteriaPlot();
+  var catSel = $("cat");
+  $("detail").innerHTML = detailFor(currentFile(), catSel ? catSel.value : "last");
+  var msgs = crossChecks(), html = "", i;
+  for (i = 0; i < msgs.length; i++)
+    html += "<div class=\"status " + (msgs[i].kind === "bad" ? "bad" : "warn") + "\" role=\"status\"><p>" + msgs[i].text + "</p></div>";
+  $("report").innerHTML = html;
+}
+
+function handleFiles(list) {
+  var errors = [], pending = list.length;
+  if (!pending) return;
+  var i;
+  function done() {
+    if (--pending > 0) return;
+    renderAll();
+    if (errors.length) {
+      $("report").innerHTML = "<div class=\"status bad\" role=\"status\"><p>" + errors.join("</p><p>") + "</p></div>" + $("report").innerHTML;
+    }
+  }
+  for (i = 0; i < list.length; i++) {
+    (function (file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var r = addFile(String(reader.result), file.name);
+        if (r.error) errors.push(r.error);
+        done();
+      };
+      reader.onerror = function () { errors.push("The file " + esc(file.name) + " could not be read."); done(); };
+      reader.readAsText(file);
+    })(list[i]);
+  }
+}
+
+function wire() {
+  var drop = $("drop"), input = $("file");
+  if (!drop || !input) return;
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("click", function (e) { e.stopPropagation(); });
+  input.addEventListener("change", function () { handleFiles(input.files); });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+  });
+  var pick = $("pick"), cat = $("cat");
+  if (pick) pick.addEventListener("change", function () { $("detail").innerHTML = detailFor(currentFile(), cat ? cat.value : "last"); });
+  if (cat) cat.addEventListener("change", function () { $("detail").innerHTML = detailFor(currentFile(), cat.value); });
+  var aweBox = $("awe-alt");
+  if (aweBox) aweBox.addEventListener("change", renderAll);
+}
+
+/* ==================================================================
+   Self-test
+   ================================================================== */
+
+function fxHead(npar, n, ll, aic, bic, sabic, k, tech) {
+  var L = [];
+  L.push("Mplus VERSION 8.11");
+  L.push("MUTHEN & MUTHEN");
+  L.push("");
+  L.push("INPUT INSTRUCTIONS");
+  L.push("");
+  L.push("  VARIABLE: NAMES = u1-u4; CATEGORICAL = u1-u4;");
+  L.push("  CLASSES = c(" + k + ");");
+  L.push("  ANALYSIS: TYPE = MIXTURE;");
+  L.push(tech ? "  OUTPUT: TECH11 TECH14;" : "  OUTPUT: SAMPSTAT;");
+  L.push("");
+  L.push("SUMMARY OF ANALYSIS");
+  L.push("");
+  L.push("Number of groups                                                  1");
+  L.push("Number of observations                                          " + n);
+  L.push("");
+  L.push("THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.  RERUN WITH AT LEAST TWICE THE");
+  L.push("RANDOM STARTS TO CHECK THAT THE BEST LOGLIKELIHOOD IS STILL OBTAINED AND REPLICATED.");
+  L.push("");
+  L.push("MODEL FIT INFORMATION");
+  L.push("");
+  L.push("Number of Free Parameters                        " + npar);
+  L.push("");
+  L.push("Loglikelihood");
+  L.push("");
+  L.push("          H0 Value                       " + ll.toFixed(3));
+  L.push("");
+  L.push("Information Criteria");
+  L.push("");
+  L.push("          Akaike (AIC)                   " + aic.toFixed(3));
+  L.push("          Bayesian (BIC)                 " + bic.toFixed(3));
+  L.push("          Sample-Size Adjusted BIC       " + sabic.toFixed(3));
+  L.push("            (n* = (n + 2) / 24)");
+  L.push("");
+  return L;
+}
+
+function fxCounts(L, counts, n) {
+  var i;
+  L.push("FINAL CLASS COUNTS AND PROPORTIONS FOR THE LATENT CLASSES");
+  L.push("BASED ON THE ESTIMATED MODEL");
+  L.push("");
+  L.push("  Latent Classes");
+  L.push("");
+  for (i = 0; i < counts.length; i++)
+    L.push("    " + (i + 1) + "      " + counts[i].toFixed(5) + "      " + (counts[i] / n).toFixed(5));
+  L.push("");
+  L.push("");
+  L.push("FINAL CLASS COUNTS AND PROPORTIONS FOR THE LATENT CLASSES");
+  L.push("BASED ON THEIR MOST LIKELY LATENT CLASS MEMBERSHIP");
+  L.push("");
+  L.push("  Class Counts and Proportions");
+  L.push("");
+  L.push("  Latent Classes");
+  L.push("");
+  for (i = 0; i < counts.length; i++)
+    L.push("    " + (i + 1) + "            " + Math.round(counts[i]) + "          " + (Math.round(counts[i]) / n).toFixed(5));
+  L.push("");
+  L.push("");
+  return L;
+}
+
+function fxClassification(L, entropy, mat) {
+  var i, j;
+  L.push("CLASSIFICATION QUALITY");
+  L.push("");
+  L.push("     Entropy                         " + entropy.toFixed(3));
+  L.push("");
+  L.push("");
+  L.push("Average Latent Class Probabilities for Most Likely Latent Class Membership (Row)");
+  L.push("by Latent Class (Column)");
+  L.push("");
+  var head = "          ";
+  for (j = 0; j < mat.length; j++) head += "       " + (j + 1);
+  L.push(head);
+  L.push("");
+  for (i = 0; i < mat.length; i++) {
+    var row = "    " + (i + 1) + "  ";
+    for (j = 0; j < mat.length; j++) row += "   " + mat[i][j].toFixed(3);
+    L.push(row);
+  }
+  L.push("");
+  L.push("");
+  return L;
+}
+
+function fxProbs(L, items, probs) {
+  var i, k;
+  L.push("RESULTS IN PROBABILITY SCALE");
+  L.push("");
+  L.push("                                Estimate       S.E.  Est./S.E.    Two-Tailed");
+  L.push("                                                                    P-Value");
+  L.push("");
+  for (k = 0; k < probs.length; k++) {
+    L.push("Latent Class " + (k + 1));
+    L.push("");
+    for (i = 0; i < items.length; i++) {
+      L.push(" " + items[i]);
+      var p = probs[k][i];
+      L.push("    Category 1         " + (1 - p).toFixed(3) + "      0.030      5.000      0.000");
+      L.push("    Category 2         " + p.toFixed(3) + "      0.030      5.000      0.000");
+    }
+    L.push("");
+  }
+  L.push("");
+  return L;
+}
+
+function fxTech(L, k, p11, p11a, p14) {
+  L.push("TECHNICAL 11 OUTPUT");
+  L.push("");
+  L.push("     Random Starts Specifications for the k-1 Class Analysis Model");
+  L.push("");
+  L.push("     VUONG-LO-MENDELL-RUBIN LIKELIHOOD RATIO TEST FOR " + (k - 1) + " (H0) VERSUS " + k + " CLASSES");
+  L.push("");
+  L.push("          H0 Loglikelihood Value                        -1200.500");
+  L.push("          2 Times the Loglikelihood Difference            100.500");
+  L.push("          Difference in the Number of Parameters                 5");
+  L.push("          Mean                                             12.345");
+  L.push("          Standard Deviation                               30.123");
+  L.push("          P-Value                          " + p11.toFixed(4));
+  L.push("");
+  L.push("     LO-MENDELL-RUBIN ADJUSTED LRT TEST");
+  L.push("");
+  L.push("          Value                                            98.765");
+  L.push("          P-Value                          " + p11a.toFixed(4));
+  L.push("");
+  L.push("");
+  L.push("TECHNICAL 14 OUTPUT");
+  L.push("");
+  L.push("     PARAMETRIC BOOTSTRAPPED LIKELIHOOD RATIO TEST FOR " + (k - 1) + " (H0) VERSUS " + k + " CLASSES");
+  L.push("");
+  L.push("          H0 Loglikelihood Value                        -1200.500");
+  L.push("          2 Times the Loglikelihood Difference            100.500");
+  L.push("          Difference in the Number of Parameters                 5");
+  L.push("          Approximate P-Value                          " + p14.toFixed(4));
+  L.push("          Successful Bootstrap Draws                            5");
+  L.push("");
+  return L;
+}
+
+function fixtureTwo() {
+  var n = 300, npar = 9, ll = -1200.5;
+  var L = fxHead(npar, n, ll, -2 * ll + 2 * npar, bicFrom(ll, npar, n), -2 * ll + npar * Math.log((n + 2) / 24), 2, false);
+  fxCounts(L, [120.34, 179.66], n);
+  fxClassification(L, 0.832, [[0.930, 0.070], [0.055, 0.945]]);
+  fxProbs(L, ["U1", "U2", "U3", "U4"], [[0.850, 0.780, 0.250, 0.900], [0.400, 0.150, 0.620, 0.500]]);
+  return L.join("\n");
+}
+
+function fixtureThree() {
+  var n = 300, npar = 14, ll = -1150.25;
+  var L = fxHead(npar, n, ll, -2 * ll + 2 * npar, bicFrom(ll, npar, n), -2 * ll + npar * Math.log((n + 2) / 24), 3, true);
+  fxCounts(L, [90.5, 110.25, 99.25], n);
+  fxClassification(L, 0.788, [[0.910, 0.060, 0.030], [0.070, 0.880, 0.050], [0.040, 0.090, 0.870]]);
+  fxProbs(L, ["U1", "U2", "U3", "U4"], [[0.880, 0.800, 0.200, 0.910], [0.500, 0.480, 0.520, 0.500], [0.150, 0.120, 0.700, 0.180]]);
+  fxTech(L, 3, 0.0213, 0.0241, 0.0000);
+  return L.join("\n");
+}
+
+function fixtureOne() {
+  var n = 300, npar = 4, ll = -1400.0;
+  var L = fxHead(npar, n, ll, -2 * ll + 2 * npar, bicFrom(ll, npar, n), -2 * ll + npar * Math.log((n + 2) / 24), 1, false);
+  return L.join("\n");
+}
+
+function fixtureProfile() {
+  var n = 400, npar = 11, ll = -2000.75;
+  var L = fxHead(npar, n, ll, -2 * ll + 2 * npar, bicFrom(ll, npar, n), -2 * ll + npar * Math.log((n + 2) / 24), 2, false);
+  fxCounts(L, [160, 240], n);
+  fxClassification(L, 0.910, [[0.960, 0.040], [0.030, 0.970]]);
+  L.push("MODEL RESULTS");
+  L.push("");
+  L.push("                                Estimate       S.E.  Est./S.E.    Two-Tailed");
+  L.push("                                                                    P-Value");
+  L.push("");
+  L.push("Latent Class 1");
+  L.push("");
+  L.push(" Means");
+  L.push("    Y1                 4.000      0.100     40.000      0.000");
+  L.push("    Y2                 2.000      0.100     20.000      0.000");
+  L.push("");
+  L.push(" Variances");
+  L.push("    Y1                 1.000      0.080     12.500      0.000");
+  L.push("    Y2                 1.000      0.080     12.500      0.000");
+  L.push("");
+  L.push("Latent Class 2");
+  L.push("");
+  L.push(" Means");
+  L.push("    Y1                 2.500      0.090     27.778      0.000");
+  L.push("    Y2                 2.100      0.090     23.333      0.000");
+  L.push("");
+  L.push(" Variances");
+  L.push("    Y1                 1.000      0.080     12.500      0.000");
+  L.push("    Y2                 1.000      0.080     12.500      0.000");
+  L.push("");
+  L.push("Categorical Latent Variables");
+  L.push("");
+  L.push(" Means");
+  L.push("    C#1               -0.405      0.110     -3.682      0.000");
+  L.push("");
+  return L.join("\n");
+}
+
+function selfTest() {
+  var failures = [], performed = 0, i;
+  function check(name, cond, got) {
+    performed++;
+    if (!cond) failures.push(name + (got !== undefined ? " (" + got + ")" : ""));
+  }
+  function near(a, b, tol) { return isFinite(a) && isFinite(b) && Math.abs(a - b) <= (tol || 1e-9); }
+
+  var saved = FILES;
+  FILES = [];
+
+  /* --- reading --- */
+  var f2 = readOut(fixtureTwo(), "two.out");
+  check("the two-class file gives the number of parameters", f2.npar === 9, String(f2.npar));
+  check("the two-class file gives the sample size", f2.n === 300, String(f2.n));
+  check("the two-class file gives the loglikelihood", near(f2.ll, -1200.5, 1e-6), String(f2.ll));
+  check("the number of classes is read from the counts table", f2.k === 2, String(f2.k));
+  check("the estimated class counts are read", f2.model.length === 2 && near(f2.model[0].count, 120.34, 1e-6), JSON.stringify(f2.model));
+  check("the modal class counts are read", f2.modal.length === 2 && f2.modal[0].count === 120, JSON.stringify(f2.modal));
+  check("the estimated proportions are read", near(f2.model[1].prop, 179.66 / 300, 1e-5), String(f2.model[1].prop));
+  check("the entropy is read", near(f2.entropy, 0.832, 1e-9), String(f2.entropy));
+  check("the average posterior probabilities are the diagonal", near(f2.avepp[0], 0.930, 1e-9) && near(f2.avepp[1], 0.945, 1e-9), JSON.stringify(f2.avepp));
+  check("the off-diagonal of the classification table is read", near(f2.probTable[0][1], 0.070, 1e-9), JSON.stringify(f2.probTable));
+  check("the classification table has as many rows as classes", f2.probTable.length === 2, String(f2.probTable.length));
+  check("the replication message is read", f2.replicated === true, String(f2.replicated));
+  check("the printed Bayesian criterion matches the recomputed one", near(f2.bic, bicFrom(f2.ll, f2.npar, f2.n), 0.01), String(f2.bic));
+  check("the item probabilities are read for the first class", near(f2.probs["1"]["U1"][1], 0.850, 1e-9), JSON.stringify(f2.probs["1"]["U1"]));
+  check("the item probabilities are read for the second class", near(f2.probs["2"]["U3"][1], 0.620, 1e-9), JSON.stringify(f2.probs["2"]["U3"]));
+  check("the first category is read as well", near(f2.probs["1"]["U1"][0], 0.150, 1e-9), String(f2.probs["1"]["U1"][0]));
+  check("four items are found", itemsOf(f2).length === 4, itemsOf(f2).join(","));
+  check("no likelihood ratio test is reported when none was requested", !isFinite(f2.vlmr) && !isFinite(f2.blrt), String(f2.vlmr) + "/" + String(f2.blrt));
+  check("the absence of TECH11 is recorded", f2.hasTech11 === false, String(f2.hasTech11));
+
+  var f3 = readOut(fixtureThree(), "three.out");
+  var warnedThree = readOut(fixtureThree().replace("MODEL FIT INFORMATION", "*** WARNING in ANALYSIS command\n  A non-blocking test warning.\n\nMODEL FIT INFORMATION"), "warned-three.out");
+  check("a non-blocking Mplus warning is counted without suppressing class results",
+    warnedThree.nWarnings === 1 && warnedThree.k === 3 && isFinite(warnedThree.ll),
+    warnedThree.nWarnings + "/" + warnedThree.k + "/" + warnedThree.ll);
+  check("the three-class file gives three classes", f3.k === 3, String(f3.k));
+  check("the Vuong-Lo-Mendell-Rubin p value is read", near(f3.vlmr, 0.0213, 1e-9), String(f3.vlmr));
+  check("the adjusted Lo-Mendell-Rubin p value is read", near(f3.lmr, 0.0241, 1e-9), String(f3.lmr));
+  check("the bootstrapped p value is read", near(f3.blrt, 0.0, 1e-9), String(f3.blrt));
+  check("the number of successful bootstrap draws is read", f3.draws === 5, String(f3.draws));
+  check("the three-class classification table is square", f3.probTable.length === 3 && f3.probTable[2].length === 3, JSON.stringify(f3.probTable));
+  check("the third class probabilities are read", near(f3.probs["3"]["U3"][1], 0.700, 1e-9), String(f3.probs["3"]["U3"][1]));
+
+  var f1 = readOut(fixtureOne(), "one.out");
+  check("a one-class file with no counts table is read through the CLASSES statement", f1.k === 1, String(f1.k));
+  check("a one-class file gives its loglikelihood", near(f1.ll, -1400, 1e-6), String(f1.ll));
+
+  var fp = readOut(fixtureProfile(), "profile.out");
+  check("a latent profile file gives its class means", near(fp.results["1"].means["Y1"], 4.0, 1e-9), JSON.stringify(fp.results["1"].means));
+  check("a latent profile file gives its class variances", near(fp.results["2"].vars["Y2"], 1.0, 1e-9), JSON.stringify(fp.results["2"].vars));
+  check("the categorical latent variable means are not read as items", !fp.results["1"].means["C#1"] && !fp.results["2"].means["C#1"], "read");
+  check("the items of a latent profile file are found", itemsOf(fp).join(",") === "Y1,Y2", itemsOf(fp).join(","));
+
+  /* --- the criteria --- */
+  var ll = -1200.5, d = 9, n = 300;
+  check("the consistent Akaike criterion matches its formula", near(caic(ll, d, n), -2 * ll + d * Math.log(n) + d, 1e-9), String(caic(ll, d, n)));
+  check("the approximate weight of evidence matches its formula", near(awe(ll, d, n), -2 * ll + 2 * d * Math.log(n) + 3 * d, 1e-9), String(awe(ll, d, n)));
+  check("the AWE penalty exceeds the CAIC penalty by d times log(n) plus 2d", near(awe(ll, d, n) - caic(ll, d, n), d * (Math.log(n) + 2), 1e-9));
+  check("the consistent Akaike criterion exceeds the Bayesian one by the number of parameters", near(caic(ll, d, n) - bicFrom(ll, d, n), d, 1e-9));
+  check("the Bayesian criterion matches its formula", near(bicFrom(ll, d, n), -2 * ll + d * Math.log(n), 1e-9));
+  check("a model with no parameters has the same value for all four criteria", near(caic(ll, 0, n), bicFrom(ll, 0, n), 1e-12) && near(awe(ll, 0, n), bicFrom(ll, 0, n), 1e-12));
+
+  /* --- the entropy of the classification and the integrated completed likelihood --- */
+  check("the entropy of the classification inverts the relative entropy", near(classificationEntropy(0.8, 300, 3), 0.2 * 300 * Math.log(3), 1e-12), String(classificationEntropy(0.8, 300, 3)));
+  check("a perfect classification has no entropy", near(classificationEntropy(1, 300, 3), 0, 1e-12));
+  check("one class has no entropy whatever is printed", near(classificationEntropy(0.5, 300, 1), 0, 0));
+  check("the entropy grows with the sample size", classificationEntropy(0.7, 600, 3) > classificationEntropy(0.7, 300, 3));
+  check("the integrated completed likelihood is the Bayesian criterion plus twice the entropy", near(iclBic(2000, 0.8, 300, 3), 2000 + 2 * 0.2 * 300 * Math.log(3), 1e-12), String(iclBic(2000, 0.8, 300, 3)));
+  check("a sharp classification leaves the Bayesian criterion unchanged", near(iclBic(2000, 1, 300, 3), 2000, 1e-12));
+  check("the integrated completed likelihood never falls below the Bayesian criterion", iclBic(2000, 0.4, 300, 4) > 2000);
+  check("the integrated completed likelihood equals the Bayesian criterion for one class", near(iclBic(2000, NaN, 300, 1), 2000, 0));
+
+  /* --- the odds of correct classification --- */
+  check("the odds of correct classification match their formula", near(occ(0.9, 0.25), (0.9 / 0.1) / (0.25 / 0.75), 1e-12), String(occ(0.9, 0.25)));
+  check("the worked example of Nagin gives 27", near(occ(0.9, 0.25), 27, 1e-9), String(occ(0.9, 0.25)));
+  check("a rule no better than chance gives one", near(occ(0.9, 0.9), 1, 1e-12), String(occ(0.9, 0.9)));
+  check("the odds grow with the average posterior probability", occ(0.95, 0.3) > occ(0.8, 0.3));
+  check("the odds fall as the class grows", occ(0.9, 0.6) < occ(0.9, 0.2));
+  check("no odds are returned for a probability of one", !isFinite(occ(1, 0.3)));
+  check("no odds are returned for a class of no one", !isFinite(occ(0.9, 0)));
+
+  /* --- the two forms of the approximate weight of evidence --- */
+  check("the approximate weight of evidence of Masyn matches its formula", near(awe(ll, d, n, false), -2 * ll + 2 * d * Math.log(n) + 3 * d, 1e-9), String(awe(ll, d, n, false)));
+  check("the form without the factor of two is half the penalty", near(awe(ll, d, n, true) + ll * 2, (awe(ll, d, n, false) + ll * 2) / 2, 1e-9));
+  check("the two forms coincide when there are no parameters", near(awe(ll, 0, n, true), awe(ll, 0, n, false), 1e-12));
+
+  /* --- Bayes factor and correct model probability --- */
+  var bicA = 2456.0, bicB = 2460.0;
+  check("the Bayes factor matches its definition", near(bayesFactor(bicA, bicB), Math.exp(-0.5 * bicA + 0.5 * bicB), 1e-12), String(bayesFactor(bicA, bicB)));
+  check("the Bayes factor favours the smaller criterion", bayesFactor(bicA, bicB) > 1);
+  check("the Bayes factor of a model against itself is one", near(bayesFactor(bicA, bicA), 1, 1e-12));
+  check("the Bayes factor is the reciprocal of the reversed comparison", near(bayesFactor(bicA, bicB) * bayesFactor(bicB, bicA), 1, 1e-12));
+  var cm = correctModelProbabilities([2456.0, 2460.0, 2470.0]);
+  var tot = cm[0] + cm[1] + cm[2];
+  check("the correct model probabilities sum to one", near(tot, 1, 1e-12), String(tot));
+  check("the smallest criterion takes the largest correct model probability", cm[0] > cm[1] && cm[1] > cm[2], cm.join(","));
+  check("the ratio of two correct model probabilities is their Bayes factor", near(cm[0] / cm[1], bayesFactor(2456.0, 2460.0), 1e-9), String(cm[0] / cm[1]));
+  var cmShift = correctModelProbabilities([2456.0 + 1000, 2460.0 + 1000, 2470.0 + 1000]);
+  check("the correct model probabilities do not change when every criterion is shifted", near(cm[0], cmShift[0], 1e-12) && near(cm[2], cmShift[2], 1e-12));
+  var cmEqual = correctModelProbabilities([100, 100, 100, 100]);
+  check("four models with the same criterion take a quarter each", near(cmEqual[0], 0.25, 1e-12) && near(cmEqual[3], 0.25, 1e-12));
+  var cmFar = correctModelProbabilities([0, 4000]);
+  check("the correct model probabilities are computable when the criteria are far apart", isFinite(cmFar[0]) && near(cmFar[0], 1, 1e-12), cmFar.join(","));
+
+  /* --- homogeneity and separation --- */
+  check("a probability of .71 is homogeneous", homogeneous(0.71));
+  check("a probability of .29 is homogeneous", homogeneous(0.29));
+  check("a probability of .70 is not homogeneous", !homogeneous(0.70));
+  check("a probability of .30 is not homogeneous", !homogeneous(0.30));
+  check("a probability of .50 is not homogeneous", !homogeneous(0.50));
+  var or1 = oddsRatio(0.9, 0.5);
+  check("the odds ratio matches its definition", near(or1, (0.9 / 0.1) / (0.5 / 0.5), 1e-12), String(or1));
+  check("the odds ratio of two equal probabilities is one", near(oddsRatio(0.4, 0.4), 1, 1e-12));
+  check("the odds ratio is the reciprocal of the reversed one", near(oddsRatio(0.8, 0.3) * oddsRatio(0.3, 0.8), 1, 1e-12));
+  check("an odds ratio of 9 separates", separated(oddsRatio(0.9, 0.5)));
+  check("an odds ratio of 5 does not separate", !separated(5));
+  check("an odds ratio of .2 does not separate", !separated(0.2));
+  check("an odds ratio of .1 separates", separated(0.1));
+  check("a probability of zero gives no odds ratio", !isFinite(oddsRatio(0, 0.5)));
+  check("a probability of one gives no odds ratio", !isFinite(oddsRatio(1, 0.5)));
+
+  /* --- the standardized difference --- */
+  check("the standardized difference matches its formula with equal variances", near(cohenD(4, 2.5, 1, 1, 160, 240), 1.5, 1e-12), String(cohenD(4, 2.5, 1, 1, 160, 240)));
+  check("the standardized difference is weighted by the class sizes", near(cohenD(1, 0, 1, 4, 100, 300), 1 / Math.sqrt((100 * 1 + 300 * 4) / 400), 1e-12));
+  check("the standardized difference changes sign with the order of the classes", near(cohenD(4, 2, 1, 1, 100, 100), -cohenD(2, 4, 1, 1, 100, 100), 1e-12));
+  check("no standardized difference is returned when the variance is zero", !isFinite(cohenD(4, 2, 0, 0, 100, 100)));
+
+  /* --- the set of files --- */
+  FILES = [];
+  check("a two-class file is accepted", addFile(fixtureTwo(), "two.out").ok === true);
+  check("a three-class file is accepted", addFile(fixtureThree(), "three.out").ok === true);
+  check("a one-class file is accepted", addFile(fixtureOne(), "one.out").ok === true);
+  check("three files are held", FILES.length === 3, String(FILES.length));
+  check("the files are ordered by the number of classes", FILES[0].k === 1 && FILES[2].k === 3, FILES.map(function (x) { return x.k; }).join(","));
+  addFile(fixtureThree(), "three-again.out");
+  check("a second file with the same number of classes replaces the first", FILES.length === 3 && FILES[2].name === "three-again.out", String(FILES.length) + "/" + FILES[2].name);
+  var bad = addFile("", "empty.out");
+  check("an empty file is refused", !!bad.error, JSON.stringify(bad));
+  bad = addFile("Amos output\nRegression Weights\n", "foreign.out");
+  check("a file that is not an Mplus output is refused", !!bad.error);
+  bad = addFile("Mplus VERSION 8.11\nMODEL FIT INFORMATION\nNumber of Free Parameters 3\n", "nok.out");
+  check("a file with no number of classes is refused", !!bad.error);
+  check("a refused file is not held", FILES.length === 3, String(FILES.length));
+
+  var table = enumerationTable();
+  check("the table names every model loaded", /1 classes|<th scope="row">1/.test(table) && /<th scope="row">3/.test(table));
+  check("the table carries the correct model probabilities", table.indexOf("cmP") > -1);
+  var plot = criteriaPlot();
+  check("the plot is drawn for three models", plot.indexOf("<svg") === 0, plot.slice(0, 40));
+  check("the plot names all five criteria", ["AIC", "BIC", "SABIC", "CAIC", "AWE"].every(function (s) { return plot.indexOf(">" + s + "<") > -1; }));
+
+  var msgs = crossChecks();
+  check("no cross-check fires on a consistent series", msgs.length === 0, msgs.map(function (m) { return m.text; }).join(" | "));
+  FILES = [];
+  addFile(fixtureTwo(), "two.out");
+  addFile(fixtureThree().replace("Number of observations                                          300",
+                                 "Number of observations                                          250"), "three.out");
+  msgs = crossChecks();
+  check("a series fitted on different sample sizes is reported", msgs.length > 0 && /not fitted on the same number of cases/.test(msgs[0].text), JSON.stringify(msgs));
+  FILES = [];
+  addFile(fixtureTwo().replace("THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.",
+                               "THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.  THE"), "two.out");
+  msgs = crossChecks();
+  check("a loglikelihood that was not replicated is reported", msgs.some(function (m) { return /was not replicated/.test(m.text); }), JSON.stringify(msgs));
+
+  /* --- the detail of one model --- */
+  FILES = [];
+  addFile(fixtureThree(), "three.out");
+  var det = detailFor(FILES[0], "last");
+  check("the detail reports the class sizes", det.indexOf("Class sizes and classification") > -1);
+  check("the detail reports the homogeneity", det.indexOf("Homogeneity within the classes") > -1);
+  check("the detail reports the separation", det.indexOf("Separation between the classes") > -1);
+  check("the detail draws the item probability plot", det.indexOf("Conditional item probabilities") > -1);
+  FILES = [];
+  addFile(fixtureProfile(), "profile.out");
+  var detP = detailFor(FILES[0], "last");
+  check("a latent profile model is reported by its means", detP.indexOf("Class means") > -1);
+  check("a latent profile model is separated by the standardized difference", detP.indexOf("standardized difference") > -1);
+  check("the standardized difference of the first item appears in the table", detP.indexOf("1.50") > -1, detP.slice(detP.indexOf("Separation"), detP.indexOf("Separation") + 400));
+
+  FILES = saved;
+  return { failures: failures, performed: performed };
+}
+
+function showSelfTest() {
+  var out = selfTest(), b = $("selftest-banner"), i;
+  b.hidden = false;
+  b.className = "status " + (out.failures.length ? "bad" : "ok");
+  b.setAttribute("role", "status");
+  if (out.failures.length) {
+    var items = "";
+    for (i = 0; i < out.failures.length; i++) items += "<li>" + esc(out.failures[i]) + "</li>";
+    b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10007;</span> <span class=\"tag\">Self-test failed.</span> " +
+      out.failures.length + " of " + out.performed + " checks did not pass.</p><ul>" + items + "</ul>";
+    console.error("self-test failed", out.failures);
+  } else {
+    b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10003;</span> <span class=\"tag\">Self-test passed.</span> " +
+      out.performed + " checks, 0 failed. They cover the reading of every section of a mixture output from files written for the purpose, " +
+      "the two criteria and the Bayes factor against their formulas written out a second way, the correct model probabilities against " +
+      "their definition and against the requirement that they sum to one, the homogeneity and separation flags at their cutoffs, the " +
+      "standardized difference, the odds of correct classification and the entropy of the classification against their " +
+      "formulas, the integrated completed likelihood against the Bayesian criterion it is built on, and the files and " +
+      "series the page has to refuse or report.</p>";
+    console.log("self-test passed");
+  }
+}
+
+wire();
+if (/[?&]selftest=1(&|$)/.test(window.location.search)) showSelfTest();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

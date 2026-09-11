@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Chi-square difference test between two nested Mplus models: classical difference for ML, MLF, GLS and WLS, Satorra-Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST procedure for MLMV, WLSMV and ULSMV.">
-<title>Chi-square difference test · semstudio.tools</title>
+<meta name="description" content="Chi-square difference test between two nested Mplus models: classical difference for ML, MLF, GLS and WLS, Satorra–Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST procedure for MLMV, WLSMV and ULSMV.">
+<title>Chi-Square Difference Test · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
@@ -17,7 +17,10 @@
 .cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); }
 .cards .card { margin: 0; }
 .drop.filled { border-style: solid; border-color: var(--ok-line); background: var(--ok-bg); }
-.syntax-cols { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); }
+/* The two MODEL commands stand side by side where there is room for both. The
+   minimum is capped at the width of the column itself, so that on a 320px
+   screen the pair becomes one column instead of pushing the page sideways. */
+.syntax-cols { display: grid; gap: 0.8rem; grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr)); }
 pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
 .card-note { font-size: 0.9rem; color: var(--ink-soft); margin-top: 0.6rem; }
 /* The sentence written for a manuscript is a block of monospaced text, so it
@@ -32,29 +35,30 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Chi-square difference test</h1>
-  <p class="lede">Reads two <span class="mp">M</span><em>plus</em> output files, checks the conditions that a nesting relation requires, and computes the difference test that the estimator of those two runs allows: the classical difference for ML, MLF, GLS and WLS, the Satorra-Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST result for MLMV, WLSMV and ULSMV. Every number it uses is read from those files, and none of them can be typed in.</p>
+  <h1>Chi-Square Difference Test</h1>
+  <p class="lede">Reads two <span class="mp">M</span><em>plus</em> output files, checks the conditions that a nesting relation requires, and computes the difference test that the estimator of those two runs allows: the classical difference for ML, MLF, GLS and WLS, the Satorra–Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST result for MLMV, WLSMV and ULSMV. Every number it uses is read from those files, and none of them can be typed in.</p>
   <div class="callout" role="note">
-    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> Nothing beyond the standard output: the page reads <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> always prints. With MLMV, WLSMV or ULSMV add <code>SAVEDATA: DIFFTEST = file.dat;</code> to the less restricted run and <code>ANALYSIS: DIFFTEST = file.dat;</code> to the restricted one, because for those estimators the difference of the two printed statistics is not chi-square distributed.
+    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> Nothing beyond the standard output: the page reads <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> always prints. With MLMV, WLSMV or ULSMV add <code>SAVEDATA: DIFFTEST = file.dat;</code> to the unrestricted run and <code>ANALYSIS: DIFFTEST = file.dat;</code> to the restricted one, because for those estimators the difference of the two printed statistics is not chi-square distributed.
+    A warning printed by M<em>plus</em> is counted and reported next to the comparison, which is left in place; a run that did not converge blocks the test instead.
   </div>
 </header>
-<main id="main">
+<main id="main" tabindex="-1">
   <p id="selftest" class="status" hidden></p>
 
   <section aria-labelledby="h-steps">
     <h2 id="h-steps">What to do</h2>
     <ol class="steps">
-      <li>Write two <span class="mp">M</span><em>plus</em> inputs, one for each of the two models you want to compare, and give each one its own file with the extension <code>.inp</code>. The two runs have to use the same data file, the same observed variables and the same estimator, and one of the two models has to be the other one with restrictions added to it.</li>
+      <li>Write two <span class="mp">M</span><em>plus</em> inputs, one for each of the two models you want to compare, and save each in its own <code>.inp</code> file. The two runs have to use the same data file, the same observed variables and the same estimator, and one of the two models has to be the other one with restrictions added to it.</li>
       <li>Add nothing to the OUTPUT command. The chi-square of a model is in the section <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> writes in every output without being asked.</li>
-      <li>Only if the estimator of the two runs is MLMV, WLSMV or ULSMV: add the line <code>SAVEDATA: DIFFTEST = deriv.dat;</code> to the input of the less restricted model, add the line <code>ANALYSIS: DIFFTEST = deriv.dat;</code> to the input of the more restricted model, and run the less restricted one first. For those three estimators the difference of the two printed statistics is not a chi-square, and only <span class="mp">M</span><em>plus</em> itself can produce the test.</li>
+      <li>Only if the estimator of the two runs is MLMV, WLSMV or ULSMV: add the line <code>SAVEDATA: DIFFTEST = deriv.dat;</code> to the input of the unrestricted model (H1), add the line <code>ANALYSIS: DIFFTEST = deriv.dat;</code> to the input of the restricted model (H0), and run the unrestricted one first. For those three estimators the difference of the two printed statistics is not a chi-square, and only <span class="mp">M</span><em>plus</em> itself can produce the test.</li>
       <li>Run both inputs. <span class="mp">M</span><em>plus</em> writes for each one a plain text file with the same name and the extension <code>.out</code>, in the folder the input is in.</li>
       <li>Drag one <code>.out</code> file onto the first box below and the other onto the second, or press a box and choose the file there. Which file goes in which box makes no difference: the page reads the degrees of freedom of both and treats the model with more of them as the restricted one. The files are read inside your browser and nothing leaves your computer.</li>
       <li>Read the list headed <em>Compatible with a nesting relation</em>. One line per condition says what was read from the two files: the estimator, the number of observations, the observed dependent variables, the degrees of freedom and the free parameters.</li>
       <li>Choose the significance level, and say which kind of parameter the restricted model holds fixed. Those two choices decide the level the p-value is compared with and which of the published cutoffs are marked as matching this comparison; they change nothing that was read from the files.</li>
       <li>Read the test in the table headed with the name of the test the estimator allows, and the sentence written under it for a manuscript. Every number in it comes from the two output files, and no field on this page can change one.</li>
-      <li>Only if the page reports that the scaled test cannot be computed: run the restricted model once more with the unrestricted solution as its starting values and <code>ANALYSIS: ITERATIONS = 0;</code>, and drop that third output in the box at the end of the loading section.</li>
+      <li>Only if the page reports that the scaled test cannot be computed: run the <em>unrestricted</em> model once more with the estimates of the restricted model as starting values and no iterations, as described under <em>Third output</em> below, and drop that third output in the box at the end of the loading section.</li>
     </ol>
-    <p>The page refuses four kinds of file and says which one and why: an empty file; a file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, which is not an output; a file that stops before the sections following the fit statistics, which comes from a run that was interrupted; and a file written with the abbreviated invariance syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code>, which holds several models so that no single chi-square belongs to it. It also refuses to compute anything when the estimator cannot be read on the <code>Estimator</code> line of either file, because the formula for the test depends on which estimator was used, and when the two files report different estimators, different numbers of observations or different dependent variables. Nothing on this page can be typed in: every number it computes with is read from an output file.</p>
+    <p>The page refuses four kinds of file and says which one and why. An empty file. A file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, which is not an output. A file that stops before the sections following the fit statistics, which comes from a run that was interrupted. A file written with the abbreviated invariance syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code>, which holds several models so that no single chi-square belongs to it. It also computes nothing when the estimator cannot be read on the <code>Estimator</code> line of either file, because the formula for the test depends on the estimator, and when the two files report different estimators, different numbers of observations or different dependent variables. Nothing on this page can be typed in: every number it computes with is read from an output file.</p>
   </section>
 
   <section aria-labelledby="h-load">
@@ -80,11 +84,11 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
       <button type="button" class="secondary" id="btnReset">Remove both files and start again</button>
     </div>
 
-    <details id="spBox">
+    <details id="spBox" hidden>
       <summary>Third output, needed only when the scaled test cannot be computed</summary>
-      <p>Load a file here only when the page reports that the scaled difference test gave a correction factor that is zero or negative, or a negative statistic. The file is a further run of the <em>restricted</em> model in which every parameter starts at the unrestricted solution and the estimation is stopped before the first update, which is what <code>ANALYSIS: ITERATIONS = 0;</code> does. From it the page reads one number and nothing else: the scaling correction factor of the chi-square, written c<sub>10</sub> (Satorra &amp; Bentler, 2010).</p>
+      <p>Load a file here only when the page reports that the scaled difference test gave a correction factor that is zero or negative, or a negative statistic. The file is a further run of the <em>unrestricted</em> model (H1) evaluated at the estimates of the restricted model (H0), which Satorra and Bentler (2010) write M<sub>10</sub>. Asparouhov and Muthén (2013) describe how to obtain it: add <code>OUTPUT: SVALUES;</code> to the run of the restricted model, paste the MODEL command it prints into the input of the unrestricted model as starting values, and add <code>ANALYSIS: CONVERGENCE = 100000000;</code> so that no iteration is taken. The log-likelihood or fit function of that run has to equal that of the restricted model. From it the page reads one number and nothing else: the scaling correction factor of the chi-square, written c<sub>10</sub>.</p>
       <label class="drop" id="dropC" for="pickC">
-        <strong>Restricted model at the unrestricted solution, zero iterations</strong>
+        <strong>Unrestricted model at the restricted estimates, no iterations</strong>
         <span class="hint" id="detC">Drop the third .out file here, or press to choose it</span>
         <input type="file" id="pickC" accept=".out,.txt,.log,text/plain">
         <span class="file-name" id="fileC"></span>
@@ -103,11 +107,11 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
   </section>
 
   <section id="settingsSection" aria-labelledby="h-settings" hidden>
-    <h2 id="h-settings">Two choices about how to read the result</h2>
+    <h2 id="h-settings">How the result is read</h2>
     <fieldset>
-      <legend>Choices</legend>
+      <legend>Significance level and kind of constraint</legend>
       <div class="row">
-        <div class="field">
+        <div class="field" id="fieldAlpha">
           <label for="selAlpha">Compare the p-value with this significance level</label>
           <select id="selAlpha">
             <option value="0.05" selected>.05</option>
@@ -115,14 +119,14 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
             <option value="0.001">.001</option>
           </select>
         </div>
-        <div class="field">
-          <label for="selConstraint">Say which parameters the restricted model holds fixed</label>
+        <div class="field" id="fieldConstraint">
+          <label for="selConstraint">Say which parameters the restricted model holds equal across groups</label>
           <select id="selConstraint">
-            <option value="unstated" selected>leave it unsaid; mark no cutoff as matching</option>
+            <option value="unstated" selected>not stated (no SRMR cutoff is marked as matching)</option>
             <option value="loadings">loadings</option>
             <option value="intercepts">intercepts, thresholds or residual variances</option>
           </select>
-          <span class="hint">Chen (2007) proposed a stricter SRMR cutoff for intercepts, thresholds and residual variances than for loadings. This choice only decides which published cutoff is marked as matching the comparison.</span>
+          <span class="hint">Chen (2007) proposed a stricter SRMR cutoff for intercepts, thresholds and residual variances than for loadings. This choice only decides which published cutoff is marked as matching the comparison; it changes nothing that was read from the files.</span>
         </div>
       </div>
     </fieldset>
@@ -130,49 +134,50 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
 
   <section aria-labelledby="h-results">
     <h2 id="h-results">Results</h2>
-    <div id="results" aria-live="polite">
+    <div id="results">
       <div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an <span class="mp">M</span><em>plus</em> output file on each of the two boxes above; the test appears here as soon as both have been read.</div>
     </div>
   </section>
 
-  <section class="tracks" aria-labelledby="h-methods">
-    <h2 id="h-methods">Methods and formulas</h2>
+  <details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
 
     <h3>Nested models</h3>
-    <p>A model M0 is nested in a model M1 when M0 follows from M1 by imposing restrictions on free parameters, such as fixing a parameter at a value or forcing two parameters to be equal, with the same data, the same observed variables and the same estimator. M0 therefore has fewer free parameters and more degrees of freedom than M1. Output files carry the necessary conditions, not the proof: they show whether the two runs share the sample, the dependent variables and the estimator, whether the difference in degrees of freedom matches the difference in free parameters, and whether the fit statistics fall in the expected order. Whether the restricted model is genuinely a restriction of the free one follows from the specification of the two models, which the page reports side by side.</p>
+    <p>A model M0 is nested in a model M1 when M0 follows from M1 by imposing restrictions on free parameters, such as fixing a parameter at a value or forcing two parameters to be equal, with the same data, the same observed variables and the same estimator. M0 therefore has fewer free parameters and more degrees of freedom than M1. Output files carry the necessary conditions, not the proof: they show whether the two runs share the sample, the dependent variables and the estimator, whether the difference in degrees of freedom matches the difference in free parameters, and whether the fit statistics fall in the expected order. Whether the restricted model is genuinely a restriction of the unrestricted one follows from the specification of the two models, which the page reports side by side.</p>
 
     <h3>Classical difference test: ML, MLF, GLS, WLS</h3>
     <p>These estimators produce a statistic that is asymptotically chi-square distributed, and the difference of two such statistics is again chi-square distributed:</p>
     <div class="eq"><math display="block"><mrow><mi>T</mi><mo>=</mo><msubsup><mi>&#x3C7;</mi><mn>0</mn><mn>2</mn></msubsup><mo>&#x2212;</mo><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi mathvariant="normal">&#x394;</mi><mrow><mi>d</mi><mi>f</mi></mrow><mo>=</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></math></div>
-    <p class="where">Here <var>T</var> is the difference statistic, χ²<sub>0</sub> and <var>df</var><sub>0</sub> are the chi-square and the degrees of freedom of the restricted model, χ²<sub>1</sub> and <var>df</var><sub>1</sub> are those of the free model, and Δ<var>df</var> is the number of degrees of freedom the test is referred to.</p>
+    <p class="where">Here <var>T</var> is the difference statistic, χ²<sub>0</sub> and <var>df</var><sub>0</sub> are the chi-square and the degrees of freedom of the restricted model, χ²<sub>1</sub> and <var>df</var><sub>1</sub> are those of the unrestricted model, and Δ<var>df</var> is the number of degrees of freedom the test is referred to.</p>
     <p>MLF differs from ML in the standard errors, which use the first-order derivative information matrix; the chi-square test of model fit it prints is the ML statistic, so the classical difference applies to MLF unchanged.</p>
 
     <h3>Scaled difference test: MLR, MLM, WLSM</h3>
     <p>These estimators print a statistic that has already been divided by a scaling correction factor <math><mrow><mi>c</mi></mrow></math>, so the scaled difference test of Satorra and Bentler (2001) multiplies the printed values back before differencing them:</p>
     <div class="eq"><math display="block"><mrow><msub><mi>c</mi><mi>d</mi></msub><mo>=</mo><mfrac><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>1</mn></msub></mrow><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>T</mi><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mn>0</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>1</mn></msub></mrow><msub><mi>c</mi><mi>d</mi></msub></mfrac></mrow></math></div>
-    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>df</var><sub>0</sub> and <var>df</var><sub>1</sub> are the degrees of freedom of the restricted and of the free model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their scaling correction factors, χ²<sub>0</sub> and χ²<sub>1</sub> are the chi-square values printed for them, and <var>T</var> is the difference statistic.</p>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>df</var><sub>0</sub> and <var>df</var><sub>1</sub> are the degrees of freedom of the restricted and of the unrestricted model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their scaling correction factors, χ²<sub>0</sub> and χ²<sub>1</sub> are the chi-square values printed for them, and <var>T</var> is the difference statistic.</p>
     <p><var>T</var> is referred to a chi-square distribution with <math><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></math> degrees of freedom. The factors <math><mrow><msub><mi>c</mi><mn>0</mn></msub></mrow></math> and <math><mrow><msub><mi>c</mi><mn>1</mn></msub></mrow></math> are the values <span class="mp">M</span><em>plus</em> prints as <code>Scaling Correction Factor</code> under the chi-square of each model. Subtracting the two printed statistics without the correction does not give a chi-square statistic.</p>
 
     <h3>Log-likelihood version of the scaled test</h3>
     <p>When both outputs report an H0 log-likelihood and its scaling correction factor, the same test can be computed from the log-likelihoods:</p>
     <div class="eq"><math display="block"><mrow><msub><mi>c</mi><mi>d</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>q</mi><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mi>q</mi><mn>1</mn></msub><msub><mi>c</mi><mn>1</mn></msub></mrow><mrow><msub><mi>q</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mi>q</mi><mn>1</mn></msub></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>T</mi><mo>=</mo><mfrac><mrow><mo>&#x2212;</mo><mn>2</mn><mrow><mo stretchy="false">(</mo><msub><mi>L</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mi>L</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow><msub><mi>c</mi><mi>d</mi></msub></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi mathvariant="normal">&#x394;</mi><mrow><mi>d</mi><mi>f</mi></mrow><mo>=</mo><msub><mi>q</mi><mn>1</mn></msub><mo>&#x2212;</mo><msub><mi>q</mi><mn>0</mn></msub></mrow></math></div>
-    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>q</var><sub>0</sub> and <var>q</var><sub>1</sub> are the numbers of free parameters of the restricted and of the free model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their H0 scaling correction factors, <var>L</var><sub>0</sub> and <var>L</var><sub>1</sub> are their H0 log-likelihoods, <var>T</var> is the difference statistic and Δ<var>df</var> is the number of degrees of freedom it is referred to.</p>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>q</var><sub>0</sub> and <var>q</var><sub>1</sub> are the numbers of free parameters of the restricted and of the unrestricted model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their H0 scaling correction factors, <var>L</var><sub>0</sub> and <var>L</var><sub>1</sub> are their H0 log-likelihoods, <var>T</var> is the difference statistic and Δ<var>df</var> is the number of degrees of freedom it is referred to.</p>
     <p>The page computes both versions when it can and reports them together. They answer the same question and should agree; a disagreement is flagged, because with the same data and the same nesting it points to an inconsistency between the two files rather than to a substantive result.</p>
 
     <h3>Strictly positive scaled test</h3>
-    <p>The scaled difference test can produce a non-positive <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> or a negative <var>T</var>, and neither outcome is a non-significant test: the test is simply not computable in that form. Satorra and Bentler (2010) give a version that is strictly positive by construction, and Bryant and Satorra (2012) set out the steps. It needs one additional <span class="mp">M</span><em>plus</em> run of the restricted model in which the unrestricted solution supplies the starting values and the estimation is stopped before the first update, so that <span class="mp">M</span><em>plus</em> evaluates the restricted model at the unrestricted estimates and prints the scaling correction factor of that evaluation, written <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math>. With that factor the correction becomes</p>
-    <div class="eq"><math display="block"><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mfrac><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>10</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>1</mn></msub></mrow><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>T</mi><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mn>0</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>1</mn></msub></mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup></mfrac></mrow></math></div>
-    <p class="where">Here <var>c</var><sub><var>d</var></sub>′ is the strictly positive difference scaling correction, <var>c</var><sub>10</sub> is the scaling correction factor of the restricted model evaluated at the unrestricted solution, <var>df</var><sub>0</sub>, <var>df</var><sub>1</sub>, <var>c</var><sub>0</sub>, <var>c</var><sub>1</sub>, χ²<sub>0</sub> and χ²<sub>1</sub> are the quantities of the previous formula, and <var>T</var> is the difference statistic.</p>
-    <p>Load that third output in the box at the end of the loading section and the page computes <var>T</var> with <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup></mrow></math> in place of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>.</p>
+    <p>The scaled difference test can produce a non-positive <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> or a negative <var>T</var>, and neither outcome is a non-significant test: the test is not computable in that form. The correction <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> of Satorra and Bentler (2001) is an approximation in which the correction factor of the unrestricted model is taken at the unrestricted estimates; Satorra and Bentler (2010) take it at the restricted estimates instead and obtain a correction that is positive by construction. It needs one additional <span class="mp">M</span><em>plus</em> run of the <em>unrestricted</em> model in which the restricted estimates supply the starting values and no iteration is taken, so that <span class="mp">M</span><em>plus</em> evaluates the unrestricted model at the restricted estimates and prints the scaling correction factor of that evaluation, written <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math>. Asparouhov and Muthén (2013) give the steps for <span class="mp">M</span><em>plus</em>, and Bryant and Satorra (2012) the general procedure. With that factor the correction becomes</p>
+    <div class="eq"><math display="block"><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mfrac><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>10</mn></msub></mrow><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>T</mi><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mn>0</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>1</mn></msub></mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup></mfrac></mrow></math></div>
+    <p class="where">Here <var>c</var><sub><var>d</var></sub>′ is the strictly positive difference scaling correction, <var>c</var><sub>10</sub> is the scaling correction factor of the unrestricted model evaluated at the restricted estimates, <var>df</var><sub>0</sub>, <var>df</var><sub>1</sub>, <var>c</var><sub>0</sub>, <var>c</var><sub>1</sub>, χ²<sub>0</sub> and χ²<sub>1</sub> are the quantities of the previous formula, and <var>T</var> is the difference statistic. The formula is equation 4 of Asparouhov and Muthén (2013), written with the printed statistics multiplied back by their factors; <var>c</var><sub>10</sub> takes the place of <var>c</var><sub>1</sub>, and <var>df</var><sub>0</sub><var>c</var><sub>0</sub> exceeds <var>df</var><sub>1</sub><var>c</var><sub>10</sub> in every sample, which is what keeps the correction positive.</p>
+    <p>Load that third output in the box at the end of the loading section and the page computes <var>T</var> with <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup></mrow></math> in place of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>. The box appears only when the estimator of the two runs is MLR, MLM or WLSM.</p>
 
     <h3>Mean- and variance-adjusted estimators: MLMV, WLSMV, ULSMV</h3>
-    <p>These estimators adjust both the mean and the variance of the test statistic, and the degrees of freedom <span class="mp">M</span><em>plus</em> prints for them are not the difference between the number of moments and the number of free parameters. The difference of two such statistics is not chi-square distributed under any rescaling, so the test has to be produced by <span class="mp">M</span><em>plus</em> itself with the DIFFTEST option (Asparouhov &amp; Muthén, 2006), in two runs:</p>
-    <pre class="syntax">! Step 1: the less restricted model (H1)
+    <p>These estimators adjust both the mean and the variance of the test statistic. The difference of two such statistics is not chi-square distributed, and the rescaling that makes it so (Asparouhov &amp; Muthén, 2006, equations 7 and 10) needs the derivatives of both models, which the printed output does not contain. The test therefore has to be produced by <span class="mp">M</span><em>plus</em> itself with the DIFFTEST option, in two runs:</p>
+    <pre class="syntax">! Step 1: the unrestricted model (H1)
 SAVEDATA:   DIFFTEST = deriv.dat;
 
 ! Step 2: the restricted model (H0), same data and variables
 ANALYSIS:   DIFFTEST = deriv.dat;</pre>
-    <p>The second output then contains a block headed <code>Chi-Square Test for Difference Testing</code> with a value, its degrees of freedom and a p-value. When the restricted model you load contains that block, the page reads it and reports it; when it does not, the page prints the procedure and computes nothing.</p>
+    <p>The second output then contains a block headed <code>Chi-Square Test for Difference Testing</code> with a value, its degrees of freedom and a p-value. When the restricted model you load contains that block, the page reads it and reports it; when it does not, the page prints the procedure and computes nothing. Since <span class="mp">M</span><em>plus</em> 6 the degrees of freedom printed for MLMV, WLSMV and ULSMV are the usual ones, the number of moments minus the number of free parameters, and the degrees of freedom of the DIFFTEST result equal the difference in the number of free parameters (Asparouhov &amp; Muthén, 2010). A DIFFTEST block whose degrees of freedom differ from the difference between the two printed values therefore comes from an older version or from a derivatives file saved by another model, and the page says so.</p>
 
     <h3>Files this page will not read</h3>
     <p>Four kinds of file are refused with a message rather than read. A file written with the abbreviated invariance syntax (<code>MODEL = CONFIGURAL METRIC SCALAR;</code>) holds several models, each with its own fit statistics, and no single chi-square belongs to it; the page reads none of them and names the models it found. A file that stops before the sections that follow the fit statistics comes from a run that was interrupted, and the numbers in it may belong to a model that was never finished. A file with none of the headings <span class="mp">M</span><em>plus</em> always writes is not an output at all. And an empty file is reported as empty. In each case the page says which file and why, and computes nothing: a difference test built on numbers read out of one of these would look like a result.</p>
@@ -181,34 +186,40 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
     <p>ULS prints no chi-square test of model fit, so there is nothing to difference; the mean- and variance-adjusted ULSMV with DIFFTEST is the usual route to a test. BAYES estimates the model by MCMC and prints no chi-square: model comparison there rests on the posterior predictive p-value for absolute fit and on the DIC for relative fit.</p>
 
     <h3>Differences in fit indices</h3>
-    <p>The chi-square difference test answers whether the restrictions are compatible with sampling error, and with a large sample a difference of no practical size can reach significance. For that reason the change in the approximate fit indices is usually reported next to the test. The page computes each difference as the value of the restricted model minus the value of the free model, for CFI, TLI, RMSEA, SRMR, AIC, BIC and the sample-size adjusted BIC. Cutoffs proposed in the literature:</p>
+    <p>The chi-square difference test answers whether the restrictions are compatible with sampling error, and with a large sample a difference of no practical size can reach significance. For that reason the change in the approximate fit indices is usually reported next to the test. The page computes each difference as the value of the restricted model minus the value of the unrestricted model, for CFI, TLI, RMSEA, SRMR, AIC, BIC and the sample-size adjusted BIC. The cutoffs below for CFI, RMSEA and SRMR were all derived in simulations of multiple-group measurement invariance tests with normal continuous indicators; the page lists them for every nested comparison and marks a cutoff as matching the comparison only when the number of groups, the group sizes and the type of indicator agree with the design it was derived under (Svetina, Rutkowski, &amp; Rutkowski, 2020, Table 1).</p>
     <ul>
-      <li>Cheung and Rensvold (2002): a change in CFI of at least -.010, that is a drop no larger than .010, supports the constrained model.</li>
-      <li>Chen (2007): a change in CFI of -.010 together with a change in RMSEA of .015 and a change in SRMR of .030 for constraints on loadings, or .010 for constraints on intercepts, thresholds and residuals. For samples of 300 or fewer, or with unequal group sizes, the stricter values are -.005 for CFI, .010 for RMSEA and .025 for SRMR with loadings, .005 with intercepts and residuals.</li>
-      <li>Rutkowski and Svetina (2014), for comparisons across many groups: a change in CFI of -.020 with a change in RMSEA of .030 at the metric step, and -.010 with .010 at the scalar step.</li>
+      <li>Cheung and Rensvold (2002): a change in CFI of at least −0.010, that is a drop no larger than 0.010, supports the restricted model. Two groups of 150 or 300 cases, two or three factors.</li>
+      <li>Chen (2007): for two groups of comparable size with more than 300 cases in each, a change in CFI of −0.010 together with a change in RMSEA of 0.015 and a change in SRMR of 0.030 when the constraints are on loadings, or 0.010 when they are on intercepts, thresholds or residual variances. For two unequal groups with 300 or fewer cases in each, the stricter values are −0.005 for CFI, 0.010 for RMSEA and 0.025 for SRMR with loadings or 0.005 with intercepts and residual variances. Chen simulated two groups of 150, 250 or 500 cases, and the sample-size condition is read here per group, following Svetina et al. (2020, p. 114): the page compares the smallest group with 300. Those are the two designs Chen studied; a comparison that falls between them, two equal groups of 200 for instance, matches neither, and the table then lists both sets and marks neither as matching.</li>
+      <li>Rutkowski and Svetina (2014): 10 or 20 groups of 600 to 6,000 cases, one factor. A change in CFI of −0.020 with a change in RMSEA of 0.030 at the metric step, and −0.010 with 0.010 at the scalar step. The page lists them from five groups upward and marks them as matching from ten.</li>
       <li>Raftery (1995), for BIC differences between two models fitted to the same data: 0 to 2 weak, 2 to 6 positive, 6 to 10 strong and above 10 very strong evidence for the model with the lower value.</li>
-      <li>Burnham and Anderson (2004), for AIC differences: a difference up to about 2 leaves both models substantially supported, 4 to 7 gives the higher model considerably less support, and above about 10 essentially none.</li>
+      <li>Burnham and Anderson (2004), for AIC differences: a difference up to 2 leaves both models substantially supported, a difference of 4 to 7 gives the model with the higher AIC considerably less support, and a difference above 10 essentially none. They give no name to the intervals between these bands, and the page says so when a difference falls in one.</li>
     </ul>
     <p>A change exactly equal to a cutoff is counted here as within it. These values come from simulation studies run under specific conditions of sample size, number of groups, number of indicators and type of misspecification, and they do not replace the evaluation of the model: a change within a cutoff is not evidence that the constraints hold, and a change beyond it is not by itself grounds for rejecting them. When the checks find something that a nesting relation excludes, the two sets of fit values are still shown but the cutoffs are not applied, because they were derived for nested comparisons. The information criteria are compared only when the two runs used the same number of observations, since they are on the scale of the log-likelihood of the sample.</p>
 
     <h3>Self-test</h3>
-    <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome and the number of checks at the top. They cover the upper tail of the chi-square distribution against eighty published quantiles from 1 to 100 degrees of freedom and against a series and continued-fraction implementation written separately for the purpose; the classical difference, the Satorra-Bentler scaled difference, its strictly positive form and the log-likelihood version, each over more than a thousand randomly drawn problems, with the cases that cannot be computed counted separately to confirm that they are refused rather than reported; the differences in the fit indices; both sides of every cutoff the page can show, including a change exactly equal to it; the bands of the Raftery and of the Burnham and Anderson scales at their boundaries; the parser on synthetic outputs for every estimator, on a file written with the abbreviated invariance syntax, on a truncated file, on an empty file, on a file that is not an output, on runs that did not converge and on runs with errors and with warnings; three groups of unequal size; values an output file should never contain, such as a negative chi-square or a scaling correction factor of zero; and the decoding of Windows-1252, UTF-8 with and without a byte-order mark, and UTF-16 in both byte orders.</p>
-  </section>
+    <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome and the number of checks at the top. The checks cover the upper tail of the chi-square distribution against eighty published quantiles from 1 to 100 degrees of freedom and against a series and continued-fraction implementation written separately for the purpose. They cover the classical difference, the Satorra–Bentler scaled difference, its strictly positive form and the log-likelihood version, each over more than a thousand randomly drawn problems, with the cases that cannot be computed counted separately to confirm that they are refused rather than reported. They cover the differences in the fit indices, both sides of every cutoff the page can show, including a change exactly equal to it, and the bands of the Raftery and of the Burnham and Anderson scales at their boundaries. They run the parser on synthetic outputs for every estimator, on a file written with the abbreviated invariance syntax, on a truncated file, on an empty file, on a file that is not an output, on runs that did not converge, on runs with errors and with warnings, and on three groups of unequal size. They check values an output file should never contain, such as a negative chi-square or a scaling correction factor of zero, and the decoding of Windows-1252, UTF-8 with and without a byte-order mark, and UTF-16 in both byte orders.</p>
+  </div>
+</details>
 
-  <section class="tracks" aria-labelledby="h-refs">
-    <h2 id="h-refs">References</h2>
+  <details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
     <ul class="refs">
-      <li>Asparouhov, T., &amp; Muthén, B. (2006, May 26). <em>Robust chi square difference testing with mean and variance adjusted test statistics</em> (<span class="mp">M</span><em>plus</em> Web Notes No. 10). Muthén &amp; Muthén. https://www.statmodel.com/download/webnotes/webnote10.pdf</li>
-      <li>Bryant, F. B., &amp; Satorra, A. (2012). Principles and practice of scaled difference chi-square testing. <em>Structural Equation Modeling, 19</em>(3), 372–398. https://doi.org/10.1080/10705511.2012.687671</li>
-      <li>Burnham, K. P., &amp; Anderson, D. R. (2004). Multimodel inference: Understanding AIC and BIC in model selection. <em>Sociological Methods &amp; Research, 33</em>(2), 261–304. https://doi.org/10.1177/0049124104268644</li>
-      <li>Chen, F. F. (2007). Sensitivity of goodness of fit indexes to lack of measurement invariance. <em>Structural Equation Modeling, 14</em>(3), 464–504. https://doi.org/10.1080/10705510701301834</li>
-      <li>Cheung, G. W., &amp; Rensvold, R. B. (2002). Evaluating goodness-of-fit indexes for testing measurement invariance. <em>Structural Equation Modeling, 9</em>(2), 233–255. https://doi.org/10.1207/S15328007SEM0902_5</li>
-      <li>Raftery, A. E. (1995). Bayesian model selection in social research. <em>Sociological Methodology, 25</em>, 111–163. https://doi.org/10.2307/271063</li>
-      <li>Rutkowski, L., &amp; Svetina, D. (2014). Assessing the hypothesis of measurement invariance in the context of large-scale international surveys. <em>Educational and Psychological Measurement, 74</em>(1), 31–57. https://doi.org/10.1177/0013164413498257</li>
-      <li>Satorra, A., &amp; Bentler, P. M. (2001). A scaled difference chi-square test statistic for moment structure analysis. <em>Psychometrika, 66</em>(4), 507–514. https://doi.org/10.1007/BF02296192</li>
-      <li>Satorra, A., &amp; Bentler, P. M. (2010). Ensuring positiveness of the scaled difference chi-square test statistic. <em>Psychometrika, 75</em>(2), 243–248. https://doi.org/10.1007/s11336-009-9135-y</li>
+      <li>Asparouhov, T., &amp; Muthén, B. (2006, May 26). <em>Robust chi square difference testing with mean and variance adjusted test statistics</em> (<span class="mp">M</span><em>plus</em> Web Notes No. 10). Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/webnotes/webnote10.pdf">https://www.statmodel.com/download/webnotes/webnote10.pdf</a></li>
+      <li>Asparouhov, T., &amp; Muthén, B. (2010, May 3). <em>Simple second order chi-square correction</em>. Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/WLSMV_new_chi21.pdf">https://www.statmodel.com/download/WLSMV_new_chi21.pdf</a></li>
+      <li>Asparouhov, T., &amp; Muthén, B. (2013, April 17). <em>Computing the strictly positive Satorra–Bentler chi-square test in <span class="mp">M</span><em>plus</em></em> (<span class="mp">M</span><em>plus</em> Web Notes No. 12). Muthén &amp; Muthén. <a href="https://www.statmodel.com/examples/webnotes/SB5.pdf">https://www.statmodel.com/examples/webnotes/SB5.pdf</a></li>
+      <li>Bryant, F. B., &amp; Satorra, A. (2012). Principles and practice of scaled difference chi-square testing. <em>Structural Equation Modeling, 19</em>(3), 372–398. <a href="https://doi.org/10.1080/10705511.2012.687671">https://doi.org/10.1080/10705511.2012.687671</a></li>
+      <li>Burnham, K. P., &amp; Anderson, D. R. (2004). Multimodel inference: Understanding AIC and BIC in model selection. <em>Sociological Methods &amp; Research, 33</em>(2), 261–304. <a href="https://doi.org/10.1177/0049124104268644">https://doi.org/10.1177/0049124104268644</a></li>
+      <li>Chen, F. F. (2007). Sensitivity of goodness of fit indexes to lack of measurement invariance. <em>Structural Equation Modeling, 14</em>(3), 464–504. <a href="https://doi.org/10.1080/10705510701301834">https://doi.org/10.1080/10705510701301834</a></li>
+      <li>Cheung, G. W., &amp; Rensvold, R. B. (2002). Evaluating goodness-of-fit indexes for testing measurement invariance. <em>Structural Equation Modeling, 9</em>(2), 233–255. <a href="https://doi.org/10.1207/S15328007SEM0902_5">https://doi.org/10.1207/S15328007SEM0902_5</a></li>
+      <li>Raftery, A. E. (1995). Bayesian model selection in social research. <em>Sociological Methodology, 25</em>, 111–163. <a href="https://doi.org/10.2307/271063">https://doi.org/10.2307/271063</a></li>
+      <li>Rutkowski, L., &amp; Svetina, D. (2014). Assessing the hypothesis of measurement invariance in the context of large-scale international surveys. <em>Educational and Psychological Measurement, 74</em>(1), 31–57. <a href="https://doi.org/10.1177/0013164413498257">https://doi.org/10.1177/0013164413498257</a></li>
+      <li>Satorra, A., &amp; Bentler, P. M. (2001). A scaled difference chi-square test statistic for moment structure analysis. <em>Psychometrika, 66</em>(4), 507–514. <a href="https://doi.org/10.1007/BF02296192">https://doi.org/10.1007/BF02296192</a></li>
+      <li>Satorra, A., &amp; Bentler, P. M. (2010). Ensuring positiveness of the scaled difference chi-square test statistic. <em>Psychometrika, 75</em>(2), 243–248. <a href="https://doi.org/10.1007/s11336-009-9135-y">https://doi.org/10.1007/s11336-009-9135-y</a></li>
+      <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using <span class="mp">M</span><em>plus</em> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111–130. <a href="https://doi.org/10.1080/10705511.2019.1602776">https://doi.org/10.1080/10705511.2019.1602776</a></li>
     </ul>
-  </section>
+  </div>
+</details>
 </main>
 <footer class="site">
   <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
@@ -281,7 +292,7 @@ function emptyModel(fileName){
   return { fileName:fileName||"", estimator:null, n:null, nGroups:null, groupNs:null,
     parameters:null, chi2:null, df:null, p:null, scf:null, h0LL:null, h0SCF:null,
     aic:null, bic:null, abic:null, cfi:null, tli:null, rmsea:null, srmr:null,
-    depVars:null, model:null, modelByGroup:false, labelConstraints:0, fixedConstraints:0,
+    depVars:null, categorical:false, model:null, modelByGroup:false, labelConstraints:0, fixedConstraints:0,
     difftest:null, shortcut:null, notes:[],
     empty:false, isMplus:false, truncated:false, converged:false, notConverged:false,
     nWarnings:0, nErrors:0 };
@@ -395,6 +406,10 @@ function parseMplus(text, fileName){
     var rest = text.slice(idx + "Observed dependent variables".length);
     var end = rest.search(/Observed independent variables|Continuous latent variables|Categorical latent variables|Observed auxiliary variables|Variables with special functions|Between variables|Within variables|Estimator|ANALYSIS/);
     var vblock = (end>0) ? rest.slice(0,end) : rest.slice(0,800);
+    /* The sub-heading under which the variables are listed says whether they
+       are continuous or ordered categorical; the fit-index cutoffs were derived
+       for continuous indicators and the page needs to know which case it is. */
+    r.categorical = /Binary and ordered categorical/.test(vblock);
     var vrows = vblock.split(/\n/), vars = [];
     for(var k=0;k<vrows.length;k++){
       /* Sub-headings such as "Continuous" or "Binary and ordered categorical"
@@ -647,8 +662,8 @@ function evaluateNesting(A,B){
     var uneq = lo>0 && hi/lo > 1.5;
     add(uneq?"warn":"ok","The comparison involves "+gn.length+" groups of sizes "+gn.join(", ")+". "+
       (uneq
-        ? "The largest group is "+fmt(hi/lo,2)+" times the smallest, so the group sizes are unequal; the box above has been ticked, and the stricter cutoffs of Chen (2007) are the ones that match this comparison."
-        : "The sizes are comparable, so the cutoffs derived under comparable group sizes are the ones that match this comparison."));
+        ? "The largest group is "+fmt(hi/lo,2)+" times the smallest, so the group sizes are unequal. This was read from the output; it decides which of the two sets of cutoffs proposed by Chen (2007) can match the comparison."
+        : "The sizes are comparable. This was read from the output; it decides which of the two sets of cutoffs proposed by Chen (2007) can match the comparison."));
   }
 
   /* 5. Same observed dependent variables */
@@ -679,7 +694,7 @@ function evaluateNesting(A,B){
     if(H0.parameters >= H1.parameters){
       add("bad","The model with more degrees of freedom ("+esc(names.H0)+") also has more free parameters ("+H0.parameters+" against "+H1.parameters+"). For nested models fitted to the same data this cannot happen.");
     }else if((H0.df-H1.df) !== (H1.parameters-H0.parameters)){
-      add("warn","The difference in degrees of freedom ("+(H0.df-H1.df)+") does not match the difference in free parameters ("+(H1.parameters-H0.parameters)+"). With MLMV, WLSMV and ULSMV the printed degrees of freedom are adjusted and this mismatch is expected; with the other estimators, check that the two runs share the same data structure and the same variables.");
+      add("warn","The difference in degrees of freedom ("+(H0.df-H1.df)+") does not match the difference in free parameters ("+(H1.parameters-H0.parameters)+"). For two nested models fitted to the same moments the two counts are equal; since " + MP + " 6 this holds for MLMV, WLSMV and ULSMV as well, whose printed degrees of freedom are the usual ones (Asparouhov &amp; Muthén, 2010). Check that the two runs share the same data structure and the same variables, and that neither was estimated with an older version.");
     }else{
       add("ok","The difference in degrees of freedom ("+(H0.df-H1.df)+") equals the difference in free parameters, as a nesting relation requires.");
     }
@@ -688,15 +703,15 @@ function evaluateNesting(A,B){
   /* 8. Order of the chi-square statistics */
   if(H0.df !== H1.df){
     if(method === "difftest"){
-      add("note","The chi-square values of MLMV, WLSMV and ULSMV are adjusted in mean and variance, so their order across two models carries no information and is not checked here.");
+      add("note","The chi-square values of MLMV, WLSMV and ULSMV are adjusted in mean and variance, and the adjustment can reverse their order across two models, so the order is not checked here.");
     }else{
       var robust = (method === "scaled");
       var t0 = (robust && H0.scf) ? H0.chi2*H0.scf : H0.chi2;
       var t1 = (robust && H1.scf) ? H1.chi2*H1.scf : H1.chi2;
       if(t0 + 1e-9 >= t1)
-        add("ok","The chi-square of the restricted model is at least as large as that of the free model"+(robust?", once both are multiplied back by their scaling correction factors":"")+", as nesting requires.");
+        add("ok","The chi-square of the restricted model is at least as large as that of the unrestricted model"+(robust?", once both are multiplied back by their scaling correction factors":"")+", as nesting requires.");
       else
-        add("warn","The chi-square of the restricted model is smaller than that of the free model"+(robust?", even after multiplying both back by their scaling correction factors":"")+". Adding restrictions cannot improve fit: either the models are not nested, or one of the two runs has an estimation problem.");
+        add("warn","The chi-square of the restricted model is smaller than that of the unrestricted model"+(robust?", even after multiplying both back by their scaling correction factors":"")+". Adding restrictions cannot improve fit: either the models are not nested, or one of the two runs has an estimation problem.");
     }
   }
 
@@ -707,9 +722,9 @@ function evaluateNesting(A,B){
     if(sameLL && diffPar)
       add("warn","The two outputs report the same log-likelihood ("+fmt(H0.h0LL)+") with different numbers of free parameters ("+H0.parameters+" and "+H1.parameters+"), which is impossible. Check that the two files are the two models you mean to compare; the log-likelihood version of the test is not computed.");
     else if(H0.h0LL <= H1.h0LL + 1e-6)
-      add("ok","The log-likelihood of the restricted model is no larger than that of the free model, as nesting requires.");
+      add("ok","The log-likelihood of the restricted model is no larger than that of the unrestricted model, as nesting requires.");
     else
-      add("warn","The log-likelihood of the restricted model is larger than that of the free model, which a nesting relation excludes.");
+      add("warn","The log-likelihood of the restricted model is larger than that of the unrestricted model, which a nesting relation excludes.");
   }
 
   var verdict = fatal ? "bad" : (warned ? "warn" : "ok");
@@ -719,7 +734,7 @@ function evaluateNesting(A,B){
 /* ---------- The difference tests ---------- */
 function classicalDifference(H0,H1){
   var out = { kind:"classical", ddf:H0.df-H1.df };
-  if(out.ddf <= 0){ out.error = "The difference in degrees of freedom is " + out.ddf + ", which is not positive, so there is no restriction to test. The model treated as restricted has to have more degrees of freedom than the free one; check the two values in the cards above."; return out; }
+  if(out.ddf <= 0){ out.error = "The difference in degrees of freedom is " + out.ddf + ", which is not positive, so there is no restriction to test. The model treated as restricted has to have more degrees of freedom than the unrestricted one; check the two values in the cards above."; return out; }
   out.stat = H0.chi2 - H1.chi2;
   if(out.stat < 0){
     out.negative = true;
@@ -732,17 +747,21 @@ function classicalDifference(H0,H1){
 
 function scaledDifference(H0,H1,c10){
   var out = { kind:"scaled", ddf:H0.df-H1.df };
-  if(out.ddf <= 0){ out.error = "The difference in degrees of freedom is " + out.ddf + ", which is not positive, so there is no restriction to test. The model treated as restricted has to have more degrees of freedom than the free one; check the two values in the cards above."; return out; }
+  if(out.ddf <= 0){ out.error = "The difference in degrees of freedom is " + out.ddf + ", which is not positive, so there is no restriction to test. The model treated as restricted has to have more degrees of freedom than the unrestricted one; check the two values in the cards above."; return out; }
   if(H0.scf===null || H1.scf===null){
-    out.error = "The scaling correction factor is missing for one of the two models. " + MP + " prints it as “Scaling Correction Factor” under the chi-square; type it into the card above.";
+    out.error = "The scaling correction factor is missing for one of the two models. " + MP + " prints it as “Scaling Correction Factor” under the chi-square for MLR, MLM and WLSM; load the complete output of that run again.";
     return out;
   }
   var numerator = H0.chi2*H0.scf - H1.chi2*H1.scf;
   out.numerator = numerator;
   out.cd = (H0.df*H0.scf - H1.df*H1.scf)/out.ddf;
+  /* Satorra and Bentler (2010), in the form of Asparouhov and Muthén (2013,
+     equation 4): the correction factor of the unrestricted model evaluated at
+     the restricted estimates, c10, takes the place of c1. The factor of the
+     restricted model, c0, stays. */
   if(c10!==null && c10!==undefined && isFinite(c10) && c10>0){
     out.c10 = c10;
-    out.cdStar = (H0.df*c10 - H1.df*H1.scf)/out.ddf;
+    out.cdStar = (H0.df*H0.scf - H1.df*c10)/out.ddf;
   }
   var useStar = false;
   if(out.cd <= 0 || numerator/out.cd < 0){
@@ -753,7 +772,8 @@ function scaledDifference(H0,H1,c10){
       out.error = (out.cd<=0
         ? "The difference scaling correction is not positive (cd = "+fmt(out.cd,4)+")."
         : "The scaled test statistic comes out negative (T = "+fmt(numerator/out.cd)+").")
-        + " With nested models estimated without trouble this does not happen, and it is not a non-significant test: the statistic in this form cannot be referred to a chi-square distribution, and nothing follows from it for H0 or for H1. The strictly positive version of the test (Satorra &amp; Bentler, 2010) is the way forward. It needs one more " + MP + " run: the restricted model, with the unrestricted solution as starting values and the estimation stopped before the first update (<code>ANALYSIS: ITERATIONS = 0;</code>). Load that output in the box headed <em>Third output</em> at the end of the loading section and the page recomputes the test with <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>10</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>1</mn></msub><mo stretchy=\"false\">)</mo></mrow><mo>/</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><mo stretchy=\"false\">)</mo></mrow></mrow></math> in place of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>.";
+        + " With nested models estimated without trouble this does not happen, and it is not a non-significant test: the statistic in this form cannot be referred to a chi-square distribution, and nothing follows from it for H0 or for H1. The remedy is the strictly positive version of the test (Satorra &amp; Bentler, 2010). It needs one more " + MP + " run: the <em>unrestricted</em> model with the estimates of the restricted model as starting values and no iteration, obtained as Asparouhov and Muthén (2013) describe (<code>OUTPUT: SVALUES;</code> in the restricted run, its MODEL command pasted into the unrestricted input, <code>ANALYSIS: CONVERGENCE = 100000000;</code>). Load that output in the box headed <em>Third output</em> at the end of the loading section and the page recomputes the test with <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>10</mn></msub><mo stretchy=\"false\">)</mo></mrow><mo>/</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><mo stretchy=\"false\">)</mo></mrow></mrow></math> in place of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>."
+        + (out.cdStar !== undefined ? " The third output that was loaded gives c10 = " + fmt(c10,4) + ", with which the correction is still not positive or the statistic still negative; check that it is the unrestricted model evaluated at the restricted estimates, with the same log-likelihood as the restricted run." : "");
       return out;
     }
   }
@@ -805,26 +825,65 @@ function guidanceRows(deltas, ctx){
       delta:(d===undefined?null:d), dec:3, applies:applies,
       within:(d===undefined ? null : (key==="cfi" ? d >= cutoff-EPS : d <= cutoff+EPS)) });
   }
-  var strict = (ctx.n!==null && ctx.n<=300) || ctx.unequalGroups;
-  var many = (ctx.nGroups!==null && ctx.nGroups>=5);
+  /* Every cutoff below was derived in a simulation of multiple-group
+     measurement invariance with normal continuous indicators (Svetina,
+     Rutkowski and Rutkowski, 2020, Table 1). A row is marked as matching only
+     when the comparison has the number of groups, the group sizes and the type
+     of indicator of that design; every row is still listed for reference. */
+  var two  = ctx.nGroups === 2;
+  var cont = !ctx.categorical;
+  var per  = ctx.minGroupN;
+  /* Chen (2007) gives one set for groups of comparable size with more than 300
+     cases in each and one for unequal groups with 300 or fewer; the page reads
+     the size of the smallest group. A comparison between the two designs
+     matches neither, and both sets are listed unmarked. */
+  var chenCorner = (per === null) ? "neither"
+                 : (!ctx.unequalGroups && per > 300) ? "large"
+                 : (ctx.unequalGroups && per <= 300) ? "small" : "neither";
+  var many = (ctx.nGroups!==null && ctx.nGroups>=10);
 
-  drop("cfi", -0.010, "Cheung &amp; Rensvold (2002)", "any comparison of nested models", !strict);
-  drop("cfi", strict?-0.005:-0.010, "Chen (2007)", strict?"N ≤ 300 or unequal group sizes":"N above 300 with comparable group sizes", true);
-  drop("rmsea", strict?0.010:0.015, "Chen (2007)", strict?"N ≤ 300 or unequal group sizes":"N above 300 with comparable group sizes", true);
-  if(ctx.constraint!=="intercepts")
-    drop("srmr", strict?0.025:0.030, "Chen (2007)", "constraints on loadings"+(strict?", N ≤ 300 or unequal group sizes":""), ctx.constraint==="loadings");
-  if(ctx.constraint!=="loadings")
-    drop("srmr", strict?0.005:0.010, "Chen (2007)", "constraints on intercepts, thresholds or residuals"+(strict?", N ≤ 300 or unequal group sizes":""), ctx.constraint==="intercepts");
-  /* The cutoffs for many groups are shown only when the comparison involves
-     several groups: with one or two groups they would answer a question that
-     was not asked. */
-  if(ctx.nGroups === null || ctx.nGroups >= 3){
-    drop("cfi", -0.020, "Rutkowski &amp; Svetina (2014)", "many groups, metric step", many && ctx.constraint==="loadings");
-    drop("rmsea", 0.030, "Rutkowski &amp; Svetina (2014)", "many groups, metric step", many && ctx.constraint==="loadings");
-    drop("cfi", -0.010, "Rutkowski &amp; Svetina (2014)", "many groups, scalar step", many && ctx.constraint==="intercepts");
-    drop("rmsea", 0.010, "Rutkowski &amp; Svetina (2014)", "many groups, scalar step", many && ctx.constraint==="intercepts");
+  drop("cfi", -0.010, "Cheung &amp; Rensvold (2002)", "two groups, continuous indicators", two && cont);
+  (chenCorner === "neither" ? ["large","small"] : [chenCorner]).forEach(function(corner){
+    var strict = corner === "small", applies = two && cont && chenCorner === corner;
+    var cond = strict ? "two unequal groups, the smaller with 300 or fewer cases"
+                      : "two groups of comparable size, the smaller with more than 300 cases";
+    drop("cfi", strict?-0.005:-0.010, "Chen (2007)", cond, applies);
+    drop("rmsea", strict?0.010:0.015, "Chen (2007)", cond, applies);
+    if(ctx.constraint!=="intercepts")
+      drop("srmr", strict?0.025:0.030, "Chen (2007)", "constraints on loadings; "+cond, applies && ctx.constraint==="loadings");
+    if(ctx.constraint!=="loadings")
+      drop("srmr", strict?0.005:0.010, "Chen (2007)", "constraints on intercepts, thresholds or residual variances; "+cond, applies && ctx.constraint==="intercepts");
+  });
+  /* Rutkowski and Svetina (2014) simulated 10 and 20 groups; their values are
+     listed from five groups upward and marked as matching from ten. */
+  if(ctx.nGroups === null || ctx.nGroups >= 5){
+    var rs = "10 or 20 groups of 600 to 6,000 cases each, continuous indicators";
+    drop("cfi", -0.020, "Rutkowski &amp; Svetina (2014)", rs+", metric step", many && cont && ctx.constraint==="loadings");
+    drop("rmsea", 0.030, "Rutkowski &amp; Svetina (2014)", rs+", metric step", many && cont && ctx.constraint==="loadings");
+    drop("cfi", -0.010, "Rutkowski &amp; Svetina (2014)", rs+", scalar step", many && cont && ctx.constraint==="intercepts");
+    drop("rmsea", 0.010, "Rutkowski &amp; Svetina (2014)", rs+", scalar step", many && cont && ctx.constraint==="intercepts");
   }
   return rows;
+}
+
+/* Why no row, or only some rows, can be marked as matching this comparison. */
+function guidanceNote(ctx){
+  var out = [];
+  if(ctx.nGroups !== null && ctx.nGroups < 2)
+    out.push("This comparison involves one group. The cutoffs were derived for multiple-group tests of measurement invariance, so none of them is marked as matching; they are listed for reference only.");
+  if(ctx.categorical)
+    out.push("The indicators are ordered categorical. The cutoffs were derived with continuous indicators, and Svetina, Rutkowski and Rutkowski (2020) advise against carrying them over unchanged, so none is marked as matching.");
+  if(ctx.nGroups === 2 && !ctx.categorical){
+    if(ctx.minGroupN === null)
+      out.push("The size of each group could not be read, so it is not known which of the two sets of values proposed by Chen (2007) matches this comparison; both are listed and neither is marked.");
+    else if(!((!ctx.unequalGroups && ctx.minGroupN > 300) || (ctx.unequalGroups && ctx.minGroupN <= 300)))
+      out.push("Chen (2007) derived one set of values for two groups of comparable size with more than 300 cases in each and another for two unequal groups with 300 or fewer in each; the condition is read here per group, following Svetina et al. (2020, p. 114). This comparison has " +
+        (ctx.unequalGroups ? "unequal groups" : "groups of comparable size") + " with " + ctx.minGroupN +
+        " cases in the smallest, which is neither of the two, so both sets are listed and neither is marked as matching.");
+  }
+  if(ctx.nGroups !== null && ctx.nGroups >= 3 && ctx.nGroups < 10)
+    out.push("With " + ctx.nGroups + " groups the comparison matches neither the two-group designs of Cheung and Rensvold (2002) and Chen (2007) nor the 10 and 20 groups of Rutkowski and Svetina (2014); the values are listed for reference.");
+  return out.join(" ");
 }
 
 /* Information criteria: which model the difference favors and how strongly */
@@ -837,16 +896,19 @@ function icVerdict(key, d){
   }
   if(key==="abic")
     return { favors:favors, text:"difference of "+fmt(a,2)+"; the scale of Raftery (1995) was proposed for the BIC, not for its sample-size adjusted form" };
+  /* Burnham and Anderson (2004, p. 271) name three bands, 0 to 2, 4 to 7 and
+     above 10; a difference between them is reported as such. */
   strength = a<=2 ? "both models remain substantially supported" :
+             (a<4 ? "between the bands of 0 to 2 and 4 to 7, which are not named" :
              (a<=7 ? "considerably less support for the other model" :
-             (a<=10 ? "little support for the other model" : "essentially no support for the other model"));
+             (a<=10 ? "between the bands of 4 to 7 and above 10, which are not named" : "essentially no support for the other model")));
   return { favors:favors, text:strength+" (Burnham &amp; Anderson, 2004)" };
 }
 
 
 /* ---------- Reading the MODEL command ---------- */
 /* The two MODEL commands are compared parameter by parameter, to say what
-   separates the restricted model from the free one: parameters fixed with @,
+   separates the restricted model from the unrestricted one: parameters fixed with @,
    and groups of parameters forced to be equal by a shared label.            */
 
 function expandRange(token, order){
@@ -999,7 +1061,7 @@ function describeGroup(list){
 }
 
 function restrictions(model0, model1, depVars){
-  /* model0 = restricted (H0), model1 = free (H1) */
+  /* model0 = restricted (H0), model1 = unrestricted (H1) */
   var a0 = analyzeModel(model0, depVars), a1 = analyzeModel(model1, depVars);
   if(!a0 || !a1) return null;
   var items=[], total=0, oddities=[];
@@ -1008,7 +1070,7 @@ function restrictions(model0, model1, depVars){
      not automatically fixed at zero: in Mplus some parameters are free and
      others fixed by default, depending on the class of model. */
   var missing = Object.keys(a1.par).filter(function(k){ return !a0.par[k]; });
-  if(missing.length) oddities.push("The free model names parameters that do not appear in the text of the restricted model (" +
+  if(missing.length) oddities.push("The unrestricted model names parameters that do not appear in the text of the restricted model (" +
     missing.map(paramName).join("; ") + "). They are not counted here as parameters fixed at zero: check the " + MP + " defaults and the specification.");
 
   /* 2. Parameters fixed with @ in H0 and free in H1 */
@@ -1016,7 +1078,7 @@ function restrictions(model0, model1, depVars){
     return a0.par[k].fixed !== null && a1.par[k] && a1.par[k].fixed === null; });
   if(fixed.length){
     items.push({ n:fixed.length,
-      text: "<b>" + fixed.length + " parameter" + (fixed.length===1?"":"s") + "</b> free in the free model " +
+      text: "<b>" + fixed.length + " parameter" + (fixed.length===1?"":"s") + "</b> free in the unrestricted model " +
             (fixed.length===1?"is":"are") + " <b>fixed with @</b> in the restricted model (" +
             fixed.map(function(k){ return paramName(k) + " at " + a0.par[k].fixed; }).join("; ") +
             "): " + fixed.length + " restriction" + (fixed.length===1?"":"s") + ".",
@@ -1050,11 +1112,11 @@ function restrictions(model0, model1, depVars){
     if(fixedAtZero(a0.par[k].fixed)) return false;
     return true;
   });
-  if(extra.length) oddities.push("The restricted model names paths that the free model does not (" +
+  if(extra.length) oddities.push("The restricted model names paths that the unrestricted model does not (" +
     extra.map(paramName).join("; ") + "), which a nesting relation excludes.");
   Object.keys(a1.labels).forEach(function(e){
     if(!groupAlreadyIn(a1.labels[e], a0))
-      oddities.push("The equality label (" + esc(e) + ") of the free model does not appear in the restricted model.");
+      oddities.push("The equality label (" + esc(e) + ") of the unrestricted model does not appear in the restricted model.");
   });
 
   return { items:items, total:total, oddities:oddities };
@@ -1157,7 +1219,7 @@ function loadFile(file, letter){
       var cMsg = "";
       if(parsed.empty) cMsg = "The file dropped in this box is empty. Load the .out file " + MP + " wrote.";
       else if(!parsed.isMplus) cMsg = "The file dropped in this box is not an " + MP + " output: it carries none of the headings " + MP + " always writes. Load the .out file itself.";
-      else if(parsed.scf === null) cMsg = "The file dropped in this box carries no “Scaling Correction Factor” under its chi-square, so the factor <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math> that the strictly positive test needs could not be read. " + MP + " prints that factor only for MLR, MLM and WLSM. Check that this is the output of the restricted model run with <code>ANALYSIS: ITERATIONS = 0;</code> and the same estimator as the other two.";
+      else if(parsed.scf === null) cMsg = "The file dropped in this box carries no “Scaling Correction Factor” under its chi-square, so the factor <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math> that the strictly positive test needs could not be read. " + MP + " prints that factor only for MLR, MLM and WLSM. Check that this is the output of the unrestricted model evaluated at the restricted estimates, with the same estimator as the other two.";
       el("detC").innerHTML = cMsg ? "Read, but the factor this box needs is not in it" : "File read; press to replace it";
       if(cMsg) el("cMsg").innerHTML = '<div class="status warn"><span class="tag">Not used</span> ' + cMsg + '</div>';
       else el("cMsg").innerHTML = '<div class="status ok"><span class="tag">Read</span> The scaling correction factor of this run is <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math> = ' + fmt(parsed.scf,4) + ', and the strictly positive test is computed with it whenever the standard one cannot be computed.</div>';
@@ -1179,18 +1241,37 @@ function loadFile(file, letter){
 
 function showValues(){
   if(state.A || state.B) el("valuesSection").hidden = false;
-  el("settingsSection").hidden = !(state.A && state.B);
+}
+
+/* The two choices are shown only when something depends on them: the
+   significance level when a test with a p-value is computed, the kind of
+   constraint when the fit-index cutoffs are listed. The third box applies to
+   the scaled estimators alone. */
+function showControls(opts){
+  var o = opts || {};
+  el("fieldAlpha").hidden = !o.alpha;
+  el("fieldConstraint").hidden = !o.constraint;
+  el("settingsSection").hidden = !(o.alpha || o.constraint);
+  el("spBox").hidden = !o.third;
 }
 
 /* Whether the groups are of unequal size is a fact about the two runs, read
    from the per-group sample sizes the output prints. It decides which of the
    cutoffs proposed by Chen (2007) matches this comparison, and it is not a
    choice: when the sizes cannot be read, neither set is marked as matching. */
+function groupSizes(){
+  return (state.A && state.A.groupNs) || (state.B && state.B.groupNs) || null;
+}
 function unequalGroups(){
-  var gn = (state.A && state.A.groupNs) || (state.B && state.B.groupNs);
+  var gn = groupSizes();
   if(!gn || gn.length < 2) return null;
   var lo = Math.min.apply(null, gn), hi = Math.max.apply(null, gn);
   return lo > 0 ? (hi / lo > 1.5) : null;
+}
+function smallestGroup(){
+  var gn = groupSizes();
+  if(!gn || !gn.length) return null;
+  return Math.min.apply(null, gn);
 }
 
 function drawCard(letter){
@@ -1251,7 +1332,7 @@ function restrictionsHtml(ev){
     try{ r = restrictions(H0.model, H1.model, H0.depVars || H1.depVars); }catch(err){ r = null; }
     if(r && r.items.length){
       var ddf = (H0.df!==null && H1.df!==null) ? (H0.df-H1.df) : null;
-      h += '<p>Going from the free '+esc(ev.names.H1)+' to the restricted '+esc(ev.names.H0)+' takes the following restrictions:</p><ul>';
+      h += '<p>Going from the unrestricted '+esc(ev.names.H1)+' to the restricted '+esc(ev.names.H0)+' takes the following restrictions:</p><ul>';
       r.items.forEach(function(v){ h += '<li>'+v.text+'</li>'; });
       h += '</ul>';
       h += '<p>The restrictions found in the syntax add up to <b>'+r.total+'</b>'
@@ -1259,13 +1340,13 @@ function restrictionsHtml(ev){
             ? ', and the degrees of freedom rise by exactly '+ddf+'.'
             : ', while the degrees of freedom rise by '+ddf+'. The difference can come from restrictions imposed elsewhere (MODEL CONSTRAINT, cross-group equalities, parameters fixed by default) or from syntax the page did not read in full; the line-by-line comparison below shows what differs.')
           : '.') + '</p>';
-      h += '<p>The free model is recovered by releasing the same parameters: '
+      h += '<p>The unrestricted model is recovered by releasing the same parameters: '
         + r.items.map(function(v){ return v.back; }).join("; ") + '.</p>';
       if(r.oddities.length) h += '<div class="status warn"><span class="tag">Check</span> '+r.oddities.join(" ")+'</div>';
     }else{
       var mark0 = H0.labelConstraints + H0.fixedConstraints, mark1 = H1.labelConstraints + H1.fixedConstraints;
       if(mark0 > mark1)
-        h += '<p>The MODEL command of the restricted model carries '+H0.labelConstraints+' labels in parentheses and '+H0.fixedConstraints+' parameters fixed with @, against '+H1.labelConstraints+' and '+H1.fixedConstraints+' in the free model. The marked lines below show where the restrictions are imposed.</p>';
+        h += '<p>The MODEL command of the restricted model carries '+H0.labelConstraints+' labels in parentheses and '+H0.fixedConstraints+' parameters fixed with @, against '+H1.labelConstraints+' and '+H1.fixedConstraints+' in the unrestricted model. The marked lines below show where the restrictions are imposed.</p>';
       else
         h += '<p>The marked lines below show where the two MODEL commands differ. A line that is absent is not read as a parameter fixed at zero, because some ' + MP + ' parameters are free by default.</p>';
     }
@@ -1280,7 +1361,7 @@ function restrictionsHtml(ev){
   }
   h += '<div class="syntax-cols">'
      + block(ev.names.H0+" — restricted (H0)", d.r0)
-     + block(ev.names.H1+" — free (H1)", d.r1)
+     + block(ev.names.H1+" — unrestricted (H1)", d.r1)
      + '</div>';
   h += '<p>Lines marked with ≠ have no identical counterpart in the other file.</p>';
   return '<details><summary>What separates the two models</summary>'+h+'</details>';
@@ -1305,26 +1386,26 @@ function testPanel(ev, alpha){
   }
   if(ev.method === "difftest"){
     var h = '<h3>Difference test from DIFFTEST</h3>';
-    h += '<p>With '+esc(ev.estimator)+' the printed chi-square is adjusted in mean and in variance, and the difference of two such statistics is not chi-square distributed under any rescaling. The test has to come from ' + MP + ' itself (Asparouhov &amp; Muthén, 2006).</p>';
+    h += '<p>With '+esc(ev.estimator)+' the printed chi-square is adjusted in mean and in variance. The difference of two such statistics is not chi-square distributed, and the correct test needs the derivatives of both models, which only ' + MP + ' has (Asparouhov &amp; Muthén, 2006).</p>';
     if(H0.difftest){
-      var dt = H0.difftest, sig = (dt.p!==null && dt.p<alpha);
+      var dt = H0.difftest, sig = (dt.p!==null && dt.p<alpha), alphaTxt = String(alpha).replace(/^0\./,".");
       h += '<div class="table-wrap"><table><caption>Chi-Square Test for Difference Testing, read from '+esc(ev.names.H0)+'</caption>'
         + '<tr><th scope="col">Value</th><th scope="col" class="num">df</th><th scope="col" class="num">p</th></tr>'
         + '<tr><td class="num">'+fmt(dt.value,3)+'</td><td class="num">'+dt.df+'</td><td class="num">'+fmtP(dt.p)+'</td></tr></table></div>';
       h += '<div class="status '+(sig?"bad":"ok")+'"><span class="tag">'+(sig?"Significant":"Not significant")+'</span> '
-        + 'The restrictions in '+esc(ev.names.H0)+' '+(sig?"worsen":"do not worsen")+' fit significantly at α = '+String(alpha).replace(/^0\./,".")+'.</div>';
+        + 'The restrictions in '+esc(ev.names.H0)+' '+(sig?"worsen fit beyond sampling error":"are not rejected")+' at α = '+alphaTxt+'.</div>';
       if(dt.df !== ddf)
-        h += '<p>The degrees of freedom of the DIFFTEST result ('+dt.df+') differ from the difference between the printed degrees of freedom of the two models ('+ddf+'). With mean- and variance-adjusted estimators the printed degrees of freedom are adjusted, so the two numbers need not agree; the DIFFTEST value is the one to report.</p>';
+        h += '<div class="status warn"><span class="tag">Check</span> The degrees of freedom of the DIFFTEST result ('+dt.df+') differ from the difference between the printed degrees of freedom of the two models ('+ddf+'). Since ' + MP + ' 6 the two are equal for nested models (Asparouhov &amp; Muthén, 2010), so the derivatives file was saved by a different unrestricted model, or one of the runs comes from an older version. Check which run wrote <code>deriv.dat</code> before reporting this value.</div>';
       out.test = { kind:"difftest", stat:dt.value, ddf:dt.df, p:dt.p };
       out.apa = "The DIFFTEST procedure for " + ev.estimator + " indicated that the constraints imposed in "
-        + ev.names.H0 + (sig ? " worsened model fit, " : " did not worsen model fit significantly, ")
+        + ev.names.H0 + (sig ? " worsened model fit at α = " + alphaTxt + ", " : " did not worsen model fit significantly at α = " + alphaTxt + ", ")
         + "Δχ²(" + dt.df + ") = " + fmt(dt.value,3) + ", "
         + (dt.p!==null && dt.p<0.001 ? "p < .001" : "p = " + fmtP(dt.p)) + ".";
     }else if(H1.difftest){
-      h += '<div class="status warn"><span class="tag">Wrong run</span> The DIFFTEST block appears in '+esc(ev.names.H1)+', the less restricted model. ' + MP + ' prints it in the run that reads the derivatives file, which has to be the restricted model. Swap the two runs: <code>SAVEDATA: DIFFTEST = deriv.dat;</code> goes in the less restricted model, <code>ANALYSIS: DIFFTEST = deriv.dat;</code> in the restricted one.</div>';
+      h += '<div class="status warn"><span class="tag">Wrong run</span> The DIFFTEST block appears in '+esc(ev.names.H1)+', the unrestricted model. ' + MP + ' prints it in the run that reads the derivatives file, which has to be the restricted model. Swap the two runs: <code>SAVEDATA: DIFFTEST = deriv.dat;</code> goes in the unrestricted model, <code>ANALYSIS: DIFFTEST = deriv.dat;</code> in the restricted one.</div>';
     }else{
       h += '<div class="status warn"><span class="tag">Missing</span> Neither output contains a “Chi-Square Test for Difference Testing” block, so no test can be reported. Run the two models again in this order:</div>'
-        + '<pre class="syntax">! Step 1: the less restricted model, ' + esc(ev.names.H1) + '\nSAVEDATA:   DIFFTEST = deriv.dat;\n\n! Step 2: the restricted model, ' + esc(ev.names.H0) + '\nANALYSIS:   DIFFTEST = deriv.dat;</pre>'
+        + '<pre class="syntax">! Step 1: the unrestricted model, ' + esc(ev.names.H1) + '\nSAVEDATA:   DIFFTEST = deriv.dat;\n\n! Step 2: the restricted model, ' + esc(ev.names.H0) + '\nANALYSIS:   DIFFTEST = deriv.dat;</pre>'
         + '<p>The second output then carries the value, the degrees of freedom and the p-value of the test, which this page reads when you load it.</p>';
     }
     out.html = '<div class="panel">'+h+'</div>';
@@ -1338,7 +1419,7 @@ function testPanel(ev, alpha){
   out.test = test;
 
   var title = (ev.method === "scaled")
-    ? "Satorra-Bentler scaled difference test (" + esc(ev.estimator) + ")"
+    ? "Satorra–Bentler scaled difference test (" + esc(ev.estimator) + ")"
     : "Chi-square difference test (" + esc(ev.estimator) + ")";
   var body = '<h3>'+title+'</h3>';
 
@@ -1371,8 +1452,8 @@ function testPanel(ev, alpha){
   body += '<div class="status '+(sig?"bad":"ok")+'"><span class="tag">'+(sig?"Significant":"Not significant")+'</span> '
     + symbol+' = '+fmt(test.stat,3)+', Δdf = '+test.ddf+', p '+(test.p<0.001?"< .001":"= "+fmtP(test.p))+', α = '+alphaText+'. '
     + (sig
-        ? 'The restrictions imposed in '+esc(ev.names.H0)+' worsen fit beyond what sampling error accounts for, which favors the less restricted '+esc(ev.names.H1)+'.'
-        : 'The restrictions imposed in '+esc(ev.names.H0)+' do not worsen fit beyond sampling error, so the restricted model is kept for parsimony.')
+        ? 'The restrictions imposed in '+esc(ev.names.H0)+' worsen fit beyond what sampling error accounts for, which favors the unrestricted '+esc(ev.names.H1)+'.'
+        : 'The restrictions imposed in '+esc(ev.names.H0)+' are not rejected: the loss of fit is within what sampling error accounts for at this level. A non-significant test is not evidence that the restrictions hold.')
     + '</div>';
 
   if(test.ll){
@@ -1389,12 +1470,12 @@ function testPanel(ev, alpha){
   }
 
   /* Sentence ready to paste into a manuscript */
-  var name = (test.kind === "scaled") ? "The Satorra-Bentler scaled chi-square difference test" : "The chi-square difference test";
+  var name = (test.kind === "scaled") ? "The Satorra–Bentler scaled chi-square difference test" : "The chi-square difference test";
   var statName = (test.kind === "scaled")
-    ? (test.strictlyPositive ? "Satorra-Bentler strictly positive scaled Δχ²" : "Satorra-Bentler scaled Δχ²")
+    ? (test.strictlyPositive ? "Satorra–Bentler strictly positive scaled Δχ²" : "Satorra–Bentler scaled Δχ²")
     : "Δχ²";
   out.apa = name + " indicated that the constraints imposed in " + ev.names.H0
-    + (sig ? " worsened model fit, " : " did not worsen model fit significantly, ")
+    + (sig ? " worsened model fit at α = " + alphaText + ", " : " did not worsen model fit significantly at α = " + alphaText + ", ")
     + statName + "(" + test.ddf + ") = " + fmt(test.stat,3) + ", "
     + (test.p<0.001 ? "p < .001" : "p = " + fmtP(test.p)) + ".";
 
@@ -1408,14 +1489,14 @@ function apaPanel(apa){
     + '<p class="apa" id="apaText">'+esc(apa)+'</p>'
     + '<div class="actions"><button type="button" id="btnCopy">Copy the sentence</button>'
     + '<span id="copyState" role="status"></span></div>'
-    + '<p>Check the wording against what the constraints actually are, and report the estimator and the sample size in the same paragraph.</p></div>';
+    + '<p>Check that the sentence names the constraints correctly, and report the estimator and the sample size in the same paragraph.</p></div>';
 }
 
 function fitPanel(ev, ctx, nested){
   var rows = fitDeltas(ev.H0, ev.H1);
   if(!rows.length) return "";
   var h = '<div class="panel"><h3>Differences in fit indices</h3>';
-  h += '<p>Each difference is the value of the restricted model minus the value of the free model.</p>';
+  h += '<p>Each difference is the value of the restricted model minus the value of the unrestricted model.</p>';
   if(!nested)
     h += '<div class="status warn"><span class="tag">Read with care</span> The checks above found something that a nesting relation excludes. The two columns below are the values the two files report, and they are shown for reference; the cutoffs proposed in the literature were derived for nested comparisons and are not applied here, because a change in CFI between two models that are not nested does not answer the question they were built for.</div>';
   h += '<div class="table-wrap"><table><caption>Fit of the two models</caption><tr>'
@@ -1438,7 +1519,9 @@ function fitPanel(ev, ctx, nested){
         + '<td>'+x.index+'</td><td class="num">'+x.cutoff+'</td><td class="num">'+fmtDelta(x.delta,3)+'</td><td>'+label+'</td></tr>';
     });
     h += '</table></div>';
-    h += '<p>Rows marked as matching this comparison are the ones whose conditions agree with the sample size, the number of groups and the type of constraint set above. A change exactly equal to a cutoff counts as within it.</p>';
+    h += '<p>Rows marked as matching this comparison are the ones whose conditions agree with the number of groups, the group sizes, the type of indicator and the type of constraint set above. A change exactly equal to a cutoff counts as within it.</p>';
+    var gnote = guidanceNote(ctx);
+    if(gnote) h += '<p>'+gnote+'</p>';
   }
 
   var ic = [];
@@ -1477,12 +1560,23 @@ function icOnlyPanel(ev){
 
 function compare(){
   var box = el("results");
+  showControls({});
   if(!state.A && !state.B){
     box.innerHTML = '<div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an ' + MP + ' output file on each of the two boxes above; the test appears here as soon as both have been read.</div>';
     return;
   }
   if(!state.A || !state.B){
-    box.innerHTML = '<div class="status info"><span class="tag">Waiting for the second file</span> One output has been read. Drop the output of the other model on the empty box above. A difference test needs two runs, and this page computes with nothing it has not read from a file.</div>';
+    var one = state.A || state.B, which = state.A ? "A" : "B", other = state.A ? "B" : "A";
+    var usable = one && one.isMplus && !one.empty;
+    box.innerHTML = usable
+      ? '<div class="status info"><span class="tag">Waiting for the second file</span> The output loaded as Model ' + which +
+        ' has been read. Drop the output of the other model on the box for Model ' + other +
+        '. A difference test needs two runs, and this page computes with nothing it has not read from a file.</div>'
+      : '<div class="status bad"><span class="tag">Nothing has been read</span> The file loaded as Model ' + which + ' ' +
+        (one && one.empty
+          ? 'is empty. ' + MP + ' writes the output as the run proceeds, so an empty file usually means the run was interrupted or the file was opened before it finished.'
+          : 'carries none of the headings ' + MP + ' always writes, so it is not an output file. Drop the <code>.out</code> file of the run, not the input, the data or a table saved elsewhere.') +
+        ' Load it again, and the output of the other model on the box for Model ' + other + '.</div>';
     return;
   }
   var ev = evaluateNesting(state.A, state.B);
@@ -1494,9 +1588,21 @@ function compare(){
   var ctx = {
     n: (ev.H0.n!==null && ev.H1.n!==null) ? Math.min(ev.H0.n, ev.H1.n) : (ev.H0.n!==null ? ev.H0.n : ev.H1.n),
     nGroups: ev.H0.nGroups!==null ? ev.H0.nGroups : ev.H1.nGroups,
+    minGroupN: smallestGroup(),
     unequalGroups: unequalGroups() === true,
+    categorical: !!(ev.H0.categorical || ev.H1.categorical),
     constraint: el("selConstraint").value
   };
+  /* The controls that have something to act on in this state: the level when a
+     test with a p-value is computed, the kind of constraint when cutoffs are
+     listed (a nested pair with fit indices in both files), the third box for
+     the scaled estimators. */
+  var hasFit = fitDeltas(ev.H0, ev.H1).some(function(r){ return r.key==="cfi"||r.key==="rmsea"||r.key==="srmr"; });
+  showControls({
+    alpha: ev.verdict !== "bad" && (ev.method === "classical" || ev.method === "scaled" || ev.method === "difftest"),
+    constraint: ev.verdict !== "bad" && hasFit,
+    third: ev.verdict !== "bad" && ev.method === "scaled"
+  });
 
   var h = "";
   var verdictText = ev.verdict==="bad"
@@ -1507,10 +1613,10 @@ function compare(){
   h += '<div class="panel"><h3>'+verdictText+'</h3>';
   h += '<dl class="kv">'
     + '<dt>Restricted model (H0)</dt><dd>'+esc(ev.names.H0)+' · chi-square = '+fmt(ev.H0.chi2)+', df = '+ev.H0.df+'</dd>'
-    + '<dt>Free model (H1)</dt><dd>'+esc(ev.names.H1)+' · chi-square = '+fmt(ev.H1.chi2)+', df = '+ev.H1.df+'</dd>'
+    + '<dt>Unrestricted model (H1)</dt><dd>'+esc(ev.names.H1)+' · chi-square = '+fmt(ev.H1.chi2)+', df = '+ev.H1.df+'</dd>'
     + '</dl>';
   h += checksHtml(ev.checks);
-  h += '<p>These are the conditions an output file can show. Whether the restricted model follows from the free one by restrictions on its parameters depends on the specification of the two models, which the comparison below sets side by side.</p>';
+  h += '<p>These are the conditions an output file can show. Whether the restricted model follows from the unrestricted one by restrictions on its parameters depends on the specification of the two models, which the comparison below sets side by side.</p>';
   h += restrictionsHtml(ev);
   h += '</div>';
 
@@ -1567,7 +1673,11 @@ el("btnReset").addEventListener("click", function(){
   });
   el("cardA").innerHTML = ""; el("cardB").innerHTML = ""; el("cMsg").innerHTML = "";
   el("valuesSection").hidden = true;
-  el("settingsSection").hidden = true;
+  /* Starting again means starting from the defaults: a level chosen for one
+     comparison must not decide the verdict of the next one unseen. */
+  el("selAlpha").value = "0.05";
+  el("selConstraint").value = "unstated";
+  showControls({});
   el("results").innerHTML = '<div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an ' + MP + ' output file on each of the two boxes above; the test appears here as soon as both have been read.</div>';
 });
 
@@ -2014,7 +2124,7 @@ function runSelfTest(){
       return 1 - 2 / Math.sqrt(Math.PI) * Math.exp(-z * z) * sum;
     }
     /* erfc(z) = exp(-z^2)/sqrt(pi) * 1/(z + (1/2)/(z + 1/(z + (3/2)/(z + ...)))),
-       evaluated backwards from a depth that is ample for z >= 1.5. */
+       evaluated backward from a depth that is ample for z >= 1.5. */
     var f = 0;
     for(var k = 300; k >= 1; k--) f = (k / 2) / (z + f);
     return Math.exp(-z * z) / Math.sqrt(Math.PI) / (z + f);
@@ -2076,20 +2186,22 @@ function runSelfTest(){
   same("worked example, degrees of freedom", worked.ddf, 3);
   near("worked example, p", worked.p, chi2Tail(67.5/5.8, 3), 0);
 
-  /* 3. Same example with c10 = 1.15 from the extra run.
-        cd* = (25*1.15 - 22*1.1)/3 = (28.75 - 24.2)/3 = 4.55/3 = 1.5166667
-        T   = 22.5/1.5166667 = 67.5/4.55 = 14.8351648                       */
+  /* 3. A case in which cd is not positive, with c10 = 0.95 from the extra run
+        of the unrestricted model at the restricted estimates (Asparouhov and
+        Muthén, 2013, equation 4: c10 takes the place of c1, c0 stays).
+        cd  = (25*1.0 - 22*1.2)/3 = (25 - 26.4)/3 = -0.4666667, not positive
+        cd* = (25*1.0 - 22*0.95)/3 = (25 - 20.9)/3 = 4.1/3 = 1.3666667
+        numerator = 60*1.0 - 45*1.2 = 60 - 54 = 6
+        T = 6/1.3666667 = 18/4.1 = 4.3902439                                 */
   var positive = scaledDifference(
     {df:25, chi2:60, scf:1.0, h0LL:null, h0SCF:null, parameters:null},
-    {df:22, chi2:45, scf:1.2, h0LL:null, h0SCF:null, parameters:null}, 1.15);
-  /* cd = (25*1.0 - 22*1.2)/3 = (25 - 26.4)/3 = -0.4666667, not positive, so
-     the strictly positive version takes over:
-     cd* = (25*1.15 - 22*1.2)/3 = (28.75 - 26.4)/3 = 2.35/3 = 0.7833333
-     numerator = 60*1.0 - 45*1.2 = 60 - 54 = 6
-     T = 6/0.7833333 = 18/2.35 = 7.6595745                                  */
+    {df:22, chi2:45, scf:1.2, h0LL:null, h0SCF:null, parameters:null}, 0.95);
   ok("negative cd is detected", positive.strictlyPositive === true);
-  near("strictly positive cd*", positive.cdStar, 2.35/3, 1e-9);
-  near("strictly positive T", positive.stat, 18/2.35, 1e-9);
+  near("strictly positive cd*", positive.cdStar, 4.1/3, 1e-9);
+  near("strictly positive T", positive.stat, 18/4.1, 1e-9);
+  /* c10 in the numerator position of c0 would give (25*0.95 - 22*1.2)/3 < 0:
+     the page must not compute with the factors the other way around. */
+  ok("c10 replaces c1, not c0", Math.abs(positive.cdStar - (25*1.0 - 22*0.95)/3) < 1e-12 && (25*0.95 - 22*1.2)/3 < 0);
 
   /* 4. Without the extra run the same case has to stop. */
   var blocked = scaledDifference(
@@ -2190,7 +2302,7 @@ function runSelfTest(){
     var df0 = df1 + ddf0;
     var c1 = 0.6 + rnd() * 1.2, c0 = 0.6 + rnd() * 1.2;
     /* about one problem in five is drawn with the restricted model fitting
-       better than the free one, which cannot happen under nesting and which
+       better than the unrestricted one, which cannot happen under nesting and which
        the page has to refuse rather than report. */
     var x1 = rnd() * 3 * df1, x0 = x1 + rnd() * 40 - 8;
     var p1 = 20 + Math.floor(rnd() * 40), p0 = p1 - ddf0;
@@ -2230,10 +2342,11 @@ function runSelfTest(){
     }else{
       ok("the scaled test refuses a non-positive cd or a negative statistic", gotS.blocked === true && gotS.stat === undefined);
       refused++;
-      /* the strictly positive form, with a c10 that makes cd* positive */
-      var c10 = (df1 * c1 + ddf0 * (0.2 + rnd())) / df0;
+      /* the strictly positive form, with a c10 (the factor of the unrestricted
+         model at the restricted estimates) that makes cd* positive */
+      var c10 = (df0 * c0 - ddf0 * (0.2 + rnd())) / df1;
       var gotP = scaledDifference(M0, M1, c10);
-      var cdStarWant = (df0 * c10 - df1 * c1) / ddf0;
+      var cdStarWant = (df0 * c0 - df1 * c10) / ddf0;
       if(cdStarWant > 0 && numWant / cdStarWant >= 0){
         nStar++;
         wStar = Math.max(wStar, Math.abs(gotP.stat - numWant / cdStarWant));
@@ -2264,20 +2377,40 @@ function runSelfTest(){
     ["cfi","rmsea","srmr"].forEach(function(k){ H1[k] = 0.5; H0[k] = 0.5 + (deltas[k]||0); });
     return guidanceRows(fitDeltas(H0,H1), ctx);
   }
+  var LARGE = {n:800, nGroups:2, minGroupN:400, unequalGroups:false, categorical:false};
+  var SMALL = {n:500, nGroups:2, minGroupN:200, unequalGroups:true,  categorical:false};
+  var MANY  = {n:9600, nGroups:12, minGroupN:800, unequalGroups:false, categorical:false};
+  function withC(base, c){ var o = {}; Object.keys(base).forEach(function(k){ o[k] = base[k]; }); o.constraint = c; return o; }
   var CUTOFFS = [
-    {key:"cfi",   v:-0.010, ctx:{n:600,nGroups:2,unequalGroups:false,constraint:"loadings"}},
-    {key:"cfi",   v:-0.005, ctx:{n:200,nGroups:2,unequalGroups:false,constraint:"loadings"}},
-    {key:"rmsea", v: 0.015, ctx:{n:600,nGroups:2,unequalGroups:false,constraint:"loadings"}},
-    {key:"rmsea", v: 0.010, ctx:{n:200,nGroups:2,unequalGroups:false,constraint:"loadings"}},
-    {key:"srmr",  v: 0.030, ctx:{n:600,nGroups:2,unequalGroups:false,constraint:"loadings"}},
-    {key:"srmr",  v: 0.025, ctx:{n:200,nGroups:2,unequalGroups:false,constraint:"loadings"}},
-    {key:"srmr",  v: 0.010, ctx:{n:600,nGroups:2,unequalGroups:false,constraint:"intercepts"}},
-    {key:"srmr",  v: 0.005, ctx:{n:200,nGroups:2,unequalGroups:false,constraint:"intercepts"}},
-    {key:"cfi",   v:-0.020, ctx:{n:9000,nGroups:12,unequalGroups:false,constraint:"loadings"}},
-    {key:"rmsea", v: 0.030, ctx:{n:9000,nGroups:12,unequalGroups:false,constraint:"loadings"}},
-    {key:"cfi",   v:-0.010, ctx:{n:9000,nGroups:12,unequalGroups:false,constraint:"intercepts"}},
-    {key:"rmsea", v: 0.010, ctx:{n:9000,nGroups:12,unequalGroups:false,constraint:"intercepts"}}
+    {key:"cfi",   v:-0.010, ctx:withC(LARGE,"loadings")},
+    {key:"cfi",   v:-0.005, ctx:withC(SMALL,"loadings")},
+    {key:"rmsea", v: 0.015, ctx:withC(LARGE,"loadings")},
+    {key:"rmsea", v: 0.010, ctx:withC(SMALL,"loadings")},
+    {key:"srmr",  v: 0.030, ctx:withC(LARGE,"loadings")},
+    {key:"srmr",  v: 0.025, ctx:withC(SMALL,"loadings")},
+    {key:"srmr",  v: 0.010, ctx:withC(LARGE,"intercepts")},
+    {key:"srmr",  v: 0.005, ctx:withC(SMALL,"intercepts")},
+    {key:"cfi",   v:-0.020, ctx:withC(MANY,"loadings")},
+    {key:"rmsea", v: 0.030, ctx:withC(MANY,"loadings")},
+    {key:"cfi",   v:-0.010, ctx:withC(MANY,"intercepts")},
+    {key:"rmsea", v: 0.010, ctx:withC(MANY,"intercepts")}
   ];
+  /* Which rows are marked as matching: two continuous groups match Cheung and
+     Rensvold and one of Chen's designs; one group, categorical indicators, a
+     design between Chen's two, and twelve groups for the two-group sources do
+     not. */
+  function matching(ctx, deltas){
+    return guidanceAt(deltas, ctx).filter(function(r){ return r.applies; }).map(function(r){ return r.source.replace(/&amp;/g,"&"); });
+  }
+  ok("two large equal groups match Cheung & Rensvold and Chen", matching(withC(LARGE,"loadings"), {cfi:-0.004}).join("|") === "Cheung & Rensvold (2002)|Chen (2007)|Chen (2007)|Chen (2007)");
+  ok("one group matches no cutoff", matching({n:400,nGroups:1,minGroupN:null,unequalGroups:false,categorical:false,constraint:"loadings"}, {cfi:-0.004}).length === 0);
+  ok("ordered categorical indicators match no cutoff", matching({n:800,nGroups:2,minGroupN:400,unequalGroups:false,categorical:true,constraint:"loadings"}, {cfi:-0.004}).length === 0);
+  ok("a design between Chen's two lists both sets and marks neither",
+     matching({n:400,nGroups:2,minGroupN:200,unequalGroups:false,categorical:false,constraint:"loadings"}, {cfi:-0.004}).join("|") === "Cheung & Rensvold (2002)" &&
+     guidanceAt({cfi:-0.004}, {n:400,nGroups:2,minGroupN:200,unequalGroups:false,categorical:false,constraint:"loadings"}).filter(function(r){ return r.source.indexOf("Chen")===0 && r.index==="ΔCFI"; }).length === 2);
+  ok("twelve groups match Rutkowski & Svetina only", matching(withC(MANY,"loadings"), {cfi:-0.004, rmsea:0.001}).every(function(s){ return s.indexOf("Rutkowski") === 0; }) && matching(withC(MANY,"loadings"), {cfi:-0.004, rmsea:0.001}).length === 2);
+  ok("six groups match no cutoff", matching({n:3000,nGroups:6,minGroupN:500,unequalGroups:false,categorical:false,constraint:"loadings"}, {cfi:-0.004}).length === 0);
+  ok("the note explains a single-group comparison", guidanceNote({n:400,nGroups:1,minGroupN:null,unequalGroups:false,categorical:false}).indexOf("one group") > 0);
   CUTOFFS.forEach(function(cu){
     var side = cu.key === "cfi" ? -1 : 1;      /* the direction that breaks the cutoff */
     function verdictAt(d){
@@ -2292,15 +2425,15 @@ function runSelfTest(){
     ok("cutoff "+cu.key+" "+cu.v+": a change just beyond it counts as beyond", verdictAt(cu.v + side*0.0005) === false);
   });
 
-  /* The information criteria: which model each difference favours, at the
+  /* The information criteria: which model each difference favors, at the
      boundary of every band. */
-  same("BIC difference of 0 favours neither", icVerdict("bic", 0).favors, undefined);
+  same("BIC difference of 0 favors neither", icVerdict("bic", 0).favors, undefined);
   same("BIC difference just below 2 is weak", icVerdict("bic", -1.999).text, "weak evidence (Raftery, 1995)");
   ok("BIC difference of exactly 2 is positive evidence", icVerdict("bic", -2).text.indexOf("positive") === 0);
   ok("BIC difference of exactly 6 is strong evidence", icVerdict("bic", -6).text.indexOf("strong") === 0);
   ok("BIC difference of exactly 10 is very strong evidence", icVerdict("bic", -10).text.indexOf("very strong") === 0);
-  same("a lower BIC in the restricted model favours H0", icVerdict("bic", -3).favors, "H0");
-  same("a lower BIC in the free model favours H1", icVerdict("bic", 3).favors, "H1");
+  same("a lower BIC in the restricted model favors H0", icVerdict("bic", -3).favors, "H0");
+  same("a lower BIC in the unrestricted model favors H1", icVerdict("bic", 3).favors, "H1");
   ok("AIC difference of exactly 2 still supports both models", icVerdict("aic", -2).text.indexOf("both models") === 0);
   ok("AIC difference just above 2 does not", icVerdict("aic", -2.001).text.indexOf("both models") !== 0);
   ok("AIC difference above 10 leaves essentially no support", icVerdict("aic", -10.001).text.indexOf("essentially no") === 0);
@@ -2561,20 +2694,148 @@ function runSelfTest(){
 }
 
 if(/[?&]selftest=1\b/.test(window.location.search)){
-  /* The synthetic outputs are also exposed so that the same files can be fed
-     through the file inputs when the page is checked in a browser. */
   /* The synthetic outputs are exposed so that the same files can be fed through
      the file inputs, and the routines so that an outside check can compare them
      with an implementation of its own. */
   window.__selftest = { outputs: SYNTHETIC, run: runSelfTest, api: {
     chi2Tail: chi2Tail, parseMplus: parseMplus, evaluateNesting: evaluateNesting,
     classicalDifference: classicalDifference, scaledDifference: scaledDifference,
-    fitDeltas: fitDeltas, guidanceRows: guidanceRows, icVerdict: icVerdict,
+    fitDeltas: fitDeltas, guidanceRows: guidanceRows, guidanceNote: guidanceNote, icVerdict: icVerdict,
     decodeBuffer: decodeBuffer, analyzeModel: analyzeModel, restrictions: restrictions
   } };
   runSelfTest();
 }
 
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>

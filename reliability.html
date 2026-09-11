@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Reliability coefficients from the output of a confirmatory factor analysis: omega, average variance extracted and Cronbach's alpha with continuous indicators; Green-Yang omega, omega on y*, ordinal alpha and AVE with ordered categorical indicators.">
-<title>Reliability coefficients · semstudio.tools</title>
+<title>Reliability Coefficients · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 </head>
@@ -16,26 +16,26 @@
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Reliability coefficients</h1>
+  <h1>Reliability Coefficients</h1>
   <p class="lede">This page reads the output file of a confirmatory factor analysis run in M<em>plus</em> and computes, for every factor in it, the reliability of the sum of its items. With continuous indicators it reports omega, average variance extracted and Cronbach's alpha; with ordered categorical indicators it reports the Green and Yang (2009) omega for the observed sum, omega on the underlying response variables y*, ordinal alpha and average variance extracted on y*. Every number it uses is read from the file, and none of them can be typed in.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX;</code> — <code>STDYX</code> supplies the standardized loadings, which are the loadings the ordinal coefficients are computed from, and <code>SAMPSTAT</code> supplies the matrix that alpha is computed from: the estimated covariance matrix with continuous items, the polychoric correlation matrix with items declared <code>CATEGORICAL</code>. Whatever is missing is named in the results.
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX;</code> &#8212; <code>STDYX</code> supplies the standardized loadings, which are the loadings AVE and the ordinal coefficients are computed from, and <code>SAMPSTAT</code> supplies the matrix that alpha and the Green and Yang coefficient are computed from: the estimated covariance matrix with continuous items, the polychoric correlation matrix with items declared <code>CATEGORICAL</code>. Whatever is missing is named in the results. A warning printed by M<em>plus</em> is reported and does not remove a coefficient the file supports; what removes a coefficient is a quantity that is missing or inadmissible.
   </div>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
 <section aria-labelledby="steps">
   <h2 id="steps">What to do</h2>
   <ol class="steps">
-    <li>Open the M<em>plus</em> input file of your confirmatory factor analysis, the file with the extension <code>.inp</code>, and add this line to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT STDYX;</code></li>
+    <li>Open the M<em>plus</em> input file of your confirmatory factor analysis, the file with the extension <code>.inp</code>. If it has no OUTPUT command, add this line, exactly as it is written here: <code>OUTPUT: SAMPSTAT STDYX;</code>. If it already has one, add the two options <code>SAMPSTAT STDYX</code> to that command instead of writing a second one.</li>
     <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the same folder as the input.</li>
     <li>Drag the <code>.out</code> file onto the box below, or press <em>Choose the .out file</em> and pick it there. The file is read inside your browser and nothing leaves your computer.</li>
     <li>Wait for the list headed <em>What the file contained</em>. It names the estimator, the factors, the items of each factor and the sections the coefficients need, one line each.</li>
-    <li>Read the coefficients in the table printed for each factor, and the summary table under them. The page asks you for nothing: the loadings, the residual variances, the factor variances, the thresholds and the sample matrix all come from the file, and no field on this page can change them.</li>
-    <li>Copy the <code>MODEL CONSTRAINT</code> syntax printed under the tables if you also want a standard error and a confidence interval for omega, and run it in M<em>plus</em>.</li>
+    <li>Read the coefficients in the table printed for each factor, and the summary table under them.</li>
+    <li>Omega itself is computed here and needs nothing further. If a standard error and a confidence interval for it are wanted as well, and the indicators are continuous, copy the <code>MODEL CONSTRAINT</code> syntax printed under the tables and run it in M<em>plus</em>: that interval is the one thing an output does not carry.</li>
   </ol>
-  <p>The page refuses a file that is not an M<em>plus</em> output, a file with no MODEL RESULTS section, and a file whose SUMMARY OF ANALYSIS gives no estimator, because which estimator was used decides which coefficients are defined. It also refuses one factor at a time: a factor whose scale it cannot read, or whose solution is inadmissible, is named and left without a coefficient rather than given one computed from a value nobody supplied. In each case it says what is missing and which OUTPUT option puts it in the file.</p>
+  <p>The page refuses a file that is not an M<em>plus</em> output, a file with no MODEL RESULTS section, and a file whose SUMMARY OF ANALYSIS gives no estimator: the estimator and the link decide whether the Green and Yang coefficient is defined, and a complete output always prints that line. It also refuses single factors: a factor whose scale it cannot read, or whose solution is inadmissible, is named and left without a coefficient rather than given one computed from a value the file does not contain. In each case it says what is missing and which OUTPUT option puts it in the file.</p>
 </section>
 
 <section aria-labelledby="load">
@@ -53,46 +53,47 @@
   <div id="results" aria-live="polite"><div class="panel"><p class="hint">The coefficients of every factor in the file appear here once an output has been loaded.</p></div></div>
 </section>
 
-<section class="tracks" aria-labelledby="methods">
-  <h2 id="methods">Methods and formulas</h2>
+<details class="fold" id="fold-methods">
+  <summary><h2 id="methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
 
   <h3>Omega with continuous indicators</h3>
-  <p>Omega (McDonald, 1999) is the reliability of the sum of the items implied by the estimated one-factor measurement model. It is computed from the unstandardized parameters printed under MODEL RESULTS:</p>
+  <p>Omega (McDonald, 1999) is the reliability of the sum of the items implied by the estimated one-factor measurement model. The same quantity is reported in the structural equation modeling literature as composite reliability, written ρ<sub><var>c</var></sub> and often attributed to Fornell and Larcker (1981), and, with uncorrelated residuals, as coefficient omega, Raykov's rho and construct reliability; the names differ, the formula does not. It is computed from the unstandardized parameters printed under MODEL RESULTS:</p>
   <div class="eq"><math display="block"><mrow><mi>&#x3C9;</mi><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mi>&#x3C8;</mi></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mi>&#x3C8;</mi><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>+</mo><mn>2</mn><munder><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder><msub><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac></mrow></math></div>
   <p class="where">Here λ<sub><var>i</var></sub> is the unstandardized loading of item <var>i</var> on the factor, ψ is the variance of the factor, θ<sub><var>ii</var></sub> is the residual variance of item <var>i</var>, and θ<sub><var>ij</var></sub> is the residual covariance between items <var>i</var> and <var>j</var>, summed over the pairs with <var>i</var> &lt; <var>j</var> and counted twice because it enters the variance of the sum twice.</p>
   <p>ψ is read from the output: it is 1.000 when the factor is identified by fixing its variance, and it is the value printed under <em>Variances</em> when the marker-variable method is used. For an endogenous factor M<em>plus</em> prints the residual variance instead, and the total variance is recovered as <math><mrow><mi>&#x3C8;</mi><mo>=</mo><mi>&#x3B8;</mi><mo>/</mo><mrow><mo stretchy="false">(</mo><mn>1</mn><mo>&#x2212;</mo><msup><mi>R</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow></mrow></math> from the R-SQUARE section; when R-SQUARE is absent the page says so rather than substituting a value. A residual covariance between items of the same factor belongs to the total variance of that sum; one between items of different factors belongs to neither sum and enters no coefficient.</p>
 
   <h3>Average variance extracted</h3>
-  <div class="eq"><math display="block"><mrow><mi>AVE</mi><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msup><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mn>2</mn></msup><mi>&#x3C8;</mi></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msup><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mn>2</mn></msup><mi>&#x3C8;</mi><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow></mfrac></mrow></math></div>
-  <p class="where">The symbols are those of the previous formula: λ<sub><var>i</var></sub> the unstandardized loading of item <var>i</var>, ψ the variance of the factor, θ<sub><var>ii</var></sub> the residual variance of item <var>i</var>.</p>
-  <p>AVE (Fornell &amp; Larcker, 1981) is the mean proportion of item variance accounted for by the factor. It refers to the individual items rather than to the sum, so it is almost always lower than omega.</p>
+  <div class="eq"><math display="block"><mrow><mi>AVE</mi><mo>=</mo><mfrac><mn>1</mn><mi>k</mi></mfrac><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow></math></div>
+  <p class="where">Here <var>k</var> is the number of items and λ*<sub><var>i</var></sub> the completely standardized loading of item <var>i</var>, read from the STDYX solution.</p>
+  <p>AVE (Fornell &amp; Larcker, 1981) is the average share of an item's variance that the factor accounts for. On a standardized solution the residual variance of an item is 1&#8201;&#8722;&#8201;λ*<sub><var>i</var></sub><sup>2</sup>, so the ratio of the common part to the total reduces to the mean of the squared standardized loadings, which is the form above. The same ratio computed from unstandardized loadings and residual variances is a different quantity: it weights each item by its variance, so an item measured on a wider scale counts for more, and it is not what Fornell and Larcker define. AVE is a property of the individual items and omega is the reliability of their sum, so the two coefficients answer different questions and neither is a bound on the other.</p>
 
   <h3>Cronbach's alpha</h3>
   <p>Alpha (Cronbach, 1951) is computed from the estimated covariance matrix that SAMPSTAT prints, restricted to the items of the factor:</p>
   <div class="eq"><math display="block"><mrow><mi>&#x3B1;</mi><mo>=</mo><mfrac><mi>k</mi><mrow><mi>k</mi><mo>&#x2212;</mo><mn>1</mn></mrow></mfrac><mo>&#xD7;</mo><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3C3;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow><msubsup><mi>&#x3C3;</mi><mtext>sum</mtext><mn>2</mn></msubsup></mfrac><mo>)</mo></mrow></mrow></math></div>
   <p class="where">Here <var>k</var> is the number of items of the factor, σ<sub><var>ii</var></sub> is the variance of item <var>i</var> from that matrix, and σ<sup>2</sup><sub>sum</sub> is the variance of the total, that is the sum of every element of the submatrix, diagonal and off-diagonal alike.</p>
-  <p>Alpha is the value reliability takes when the items are tau-equivalent, that is when their unstandardized loadings are equal. When tau-equivalence does not hold, alpha is a lower bound and omega is the coefficient that matches the estimated model (Cho, 2016; Flora, 2020). The page prints the ratio between the largest and the smallest loading in absolute value as a descriptive indication; the formal comparison is a chi-square difference test between the congeneric and the tau-equivalent model.</p>
+  <p>Alpha is the value reliability takes when the items are tau-equivalent, that is when their unstandardized loadings are equal, and their residuals are uncorrelated. When tau-equivalence does not hold and the residuals are uncorrelated, alpha is a lower bound. When the residuals are correlated, or the one-factor model is misspecified in some other way, alpha can also exceed the reliability of the sum, so the direction of the discrepancy is not fixed in advance (Cho, 2016; Flora, 2020). Omega is the coefficient that matches the estimated model, on the condition that the model itself fits. The page prints the ratio between the largest and the smallest loading in absolute value as a description of how far the loadings are from equal; the formal comparison is a chi-square difference test between the congeneric and the tau-equivalent model.</p>
 
   <h3>Ordered categorical indicators</h3>
   <p>With <code>CATEGORICAL ARE</code> and a weighted least squares estimator, the loadings refer to the underlying response variables y*, not to the observed responses. A star marks a quantity on that metric. Omega on it uses the standardized loadings:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>&#x3C9;</mi><msup><mi>y</mi><mo>&#x2217;</mo></msup></msub><mo>=</mo><mfrac><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mo>&#x2217;</mo></msubsup><mo>)</mo></mrow><mn>2</mn></msup><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mo>&#x2217;</mo></msubsup><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>i</mi></mrow><mo>&#x2217;</mo></msubsup><mo>+</mo><mn>2</mn><munder><mo movablelimits="false">&#x2211;</mo><mrow><mi>i</mi><mo>&lt;</mo><mi>j</mi></mrow></munder><msubsup><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>j</mi></mrow><mo>&#x2217;</mo></msubsup></mrow></mfrac></mrow></math></div>
   <p class="where">Here λ*<sub><var>i</var></sub> is the standardized loading of item <var>i</var> on the y* metric, θ*<sub><var>ii</var></sub> is its residual variance on that metric, and θ*<sub><var>ij</var></sub> is the residual correlation between items <var>i</var> and <var>j</var>, summed over the pairs with <var>i</var> &lt; <var>j</var>.</p>
-  <p>When M<em>plus</em> does not print residual variances in the standardized solution, which is the usual case under the delta parameterization, <math><mrow><msubsup><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>i</mi></mrow><mo>&#x2217;</mo></msubsup><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow></math> is used. This coefficient describes the sum of the y*, a score nobody computes.</p>
+  <p>When M<em>plus</em> does not print residual variances in the standardized solution, which is the usual case under the delta parameterization, <math><mrow><msubsup><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>i</mi></mrow><mo>&#x2217;</mo></msubsup><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow></math> is used. This coefficient describes the sum of the y*, a score that is not observed.</p>
   <p>The average variance extracted on the same metric follows from that identity, which makes the denominator equal to the number of items:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>AVE</mi><msup><mi>y</mi><mo>&#x2217;</mo></msup></msub><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mrow><mi>i</mi><mi>i</mi></mrow><mo>&#x2217;</mo></msubsup></mrow></mfrac><mo>=</mo><mfrac><mn>1</mn><mi>k</mi></mfrac><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow></math></div>
   <p class="where">The symbols are those of the previous formula, with <var>k</var> the number of items of the factor.</p>
   <p>Ordinal alpha (Zumbo, Gadermann &amp; Zeisser, 2007) is alpha applied to the polychoric correlation matrix of the items, taken from SAMPSTAT:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>&#x3B1;</mi><mtext>ordinal</mtext></msub><mo>=</mo><mfrac><mi>k</mi><mrow><mi>k</mi><mo>&#x2212;</mo><mn>1</mn></mrow></mfrac><mo>&#xD7;</mo><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mi>k</mi><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>j</mi></munder><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></mfrac><mo>)</mo></mrow></mrow></math></div>
   <p class="where">Here <var>k</var> is the number of items and ρ<sub><var>ij</var></sub> is the polychoric correlation between items <var>i</var> and <var>j</var>, the double sum running over every element of the matrix, so that the diagonal contributes <var>k</var>.</p>
-  <p>It is computed only when that matrix is positive definite: the polychoric correlations are estimated one pair at a time, so the assembled matrix need not be one that any set of variables could have produced, and alpha on an indefinite matrix is an arithmetic value rather than the reliability of a score. It is also a coefficient on the y* metric and it is generally higher than the reliability of the observed sum.</p>
+  <p>The formula is applied to the matrix directly. Zumbo, Gadermann and Zeisser (2007, Eq. 1) wrote alpha in a factor-analytic form, from the mean loading and the mean uniqueness of a one-factor solution, which gives the same value when a single factor reproduces the polychoric matrix exactly and a slightly different one otherwise. It is computed only when that matrix is positive definite: the polychoric correlations are estimated one pair at a time, so the assembled matrix need not be one that any set of variables could have produced, and alpha on an indefinite matrix is an arithmetic value rather than the reliability of a score. It is a coefficient on the y* metric and not the reliability of the observed sum. It is usually larger than a coefficient computed from the Pearson correlations between the observed categories, although that ordering is not guaranteed.</p>
 
   <h3>Green and Yang omega</h3>
   <p>The Green and Yang (2009) coefficient is the reliability of the sum of the observed ordinal responses. It reconstructs the variances and covariances of the observed items from the thresholds and from the correlations between the underlying variables, using the bivariate normal distribution function:</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>,</mo><msub><mi>X</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>c</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>d</mi></munder><mrow><mo stretchy="false">[</mo><mrow><msub><mi mathvariant="normal">&#x3A6;</mi><mn>2</mn></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>&#x3C4;</mi><mrow><mi>i</mi><mi>c</mi></mrow></msub><mo>,</mo><msub><mi>&#x3C4;</mi><mrow><mi>j</mi><mi>d</mi></mrow></msub><mo>;</mo><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><mo>&#x2212;</mo><mrow><mi mathvariant="normal">&#x3A6;</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>&#x3C4;</mi><mrow><mi>i</mi><mi>c</mi></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><mrow><mi mathvariant="normal">&#x3A6;</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>&#x3C4;</mi><mrow><mi>j</mi><mi>d</mi></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow></math></div>
   <p class="where">Here <var>X</var><sub><var>i</var></sub> is the observed response to item <var>i</var>, <var>c</var> and <var>d</var> run over the thresholds of items <var>i</var> and <var>j</var>, τ<sub><var>ic</var></sub> is the <var>c</var>-th threshold of item <var>i</var>, ρ<sub><var>ij</var></sub> is the correlation between the two underlying variables, Φ<sub>2</sub> is the bivariate standard normal distribution function and Φ the univariate one.</p>
-  <p>The correlations ρ<sub><var>ij</var></sub> are the ones implied by the measurement model, not the entries of the polychoric matrix printed by M<em>plus</em>: for the numerator, which is the variance of the sum attributable to the common factor, <math><mrow><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mo>&#x2217;</mo></msubsup><msubsup><mi>&#x3BB;</mi><mi>j</mi><mo>&#x2217;</mo></msubsup></mrow></math> including the diagonal, where <math><mrow><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>=</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow></math>; for the denominator, which is the total variance of the observed sum, ρ<sub><var>ij</var></sub> is that product plus any residual correlation the model estimates between items <var>i</var> and <var>j</var>, and <math><mrow><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>=</mo><mn>1</mn></mrow></math>, which returns the variance of the observed item.</p>
+  <p>The two correlations are not the same. In the numerator, which is the variance of the sum attributable to the common factor, <math><mrow><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mo>&#x2217;</mo></msubsup><msubsup><mi>&#x3BB;</mi><mi>j</mi><mo>&#x2217;</mo></msubsup></mrow></math>, and on the diagonal <math><mrow><msub><mi>&#x3C1;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo>=</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mrow><mo>&#x2217;</mo><mn>2</mn></mrow></msubsup></mrow></math>. In the denominator, which is the variance of the observed sum, ρ<sub><var>ij</var></sub> is the polychoric correlation itself, taken from the sample matrix that SAMPSTAT prints, with 1 on the diagonal; this is the denominator of Green and Yang (2009, Eq. 21). Building it from the sample matrix rather than from the one the model reproduces means the coefficient carries the misfit of the model with it, which is what its authors intend: the denominator is the variance of the score as it was observed, not the variance the model would imply for it. The coefficient is left uncomputed when the polychoric matrix is absent from the file, when it does not carry every item of the factor, or when the submatrix of those items is not positive definite.</p>
   <div class="eq"><math display="block"><mrow><msub><mi>&#x3C9;</mi><mi>GY</mi></msub><mo>=</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>j</mi></munder><mrow><msub><mi>Cov</mi><mtext>common</mtext></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>,</mo><msub><mi>X</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><munder><mo movablelimits="false">&#x2211;</mo><mi>j</mi></munder><mrow><msub><mi>Cov</mi><mtext>total</mtext></msub><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>X</mi><mi>i</mi></msub><mo>,</mo><msub><mi>X</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mfrac></mrow></math></div>
-  <p class="where">Here Cov<sub>common</sub> is the covariance rebuilt with the correlations implied by the common factor alone and Cov<sub>total</sub> the one rebuilt with the correlations the whole model implies, each double sum running over every pair of items of the factor and over the diagonal.</p>
+  <p class="where">Here Cov<sub>common</sub> is reconstructed from the correlations implied by the common factor alone and Cov<sub>total</sub> from the sample polychoric correlations; each double sum runs over every pair of items and over the diagonal.</p>
   <p>The diagonal of the denominator is the variance of the observed item, obtained from its thresholds alone. For an item scored 1 to <var>C</var> with thresholds τ<sub>1</sub> to τ<sub><var>C</var>−1</sub>, write <math><mrow><msub><mi>q</mi><mi>c</mi></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mrow><mi mathvariant="normal">&#x3A6;</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>&#x3C4;</mi><mi>c</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></math> for the probability of a response above the <var>c</var>-th threshold. Then</p>
   <div class="eq"><math display="block"><mrow><mrow><mi mathvariant="normal">E</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>X</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mn>1</mn><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>c</mi></munder><msub><mi>q</mi><mi>c</mi></msub></mrow></math></div>
   <p class="where">Here E(<var>X</var>) is the mean of the observed response, <var>c</var> runs over the <var>C</var> − 1 thresholds of the item and <var>q</var><sub><var>c</var></sub> is the probability just defined.</p>
@@ -100,18 +101,20 @@
   <p class="where">Here Var(<var>X</var>) is the variance of the observed response and <var>c</var> and <var>q</var><sub><var>c</var></sub> are as above.</p>
   <p>This is the same quantity the double sum over thresholds returns with ρ = 1, and is used because it needs no quadrature.</p>
   <p>Φ<sub>2</sub> is evaluated from the one-dimensional integral representation of the bivariate normal distribution function, with a 24-node Gauss–Legendre quadrature. The integral is first mapped by the substitution <math><mrow><mi>t</mi><mo>=</mo><mi>sin</mi><mspace width="0.17em"></mspace><mi>&#x3B8;</mi></mrow></math>: in the direct form the factor <math><mrow><mn>1</mn><mo>/</mo><msqrt><mn>1</mn><mo>&#x2212;</mo><msup><mi>t</mi><mn>2</mn></msup></msqrt></mrow></math> has an integrable singularity at <math><mrow><mi>t</mi><mo>=</mo><mo>&#xB1;</mo><mn>1</mn></mrow></math> that polynomial quadrature approximates poorly, and the case of two equal arguments, which is exactly the diagonal of the numerator, is the one where the error is largest. After the substitution the integrand is smooth, and for |ρ| close to 1 the interval is split into subintervals that are packed geometrically toward the endpoint.</p>
-  <p>The formula assumes that the responses arise from normally distributed underlying variables, so it applies to a probit link. M<em>plus</em> reports the link on the <code>Link</code> line of SUMMARY OF ANALYSIS. Weighted least squares estimators use a probit link; maximum likelihood with categorical items uses a logit link unless <code>LINK = PROBIT</code> is requested, and in that case the thresholds are on the logistic metric and this page does not compute the coefficient.</p>
+  <p>The formula assumes that the responses arise from normally distributed underlying variables, so it applies to a probit link. M<em>plus</em> reports the link on the <code>Link</code> line of SUMMARY OF ANALYSIS. Weighted least squares estimators use a probit link. Maximum likelihood with categorical items uses a logit link unless <code>LINK = PROBIT</code> is requested; with the logit link the thresholds are on the logistic metric and this page does not compute the coefficient.</p>
 
   <h3>Confidence intervals</h3>
-  <p>The coefficients on this page are point estimates computed from the parameter estimates. A standard error and a confidence interval for omega are obtained by defining it as a model parameter with <code>MODEL CONSTRAINT</code> and requesting <code>CINTERVAL</code> (Raykov, 1997). The page writes that syntax for the factors and items of the file you loaded. Point estimates of λ and θ are the same under ML and MLR; what changes with MLR is the standard errors, and therefore the intervals.</p>
+  <p>The coefficients on this page are point estimates computed from the parameter estimates the output carries, and nothing has to be run again to obtain them. An interval around omega is a different matter: its standard error depends on the sampling covariance of the loadings and the residual variances, which an output does not print, so it can only come from a run in which omega is itself a parameter of the model, defined with <code>MODEL CONSTRAINT</code> and asked for with <code>CINTERVAL</code> (Raykov, 1997). That syntax, and only that syntax, is what this page writes for the factors and items of the file loaded. Point estimates of λ and θ are the same under ML and MLR; what changes with MLR is the standard errors, and therefore the intervals.</p>
 
   <h3>What these numbers do not settle</h3>
   <p>Values near .70 are often quoted as a minimum for research on group means, and .80 or higher for decisions about individuals; these are conventions of the literature and are used here only as rough guidance, not as a threshold a scale passes or fails (Cho, 2016; Flora, 2020). A reliability coefficient does not by itself establish that a scale is adequate: it is conditional on the model that produced it, on the sample it was estimated in, and on the use the score is put to, and it says nothing about the validity of the interpretation. A coefficient computed from an inadmissible solution is not a reliability at all, and the page marks those cases instead of reporting the number.</p>
   <p>Two coefficients cannot be recovered from an M<em>plus</em> output with categorical items: the classical alpha on Pearson correlations between the observed responses, and the omega variants that use the observed variance of the total score. Both need the raw data.</p>
-</section>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="refs">
-  <h2 id="refs">References</h2>
+<details class="fold" id="fold-refs">
+  <summary><h2 id="refs">References</h2></summary>
+  <div class="fold-body">
   <ul class="refs">
     <li>Cho, E. (2016). Making reliability reliable: A systematic approach to reliability coefficients. <em>Organizational Research Methods, 19</em>(4), 651–682. <a href="https://doi.org/10.1177/1094428116656239">https://doi.org/10.1177/1094428116656239</a></li>
     <li>Cronbach, L. J. (1951). Coefficient alpha and the internal structure of tests. <em>Psychometrika, 16</em>(3), 297–334. <a href="https://doi.org/10.1007/BF02310555">https://doi.org/10.1007/BF02310555</a></li>
@@ -122,7 +125,8 @@
     <li>Raykov, T. (1997). Estimation of composite reliability for congeneric measures. <em>Applied Psychological Measurement, 21</em>(2), 173–184. <a href="https://doi.org/10.1177/01466216970212006">https://doi.org/10.1177/01466216970212006</a></li>
     <li>Zumbo, B. D., Gadermann, A. M., &amp; Zeisser, C. (2007). Ordinal versions of coefficients alpha and theta for Likert rating scales. <em>Journal of Modern Applied Statistical Methods, 6</em>(1), 21–29. <a href="https://doi.org/10.22237/jmasm/1177992180">https://doi.org/10.22237/jmasm/1177992180</a></li>
   </ul>
-</section>
+</div>
+</details>
 
 </main>
 
@@ -143,12 +147,18 @@ function esc(s){
 }
 /* The name of the software: an upright capital M with "plus" in italics.
    Every message on this page is written as HTML for this reason, so anything
-   read from the file is escaped where it is inserted, never afterwards. */
+   read from the file is escaped where it is inserted, never afterward. */
 var MP = "<span class=\"mp\">M<em>plus</em></span>";
-function names(list){ return list.map(esc).join(", "); }
+function names(list){ var a = list.map(esc); return a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : (a[0] || ""); }
 function fmt(x, digits){
   if (typeof x !== "number" || !isFinite(x)) return "—";
   return x.toFixed(digits === undefined ? 3 : digits);
+}
+/* Reliability coefficients and proportions of variance lie between 0 and 1 and
+   are printed without the leading zero, as in APA style; loadings and variances
+   can exceed 1 and keep it. */
+function fmtProp(x){
+  return fmt(x).replace(/^(-?)0\./, "$1.");
 }
 function sum(values){
   var s = 0;
@@ -244,11 +254,10 @@ function clampCorrelation(r){
   return Math.max(-0.999999, Math.min(0.999999, r));
 }
 
-/* Green and Yang (2009) omega for the observed sum of k ordinal items.
+/* Green and Yang (2009), Eq. 21, for the observed sum of k ordinal items.
    lambdaStar: standardized loadings on y*. taus: one array of thresholds per item.
-   rhoTotal: k x k matrix of model-implied correlations between the y*, diagonal 1,
-   off-diagonal lambda_i lambda_j plus any residual correlation. */
-function greenYangOmega(lambdaStar, taus, rhoTotal){
+   rhoObserved: the sample polychoric correlation matrix used in the denominator. */
+function greenYangOmega(lambdaStar, taus, rhoObserved){
   var k = lambdaStar.length, numerator = 0, denominator = 0, i, j, a, b;
   for (i = 0; i < k; i++) {
     denominator += ordinalItemVariance(taus[i]);
@@ -261,7 +270,7 @@ function greenYangOmega(lambdaStar, taus, rhoTotal){
   for (i = 0; i < k - 1; i++) {
     for (j = i + 1; j < k; j++) {
       var rhoCommon = clampCorrelation(lambdaStar[i] * lambdaStar[j]);
-      var rhoAll = clampCorrelation(rhoTotal ? rhoTotal[i][j] : lambdaStar[i] * lambdaStar[j]);
+      var rhoAll = clampCorrelation(rhoObserved[i][j]);
       var pairCommon = 0, pairAll = 0;
       for (a = 0; a < taus[i].length; a++) {
         for (b = 0; b < taus[j].length; b++) {
@@ -730,6 +739,7 @@ function parseMplusOutput(rawText){
     observedVars: [], latentVars: [], categoricalVars: [],
     chiSquare: null, df: null, converged: false, warnings: 0,
     hasStdyx: false, hasSampstat: false, hasPolychoric: false, hasModelResults: false,
+    twoLevel: /^\s*(Within|Between) Level\s*$/m.test(text),
     abbreviated: abbreviated, groups: [], newParams: [], intervals: {}
   };
   var i, match;
@@ -948,9 +958,9 @@ function continuousCoefficients(model, group, factor, items){
     return typeof v !== "number" || !isFinite(v);
   });
   if (withoutResidual.length) {
-    out.error = "No residual variance was printed for " + names(withoutResidual) +
+    out.error = (withoutResidual.length === 1 ? "No residual variance was printed for " : "No residual variances were printed for ") + names(withoutResidual) +
       " under Residual Variances, and the denominator of omega is the sum of the residual " +
-      "variances of every item. Treating the missing ones as zero would raise omega towards 1, " +
+      "variances of every item. Treating the missing ones as zero would raise omega toward 1, " +
       "so nothing is computed here. This usually means the item is not an indicator of this " +
       "factor in the estimated model, that its residual variance was fixed and printed elsewhere, " +
       "or that the section was cut short.";
@@ -982,7 +992,6 @@ function continuousCoefficients(model, group, factor, items){
   out.psiSource = psiSource;
 
   var loadingSum = sum(loadings);
-  var squaredSum = sum(loadings.map(function(v){ return v * v; }));
   var residualSum = sum(residuals);
   var inFactor = {};
   items.forEach(function(it){ inFactor[it] = 1; });
@@ -999,15 +1008,13 @@ function continuousCoefficients(model, group, factor, items){
     var totalVariance = trueVariance + residualSum + covPart;
     out.omega = (isFinite(totalVariance) && Math.abs(totalVariance) > 1e-12)
       ? trueVariance / totalVariance : undefined;
-    var aveDenominator = squaredSum * psi + residualSum;
-    out.ave = (isFinite(aveDenominator) && Math.abs(aveDenominator) > 1e-12)
-      ? squaredSum * psi / aveDenominator : undefined;
   }
 
   var stdRows = group.stdIndex[factor] || {};
   if (items.every(function(it){ return stdRows[it] && isFinite(stdRows[it].est); })) {
     out.stdLoadings = items.map(function(it){ return stdRows[it].est; });
     out.communalities = out.stdLoadings.map(function(v){ return v * v; });
+    out.ave = sum(out.communalities) / items.length;
     /* A standardized loading printed as 1.000 leaves the item no unique
        variance on that metric, which the unstandardized solution may or may
        not agree with; either way it is worth saying. */
@@ -1022,7 +1029,7 @@ function continuousCoefficients(model, group, factor, items){
         "computed from the unstandardized solution and is unaffected by the rounding, but the " +
         "solution is worth checking before the value is reported.");
     }
-  }
+  } else out.notes.push("AVE was not computed because the STDYX solution does not contain a completely standardized loading for every item. Add <code>STDYX</code> to the OUTPUT command and run the model again.");
 
   out.alpha = alphaFromCovariance(group.sampleCov, items);
   if (out.alpha === undefined) {
@@ -1099,19 +1106,6 @@ function categoricalCoefficients(model, group, factor, items, link){
   });
   out.residualCovs = stdResidualCovs;
 
-  var rhoTotal = [];
-  for (var a = 0; a < items.length; a++) {
-    rhoTotal[a] = [];
-    for (var b = 0; b < items.length; b++) rhoTotal[a][b] = (a === b) ? 1 : lambda[a] * lambda[b];
-  }
-  stdResidualCovs.forEach(function(c){
-    var ia = items.indexOf(c.a), ib = items.indexOf(c.b);
-    if (ia >= 0 && ib >= 0) {
-      rhoTotal[ia][ib] = lambda[ia] * lambda[ib] + c.est;
-      rhoTotal[ib][ia] = rhoTotal[ia][ib];
-    }
-  });
-
   var taus = items.map(function(it){ return group.thresholds[it]; });
   function completeThresholds(t){
     if (!t || !t.length) return false;
@@ -1138,14 +1132,9 @@ function categoricalCoefficients(model, group, factor, items, link){
       "the variance of each observed response from its thresholds, so it was not applied to this " +
       "factor. The thresholds are printed under Thresholds in MODEL RESULTS; they are missing when " +
       "the item is binary and its threshold was fixed, or when the section was cut short.");
-  } else if (residualsMissing) {
-    out.notes.push("The model estimates residual correlations between these items, but the " +
-      "corresponding STDYX estimates are not in the output. Ignoring them would leave the " +
-      "denominator too small, so the Green and Yang omega was not computed.");
   } else {
     out.taus = taus;
     out.categories = taus.map(function(t){ return t.length + 1; });
-    out.omegaGY = greenYangOmega(lambda, taus, rhoTotal);
   }
   if (thresholdsUsable && !out.categories) out.categories = taus.map(function(t){ return t.length + 1; });
   if (thresholdsUsable) out.taus = taus;
@@ -1159,9 +1148,9 @@ function categoricalCoefficients(model, group, factor, items, link){
   }
   out.ave = items.length ? sum(lambda.map(function(v){ return v * v; })) / items.length : undefined;
 
-  var polychoricUsable = false, polychoricDefinite = false;
+  var polychoricUsable = false, polychoricDefinite = false, matrix = [];
   if (group.polychoric) {
-    var matrix = [], usable = true;
+    var usable = true;
     for (var i = 0; i < items.length && usable; i++) {
       var row = [];
       for (var j = 0; j < items.length; j++) {
@@ -1177,8 +1166,18 @@ function categoricalCoefficients(model, group, factor, items, link){
        arithmetic value, not the reliability of anything. */
     if (usable) {
       polychoricDefinite = isPositiveDefinite(matrix);
-      if (polychoricDefinite) out.ordinalAlpha = ordinalAlpha(matrix);
+      if (polychoricDefinite) {
+        out.ordinalAlpha = ordinalAlpha(matrix);
+        if (link === "PROBIT" && thresholdsUsable) out.omegaGY = greenYangOmega(lambda, taus, matrix);
+      }
     }
+  }
+  if (link === "PROBIT" && thresholdsUsable && out.omegaGY === undefined) {
+    out.notes.push(!group.polychoric
+      ? "Green and Yang omega was not computed because no polychoric correlation matrix was found for this group. Add <code>SAMPSTAT</code> to the OUTPUT command and run the model again."
+      : !polychoricUsable
+        ? "Green and Yang omega was not computed because the polychoric correlation matrix does not contain every item in this factor."
+        : "Green and Yang omega was not computed because the polychoric correlations for these items do not form a positive definite matrix.");
   }
   if (out.ordinalAlpha === undefined) {
     out.notes.push(!group.polychoric
@@ -1303,7 +1302,26 @@ function fileChecklist(model, estimator){
         ? "The output contains <strong>" + model.groups.length + " groups</strong> (" +
           esc(model.groups.map(function(g){ return g.name; }).join(", ")) +
           "). Loadings, thresholds and sample statistics are read separately for each group, and there is one table per group below."
-        : "MODEL RESULTS was read; the output contains one group.");
+        : "MODEL RESULTS was read for one group.");
+
+  /* Nothing below this point can be computed without these two, so the rows
+     that describe what would be computed are not printed. */
+  if (!estimator || !model.hasModelResults || estimator === "BAYES" || model.twoLevel) {
+    if (model.truncated) {
+      html += checkRow("warn", "Check",
+        "The file ends without the closing block that " + MP + " writes after every run (the timing " +
+        "lines and the address of the publisher), so it was cut short.");
+    }
+    return html + '</ul>';
+  }
+
+  if (model.nGroups > model.groups.length) {
+    html += checkRow("warn", "Check",
+      "SUMMARY OF ANALYSIS declares <strong>" + model.nGroups + " groups</strong>, but MODEL RESULTS holds " +
+      "the parameters of " + (model.groups.length === 1 ? "one group only" : model.groups.length + " groups only") +
+      ". The file was cut short or assembled from parts; the coefficients below describe " +
+      (model.groups.length === 1 ? "that group" : "those groups") + " and no other.");
+  }
 
   var factorList = model.groups.length ? model.groups[0].raw.order : [];
   html += checkRow(factorList.length ? "ok" : "bad", factorList.length ? "Read" : "Missing",
@@ -1328,7 +1346,7 @@ function fileChecklist(model, estimator){
           : "The Link line is absent. With maximum likelihood and categorical items the default is a logit link, so the Green and Yang omega is not computed."));
     html += checkRow(model.hasPolychoric ? "ok" : "warn", model.hasPolychoric ? "Read" : "Missing",
       model.hasPolychoric
-        ? "The polychoric correlation matrix is present. Ordinal alpha is computed from it for each factor whose items form a positive definite submatrix, and the factor is told below when they do not."
+        ? "The polychoric correlation matrix is present. Ordinal alpha is computed from it for each factor whose items form a positive definite submatrix; a note under the factor says when they do not."
         : "No polychoric correlation matrix was found. Add SAMPSTAT to the OUTPUT command to obtain ordinal alpha.");
   } else {
     html += checkRow(model.hasSampstat ? "ok" : "warn", model.hasSampstat ? "Read" : "Missing",
@@ -1337,10 +1355,12 @@ function fileChecklist(model, estimator){
         : "SAMPSTAT is absent. Without the estimated covariance matrix Cronbach's alpha is not computed; omega and the average variance extracted are unaffected.");
   }
 
-  html += checkRow(model.hasStdyx ? "ok" : "warn", model.hasStdyx ? "Read" : "Missing",
+  html += checkRow(model.hasStdyx ? "ok" : (anyCategorical ? "bad" : "warn"), model.hasStdyx ? "Read" : "Missing",
     model.hasStdyx
       ? "The STDYX solution is present."
-      : "STDYX is absent. Omega is computed from the unstandardized solution; the standardized loadings and communalities are not shown, and no coefficient is available for ordered categorical items.");
+      : anyCategorical
+        ? "STDYX is absent. With ordered categorical items every coefficient on this page is computed from the standardized solution, so none is computed. Add STDYX to the OUTPUT command and run the model again."
+        : "STDYX is absent. Omega, alpha and the average variance extracted are computed from the unstandardized solution; the standardized loadings and communalities are not shown.");
 
   if (model.abbreviated) {
     html += checkRow("warn", "Check",
@@ -1437,7 +1457,7 @@ function loadingTable(coefficients){
 }
 
 function coefficientRow(name, value, meaning){
-  return '<tr><th scope="row">' + name + '</th><td class="num">' + fmt(value) + '</td><td>' + meaning + '</td></tr>';
+  return '<tr><th scope="row">' + name + '</th><td class="num">' + fmtProp(value) + '</td><td>' + meaning + '</td></tr>';
 }
 
 function continuousPanel(model, group, info){
@@ -1488,15 +1508,17 @@ function continuousPanel(model, group, info){
     html += '<p>The model estimates ' + c.residualCovs.length + ' residual covariance' +
       (c.residualCovs.length === 1 ? '' : 's') + ' between these items (' +
       names(c.residualCovs.map(function(x){ return x.a + " – " + x.b; })) +
-      '), and they are part of the total variance of the sum, as the omega formula requires. They also ' +
-      'need to be justified in the text: correlated residuals mean the items share something besides the factor.</p>';
+      '), ' + (c.residualCovs.length === 1 ? 'and it is' : 'and they are') +
+      ' part of the total variance of the sum, as the omega formula requires. ' +
+      (c.residualCovs.length === 1 ? 'It also needs' : 'They also need') +
+      ' to be justified in the text: correlated residuals mean the items share something besides the factor.</p>';
   }
   if (c.alpha !== undefined && c.omega !== undefined) {
     var difference = c.omega - c.alpha;
-    html += '<p>Alpha is ' + fmt(c.alpha) + ' and omega is ' + fmt(c.omega) + ', a difference of ' +
-      fmt(Math.abs(difference)) + '. ' +
+    html += '<p>Alpha is ' + fmtProp(c.alpha) + ' and omega is ' + fmtProp(c.omega) + ', a difference of ' +
+      fmtProp(Math.abs(difference)) + '. ' +
       (Math.abs(difference) < 0.005
-        ? 'The two lead to the same practical conclusion here; omega remains the coefficient that matches the estimated model, because it does not assume equal loadings.'
+        ? 'The two lead to the same conclusion here; omega remains the coefficient that matches the estimated model, because it does not assume equal loadings.'
         : difference > 0
           ? 'Alpha is the lower of the two, which is what happens when the loadings differ: omega is the coefficient to report.'
           : 'Alpha is the higher of the two. That happens when the observed covariances between items exceed those reproduced by the one-factor model, so the fit of the model is worth checking before reporting either.') +
@@ -1509,10 +1531,8 @@ function continuousPanel(model, group, info){
     html += 'The loadings do not all have the same sign, so check whether an item is worded in the reverse direction and was not recoded before reading any reliability coefficient.';
   else if (!isFinite(c.loadingRatio))
     html += 'With a loading of zero the ratio is undefined: that item does not contribute to the factor.';
-  else if (c.loadingRatio < 1.2)
-    html += 'These are close values, so tau-equivalence is plausible; the formal check is a chi-square difference test between the congeneric and the tau-equivalent model.';
   else
-    html += 'These values are far apart, so tau-equivalence is not plausible and alpha understates the reliability; the formal check is a chi-square difference test between the congeneric and the tau-equivalent model.';
+    html += 'Alpha equals the reliability of the sum only when the loadings are equal; whether they can be taken as equal is settled by a chi-square difference test between the congeneric and the tau-equivalent model, not by the ratio.';
   html += '</p>';
   if (c.k === 2) {
     html += '<p>With two items the one-factor model is not identified on its own, and the two ' +
@@ -1533,7 +1553,7 @@ function categoricalPanel(model, group, info, link){
   }
   html += '<div class="table-wrap"><table><caption>Item parameters on y*</caption><thead><tr>' +
     '<th scope="col">Item</th><th scope="col" class="num"><math><mrow><msup><mi>&#x3BB;</mi><mo>&#x2217;</mo></msup></mrow></math> (STDYX)</th>' +
-    '<th scope="col" class="num">categories</th><th scope="col">thresholds</th></tr></thead><tbody>';
+    '<th scope="col" class="num">Categories</th><th scope="col">Thresholds</th></tr></thead><tbody>';
   for (var i = 0; i < c.k; i++) {
     html += '<tr><th scope="row">' + esc(c.items[i]) + '</th>' +
       '<td class="num">' + fmt(c.loadings[i]) + '</td>' +
@@ -1549,7 +1569,7 @@ function categoricalPanel(model, group, info, link){
     html += coefficientRow("<math><mrow><msub><mi>&#x3C9;</mi><mi>GY</mi></msub></mrow></math> (Green and Yang)", c.omegaGY,
       "reliability of the <strong>observed sum</strong> of the responses");
   html += coefficientRow("<math><mrow><msub><mi>&#x3C9;</mi><msup><mi>y</mi><mo>&#x2217;</mo></msup></msub></mrow></math>", c.omegaYstar,
-    "reliability of the sum of the underlying response variables, which describes the model rather than a score anyone computes");
+    "reliability of the sum of the underlying response variables, which describes the model rather than an observed score");
   if (c.ordinalAlpha !== undefined)
     html += coefficientRow("<math><mrow><msub><mi>&#x3B1;</mi><mtext>ordinal</mtext></msub></mrow></math>", c.ordinalAlpha,
       "alpha on the polychoric correlations, also on the y* metric");
@@ -1558,23 +1578,26 @@ function categoricalPanel(model, group, info, link){
 
   if (c.omegaGY !== undefined && c.omegaYstar !== undefined && isFinite(c.omegaYstar) && isFinite(c.omegaGY)) {
     var gap = c.omegaYstar - c.omegaGY;
-    html += '<p>The coefficient on the y* metric is ' + fmt(Math.abs(gap)) +
+    html += '<p>The coefficient on the y* metric is ' + fmtProp(Math.abs(gap)) +
       (gap >= 0 ? ' higher' : ' lower') + ' than the one for the observed sum. ' +
       (gap >= 0
         ? 'That gap is the attenuation produced by categorizing the responses, not an improvement of ' +
           'the scale, and the Green and Yang value is the one that refers to the score participants ' +
           'actually produce.'
-        : 'The usual order is the other way round, because categorizing a response loses information. ' +
-          'It reverses when the model estimates residual correlations that enter the total variance ' +
-          'of the observed sum but not the sum on y*, so check the residual correlations of this ' +
-          'factor before reporting either value.') + '</p>';
+        : 'The usual order is the other way around, because categorizing a response loses information. ' +
+          'It reverses when the sample polychoric correlations, which the denominator of the Green and ' +
+          'Yang coefficient is built from, are larger than the ones the model reproduces, so read the ' +
+          'fit of this model before reporting either value.') + '</p>';
   }
   if (c.residualCovs.length) {
     html += '<p>The model estimates ' + c.residualCovs.length + ' residual correlation' +
       (c.residualCovs.length === 1 ? '' : 's') + ' between these items (' +
       names(c.residualCovs.map(function(x){ return x.a + " – " + x.b; })) +
-      '), which enter the denominator of the Green and Yang formula through the model-implied ' +
-      'correlations between the underlying variables. They also need to be justified in the text: ' +
+      '), which ' + (c.residualCovs.length === 1 ? 'is' : 'are') +
+      ' part of what the sample polychoric correlations in the denominator of the Green and Yang ' +
+      'coefficient carry, and ' + (c.residualCovs.length === 1 ? 'is' : 'are') + ' left out of the ' +
+      'numerator, which is built on the common factor alone. ' + (c.residualCovs.length === 1 ? 'It' : 'They') +
+      ' also need' + (c.residualCovs.length === 1 ? 's' : '') + ' to be justified in the text: ' +
       'a residual correlation means the two items share something besides the factor.</p>';
   }
   c.notes.forEach(function(note){
@@ -1594,10 +1617,10 @@ function summaryTable(rows, categorical){
   rows.forEach(function(r){
     html += '<tr><th scope="row">' + esc(r.factor) + '</th><td class="num">' + r.k + '</td>';
     html += categorical
-      ? '<td class="num">' + fmt(r.omegaGY) + '</td><td class="num">' + fmt(r.omegaYstar) +
-        '</td><td class="num">' + fmt(r.ordinalAlpha) + '</td><td class="num">' + fmt(r.ave) + '</td>'
-      : '<td class="num">' + fmt(r.omega) + '</td><td class="num">' + fmt(r.alpha) +
-        '</td><td class="num">' + fmt(r.ave) + '</td>';
+      ? '<td class="num">' + fmtProp(r.omegaGY) + '</td><td class="num">' + fmtProp(r.omegaYstar) +
+        '</td><td class="num">' + fmtProp(r.ordinalAlpha) + '</td><td class="num">' + fmtProp(r.ave) + '</td>'
+      : '<td class="num">' + fmtProp(r.omega) + '</td><td class="num">' + fmtProp(r.alpha) +
+        '</td><td class="num">' + fmtProp(r.ave) + '</td>';
     html += '</tr>';
   });
   html += '</tbody></table></div>';
@@ -1630,7 +1653,8 @@ function groupSection(model, group, estimator, multiple){
       ' affect the discriminant validity of the two scales, which is a separate question.</p></div>';
   }
   if (!factors.length) {
-    return html + '<div class="status warn"><p><span class="tag">Nothing to compute.</span> No factor was read for this group.</p></div>';
+    return html + '<div class="status warn"><p><span class="tag">Nothing to compute.</span> No BY statement, and so no factor, was read ' +
+      (multiple ? 'for this group.' : 'from this file.') + '</p></div>';
   }
   factors.forEach(function(factor){
     var info = describeFactor(model, group, factor);
@@ -1672,27 +1696,44 @@ function intervalSection(model){
         '</td><td class="num">' + (interval ? "[" + fmt(interval.low) + ", " + fmt(interval.high) + "]" : "—") +
         '</td></tr>';
     });
-    html += '</tbody></table></div><p>With MLR these standard errors and intervals are robust.</p>';
+    html += '</tbody></table></div><p>With ESTIMATOR = MLR these standard errors, and so the intervals, are robust to non-normality.</p>';
     return html;
   }
   var group = model.groups[0];
   if (!group) return "";
-  var eligible = group.raw.order.filter(function(f){
+  /* Only factors that received an omega above: syntax for a coefficient the
+     page refused would contradict the refusal. */
+  var eligible = [], categoricalComputed = false;
+  group.raw.order.forEach(function(f){
     var info = describeFactor(model, group, f);
-    return !info.blocked && info.kind === "continuous";
+    if (info.blocked) return;
+    if (info.kind === "continuous") {
+      var c = continuousCoefficients(model, group, f, info.items);
+      if (!c.error && c.omega !== undefined) eligible.push(f);
+    } else if (info.kind === "categorical") {
+      if (!categoricalCoefficients(model, group, f, info.items, linkOf(model, model.estimator)).error) categoricalComputed = true;
+    }
   });
   var built = constraintSyntax(group, eligible);
-  if (!built) return "";
-  var out = '<h2>Getting a confidence interval as well</h2>' +
-    '<p>The coefficients above are point estimates. To obtain a standard error and a confidence ' +
-    'interval for omega, have ' + MP + ' compute it as a model parameter. The syntax below is written ' +
-    'for the factors and items of the file you loaded: copy it into your input file in place of the '
-    + 'MODEL command that is there now, ' +
-    'and run the model again.</p>' +
+  if (!built) {
+    return categoricalComputed
+      ? '<h2>Confidence interval for omega</h2><p>The MODEL CONSTRAINT syntax this page writes for a ' +
+        'standard error and a confidence interval covers continuous indicators only. The coefficients ' +
+        'for ordered categorical indicators above are point estimates without an interval.</p>'
+      : "";
+  }
+  var out = '<h2>Confidence interval for omega</h2>' +
+    '<p>The value of omega is the one above, computed here from the parameter estimates; the syntax ' +
+    'below is not another way of obtaining it. What it adds is the standard error and the confidence ' +
+    'interval, which cannot be computed from what an output prints and which only ' + MP + ' can return, ' +
+    'by carrying omega through the estimation as a parameter of the model (Raykov, 1997). The syntax is ' +
+    'written for the factors and items of the file you loaded: copy it into your input file in place of ' +
+    'the MODEL command that is there now, and run the model again. The point estimate it returns will ' +
+    'equal the one above.</p>' +
     '<pre class="syntax">' + esc(built.syntax) + '</pre>' +
     '<p>The labels in parentheses name the parameters, they do not constrain them; they are what the ' +
     'formula refers to. The lines are kept under eighty characters because ' + MP + ' reads ninety ' +
-    'and discards the rest of a longer line. With ESTIMATOR = MLR the resulting interval is robust.</p>';
+    'and discards the rest of a longer line. With ESTIMATOR = MLR the resulting standard error, and so the interval, is robust to non-normality.</p>';
   if (built.longNames.length) {
     out += '<div class="status warn"><p><span class="tag">Check the names.</span> ' +
       names(built.longNames) + ' ' + (built.longNames.length === 1 ? 'is' : 'are') +
@@ -1708,14 +1749,11 @@ function intervalSection(model){
   return out;
 }
 
+/* The conventions for reading a coefficient are stated once, under Methods
+   ("What these numbers do not settle"); the results point there. */
 function guidanceSection(){
-  return '<h2>Reading these values</h2>' +
-    '<p>Values near .70 are often quoted as a minimum for research on group means, and .80 or higher ' +
-    'for decisions about individuals. These are conventions of the literature and are offered here as ' +
-    'rough guidance, not as a line a scale passes or fails (Cho, 2016; Flora, 2020). A reliability ' +
-    'coefficient does not by itself settle whether a scale is adequate: it depends on the model that ' +
-    'produced it, on the sample it was estimated in, and on the use the score is put to. Which ' +
-    'coefficient is reported, and why, belongs in the text alongside the value.</p>';
+  return '<p>What these values do and do not establish, and the conventional levels quoted for them, ' +
+    'are set out under <a href="#methods">Methods and formulas</a>.</p>';
 }
 
 function render(){
@@ -1748,10 +1786,36 @@ function render(){
       'input, and load the new <code>.out</code> file.</p></div>';
     return;
   }
+  /* A Bayesian run prints posterior standard deviations and credibility limits
+     in place of the four columns read here, and a two-level model has a
+     Within Level and a Between Level block with a reliability of its own at
+     each level. Neither is read. */
+  if (estimator === "BAYES") {
+    results.innerHTML = html +
+      '<div class="status bad"><p><span class="glyph" aria-hidden="true">✗</span> ' +
+      '<span class="tag">Nothing to compute.</span> The estimator is BAYES. The MODEL RESULTS table of a ' +
+      'Bayesian run has posterior standard deviations and credibility limits in place of the columns ' +
+      'this page reads, so no parameter was taken from it. Run the model with a frequentist estimator ' +
+      '(ML, MLR or WLSMV) and load that output.</p></div>';
+    return;
+  }
+  if (model.twoLevel) {
+    results.innerHTML = html +
+      '<div class="status bad"><p><span class="glyph" aria-hidden="true">✗</span> ' +
+      '<span class="tag">Nothing to compute.</span> MODEL RESULTS is split into a Within Level and a ' +
+      'Between Level block, so this is a two-level model. The reliability of a sum is defined ' +
+      'separately at each level and this page reads single-level models only.</p></div>';
+    return;
+  }
   var multiple = model.groups.length > 1;
-  model.groups.forEach(function(group){ html += groupSection(model, group, estimator, multiple); });
+  var computed = false;
+  model.groups.forEach(function(group){
+    var section = groupSection(model, group, estimator, multiple);
+    if (/<caption>Summary<\/caption>/.test(section)) computed = true;
+    html += section;
+  });
   html += intervalSection(model);
-  html += guidanceSection();
+  if (computed) html += guidanceSection();
   results.innerHTML = html;
 }
 
@@ -1803,6 +1867,10 @@ function failure(title, message){
 }
 
 function loadFile(file){
+  /* The name shown beside the drop zone is that of the file the results, or
+     the refusal, below refer to. */
+  var nameSpan = document.getElementById("file-name");
+  if (nameSpan) nameSpan.textContent = file.name;
   readTextFile(file, function(text){
     var kind = diagnoseFile(text);
     if (kind === "empty" || kind === "blank") {
@@ -1830,8 +1898,6 @@ function loadFile(file){
     }
     state.model = model;
     state.fileName = file.name;
-    var name = document.getElementById("file-name");
-    if (name) name.textContent = file.name;
     render();
   }, function(){
     failure("File not read.", "The browser could not open <code>" + esc(file.name) + "</code>. " +
@@ -2024,6 +2090,24 @@ var SELFTEST_CATEGORICAL = [
 "Link                                                        PROBIT",
 "",
 "THE MODEL ESTIMATION TERMINATED NORMALLY",
+"",
+"SAMPLE STATISTICS",
+"",
+"     SAMPLE STATISTICS FOR GROUP G1",
+"",
+"           CORRELATION MATRIX (WITH VARIANCES ON THE DIAGONAL)",
+"              U1            U2",
+"              ________      ________",
+" U1",
+" U2             0.640",
+"",
+"     SAMPLE STATISTICS FOR GROUP G2",
+"",
+"           CORRELATION MATRIX (WITH VARIANCES ON THE DIAGONAL)",
+"              U1            U2",
+"              ________      ________",
+" U1",
+" U2             0.400",
 "",
 "MODEL RESULTS",
 "",
@@ -2286,7 +2370,13 @@ function runSelfTest(){
       tauSet.push(tt);
     }
     var rhoAll = [];
-    for (q = 0; q < k; q++) { rhoAll.push([]); for (cc = 0; cc < k; cc++) rhoAll[q][cc] = (q === cc) ? 1 : lambda[q] * lambda[cc]; }
+    for (q = 0; q < k; q++) {
+      rhoAll.push([]);
+      for (cc = 0; cc < k; cc++) {
+        rhoAll[q][cc] = (q === cc) ? 1 : clampCorrelation(lambda[q] * lambda[cc] + 0.15 * Math.sin((q + 1) * (cc + 1)));
+      }
+    }
+    for (q = 0; q < k; q++) for (cc = q + 1; cc < k; cc++) rhoAll[cc][q] = rhoAll[q][cc];
     var gyGap = Math.abs(greenYangOmega(lambda, tauSet, rhoAll) - referenceGreenYang(lambda, tauSet, rhoAll));
     if (gyGap > worstGY) { worstGY = gyGap; worstGYat = "k=" + k; }
   }
@@ -2308,13 +2398,18 @@ function runSelfTest(){
     var group = {
       raw: { order: ["F"], by: { F: itemNames.map(function(nm, i){ return { item: nm, est: loadings[i] }; }) },
              variances: { F: psi }, residuals: {}, residualCovs: [], thresholds: {} },
-      std: null, stdIndex: {}, rSquare: {}, thresholds: {}, sampleCov: null, polychoric: null, collapsed: null
+      std: { residuals: {}, residualCovs: [] }, stdIndex: { F: {} }, rSquare: {}, thresholds: {}, sampleCov: null, polychoric: null, collapsed: null
     };
-    itemNames.forEach(function(nm, i){ group.raw.residuals[nm] = residuals[i]; });
+    itemNames.forEach(function(nm, i){
+      group.raw.residuals[nm] = residuals[i];
+      var standardized = loadings[i] * Math.sqrt(psi) / Math.sqrt(loadings[i] * loadings[i] * psi + residuals[i]);
+      group.stdIndex.F[nm] = { item: nm, est: standardized };
+    });
     var got = continuousCoefficients({ latentVars: [], categoricalVars: [], link: null }, group, "F", itemNames);
-    var total = sum(loadings), squares = sum(loadings.map(function(v){ return v * v; })), errors = sum(residuals);
+    var total = sum(loadings), errors = sum(residuals);
     worstOmega = Math.max(worstOmega, Math.abs(got.omega - total * total * psi / (total * total * psi + errors)));
-    worstAve = Math.max(worstAve, Math.abs(got.ave - squares * psi / (squares * psi + errors)));
+    var expectedAve = sum(itemNames.map(function(nm){ var v = group.stdIndex.F[nm].est; return v * v; })) / n;
+    worstAve = Math.max(worstAve, Math.abs(got.ave - expectedAve));
     worstYstar = Math.max(worstYstar, Math.abs(omegaYstar(loadings, residuals, []) - total * total / (total * total + errors)));
     /* alpha on a covariance matrix built from the same parameters */
     var matrix = { m: {} };
@@ -2381,7 +2476,7 @@ function runSelfTest(){
   check("factor F1 is usable", !info1.blocked && info1.kind === "continuous", info1.blocked || info1.kind);
   var c1 = continuousCoefficients(model, g1, "F1", info1.items);
   close("omega, group 1", c1.omega, 3.645 / 5.445, 1e-12);
-  close("AVE, group 1", c1.ave, 1.225 / 3.025, 1e-12);
+  close("AVE, group 1", c1.ave, (0.707 * 0.707 + 0.636 * 0.636 + 0.560 * 0.560) / 3, 1e-12);
   close("alpha, group 1", c1.alpha, 0.75, 1e-12);
   var c2 = continuousCoefficients(model, g2, "F1", describeFactor(model, g2, "F1").items);
   close("omega, group 2", c2.omega, 8.712 / 12.012, 1e-12);
@@ -2403,7 +2498,10 @@ function runSelfTest(){
   close("Green-Yang omega from the parsed group 1", oc1.omegaGY, expected1, 1e-12);
   var oc2 = categoricalCoefficients(ordinal, o2, "FC", describeFactor(ordinal, o2, "FC").items, "PROBIT");
   close("Green-Yang omega from the parsed group 2", oc2.omegaGY,
-    greenYangOmega([0.5, 0.5], [[0.5], [0.5]], [[1, 0.25], [0.25, 1]]), 1e-12);
+    greenYangOmega([0.5, 0.5], [[0.5], [0.5]], [[1, 0.40], [0.40, 1]]), 1e-12);
+  check("Green-Yang uses the sample polychoric correlation in its denominator",
+    Math.abs(oc2.omegaGY - greenYangOmega([0.5, 0.5], [[0.5], [0.5]], [[1, 0.25], [0.25, 1]])) > 1e-4,
+    String(oc2.omegaGY));
   check("the two groups give different omegas", Math.abs(oc1.omegaGY - oc2.omegaGY) > 0.01,
     oc1.omegaGY + " vs " + oc2.omegaGY);
 
@@ -2462,9 +2560,9 @@ function runSelfTest(){
     " Variances\n    F1                 0.500      0.080      6.250    0.000\n", ""));
   var noVarianceOut = continuousCoefficients(noVariance, noVariance.groups[0], "F1",
     describeFactor(noVariance, noVariance.groups[0], "F1").items);
-  check("no coefficient when the factor variance is absent",
-    noVarianceOut.omega === undefined && noVarianceOut.ave === undefined && noVarianceOut.psiUnknown,
-    "omega " + noVarianceOut.omega);
+  check("omega is withheld but standardized AVE remains available when the factor variance is absent",
+    noVarianceOut.omega === undefined && isFinite(noVarianceOut.ave) && noVarianceOut.psiUnknown,
+    "omega " + noVarianceOut.omega + ", AVE " + noVarianceOut.ave);
   var endogenous = parseMplusOutput(SELFTEST_CONTINUOUS.replace(
     " Variances\n    F1                 0.500      0.080      6.250    0.000",
     " Residual Variances\n    F1                 0.300      0.080      3.750    0.000"));
@@ -2541,6 +2639,14 @@ function runSelfTest(){
                              residualCovs: [], thresholds: {} } }, ["F1"]).longNames.length === 2,
     "not reported");
 
+  /* A two-level output is recognized from its level headings; a Bayesian one from the estimator. */
+  check("a two-level output is recognized",
+    parseMplusOutput(SELFTEST_CONTINUOUS.replace("MODEL RESULTS\n", "MODEL RESULTS\n\nWithin Level\n")).twoLevel &&
+    !model.twoLevel, "unexpected");
+  check("the Bayes estimator is read",
+    parseMplusOutput(SELFTEST_CONTINUOUS.replace(/Estimator\s+ML/, "Estimator                                                    BAYES")).estimator === "BAYES",
+    "not read");
+
   /* Six groups, and groups whose item sets differ. */
   var sixGroups = SELFTEST_CONTINUOUS;
   ["G3", "G4", "G5", "G6"].forEach(function(name){
@@ -2590,6 +2696,136 @@ function runSelfTest(){
   main.insertBefore(banner, main.firstChild);
   if (failures.length) console.error("self-test failed", failures);
   else console.log("self-test passed");
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>

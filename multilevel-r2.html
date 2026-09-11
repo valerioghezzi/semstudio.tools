@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="The twelve R-squared measures of the Rights and Sterba framework, computed from one fitted two-level Mplus model, with the decomposition of the outcome variance into its five sources.">
+<title>Multilevel Variance Explained &#183; semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+table.enum td.num, table.enum th.num { font-variant-numeric: tabular-nums; text-align: right; }
+svg.chart { max-width: 100%; height: auto; display: block; }
+.src { color: var(--muted); font-size: 0.92em; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Multilevel Variance Explained</h1>
+  <p class="lede">How much of the variance a two-level model accounts for has no single answer: the outcome varies within clusters and between them, and a predictor can act through a fixed slope, through the variation of a slope, or through the variation of the intercept. This page reads one fitted model and reports the whole partition, together with the twelve proportions Rights and Sterba (2019) define on it. Nothing is typed in and no second model has to be fitted.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> <code>TYPE = TWOLEVEL RANDOM;</code> with <code>OUTPUT: SAMPSTAT;</code>. The parameters of the model are read from MODEL RESULTS; the variances and covariances of the predictors, which the model does not estimate when they are exogenous, are read from the sample statistics of the two levels, or from MODEL RESULTS when the model does estimate them. The page says for every predictor where its variance came from. The measures are defined for a model whose level-1 predictors are centered on their cluster means, which is what <code>DEFINE: CENTER x (GROUPMEAN);</code> does.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Fit the model with <code>SAMPSTAT</code> in the OUTPUT command.</li>
+    <li>Drop the <code>.out</code> file on the box below.</li>
+    <li>Read what the page found before reading the measures: the sources of the variance are only as good as the quantities they were built from, and the page names every one of them.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file">M<em>plus</em> output file</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere.</p>
+  <div id="report" aria-live="polite"></div>
+  <div class="row">
+    <div class="field w2"><label for="dv">Outcome</label><select id="dv"><option value="">&#8212;</option></select>
+      <span class="hint">A model with more than one dependent variable at the within level has one partition per outcome; choose the one to report.</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-read">
+  <h2 id="h-read">What was read</h2>
+  <div id="read"><p class="hint">The list appears here once an output file has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-parts">
+  <h2 id="h-parts">The partition of the variance</h2>
+  <div id="parts"><p class="hint">The partition appears here once an output file has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-measures">
+  <h2 id="h-measures">The twelve measures</h2>
+  <div id="measures"><p class="hint">The measures appear here once an output file has been read.</p></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>Why one model is enough</h3>
+  <p>The older measures of explained variance in multilevel models are built by fitting two models, an empty one and the model of interest, and comparing their variance components. LaHuis, Hartman, Hakoyama and Clark (2014) put those measures through a simulation: because they subtract one estimate from another, they can come out negative when nothing is wrong, and the measure for the second level in particular was biased and inefficient enough that they do not recommend it. The measure built instead on the full partition of the variance of a single fitted model was among the least biased when the model carried random slopes, and cannot be negative; its disadvantage, in their words, was that it is tedious to calculate. This page performs that calculation.</p>
+
+  <h3>The partition</h3>
+  <p>The predictors of the first level are the ones that vary within a cluster and the predictors of the second level the ones that vary between clusters, which is the within level and the between level of the model as M<em>plus</em> prints it. Writing a two-level model with level-1 predictors <strong>x</strong><sup><var>w</var></sup> centered on their cluster means, level-2 predictors <strong>x</strong><sup><var>b</var></sup>, and the subset <strong>w</strong> of the level-1 predictors whose slopes vary between clusters, the variance the model implies for the outcome is the sum of five terms (Rights &amp; Sterba, 2019, Eq. 10):</p>
+  <div class="eq"><math display="block"><mrow><mi>var</mi><mo>(</mo><msub><mi>y</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>)</mo><mo>=</mo><msup><mi>&#x3B3;</mi><mrow><mi>w</mi><mo>&#x2032;</mo></mrow></msup><msup><mi>&#x3A6;</mi><mi>w</mi></msup><msup><mi>&#x3B3;</mi><mi>w</mi></msup><mo>+</mo><msup><mi>&#x3B3;</mi><mrow><mi>b</mi><mo>&#x2032;</mo></mrow></msup><msup><mi>&#x3A6;</mi><mi>b</mi></msup><msup><mi>&#x3B3;</mi><mi>b</mi></msup><mo>+</mo><mi>tr</mi><mo>(</mo><mi mathvariant="bold">T</mi><mi mathvariant="bold">&#x3A3;</mi><mo>)</mo><mo>+</mo><msub><mi>&#x3C4;</mi><mn>00</mn></msub><mo>+</mo><msup><mi>&#x3C3;</mi><mn>2</mn></msup></mrow></math></div>
+  <p class="where">Here <math><msup><mi>&#x3B3;</mi><mi>w</mi></msup></math> and <math><msup><mi>&#x3B3;</mi><mi>b</mi></msup></math> are the fixed effects of the level-1 and level-2 predictors, <math><msup><mi>&#x3A6;</mi><mi>w</mi></msup></math> and <math><msup><mi>&#x3A6;</mi><mi>b</mi></msup></math> the covariance matrices of those predictors, <strong>T</strong> the covariance matrix of the random slopes, <strong>&#x3A3;</strong> the covariance matrix of the predictors those slopes belong to, <math><msub><mi>&#x3C4;</mi><mn>00</mn></msub></math> the variance of the random intercept and <math><msup><mi>&#x3C3;</mi><mn>2</mn></msup></math> the level-1 residual variance. The five terms are, in order (Eq. 11 to 15), the variance attributable to the level-1 predictors through their fixed slopes, to the level-2 predictors through their fixed slopes, to the level-1 predictors through the variation and covariation of their slopes, to the cluster-specific means through the variation of the intercept, and to the level-1 residuals.</p>
+  <p>Three of the five belong entirely to the variation within clusters, so the within-cluster variance the model implies is their sum (Eq. 16), and the remaining two make up the between-cluster variance (Eq. 17):</p>
+  <div class="eq"><math display="block"><mrow><msubsup><mi>&#x3C3;</mi><mi>w</mi><mn>2</mn></msubsup><mo>=</mo><msup><mi>&#x3B3;</mi><mrow><mi>w</mi><mo>&#x2032;</mo></mrow></msup><msup><mi>&#x3A6;</mi><mi>w</mi></msup><msup><mi>&#x3B3;</mi><mi>w</mi></msup><mo>+</mo><mi>tr</mi><mo>(</mo><mi mathvariant="bold">T</mi><mi mathvariant="bold">&#x3A3;</mi><mo>)</mo><mo>+</mo><msup><mi>&#x3C3;</mi><mn>2</mn></msup><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><msubsup><mi>&#x3C3;</mi><mi>b</mi><mn>2</mn></msubsup><mo>=</mo><msup><mi>&#x3B3;</mi><mrow><mi>b</mi><mo>&#x2032;</mo></mrow></msup><msup><mi>&#x3A6;</mi><mi>b</mi></msup><msup><mi>&#x3B3;</mi><mi>b</mi></msup><mo>+</mo><msub><mi>&#x3C4;</mi><mn>00</mn></msub></mrow></math></div>
+
+  <h3>The twelve measures</h3>
+  <p>Each measure is a source of explained variance over a choice of outcome variance (Rights &amp; Sterba, 2019, Table 1). The subscript names the denominator, <var>t</var> for the total variance, <var>w</var> for the within-cluster variance, <var>b</var> for the between-cluster variance; the superscript names the sources in the numerator, <var>f</var><sub>1</sub> for the level-1 predictors through fixed slopes, <var>f</var><sub>2</sub> for the level-2 predictors through fixed slopes, <var>v</var> for the variation of the slopes, <var>m</var> for the variation of the intercept, and the combinations <var>f</var> = <var>f</var><sub>1</sub> + <var>f</var><sub>2</sub>, <var>fv</var>, and <var>fvm</var>. Seven have the total variance in the denominator, three the within-cluster variance and two the between-cluster variance. Because the level-1 residual is never explained variance at either level, the two between-cluster measures are the ones for <var>f</var><sub>2</sub> and for <var>m</var> separately; their sum is one, which is why no combined between-cluster measure is defined.</p>
+  <p>The seven total measures are not alternatives to one another and are not meant to be reported one at a time. Rights and Sterba recommend giving the four that each carry a single source, <math><msubsup><mi>R</mi><mi>t</mi><mrow><mn>2</mn><mo>(</mo><msub><mi>f</mi><mn>1</mn></msub><mo>)</mo></mrow></msubsup></math>, <math><msubsup><mi>R</mi><mi>t</mi><mrow><mn>2</mn><mo>(</mo><msub><mi>f</mi><mn>2</mn></msub><mo>)</mo></mrow></msubsup></math>, <math><msubsup><mi>R</mi><mi>t</mi><mrow><mn>2</mn><mo>(</mo><mi>v</mi><mo>)</mo></mrow></msubsup></math> and <math><msubsup><mi>R</mi><mi>t</mi><mrow><mn>2</mn><mo>(</mo><mi>m</mi><mo>)</mo></mrow></msubsup></math>, together with their level-specific counterparts, and reading them against the picture of the whole partition rather than in isolation. The bar chart above is that picture, in the form of their Figure 1.</p>
+
+  <h3>Where each quantity comes from</h3>
+  <p>The fixed effects, the random slope covariances, the intercept variance and the residual variance are parameters of the model and are read from MODEL RESULTS: the level-1 fixed slope of a predictor whose slope is random is the mean of that slope at the between level, which is where M<em>plus</em> puts it when the slope is defined with <code>s | y ON x;</code>. The covariance matrices of the predictors are not parameters of the model when the predictors are exogenous and observed, which is the usual case: the model conditions on them. They are read instead from the estimated sample statistics of the two levels, which <code>SAMPSTAT</code> prints, and from MODEL RESULTS when the model does estimate them. The table above names the source of every one of them, and when one is missing the page says which predictor it belongs to and computes nothing, rather than filling the gap.</p>
+  <p>Two conditions are checked and reported rather than assumed. The measures are defined for level-1 predictors centered on their cluster means, so the page looks for a <code>CENTER</code> statement with <code>GROUPMEAN</code> in the echoed input and says whether it found one. And the sum of the five terms is compared with the variance of the outcome in the sample statistics: a large discrepancy means that some source of variance in the model was not read, and the page reports the discrepancy so that the measures are not taken for a complete partition when they are not one.</p>
+
+  <h3>Self-test</h3>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of a two-level output written for the purpose, the quadratic forms and the trace against their definitions written out a second way, the requirement that the five proportions of the total variance sum to one and that the level-specific ones sum to one within their own level, the equality of each combined measure with the sum of its parts, the behavior of the measures in the cases where a source is absent, and the outputs the page has to refuse.</p>
+  </div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>LaHuis, D. M., Hartman, M. J., Hakoyama, S., &amp; Clark, P. C. (2014). Explained variance measures for multilevel models. <em>Organizational Research Methods, 17</em>(4), 433&#8211;451. <a href="https://doi.org/10.1177/1094428114541701">https://doi.org/10.1177/1094428114541701</a></li>
+    <li>Rights, J. D., &amp; Sterba, S. K. (2019). Quantifying explained variance in multilevel models: An integrative framework for defining R-squared measures. <em>Psychological Methods, 24</em>(3), 309&#8211;338. <a href="https://doi.org/10.1037/met0000184">https://doi.org/10.1037/met0000184</a></li>
+    <li>Snijders, T. A. B., &amp; Bosker, R. J. (2012). <em>Multilevel analysis: An introduction to basic and advanced multilevel modeling</em> (2nd ed.). Sage.</li>
+  </ul>
+  </div>
+</details>
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function $(id) { return document.getElementById(id); }
+var MP = "M<em>plus</em>";
+/* Okabe and Ito, with the residual left unpainted and outlined. */
+var PALETTE = { f1: "#D55E00", f2: "#0072B2", v: "#E69F00", m: "#56B4E9", res: "#FFFFFF" };
+
+/* ==================================================================
+   Reading a file
+   ================================================================== */
+
+function diagnoseFile(text) {
+  if (!text || !text.replace(/\s/g, "").length) return "empty";
+  if (/Mplus VERSION/i.test(text) || /MODEL FIT INFORMATION/.test(text) ||
+      /INPUT INSTRUCTIONS/.test(text) || /MODEL RESULTS/.test(text)) return "mplus";
+  return "foreign";
+}
+
+function findLine(lines, re, from) {
+  for (var i = from || 0; i < lines.length; i++) if (re.test(lines[i])) return i;
+  return -1;
+}
+
+function isUnderline(line) {
+  var t = line.trim();
+  return t.length > 0 && /^_+(\s+_+)*$/.test(t);
+}
+function nameTokens(line) {
+  var t = line.trim();
+  if (!t) return null;
+  var parts = t.split(/\s+/), i;
+  for (i = 0; i < parts.length; i++) if (!/^[A-Za-z][A-Za-z0-9_#.]*$/.test(parts[i])) return null;
+  return parts;
+}
+
+/* a symmetric matrix printed in blocks of columns */
+function readMatrix(lines, from, to) {
+  var cols = null, prev = null, vals = {}, order = [], i, j;
+  function put(r, c, v) {
+    if (order.indexOf(r) < 0) order.push(r);
+    if (order.indexOf(c) < 0) order.push(c);
+    vals[r + " " + c] = v;
+    vals[c + " " + r] = v;
+  }
+  for (i = from; i < to && i < lines.length; i++) {
+    var line = lines[i], t = line.trim();
+    if (!t) { prev = null; continue; }
+    if (isUnderline(line)) { if (prev) cols = prev; prev = null; continue; }
+    var parts = t.split(/\s+/), head = parts[0];
+    if (/^-?[\d.]+$/.test(head)) { prev = null; continue; }
+    var nums = [], ok = true;
+    for (j = 1; j < parts.length; j++) {
+      if (!/^-?[\d.]+$/.test(parts[j])) { ok = false; break; }
+      nums.push(parseFloat(parts[j]));
+    }
+    if (ok && nums.length && cols && /^[A-Za-z][A-Za-z0-9_#.]*$/.test(head)) {
+      for (j = 0; j < nums.length && j < cols.length; j++) put(head, cols[j], nums[j]);
+      prev = null;
+      continue;
+    }
+    prev = nameTokens(line);
+  }
+  return {
+    names: order,
+    get: function (a, b) { var v = vals[a + " " + b]; return v === undefined ? NaN : v; },
+    has: function (a, b) { return vals[a + " " + b] !== undefined; }
+  };
+}
+
+/* the covariance matrix of one level from the sample statistics */
+function sampleCovariances(lines, which) {
+  var re = new RegExp("SAMPLE STATISTICS FOR " + which + "\\s*$", "i");
+  var i = findLine(lines, re);
+  if (i < 0) return null;
+  var j, start = -1, end = lines.length;
+  for (j = i + 1; j < lines.length; j++) {
+    if (/^\s*(ESTIMATED\s+)?SAMPLE STATISTICS FOR/i.test(lines[j])) { end = j; break; }
+    if (/^[A-Z][A-Z ]{6,}$/.test(lines[j])) { end = j; break; }
+    if (/^\s+Covariances\s*$/.test(lines[j])) { start = j + 1; }
+    else if (start > 0 && /^\s+(Correlations|Means|Variances)\s*$/.test(lines[j])) { end = j; break; }
+  }
+  if (start < 0) return null;
+  return readMatrix(lines, start, end);
+}
+
+/* MODEL RESULTS, one level at a time */
+function readLevel(lines, from, to) {
+  var out = { on: {}, withCov: [], means: {}, intercepts: {}, variances: {}, residual: {} };
+  var mode = null, subject = null, i;
+  for (i = from; i < to && i < lines.length; i++) {
+    var line = lines[i], t = line.trim();
+    if (!t) continue;
+    if (/^(Within|Between) Level/i.test(t)) break;
+    if (line.charAt(0) !== " " && /^[A-Z][A-Z0-9 ()\/.-]{5,}$/.test(line)) break;
+    var mOn = t.match(/^([A-Za-z][A-Za-z0-9_#]*)\s+ON\s*$/i);
+    if (mOn) { mode = "on"; subject = mOn[1].toUpperCase(); out.on[subject] = out.on[subject] || {}; continue; }
+    var mWith = t.match(/^([A-Za-z][A-Za-z0-9_#]*)\s+WITH\s*$/i);
+    if (mWith) { mode = "with"; subject = mWith[1].toUpperCase(); continue; }
+    if (/^Means\s*$/i.test(t)) { mode = "means"; subject = null; continue; }
+    if (/^Intercepts\s*$/i.test(t)) { mode = "intercepts"; subject = null; continue; }
+    if (/^Variances\s*$/i.test(t)) { mode = "variances"; subject = null; continue; }
+    if (/^Residual Variances\s*$/i.test(t)) { mode = "residual"; subject = null; continue; }
+    if (/^Thresholds\s*$/i.test(t)) { mode = null; subject = null; continue; }
+    if (/^New\/Additional Parameters\s*$/i.test(t)) { mode = null; subject = null; continue; }
+    var mv = t.match(/^([A-Za-z][A-Za-z0-9_#.]*)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)/);
+    if (!mv || !mode) continue;
+    var nm = mv[1].toUpperCase(), v = parseFloat(mv[2]);
+    if (mode === "on" && subject) out.on[subject][nm] = v;
+    else if (mode === "with" && subject) out.withCov.push({ a: subject, b: nm, est: v });
+    else if (mode === "means") out.means[nm] = v;
+    else if (mode === "intercepts") out.intercepts[nm] = v;
+    else if (mode === "variances") out.variances[nm] = v;
+    else if (mode === "residual") out.residual[nm] = v;
+  }
+  return out;
+}
+
+function readOut(text, name) {
+  var lines = String(text).replace(/\r\n?/g, "\n").split("\n"), f = { name: name }, i;
+
+  /* the echoed input */
+  var a = findLine(lines, /^INPUT INSTRUCTIONS/), b = findLine(lines, /^INPUT READING TERMINATED/);
+  f.input = (a >= 0 && b > a) ? lines.slice(a + 1, b).join("\n") : "";
+  f.slopes = [];
+  var re = /([A-Za-z][A-Za-z0-9_]*)\s*\|\s*([A-Za-z][A-Za-z0-9_]*)\s+ON\s+([A-Za-z][A-Za-z0-9_ ]*?)\s*;/gi, m;
+  while ((m = re.exec(f.input)) !== null) {
+    var preds = m[3].trim().split(/\s+/);
+    f.slopes.push({ name: m[1].toUpperCase(), dv: m[2].toUpperCase(), pred: preds[0].toUpperCase(), extra: preds.slice(1) });
+  }
+  f.groupMean = /CENTER[^;]*\(\s*GROUPMEAN\s*\)/i.test(f.input);
+  f.twolevel = /TYPE\s*(?:IS|=)\s*[^;]*TWOLEVEL/i.test(f.input) || /TWOLEVEL/i.test(f.input);
+
+  f.n = NaN;
+  i = findLine(lines, /^\s*Number of observations\s+\d+/);
+  if (i >= 0) f.n = parseInt(lines[i].match(/(\d+)\s*$/)[1], 10);
+  f.clusters = NaN;
+  i = findLine(lines, /^\s*Number of clusters\s+\d+/);
+  if (i >= 0) f.clusters = parseInt(lines[i].match(/(\d+)\s*$/)[1], 10);
+
+  /* MODEL RESULTS by level */
+  f.within = null; f.between = null;
+  var mr = findLine(lines, /^MODEL RESULTS\s*$/);
+  if (mr >= 0) {
+    var end = lines.length, k;
+    for (k = mr + 1; k < lines.length; k++)
+      if (/^(QUALITY OF NUMERICAL|STANDARDIZED MODEL RESULTS|R-SQUARE|TECHNICAL|MODEL COMMAND|CONFIDENCE INTERVALS|SAVEDATA|PLOT|DIAGRAM|Beginning Time)/i.test(lines[k])) { end = k; break; }
+    var wi = findLine(lines, /^Within Level\s*$/, mr), bi = findLine(lines, /^Between Level\s*$/, mr);
+    if (wi >= 0 && wi < end) f.within = readLevel(lines, wi + 1, (bi > wi && bi < end) ? bi : end);
+    if (bi >= 0 && bi < end) f.between = readLevel(lines, bi + 1, end);
+    if (wi < 0 && bi < 0) f.single = readLevel(lines, mr + 1, end);
+  }
+
+  f.covWithin = sampleCovariances(lines, "WITHIN");
+  f.covBetween = sampleCovariances(lines, "BETWEEN");
+  f.nWarnings = (String(text).match(/^\s*\*\*\* WARNING/gm) || []).length;
+  f.terminated = !/THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY/.test(text);
+  return f;
+}
+
+/* ==================================================================
+   Assembling the partition
+   ================================================================== */
+
+function covFrom(sample, level, a, b) {
+  /* returns { v: value, src: "sample statistics" | "model results" } */
+  if (sample && sample.has(a, b)) return { v: sample.get(a, b), src: "sample statistics" };
+  if (level) {
+    if (a === b) {
+      if (isFinite(level.variances[a])) return { v: level.variances[a], src: "model results" };
+      if (isFinite(level.residual[a])) return { v: level.residual[a], src: "model results, residual" };
+    } else {
+      var i;
+      for (i = 0; i < level.withCov.length; i++) {
+        var c = level.withCov[i];
+        if ((c.a === a && c.b === b) || (c.a === b && c.b === a)) return { v: c.est, src: "model results" };
+      }
+    }
+  }
+  return { v: NaN, src: null };
+}
+
+function quadratic(g, M) {
+  var s = 0, i, j;
+  for (i = 0; i < g.length; i++) for (j = 0; j < g.length; j++) s += g[i] * M[i][j] * g[j];
+  return s;
+}
+function traceProduct(T, S) {
+  var s = 0, i, j;
+  for (i = 0; i < T.length; i++) for (j = 0; j < T.length; j++) s += T[i][j] * S[j][i];
+  return s;
+}
+
+function buildPartition(f, dv) {
+  var out = { dv: dv, problems: [], notes: [], sources: [] };
+  if (!f.within || !f.between) {
+    out.problems.push("The output has no Within Level and Between Level sections in MODEL RESULTS, so it is not a two-level analysis. This page reads a model fitted with <code>TYPE = TWOLEVEL</code>.");
+    return out;
+  }
+  var i, j;
+
+  /* level-1 predictors: fixed-only, then those with a random slope */
+  var fixed1 = [], random1 = [], slopeName = {};
+  var onW = f.within.on[dv] || {};
+  for (var p in onW) if (Object.prototype.hasOwnProperty.call(onW, p)) fixed1.push(p);
+  fixed1.sort();
+  for (i = 0; i < f.slopes.length; i++) {
+    if (f.slopes[i].dv !== dv) continue;
+    random1.push(f.slopes[i].pred);
+    slopeName[f.slopes[i].pred] = f.slopes[i].name;
+    if (f.slopes[i].extra && f.slopes[i].extra.length)
+      out.notes.push("The random slope " + esc(f.slopes[i].name) + " is declared over more than one predictor; only " + esc(f.slopes[i].pred) + " was taken.");
+  }
+  var pred1 = fixed1.concat(random1.filter(function (x) { return fixed1.indexOf(x) < 0; }));
+
+  /* level-2 predictors */
+  var pred2 = [], onB = f.between.on[dv] || {};
+  for (var q in onB) if (Object.prototype.hasOwnProperty.call(onB, q)) pred2.push(q);
+  pred2.sort();
+
+  /* fixed effects */
+  var gw = [], gb = [];
+  for (i = 0; i < pred1.length; i++) {
+    var nm = pred1[i];
+    if (random1.indexOf(nm) >= 0) {
+      var sn = slopeName[nm], mv = f.between.means[sn];
+      if (!isFinite(mv)) {
+        out.problems.push("The mean of the random slope " + esc(sn) + " is not in the between level of MODEL RESULTS, and it is the fixed effect of " + esc(nm) + ".");
+        gw.push(NaN);
+      } else { gw.push(mv); out.sources.push({ what: "fixed effect of " + nm, src: "mean of " + sn + " at the between level", v: mv }); }
+    } else {
+      gw.push(onW[nm]);
+      out.sources.push({ what: "fixed effect of " + nm, src: "within level, " + dv + " ON", v: onW[nm] });
+    }
+  }
+  for (i = 0; i < pred2.length; i++) {
+    gb.push(onB[pred2[i]]);
+    out.sources.push({ what: "fixed effect of " + pred2[i], src: "between level, " + dv + " ON", v: onB[pred2[i]] });
+  }
+
+  /* variance components */
+  var sigma2 = isFinite(f.within.residual[dv]) ? f.within.residual[dv] : f.within.variances[dv];
+  if (!isFinite(sigma2)) out.problems.push("The level-1 residual variance of " + esc(dv) + " is not in the within level of MODEL RESULTS.");
+  else out.sources.push({ what: "level-1 residual variance", src: "within level, residual variance of " + dv, v: sigma2 });
+
+  var tau00 = isFinite(f.between.residual[dv]) ? f.between.residual[dv] : f.between.variances[dv];
+  if (!isFinite(tau00)) out.problems.push("The variance of the random intercept of " + esc(dv) + " is not in the between level of MODEL RESULTS.");
+  else out.sources.push({ what: "random intercept variance", src: "between level, " + (isFinite(f.between.residual[dv]) ? "residual variance" : "variance") + " of " + dv, v: tau00 });
+
+  /* covariance matrices of the predictors */
+  function matrixFor(names, sample, level, label) {
+    var M = [], r, c;
+    for (r = 0; r < names.length; r++) {
+      M[r] = [];
+      for (c = 0; c < names.length; c++) {
+        if (c < r) { M[r][c] = M[c][r]; continue; }
+        var got = covFrom(sample, level, names[r], names[c]);
+        if (!isFinite(got.v)) {
+          if (r === c) out.problems.push("The " + label + " variance of " + esc(names[r]) + " is in neither the sample statistics nor MODEL RESULTS. Add <code>SAMPSTAT</code> to the OUTPUT command and run the model again.");
+          else out.notes.push("The " + label + " covariance of " + esc(names[r]) + " with " + esc(names[c]) + " was not found and was taken as zero.");
+          M[r][c] = (r === c) ? NaN : 0;
+        } else {
+          M[r][c] = got.v;
+          out.sources.push({ what: (r === c ? label + " variance of " + names[r] : label + " covariance of " + names[r] + " with " + names[c]), src: got.src, v: got.v });
+        }
+      }
+    }
+    return M;
+  }
+  var Phiw = matrixFor(pred1, f.covWithin, f.within, "within-level");
+  var Phib = matrixFor(pred2, f.covBetween, f.between, "between-level");
+
+  /* the random slope covariance matrix */
+  var T = [], Sigma = [];
+  for (i = 0; i < random1.length; i++) {
+    T[i] = []; Sigma[i] = [];
+    for (j = 0; j < random1.length; j++) {
+      var si = slopeName[random1[i]], sj = slopeName[random1[j]];
+      if (i === j) {
+        var vv = isFinite(f.between.variances[si]) ? f.between.variances[si] : f.between.residual[si];
+        if (!isFinite(vv)) out.problems.push("The variance of the random slope " + esc(si) + " is not in the between level of MODEL RESULTS.");
+        else out.sources.push({ what: "variance of the random slope of " + random1[i], src: "between level, variance of " + si, v: vv });
+        T[i][j] = vv;
+      } else {
+        var found = NaN, k;
+        for (k = 0; k < f.between.withCov.length; k++) {
+          var cc = f.between.withCov[k];
+          if ((cc.a === si && cc.b === sj) || (cc.a === sj && cc.b === si)) { found = cc.est; break; }
+        }
+        T[i][j] = isFinite(found) ? found : 0;
+        if (isFinite(found)) out.sources.push({ what: "covariance of the random slopes of " + random1[i] + " and " + random1[j], src: "between level, " + si + " WITH " + sj, v: found });
+      }
+      var ii = pred1.indexOf(random1[i]), jj = pred1.indexOf(random1[j]);
+      Sigma[i][j] = (ii >= 0 && jj >= 0) ? Phiw[ii][jj] : NaN;
+    }
+  }
+
+  out.pred1 = pred1; out.pred2 = pred2; out.random1 = random1; out.slopeName = slopeName;
+  out.gw = gw; out.gb = gb; out.Phiw = Phiw; out.Phib = Phib; out.T = T; out.Sigma = Sigma;
+  out.sigma2 = sigma2; out.tau00 = tau00;
+
+  if (out.problems.length) return out;
+
+  out.f1 = pred1.length ? quadratic(gw, Phiw) : 0;
+  out.f2 = pred2.length ? quadratic(gb, Phib) : 0;
+  out.v = random1.length ? traceProduct(T, Sigma) : 0;
+  out.m = tau00;
+  out.e = sigma2;
+  out.total = out.f1 + out.f2 + out.v + out.m + out.e;
+  out.withinVar = out.f1 + out.v + out.e;
+  out.betweenVar = out.f2 + out.m;
+
+  /* the observed variance of the outcome, when the sample statistics carry it */
+  var ow = f.covWithin && f.covWithin.has(dv, dv) ? f.covWithin.get(dv, dv) : NaN;
+  var ob = f.covBetween && f.covBetween.has(dv, dv) ? f.covBetween.get(dv, dv) : NaN;
+  if (isFinite(ow) && isFinite(ob)) {
+    out.observed = ow + ob;
+    out.gap = out.total - out.observed;
+  }
+  return out;
+}
+
+function measures(p) {
+  var t = p.total, w = p.withinVar, b = p.betweenVar;
+  return {
+    t_f1: p.f1 / t, t_f2: p.f2 / t, t_f: (p.f1 + p.f2) / t,
+    t_v: p.v / t, t_m: p.m / t,
+    t_fv: (p.f1 + p.f2 + p.v) / t, t_fvm: (p.f1 + p.f2 + p.v + p.m) / t,
+    w_f1: p.f1 / w, w_v: p.v / w, w_fv: (p.f1 + p.v) / w,
+    b_f2: p.f2 / b, b_m: p.m / b
+  };
+}
+
+/* ==================================================================
+   Rendering
+   ================================================================== */
+
+function fx(v, d) { return isFinite(v) ? v.toFixed(d === undefined ? 3 : d) : "&#8212;"; }
+function fdec(v, d) {
+  if (!isFinite(v)) return "&#8212;";
+  return v.toFixed(d === undefined ? 3 : d).replace(/^(-?)0\./, "$1.");
+}
+
+function sourcesTable(f, p) {
+  var html = "<p><strong>" + esc(f.name) + "</strong>" +
+    (isFinite(f.n) ? ", " + f.n + " observations" : "") +
+    (isFinite(f.clusters) ? " in " + f.clusters + " clusters" : "") + ".</p>";
+  var bits = [];
+  bits.push(p.pred1 && p.pred1.length ? "Level-1 predictors: " + esc(p.pred1.join(", ")) +
+    (p.random1.length ? ", of which " + esc(p.random1.join(", ")) + " " + (p.random1.length === 1 ? "has" : "have") + " a random slope." : ", none with a random slope.") :
+    "No level-1 predictor was found.");
+  bits.push(p.pred2 && p.pred2.length ? "Level-2 predictors: " + esc(p.pred2.join(", ")) + "." : "No level-2 predictor was found.");
+  bits.push(f.groupMean ? "The echoed input centres at least one variable on its cluster mean." :
+    "No <code>CENTER</code> statement with <code>GROUPMEAN</code> is in the echoed input. The measures are defined for level-1 predictors centered on their cluster means; without that centering the variance attributable to a level-1 predictor through its fixed slope also carries the between-cluster part of that predictor, and the partition is not the one the measures are written for.");
+  if (f.nWarnings) bits.push(MP + " printed " + f.nWarnings + " warning" + (f.nWarnings === 1 ? "" : "s") + "; read " + (f.nWarnings === 1 ? "it" : "them") + " in the file.");
+  var html2 = "<p>" + bits.join(" ") + "</p>";
+
+  if (p.problems && p.problems.length) {
+    html2 += "<div class=\"status bad\" role=\"status\"><p>Nothing was computed.</p><ul><li>" +
+      p.problems.join("</li><li>") + "</li></ul></div>";
+  }
+  if (p.notes && p.notes.length) {
+    html2 += "<div class=\"status warn\" role=\"status\"><p>" + p.notes.join("</p><p>") + "</p></div>";
+  }
+  if (!p.sources || !p.sources.length) return html + html2;
+  var rows = "", i;
+  for (i = 0; i < p.sources.length; i++)
+    rows += "<tr><th scope=\"row\">" + esc(p.sources[i].what) + "</th><td class=\"num\">" + fx(p.sources[i].v, 4) +
+      "</td><td class=\"src\">" + esc(p.sources[i].src || "not found") + "</td></tr>";
+  return html + html2 + "<div class=\"table-wrap\"><table class=\"enum\"><caption>Every quantity the partition is built from, with the part of the output it was taken from.</caption><thead><tr><th scope=\"col\">Quantity</th><th scope=\"col\" class=\"num\">Value</th><th scope=\"col\">Read from</th></tr></thead><tbody>" +
+    rows + "</tbody></table></div>";
+}
+
+function partitionTable(p) {
+  if (!isFinite(p.total)) return "<p class=\"hint\">The partition appears here once an output file has been read.</p>";
+  var rows = [
+    ["Level-1 predictors, fixed slopes", p.f1, "f<sub>1</sub>"],
+    ["Level-2 predictors, fixed slopes", p.f2, "f<sub>2</sub>"],
+    ["Slope variation and covariation", p.v, "v"],
+    ["Intercept variation", p.m, "m"],
+    ["Level-1 residual", p.e, ""]
+  ];
+  var html = "<div class=\"table-wrap\"><table class=\"enum\"><caption>The five sources the model-implied variance of the outcome is made of, and their share of it.</caption><thead><tr><th scope=\"col\">Source</th><th scope=\"col\">Symbol</th><th scope=\"col\" class=\"num\">Variance</th><th scope=\"col\" class=\"num\">Share of the total</th></tr></thead><tbody>";
+  var i;
+  for (i = 0; i < rows.length; i++)
+    html += "<tr><th scope=\"row\">" + rows[i][0] + "</th><td>" + rows[i][2] + "</td><td class=\"num\">" +
+      fx(rows[i][1], 4) + "</td><td class=\"num\">" + fdec(rows[i][1] / p.total, 3) + "</td></tr>";
+  html += "<tr><th scope=\"row\">Total</th><td></td><td class=\"num\">" + fx(p.total, 4) + "</td><td class=\"num\">1.000</td></tr>";
+  html += "<tr><th scope=\"row\">Within clusters</th><td></td><td class=\"num\">" + fx(p.withinVar, 4) + "</td><td class=\"num\">" + fdec(p.withinVar / p.total, 3) + "</td></tr>";
+  html += "<tr><th scope=\"row\">Between clusters</th><td></td><td class=\"num\">" + fx(p.betweenVar, 4) + "</td><td class=\"num\">" + fdec(p.betweenVar / p.total, 3) + "</td></tr>";
+  html += "</tbody></table></div>";
+  if (isFinite(p.observed)) {
+    var rel = Math.abs(p.gap) / p.observed;
+    html += "<p class=\"hint\">The variance of " + esc(p.dv) + " in the sample statistics is " + fx(p.observed, 4) +
+      ", against " + fx(p.total, 4) + " implied by the partition, a difference of " + fx(p.gap, 4) + " (" + fdec(rel * 100, 1) + " percent). " +
+      (rel > 0.05 ? "A difference of this size means that a source of variance in the model was not read, and the proportions below are shares of something narrower than the variance of the outcome." :
+                    "The two agree, so the five sources account for the variance of the outcome.") + "</p>";
+  }
+  return html + decompositionChart(p);
+}
+
+function decompositionChart(p) {
+  var W = 560, H = 340, L = 74, R = 22, T = 18, B = 52;
+  var colW = (W - L - R) / 3, barW = colW * 0.5;
+  var cols = [
+    { label: "total", parts: [["f1", p.f1], ["f2", p.f2], ["v", p.v], ["m", p.m], ["res", p.e]], denom: p.total },
+    { label: "within", parts: [["f1", p.f1], ["v", p.v], ["res", p.e]], denom: p.withinVar },
+    { label: "between", parts: [["f2", p.f2], ["m", p.m]], denom: p.betweenVar }
+  ];
+  var svg = "<svg class=\"chart\" viewBox=\"0 0 " + W + " " + H + "\" role=\"img\" aria-label=\"" +
+    "The decomposition of the total, the within-cluster and the between-cluster variance into the five sources, " +
+    "as three stacked columns each summing to one\">";
+  var t;
+  for (t = 0; t <= 5; t++) {
+    var y = T + (1 - t / 5) * (H - T - B);
+    svg += "<line x1=\"" + L + "\" y1=\"" + y.toFixed(1) + "\" x2=\"" + (W - R) + "\" y2=\"" + y.toFixed(1) + "\" stroke=\"#D8D8D8\"></line>";
+    svg += "<text x=\"" + (L - 8) + "\" y=\"" + (y + 5).toFixed(1) + "\" text-anchor=\"end\" fill=\"#444\">" + (t / 5).toFixed(1) + "</text>";
+  }
+  svg += "<line x1=\"" + L + "\" y1=\"" + T + "\" x2=\"" + L + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
+  var c, k;
+  for (c = 0; c < cols.length; c++) {
+    var x = L + c * colW + (colW - barW) / 2, acc = 0;
+    for (k = 0; k < cols[c].parts.length; k++) {
+      var key = cols[c].parts[k][0], val = cols[c].parts[k][1] / cols[c].denom;
+      if (!(val > 0)) continue;
+      var h = val * (H - T - B), y2 = T + (1 - acc - val) * (H - T - B);
+      svg += "<rect x=\"" + x.toFixed(1) + "\" y=\"" + y2.toFixed(1) + "\" width=\"" + barW.toFixed(1) +
+        "\" height=\"" + h.toFixed(1) + "\" fill=\"" + PALETTE[key] + "\" stroke=\"#333\" stroke-width=\"0.9\"></rect>";
+      acc += val;
+    }
+    svg += "<text x=\"" + (x + barW / 2).toFixed(1) + "\" y=\"" + (H - B + 22) + "\" text-anchor=\"middle\" fill=\"#333\">" + cols[c].label + "</text>";
+  }
+  svg += "<text transform=\"translate(18," + ((T + H - B) / 2).toFixed(1) + ") rotate(-90)\" text-anchor=\"middle\" fill=\"#333\">proportion of variance</text>";
+  svg += "</svg>";
+  var legend = [["f1", "level-1 predictors, fixed slopes"], ["f2", "level-2 predictors, fixed slopes"],
+                ["v", "slope variation and covariation"], ["m", "intercept variation"], ["res", "level-1 residual"]];
+  var items = "";
+  for (k = 0; k < legend.length; k++)
+    items += "<li><span class=\"swatch\" style=\"background:" + PALETTE[legend[k][0]] + "\" aria-hidden=\"true\"></span>" + legend[k][1] + "</li>";
+  return svg + "<ul class=\"legend\">" + items + "</ul>" +
+    "<p class=\"hint\">The three columns are the decomposition of the total variance, of the within-cluster variance " +
+    "and of the between-cluster variance, in the form of Figure 1 of Rights and Sterba (2019). A source that appears " +
+    "in two columns is counted as explained variance against two different denominators, which is what separates a " +
+    "total measure from a level-specific one.</p>";
+}
+
+function measuresTable(p) {
+  if (!isFinite(p.total)) return "<p class=\"hint\">The measures appear here once an output file has been read.</p>";
+  var M = measures(p);
+  function sub(s, sup) { return "<math><msubsup><mi>R</mi><mi>" + s + "</mi><mrow><mn>2</mn><mo>(</mo>" + sup + "<mo>)</mo></mrow></msubsup></math>"; }
+  var f1 = "<msub><mi>f</mi><mn>1</mn></msub>", f2 = "<msub><mi>f</mi><mn>2</mn></msub>";
+  var rows = [
+    ["Total", sub("t", f1), M.t_f1, "level-1 predictors through fixed slopes"],
+    ["Total", sub("t", f2), M.t_f2, "level-2 predictors through fixed slopes"],
+    ["Total", sub("t", "<mi>f</mi>"), M.t_f, "all predictors through fixed slopes"],
+    ["Total", sub("t", "<mi>v</mi>"), M.t_v, "level-1 predictors through slope variation and covariation"],
+    ["Total", sub("t", "<mi>m</mi>"), M.t_m, "cluster-specific means through intercept variation"],
+    ["Total", sub("t", "<mi>fv</mi>"), M.t_fv, "predictors through fixed slopes and slope variation"],
+    ["Total", sub("t", "<mi>fvm</mi>"), M.t_fvm, "predictors through fixed slopes and slope variation, and cluster means through intercept variation"],
+    ["Within", sub("w", f1), M.w_f1, "level-1 predictors through fixed slopes"],
+    ["Within", sub("w", "<mi>v</mi>"), M.w_v, "level-1 predictors through slope variation and covariation"],
+    ["Within", sub("w", "<mi>fv</mi>"), M.w_fv, "level-1 predictors through fixed slopes and slope variation"],
+    ["Between", sub("b", f2), M.b_f2, "level-2 predictors through fixed slopes"],
+    ["Between", sub("b", "<mi>m</mi>"), M.b_m, "cluster-specific means through intercept variation"]
+  ];
+  var html = "<div class=\"table-wrap\"><table class=\"enum\"><caption>The twelve measures of Table 1 of Rights and Sterba (2019). The denominator is named in the first column; the sources in the numerator are named in the last.</caption><thead><tr><th scope=\"col\">Outcome variance</th><th scope=\"col\">Measure</th><th scope=\"col\" class=\"num\">Value</th><th scope=\"col\">Variance explained by</th></tr></thead><tbody>";
+  var i;
+  for (i = 0; i < rows.length; i++)
+    html += "<tr><td>" + rows[i][0] + "</td><th scope=\"row\">" + rows[i][1] + "</th><td class=\"num\">" +
+      fdec(rows[i][2], 3) + "</td><td>" + rows[i][3] + "</td></tr>";
+  html += "</tbody></table></div>";
+  html += "<p class=\"hint\">The four single-source total measures sum to " +
+    fdec(M.t_f1 + M.t_f2 + M.t_v + M.t_m, 3) + ", which is one minus the share of the level-1 residual; the two between-cluster measures sum to " +
+    fdec(M.b_f2 + M.b_m, 3) + " by construction, since at that level nothing is left unexplained.</p>";
+  return html;
+}
+
+/* ==================================================================
+   The interface
+   ================================================================== */
+
+var CURRENT = null;
+
+function outcomes(f) {
+  var seen = {}, out = [], k, i;
+  if (f.within) for (k in f.within.on) if (Object.prototype.hasOwnProperty.call(f.within.on, k) && !seen[k]) { seen[k] = 1; out.push(k); }
+  for (i = 0; i < f.slopes.length; i++) if (!seen[f.slopes[i].dv]) { seen[f.slopes[i].dv] = 1; out.push(f.slopes[i].dv); }
+  if (!out.length && f.between) for (k in f.between.on) if (Object.prototype.hasOwnProperty.call(f.between.on, k) && !seen[k]) { seen[k] = 1; out.push(k); }
+  return out;
+}
+
+function renderAll() {
+  if (!CURRENT) return;
+  var sel = $("dv"), dv = sel && sel.value ? sel.value : (outcomes(CURRENT)[0] || "");
+  if (!CURRENT.within || !CURRENT.between) {
+    $("read").innerHTML = sourcesTable(CURRENT, buildPartition(CURRENT, dv || "\u2014"));
+    $("parts").innerHTML = ""; $("measures").innerHTML = "";
+    return;
+  }
+  if (!dv) {
+    $("read").innerHTML = "<div class=\"status bad\" role=\"status\"><p>No dependent variable with predictors was found in MODEL RESULTS, so there is no partition to build.</p></div>";
+    $("parts").innerHTML = ""; $("measures").innerHTML = "";
+    return;
+  }
+  var p = buildPartition(CURRENT, dv);
+  $("read").innerHTML = sourcesTable(CURRENT, p);
+  $("parts").innerHTML = partitionTable(p);
+  $("measures").innerHTML = measuresTable(p);
+}
+
+function fillOutcomes(f) {
+  var sel = $("dv");
+  if (!sel) return;
+  var list = outcomes(f), html = "", i;
+  for (i = 0; i < list.length; i++) html += "<option value=\"" + esc(list[i]) + "\">" + esc(list[i]) + "</option>";
+  sel.innerHTML = html || "<option value=\"\">&#8212;</option>";
+}
+
+function handleFile(file) {
+  var reader = new FileReader();
+  reader.onload = function () {
+    var text = String(reader.result), d = diagnoseFile(text);
+    $("file-name").textContent = file.name;
+    if (d !== "mplus") {
+      CURRENT = null;
+      $("report").innerHTML = "<div class=\"status bad\" role=\"status\"><p>" +
+        (d === "empty" ? "The file is empty." : "The file is not an " + MP + " output file. Nothing was read from it.") + "</p></div>";
+      $("read").innerHTML = ""; $("parts").innerHTML = ""; $("measures").innerHTML = "";
+      return;
+    }
+    CURRENT = readOut(text, file.name);
+    var msg = [];
+    if (!CURRENT.terminated) msg.push("The estimation did not terminate normally; nothing in this file can be read as a result.");
+    if (!CURRENT.within || !CURRENT.between) msg.push("MODEL RESULTS has no Within Level and Between Level sections, so this is not a two-level analysis.");
+    $("report").innerHTML = msg.length
+      ? "<div class=\"status bad\" role=\"status\"><p>" + msg.join("</p><p>") + "</p></div>"
+      : "<div class=\"status ok\" role=\"status\"><p>File read.</p></div>";
+    fillOutcomes(CURRENT);
+    renderAll();
+  };
+  reader.onerror = function () {
+    $("report").innerHTML = "<div class=\"status bad\" role=\"status\"><p>The file could not be read.</p></div>";
+  };
+  reader.readAsText(file);
+}
+
+function wire() {
+  var drop = $("drop"), input = $("file");
+  if (!drop || !input) return;
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("click", function (e) { e.stopPropagation(); });
+  input.addEventListener("change", function () { if (input.files && input.files[0]) handleFile(input.files[0]); });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  var sel = $("dv");
+  if (sel) sel.addEventListener("change", renderAll);
+}
+
+/* ==================================================================
+   Self-test
+   ================================================================== */
+
+function fixtureTwoLevel(opts) {
+  opts = opts || {};
+  var L = [];
+  L.push("Mplus VERSION 8.11");
+  L.push("MUTHEN & MUTHEN");
+  L.push("");
+  L.push("INPUT INSTRUCTIONS");
+  L.push("");
+  L.push("  TITLE: two level random slope;");
+  L.push("  VARIABLE: NAMES = y x1 x2 w1 clus; CLUSTER = clus;");
+  L.push("  WITHIN = x1 x2; BETWEEN = w1;");
+  if (opts.noCenter !== true) L.push("  DEFINE: CENTER x1 x2 (GROUPMEAN);");
+  L.push("  ANALYSIS: TYPE = TWOLEVEL RANDOM;");
+  L.push("  MODEL:");
+  L.push("  %WITHIN%");
+  if (opts.noRandom !== true) L.push("  s | y ON x1;");
+  L.push("  y ON x2;");
+  L.push("  %BETWEEN%");
+  L.push("  y ON w1;");
+  if (opts.noRandom !== true) L.push("  y WITH s;");
+  L.push("  OUTPUT: SAMPSTAT;");
+  L.push("");
+  L.push("INPUT READING TERMINATED NORMALLY");
+  L.push("");
+  L.push("two level random slope;");
+  L.push("");
+  L.push("SUMMARY OF ANALYSIS");
+  L.push("");
+  L.push("Number of observations                                         1200");
+  L.push("Number of clusters                                              60");
+  L.push("");
+  if (opts.noSampstat !== true) {
+    L.push("SAMPLE STATISTICS");
+    L.push("");
+    L.push("     ESTIMATED SAMPLE STATISTICS FOR WITHIN");
+    L.push("");
+    L.push("           Means");
+    L.push("              Y             X1            X2");
+    L.push("              ________      ________      ________");
+    L.push("                0.000         0.000         0.000");
+    L.push("");
+    L.push("           Covariances");
+    L.push("              Y             X1            X2");
+    L.push("              ________      ________      ________");
+    L.push(" Y              1.550");
+    L.push(" X1             0.500         1.000");
+    L.push(" X2             0.800         0.300         2.000");
+    L.push("");
+    L.push("           Correlations");
+    L.push("              Y             X1            X2");
+    L.push("              ________      ________      ________");
+    L.push(" Y              1.000");
+    L.push(" X1             0.401         1.000");
+    L.push(" X2             0.454         0.212         1.000");
+    L.push("");
+    L.push("     ESTIMATED SAMPLE STATISTICS FOR BETWEEN");
+    L.push("");
+    L.push("           Means");
+    L.push("              Y             W1");
+    L.push("              ________      ________");
+    L.push("                0.000         0.000");
+    L.push("");
+    L.push("           Covariances");
+    L.push("              Y             W1");
+    L.push("              ________      ________");
+    L.push(" Y              0.550");
+    L.push(" W1             0.400         4.000");
+    L.push("");
+  }
+  L.push("MODEL RESULTS");
+  L.push("");
+  L.push("                                                    Two-Tailed");
+  L.push("                    Estimate       S.E.  Est./S.E.    P-Value");
+  L.push("");
+  L.push("Within Level");
+  L.push("");
+  L.push(" Y          ON");
+  L.push("    X2                 0.400      0.050      8.000      0.000");
+  L.push("");
+  L.push(" Residual Variances");
+  L.push("    Y                  0.800      0.040     20.000      0.000");
+  L.push("");
+  L.push("Between Level");
+  L.push("");
+  L.push(" Y          ON");
+  L.push("    W1                 0.250      0.060      4.167      0.000");
+  L.push("");
+  if (opts.noRandom !== true) {
+    L.push(" S          WITH");
+    L.push("    Y                 -0.020      0.015     -1.333      0.182");
+    L.push("");
+    L.push(" Means");
+    L.push("    S                  0.500      0.045     11.111      0.000");
+    L.push("");
+  }
+  L.push(" Intercepts");
+  L.push("    Y                  1.000      0.080     12.500      0.000");
+  L.push("");
+  if (opts.noRandom !== true) {
+    L.push(" Variances");
+    L.push("    S                  0.060      0.018      3.333      0.001");
+    L.push("");
+  }
+  L.push(" Residual Variances");
+  L.push("    Y                  0.300      0.055      5.455      0.000");
+  L.push("");
+  return L.join("\n");
+}
+
+function selfTest() {
+  var failures = [], performed = 0;
+  function check(name, cond, got) {
+    performed++;
+    if (!cond) failures.push(name + (got !== undefined ? " (" + got + ")" : ""));
+  }
+  function near(a, b, tol) { return isFinite(a) && isFinite(b) && Math.abs(a - b) <= (tol || 1e-9); }
+
+  var f = readOut(fixtureTwoLevel(), "twolevel.out");
+  check("the sample size is read", f.n === 1200, String(f.n));
+  check("the number of clusters is read", f.clusters === 60, String(f.clusters));
+  check("the random slope is read from the echoed input", f.slopes.length === 1 && f.slopes[0].name === "S" && f.slopes[0].pred === "X1", JSON.stringify(f.slopes));
+  check("the outcome of the random slope is read", f.slopes[0].dv === "Y", f.slopes[0].dv);
+  check("cluster-mean centering is detected", f.groupMean === true, String(f.groupMean));
+  check("the within level is read", !!f.within && near(f.within.on["Y"]["X2"], 0.4, 1e-12), "not read");
+  check("the between level is read", !!f.between && near(f.between.on["Y"]["W1"], 0.25, 1e-12), "not read");
+  check("the mean of the random slope is read", near(f.between.means["S"], 0.5, 1e-12), String(f.between.means["S"]));
+  check("the variance of the random slope is read", near(f.between.variances["S"], 0.06, 1e-12), String(f.between.variances["S"]));
+  check("the level-1 residual variance is read", near(f.within.residual["Y"], 0.8, 1e-12), String(f.within.residual["Y"]));
+  check("the random intercept variance is read", near(f.between.residual["Y"], 0.3, 1e-12), String(f.between.residual["Y"]));
+  check("the covariance of the slope with the intercept is read but not used", f.between.withCov.length === 1, String(f.between.withCov.length));
+  check("the within-level covariance matrix is read", f.covWithin && near(f.covWithin.get("X1", "X2"), 0.3, 1e-12), "not read");
+  check("the within-level variances are read", near(f.covWithin.get("X2", "X2"), 2.0, 1e-12), String(f.covWithin.get("X2", "X2")));
+  check("the between-level covariance matrix is read", f.covBetween && near(f.covBetween.get("W1", "W1"), 4.0, 1e-12), "not read");
+  check("the correlations are not read in place of the covariances", near(f.covWithin.get("Y", "Y"), 1.55, 1e-12), String(f.covWithin.get("Y", "Y")));
+  check("the outcome is found", outcomes(f).join(",") === "Y", outcomes(f).join(","));
+
+  var p = buildPartition(f, "Y");
+  check("the partition is built without problems", p.problems.length === 0, p.problems.join(" | "));
+  check("both level-1 predictors are found", p.pred1.join(",") === "X2,X1", p.pred1.join(","));
+  check("the level-2 predictor is found", p.pred2.join(",") === "W1", p.pred2.join(","));
+  check("the predictor with a random slope is identified", p.random1.join(",") === "X1", p.random1.join(","));
+  check("the fixed effect of a randomly sloped predictor is the mean of its slope", near(p.gw[p.pred1.indexOf("X1")], 0.5, 1e-12), String(p.gw[p.pred1.indexOf("X1")]));
+
+  check("the level-1 fixed slope term matches its quadratic form", near(p.f1, 0.25 * 1 + 2 * 0.5 * 0.4 * 0.3 + 0.16 * 2, 1e-12), String(p.f1));
+  check("the level-2 fixed slope term matches its quadratic form", near(p.f2, 0.0625 * 4, 1e-12), String(p.f2));
+  check("the slope variation term is the trace of the product", near(p.v, 0.06 * 1.0, 1e-12), String(p.v));
+  check("the intercept variation term is the intercept variance", near(p.m, 0.30, 1e-12), String(p.m));
+  check("the residual term is the level-1 residual variance", near(p.e, 0.80, 1e-12), String(p.e));
+  check("the total is the sum of the five terms", near(p.total, 0.69 + 0.25 + 0.06 + 0.30 + 0.80, 1e-12), String(p.total));
+  check("the within-cluster variance is the sum of its three terms", near(p.withinVar, 0.69 + 0.06 + 0.80, 1e-12), String(p.withinVar));
+  check("the between-cluster variance is the sum of its two terms", near(p.betweenVar, 0.25 + 0.30, 1e-12), String(p.betweenVar));
+  check("the partition agrees with the variance in the sample statistics", near(p.observed, 2.10, 1e-12) && Math.abs(p.gap) < 1e-9, String(p.gap));
+
+  var M = measures(p);
+  check("the four single-source total measures sum to one less the residual share",
+    near(M.t_f1 + M.t_f2 + M.t_v + M.t_m, 1 - p.e / p.total, 1e-12), String(M.t_f1 + M.t_f2 + M.t_v + M.t_m));
+  check("the two between-cluster measures sum to one", near(M.b_f2 + M.b_m, 1, 1e-12), String(M.b_f2 + M.b_m));
+  check("the combined measure for fixed slopes is the sum of its two parts", near(M.t_f, M.t_f1 + M.t_f2, 1e-12));
+  check("the measure for fixed slopes and slope variation is the sum of its three parts", near(M.t_fv, M.t_f1 + M.t_f2 + M.t_v, 1e-12));
+  check("the measure for all four sources is the sum of its four parts", near(M.t_fvm, M.t_f1 + M.t_f2 + M.t_v + M.t_m, 1e-12));
+  check("the within-cluster measure for fixed slopes and slope variation is the sum of its two parts", near(M.w_fv, M.w_f1 + M.w_v, 1e-12));
+  check("the total measure for a level-1 predictor is smaller than its within-cluster counterpart", M.t_f1 < M.w_f1);
+  check("the total measure for a level-2 predictor is smaller than its between-cluster counterpart", M.t_f2 < M.b_f2);
+  check("the level-1 fixed slope measure matches its value", near(M.t_f1, 0.69 / 2.10, 1e-12), String(M.t_f1));
+  check("the within-cluster measure for slope variation matches its value", near(M.w_v, 0.06 / 1.55, 1e-12), String(M.w_v));
+  check("the between-cluster measure for intercept variation matches its value", near(M.b_m, 0.30 / 0.55, 1e-12), String(M.b_m));
+  check("no measure falls outside zero and one", [M.t_f1, M.t_f2, M.t_f, M.t_v, M.t_m, M.t_fv, M.t_fvm, M.w_f1, M.w_v, M.w_fv, M.b_f2, M.b_m]
+    .every(function (x) { return x >= 0 && x <= 1; }));
+
+  /* a model without random slopes */
+  var f2 = readOut(fixtureTwoLevel({ noRandom: true }), "fixed.out");
+  var p2 = buildPartition(f2, "Y");
+  check("a model with no random slope is read", p2.problems.length === 0, p2.problems.join(" | "));
+  check("the slope variation term is zero without random slopes", near(p2.v, 0, 0), String(p2.v));
+  check("only the fixed predictor is left at level one", p2.pred1.join(",") === "X2", p2.pred1.join(","));
+  check("the level-1 fixed slope term uses only that predictor", near(p2.f1, 0.16 * 2, 1e-12), String(p2.f1));
+
+  /* a model whose predictors have no printed variances */
+  var f3 = readOut(fixtureTwoLevel({ noSampstat: true }), "nosamp.out");
+  var p3 = buildPartition(f3, "Y");
+  check("a model without sample statistics is refused", p3.problems.length > 0, JSON.stringify(p3.problems));
+  check("the refusal names the predictor whose variance is missing", /X1|X2|W1/.test(p3.problems.join(" ")), p3.problems.join(" "));
+  check("the refusal names the option that would supply it", /SAMPSTAT/.test(p3.problems.join(" ")));
+
+  /* centering */
+  var f4 = readOut(fixtureTwoLevel({ noCenter: true }), "nocenter.out");
+  check("the absence of cluster-mean centering is detected", f4.groupMean === false, String(f4.groupMean));
+  check("the absence of cluster-mean centering is reported", sourcesTable(f4, buildPartition(f4, "Y")).indexOf("GROUPMEAN") > -1);
+
+  /* refusals */
+  check("an empty file is refused", diagnoseFile("") === "empty");
+  check("a file that is not an Mplus output is refused", diagnoseFile("HLM 7 output\nFinal estimation of fixed effects\n") === "foreign");
+  var single = readOut("Mplus VERSION 8.11\nMODEL RESULTS\n\n Y          ON\n    X1                 0.400      0.050      8.000      0.000\n", "single.out");
+  var ps = buildPartition(single, "Y");
+  check("a single-level output is refused", ps.problems.length === 1 && /TWOLEVEL/.test(ps.problems[0]), ps.problems.join(" | "));
+
+  /* the algebra, written out a second way */
+  check("the quadratic form matches a hand expansion", near(quadratic([2, 3], [[1, 0.5], [0.5, 4]]), 4 * 1 + 2 * 2 * 3 * 0.5 + 9 * 4, 1e-12));
+  check("the quadratic form of a zero vector is zero", near(quadratic([0, 0], [[1, 0.5], [0.5, 4]]), 0, 0));
+  check("the trace of a product matches a hand expansion", near(traceProduct([[1, 2], [2, 5]], [[3, 1], [1, 7]]), 1 * 3 + 2 * 1 + 2 * 1 + 5 * 7, 1e-12));
+  check("the trace of a product with a zero matrix is zero", near(traceProduct([[1, 2], [2, 5]], [[0, 0], [0, 0]]), 0, 0));
+
+  return { failures: failures, performed: performed };
+}
+
+function showSelfTest() {
+  var out = selfTest(), b = $("selftest-banner"), i;
+  b.hidden = false;
+  b.className = "status " + (out.failures.length ? "bad" : "ok");
+  b.setAttribute("role", "status");
+  if (out.failures.length) {
+    var items = "";
+    for (i = 0; i < out.failures.length; i++) items += "<li>" + esc(out.failures[i]) + "</li>";
+    b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10007;</span> <span class=\"tag\">Self-test failed.</span> " +
+      out.failures.length + " of " + out.performed + " checks did not pass.</p><ul>" + items + "</ul>";
+    console.error("self-test failed", out.failures);
+  } else {
+    b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10003;</span> <span class=\"tag\">Self-test passed.</span> " +
+      out.performed + " checks, 0 failed. They cover the reading of a two-level output written for the purpose, the " +
+      "quadratic forms and the trace against hand expansions, the five terms of the partition against their definitions, " +
+      "the agreement of the partition with the variance in the sample statistics, the requirement that the measures sum " +
+      "as the framework says they do, and the outputs the page has to refuse.</p>";
+    console.log("self-test passed");
+  }
+}
+
+wire();
+if (/[?&]selftest=1(&|$)/.test(window.location.search)) showSelfTest();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

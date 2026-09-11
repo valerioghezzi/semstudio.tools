@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Power analysis for structural equation models: a priori, post hoc and compromise power for the test of model fit, power for a difference test between nested models, design analysis with sign and magnitude errors from an Mplus output, and Monte Carlo power.">
+<title>Power Analysis · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+.big { font-size: 1.35rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Power Analysis</h1>
+  <p class="lede">This page computes the power of the tests a structural equation model rests on. It gives the a priori, post hoc and compromise power of the test of model fit from an effect size expressed as RMSEA, F<sub>0</sub>, Mc, GFI or AGFI; the power of the test of close fit and of not-close fit; the power of a difference test between two nested models; and, from an M<em>plus</em> output file, the design analysis of every parameter in it, that is the power of its test together with the probability that a significant estimate carries the wrong sign and the factor by which it would overstate the effect.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> Nothing beyond the standard output for the design analysis: the page reads the estimates and their standard errors from MODEL RESULTS, and the number of observations from SUMMARY OF ANALYSIS. The first two sections are computed from the numbers you give them and need no file.
+    A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-fit">
+  <h2 id="h-fit">Power of the test of model fit</h2>
+  <p>The test of model fit refers the statistic to a chi-square distribution with the degrees of freedom of the model. Under a false model the statistic follows a noncentral chi-square distribution whose noncentrality parameter is <math><mrow><mi>&#x3BB;</mi><mo>=</mo><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><msub><mi>F</mi><mn>0</mn></msub></mrow></math>, and the power of the test is the area of that distribution beyond the critical value.</p>
+  <div class="row">
+    <div class="field">
+      <label for="an-type">What to compute</label>
+      <select id="an-type">
+        <option value="post" selected>Post hoc: the power a sample of a given size reaches</option>
+        <option value="apriori">A priori: the sample size a given power needs</option>
+        <option value="compromise">Compromise: the critical value at which the two error rates stand in a chosen ratio</option>
+      </select>
+      <span class="hint">A compromise analysis fixes the ratio between the two error probabilities instead of fixing the first at .05, which is what makes a test of fit interpretable when the sample is very large or very small (Moshagen &amp; Erdfelder, 2016).</span>
+    </div>
+    <div class="field">
+      <label for="es-type">Effect size given as</label>
+      <select id="es-type">
+        <option value="rmsea" selected>RMSEA</option>
+        <option value="f0">F₀, the population discrepancy</option>
+        <option value="mc">Mc</option>
+        <option value="gfi">GFI</option>
+        <option value="agfi">AGFI</option>
+      </select>
+      <span class="hint">Every one of them is a function of F₀, and the page reports the conversion it used.</span>
+    </div>
+  </div>
+  <div class="row">
+    <div class="field w2"><label for="es-val">Its value</label><input type="number" id="es-val" step="0.001" value="0.05"></div>
+    <div class="field w2"><label for="df">Degrees of freedom</label><input type="number" id="df" min="1" step="1" value="50"></div>
+    <div class="field w2"><label for="pvars">Observed variables</label><input type="number" id="pvars" min="1" step="1" value="12">
+      <span class="hint">Read only when the effect size is GFI or AGFI.</span></div>
+  </div>
+  <div class="row">
+    <div class="field w2"><label for="nobs">Observations</label><input type="number" id="nobs" min="5" step="1" value="300"></div>
+    <div class="field w2"><label for="alpha">α, test of fit</label><input type="number" id="alpha" min="0.0001" max="0.5" step="0.0001" value="0.05"></div>
+    <div class="field w2"><label for="target-power">Power wanted</label><input type="number" id="target-power" min="0.05" max="0.999" step="0.01" value="0.80"></div>
+    <div class="field w2"><label for="abratio">β/α</label><input type="number" id="abratio" min="0.01" step="0.01" value="1">
+      <span class="hint">Read only in a compromise analysis.</span></div>
+  </div>
+  <p class="actions"><button type="button" id="btn-fit">Compute the power of the test of fit</button></p>
+  <div id="fit-out" aria-live="polite"></div>
+
+  <h3>Close fit and not-close fit</h3>
+  <p>The same machinery tests a hypothesis about the size of the misfit rather than its absence: the null hypothesis fixes a value of the RMSEA and the alternative another one, and the power is computed between the two noncentral distributions (MacCallum, Browne, &amp; Sugawara, 1996).</p>
+  <div class="row">
+    <div class="field w2"><label for="eps0">RMSEA under the null</label><input type="number" id="eps0" step="0.001" value="0.05"></div>
+    <div class="field w2"><label for="epsa">RMSEA under the alternative</label><input type="number" id="epsa" step="0.001" value="0.08"></div>
+    <div class="field w2"><label for="cf-df">Degrees of freedom</label><input type="number" id="cf-df" min="1" step="1" value="50"></div>
+    <div class="field w2"><label for="cf-n">Observations</label><input type="number" id="cf-n" min="5" step="1" value="300"></div>
+  </div>
+  <p class="actions"><button type="button" id="btn-close">Compute the power of the test of close fit</button></p>
+  <div id="close-out" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-diff">
+  <h2 id="h-diff">Power of a difference test between nested models</h2>
+  <p>Two nested models differ by a set of restrictions. The power of the test of those restrictions is computed from the difference in the population discrepancy and the difference in the degrees of freedom, referred to a noncentral chi-square with that difference in degrees of freedom (Satorra &amp; Saris, 1985).</p>
+  <div class="row">
+    <div class="field w2"><label for="d-f0r">F₀ of the restricted model</label><input type="number" id="d-f0r" step="0.0001" value="0.08"></div>
+    <div class="field w2"><label for="d-f0u">F₀ of the unrestricted model</label><input type="number" id="d-f0u" step="0.0001" value="0.05"></div>
+    <div class="field w2"><label for="d-ddf">Difference in degrees of freedom</label><input type="number" id="d-ddf" min="1" step="1" value="4"></div>
+    <div class="field w2"><label for="d-n">Observations</label><input type="number" id="d-n" min="5" step="1" value="300"></div>
+    <div class="field w2"><label for="d-alpha">α, difference test</label><input type="number" id="d-alpha" min="0.0001" max="0.5" step="0.0001" value="0.05"></div>
+  </div>
+  <p class="hint">When the two discrepancies are known through the RMSEA of each model, F₀ is <math><mrow><msub><mi>df</mi><mi></mi></msub><mo>&#xD7;</mo><msup><mi>RMSEA</mi><mn>2</mn></msup></mrow></math> with the degrees of freedom of that model, and the page below reports the conversion.</p>
+  <p class="actions"><button type="button" id="btn-diff">Compute the power of the difference test</button></p>
+  <div id="diff-out" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-design">
+  <h2 id="h-design">Design analysis of every parameter of a fitted model</h2>
+  <ol class="steps">
+    <li>Fit the model in M<em>plus</em> and keep the <code>.out</code> file. Any standard output is enough: the page reads the estimates, their standard errors and the number of observations.</li>
+    <li>Drop the file on the box below.</li>
+    <li>Set the number of observations the design analysis is about, and how large the true effect is taken to be as a fraction of the estimate in this file. Half is a common choice when the file comes from a study whose estimate may itself be inflated.</li>
+    <li>Read the table: for each parameter, the power of its test, the probability that a significant estimate carries the wrong sign, and the factor by which a significant estimate would overstate the effect.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file">M<em>plus</em> output file</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere.</p>
+  <div id="report" aria-live="polite"></div>
+  <div class="row">
+    <div class="field w2"><label for="da-n">Observations of the design</label><input type="number" id="da-n" min="5" step="1" value="300"></div>
+    <div class="field w2"><label for="da-frac">True effect, as a fraction of the estimate</label><input type="number" id="da-frac" min="0.05" max="3" step="0.05" value="1"></div>
+    <div class="field w2"><label for="da-alpha">α, design analysis</label><input type="number" id="da-alpha" min="0.0001" max="0.5" step="0.0001" value="0.05"></div>
+  </div>
+  <div id="design-out"></div>
+</section>
+
+<section aria-labelledby="h-mc">
+  <h2 id="h-mc">Power by simulation</h2>
+  <p>A model whose power cannot be reduced to a single discrepancy — one with missing data, with categorical indicators, with a moderation, with clustered observations — is studied by simulation: the population values are set, many samples are drawn from them, the model is fitted to each, and the proportion of samples in which a parameter is significant is its power (Muthén &amp; Muthén, 2002). M<em>plus</em> does this with the MONTECARLO command, and this page reads what it prints.</p>
+  <div class="drop" id="drop-mc" aria-describedby="mc-hint">
+    <strong>Drop the <code>.out</code> file of a MONTECARLO run here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file-mc">M<em>plus</em> output file of a Monte Carlo run</label>
+    <input type="file" id="file-mc" accept=".out,.txt,text/plain">
+    <span class="file-name" id="file-mc-name"></span>
+  </div>
+  <p id="mc-hint" class="hint">The page reports, for every parameter, the population value, the average estimate and its bias, the bias of the standard error, the coverage of the 95 percent interval and the proportion of replications in which the parameter was significant, which is its power. It also reports how many replications were completed.</p>
+  <div id="mc-report" aria-live="polite"></div>
+  <div id="mc-out"></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>The noncentrality parameter</h3>
+  <p>Let <var>F</var><sub>0</sub> be the value of the maximum likelihood discrepancy function at the population covariance matrix, that is the misfit that remains when sampling error is removed. The test statistic is <math><mrow><mi>T</mi><mo>=</mo><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><mover><mi>F</mi><mo>&#x5E;</mo></mover></mrow></math>, and under a model that is false in the population it follows a noncentral chi-square distribution with the degrees of freedom of the model and noncentrality parameter</p>
+  <div class="eq"><math display="block"><mrow><mi>&#x3BB;</mi><mo>=</mo><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><msub><mi>F</mi><mn>0</mn></msub></mrow></math></div>
+  <p class="where">Here <var>N</var> is the number of observations, <var>F</var><sub>0</sub> the population discrepancy and λ the noncentrality parameter. Power is the probability that <var>T</var> exceeds the critical value of the central chi-square distribution with the same degrees of freedom, computed under that noncentral distribution (MacCallum, Browne, &amp; Sugawara, 1996).</p>
+
+  <h3>Effect sizes and their conversion</h3>
+  <p>Every effect size the page accepts is a function of <var>F</var><sub>0</sub> and the degrees of freedom or the number of observed variables:</p>
+  <div class="eq"><math display="block"><mrow><mi>RMSEA</mi><mo>=</mo><msqrt><mfrac><msub><mi>F</mi><mn>0</mn></msub><mi>df</mi></mfrac></msqrt><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><mi>Mc</mi><mo>=</mo><msup><mi>e</mi><mrow><mo>&#x2212;</mo><mn>0.5</mn><msub><mi>F</mi><mn>0</mn></msub></mrow></msup><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><mi>GFI</mi><mo>=</mo><mfrac><mi>p</mi><mrow><mi>p</mi><mo>+</mo><mn>2</mn><msub><mi>F</mi><mn>0</mn></msub></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <var>df</var> is the number of degrees of freedom of the model and <var>p</var> the number of observed variables. The relation for the RMSEA is that of Steiger and Lind (1980) as set out by Browne and Cudeck (1992), the one for Mc is McDonald's (1989), and those for GFI and AGFI are the ones Jöreskog and Sörbom (1984) define; the adjusted index inverts to <math><mrow><msub><mi>F</mi><mn>0</mn></msub><mo>=</mo><mfrac><mrow><mi>p</mi><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><mi>AGFI</mi><mo>)</mo></mrow><mi>df</mi></mrow><mrow><mi>p</mi><mrow><mo>(</mo><mi>p</mi><mo>+</mo><mn>1</mn><mo>)</mo></mrow><mo>&#x2212;</mo><mn>2</mn><mi>df</mi><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><mi>AGFI</mi><mo>)</mo></mrow></mrow></mfrac></mrow></math>. The page prints the value of <var>F</var><sub>0</sub> it worked with, whichever index was typed.</p>
+
+  <h3>The three analyses</h3>
+  <p>A post hoc analysis fixes α, the effect and the sample size and returns the power. An a priori analysis fixes α, the effect and the power and returns the sample size, found by searching over <var>N</var> until the power reaches the value asked for. A compromise analysis fixes the effect, the sample size and the ratio between the two error probabilities, and returns the critical value at which that ratio holds, with the α and the β that go with it. The last one answers the objection that a fixed α of .05 makes the test of fit reject every model in a large sample and accept every model in a small one: with the sample at hand it reports the decision rule under which the two mistakes are as likely as the researcher is willing to let them be (Moshagen &amp; Erdfelder, 2016).</p>
+
+  <h3>Close fit and not-close fit</h3>
+  <p>MacCallum, Browne and Sugawara (1996) test a hypothesis about the size of the misfit. The null hypothesis states a value ε<sub>0</sub> of the RMSEA and the alternative a value ε<sub>a</sub>; the critical value is taken from the noncentral chi-square with <math><mrow><msub><mi>&#x3BB;</mi><mn>0</mn></msub><mo>=</mo><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><mi>df</mi><msubsup><mi>&#x3B5;</mi><mn>0</mn><mn>2</mn></msubsup></mrow></math> and the power computed under the one with <math><mrow><msub><mi>&#x3BB;</mi><mi>a</mi></msub><mo>=</mo><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><mi>df</mi><msubsup><mi>&#x3B5;</mi><mi>a</mi><mn>2</mn></msubsup></mrow></math>. With ε<sub>0</sub> below ε<sub>a</sub> the test is the test of close fit, and the power is the probability of rejecting a model whose misfit is ε<sub>a</sub>; with ε<sub>0</sub> above ε<sub>a</sub> it is the test of not-close fit, in which rejection supports the model.</p>
+
+  <h3>Difference test between nested models</h3>
+  <p>Satorra and Saris (1985) obtain the power of the likelihood ratio test of a set of restrictions from the difference between the population discrepancies of the two models: <math><mrow><mi>&#x3BB;</mi><mo>=</mo><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><mrow><mo>(</mo><msub><mi>F</mi><mrow><mn>0</mn><mi>r</mi></mrow></msub><mo>&#x2212;</mo><msub><mi>F</mi><mrow><mn>0</mn><mi>u</mi></mrow></msub><mo>)</mo></mrow></mrow></math>, referred to a chi-square distribution with the difference in degrees of freedom. The discrepancy of the unrestricted model is not required to be zero: the test concerns the loss the restrictions cause.</p>
+
+  <h3>Design analysis</h3>
+  <p>Power says how often a study rejects a false null hypothesis. It says nothing about what the estimates that reach significance look like, and in a study with little power they misrepresent the effect: they are far too large, and some of them have the wrong sign. Gelman and Carlin (2014) put numbers on both. For a hypothesized true effect <var>D</var> and a standard error <var>s</var>,</p>
+  <div class="eq"><math display="block"><mrow><mi>power</mi><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mi mathvariant="normal">&#x3A6;</mi><mrow><mo>(</mo><mi>z</mi><mo>&#x2212;</mo><mfrac><mi>D</mi><mi>s</mi></mfrac><mo>)</mo></mrow><mo>+</mo><mi mathvariant="normal">&#x3A6;</mi><mrow><mo>(</mo><mo>&#x2212;</mo><mi>z</mi><mo>&#x2212;</mo><mfrac><mi>D</mi><mi>s</mi></mfrac><mo>)</mo></mrow><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><mi>S</mi><mo>=</mo><mfrac><mrow><mi mathvariant="normal">&#x3A6;</mi><mrow><mo>(</mo><mo>&#x2212;</mo><mi>z</mi><mo>&#x2212;</mo><mfrac><mi>D</mi><mi>s</mi></mfrac><mo>)</mo></mrow></mrow><mi>power</mi></mfrac></mrow></math></div>
+  <p class="where">Here Φ is the standard normal distribution function, <var>z</var> the critical value at the chosen α, <var>D</var> the true effect the design analysis is about, <var>s</var> the standard error of its estimator, and <var>S</var> the probability that an estimate which reaches significance has the sign opposite to the true effect. The exaggeration ratio is the expected size of a significant estimate divided by the true effect, <math><mrow><mi>M</mi><mo>=</mo><mrow><mi mathvariant="normal">E</mi><mo>&#x2061;</mo><mrow><mo>(</mo><mrow><mo>|</mo><mover><mi>D</mi><mo>&#x5E;</mo></mover><mo>|</mo></mrow><mo>&#x2223;</mo><mtext>significant</mtext><mo>)</mo></mrow></mrow><mo>/</mo><mrow><mo>|</mo><mi>D</mi><mo>|</mo></mrow></mrow></math>. Gelman and Carlin obtain it by simulation; this page computes the same expectation in closed form from the two tail integrals of the normal density, which removes the simulation error.</p>
+  <p>The standard error at the sample size of the design is obtained from the one in the file by the usual rate, <math><mrow><msub><mi>s</mi><mi>new</mi></msub><mo>=</mo><msub><mi>s</mi><mi>file</mi></msub><msqrt><mfrac><msub><mi>N</mi><mi>file</mi></msub><msub><mi>N</mi><mi>new</mi></msub></mfrac></msqrt></mrow></math>, which holds for a maximum likelihood estimator of a correctly specified model and is stated on the page beside the table, because it is an approximation and not a property of the file.</p>
+  <p>Taking the estimate in the file as the true effect turns the design analysis into a post hoc power calculation, which is a function of the p value and adds nothing to it (Hoenig &amp; Heisey, 2001). The fraction below the file is there for that reason: a design analysis is worth doing against an effect that comes from somewhere else, a meta-analysis, a smallest effect of interest, or the estimate of this study reduced by the amount its own significance is likely to have inflated it.</p>
+
+  <h3>Simulation</h3>
+  <p>Muthén and Muthén (2002) set out the procedure and the criteria this page reports: the bias of a parameter estimate and of its standard error, which they read as acceptable below ten and five percent respectively, the coverage of the 95 percent interval, which they expect between .91 and .98, and the proportion of replications in which a parameter is significant, which is its power. The page reads those columns from the output of a MONTECARLO run and reports them together with the number of replications that were completed, since a run in which many replications failed to converge reports the power of the ones that did.</p>
+
+  <h3>What the page does not do</h3>
+  <p>The computations are for a single group. The multiple-group case distributes the discrepancy over the groups and is treated by Moshagen and Bader (2024); the page refuses a number of groups other than one rather than dividing by them silently. Power for a model with clustered or intensive longitudinal data is not a function of one sample size either, because it depends on the number of clusters and on the number of observations within them, and the simulation section treats it.</p>
+
+  <h3>Self-test</h3>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the central and noncentral chi-square distribution functions against published quantiles and against a second implementation, the conversions between the effect sizes in both directions, the agreement between the a priori and the post hoc analyses at the sample size each returns, the compromise analysis at the ratio it is asked for, the power of the test of close fit and of not-close fit against an independent implementation of the noncentral chi-square, and the design analysis against the definitions of Gelman and Carlin (2014).</p>
+</div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>Browne, M. W., &amp; Cudeck, R. (1992). Alternative ways of assessing model fit. <em>Sociological Methods &amp; Research, 21</em>(2), 230–258. <a href="https://doi.org/10.1177/0049124192021002005">https://doi.org/10.1177/0049124192021002005</a></li>
+    <li>Gelman, A., &amp; Carlin, J. (2014). Beyond power calculations: Assessing Type S (sign) and Type M (magnitude) errors. <em>Perspectives on Psychological Science, 9</em>(6), 641–651. <a href="https://doi.org/10.1177/1745691614551642">https://doi.org/10.1177/1745691614551642</a></li>
+    <li>Hoenig, J. M., &amp; Heisey, D. M. (2001). The abuse of power: The pervasive fallacy of power calculations for data analysis. <em>The American Statistician, 55</em>(1), 19–24. <a href="https://doi.org/10.1198/000313001300339897">https://doi.org/10.1198/000313001300339897</a></li>
+    <li>Jöreskog, K. G., &amp; Sörbom, D. (1984). <em>LISREL VI: Analysis of linear structural relationships by maximum likelihood, instrumental variables, and least squares methods</em>. Scientific Software.</li>
+    <li>MacCallum, R. C., Browne, M. W., &amp; Sugawara, H. M. (1996). Power analysis and determination of sample size for covariance structure modeling. <em>Psychological Methods, 1</em>(2), 130–149. <a href="https://doi.org/10.1037/1082-989X.1.2.130">https://doi.org/10.1037/1082-989X.1.2.130</a></li>
+    <li>McDonald, R. P. (1989). An index of goodness-of-fit based on noncentrality. <em>Journal of Classification, 6</em>(1), 97–103. <a href="https://doi.org/10.1007/BF01908590">https://doi.org/10.1007/BF01908590</a></li>
+    <li>Moshagen, M., &amp; Bader, M. (2024). semPower: General power analysis for structural equation models. <em>Behavior Research Methods, 56</em>(4), 2901–2922. <a href="https://doi.org/10.3758/s13428-023-02254-7">https://doi.org/10.3758/s13428-023-02254-7</a></li>
+    <li>Moshagen, M., &amp; Erdfelder, E. (2016). A new strategy for testing structural equation models. <em>Structural Equation Modeling, 23</em>(1), 54–60. <a href="https://doi.org/10.1080/10705511.2014.950896">https://doi.org/10.1080/10705511.2014.950896</a></li>
+    <li>Muthén, L. K., &amp; Muthén, B. O. (2002). How to use a Monte Carlo study to decide on sample size and determine power. <em>Structural Equation Modeling, 9</em>(4), 599–620. <a href="https://doi.org/10.1207/S15328007SEM0904_8">https://doi.org/10.1207/S15328007SEM0904_8</a></li>
+    <li>Satorra, A., &amp; Saris, W. E. (1985). Power of the likelihood ratio test in covariance structure analysis. <em>Psychometrika, 50</em>(1), 83–90. <a href="https://doi.org/10.1007/BF02294150">https://doi.org/10.1007/BF02294150</a></li>
+    <li>Steiger, J. H., &amp; Lind, J. C. (1980, May). <em>Statistically based tests for the number of common factors</em> [Conference presentation]. Annual meeting of the Psychometric Society, Iowa City, IA.</li>
+  </ul>
+</div>
+</details>
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+/* ==================================================================
+   Numerical core: the two chi-square distributions, the normal, the
+   conversions between effect sizes, and the three analyses.
+   ================================================================== */
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+var MP = "M<em>plus</em>";
+
+var PW = (function () {
+  var GAMMA_COF = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+                   771.32342877765313, -176.61502916214059, 12.507343278686905,
+                   -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+  function gammln(x) {
+    var z = x - 1, a = GAMMA_COF[0], t = z + 7.5, j;
+    for (j = 1; j < 9; j++) a += GAMMA_COF[j] / (z + j);
+    return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+  }
+  function gser(a, x) {
+    var ap = a, sum = 1 / a, del = sum, n;
+    for (n = 1; n <= 2000; n++) {
+      ap += 1; del *= x / ap; sum += del;
+      if (Math.abs(del) < Math.abs(sum) * 1e-16) break;
+    }
+    return sum * Math.exp(-x + a * Math.log(x) - gammln(a));
+  }
+  function gcf(a, x) {
+    var FPMIN = 1e-300, b = x + 1 - a, c = 1 / FPMIN, d = 1 / b, h = d, i, an, del;
+    for (i = 1; i <= 2000; i++) {
+      an = -i * (i - a); b += 2;
+      d = an * d + b; if (Math.abs(d) < FPMIN) d = FPMIN;
+      c = b + an / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+      d = 1 / d; del = d * c; h *= del;
+      if (Math.abs(del - 1) < 1e-16) break;
+    }
+    return Math.exp(-x + a * Math.log(x) - gammln(a)) * h;
+  }
+  /* Upper tail of the central chi-square distribution. */
+  function chi2Tail(x, df) {
+    if (!(df > 0)) return NaN;
+    if (!(x > 0)) return 1;
+    var a = df / 2, x2 = x / 2;
+    return (x2 < a + 1) ? 1 - gser(a, x2) : gcf(a, x2);
+  }
+  function chi2Cdf(x, df) { return 1 - chi2Tail(x, df); }
+
+  /* The noncentral chi-square distribution function as the Poisson mixture
+     of central ones, summed outward from the mode of the Poisson weights so
+     that a large noncentrality does not lose the leading terms. */
+  function ncChi2Cdf(x, df, lam) {
+    if (!(x > 0)) return 0;
+    if (!(lam > 0)) return chi2Cdf(x, df);
+    var half = lam / 2, k0 = Math.max(0, Math.floor(half)), sum = 0, k, logw, w, term;
+    for (k = k0; k <= k0 + 20000; k++) {
+      logw = -half + k * Math.log(half) - gammln(k + 1);
+      w = Math.exp(logw);
+      if (w < 1e-18 && k > k0 + 2) break;
+      term = w * chi2Cdf(x, df + 2 * k);
+      sum += term;
+      if (term < 1e-18 * (sum + 1e-300) && k > k0 + 2) break;
+    }
+    for (k = k0 - 1; k >= 0; k--) {
+      logw = -half + k * Math.log(half) - gammln(k + 1);
+      w = Math.exp(logw);
+      term = w * chi2Cdf(x, df + 2 * k);
+      sum += term;
+      if (w < 1e-18) break;
+    }
+    return Math.min(1, Math.max(0, sum));
+  }
+  /* Quantiles by bisection: the distribution functions are monotone and the
+     bracket is widened until it holds the value. */
+  function quantile(p, cdf) {
+    if (!(p > 0) || !(p < 1)) return NaN;
+    var lo = 0, hi = 1, i;
+    for (i = 0; i < 200 && cdf(hi) < p; i++) hi *= 2;
+    for (i = 0; i < 300; i++) {
+      var mid = (lo + hi) / 2;
+      if (cdf(mid) < p) lo = mid; else hi = mid;
+      if (hi - lo < 1e-10 * Math.max(1, hi)) break;
+    }
+    return (lo + hi) / 2;
+  }
+  function chi2Quantile(p, df) { return quantile(p, function (x) { return chi2Cdf(x, df); }); }
+  function ncChi2Quantile(p, df, lam) { return quantile(p, function (x) { return ncChi2Cdf(x, df, lam); }); }
+
+  /* The normal distribution: the tail by the complementary error function of
+     Numerical Recipes, the quantile by the rational approximation of
+     Wichura's algorithm AS 241 in the form Acklam gives it, refined once by
+     Newton so that it is accurate to the last digit that matters here. */
+  function normPdf(z) { return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI); }
+  function erfc(x) {
+    var z = Math.abs(x), t = 2 / (2 + z);
+    var ty = 4 * t - 2;
+    var cof = [-1.3026537197817094, 6.4196979235649026e-1, 1.9476473204185836e-2,
+      -9.561514786808631e-3, -9.46595344482036e-4, 3.66839497852761e-4, 4.2523324806907e-5,
+      -2.0278578112534e-5, -1.624290004647e-6, 1.303655835580e-6, 1.5626441722e-8,
+      -8.5238095915e-8, 6.529054439e-9, 5.059343495e-9, -9.91364156e-10, -2.27365122e-10,
+      9.6467911e-11, 2.394038e-12, -6.886027e-12, 8.94487e-13, 3.13092e-13, -1.12708e-13,
+      3.81e-16, 7.106e-15];
+    var d = 0, dd = 0, j, tmp;
+    for (j = cof.length - 1; j > 0; j--) { tmp = d; d = ty * d - dd + cof[j]; dd = tmp; }
+    var ans = t * Math.exp(-z * z + 0.5 * (cof[0] + ty * d) - dd);
+    return x >= 0 ? ans : 2 - ans;
+  }
+  function normCdf(z) { return 0.5 * erfc(-z / Math.SQRT2); }
+  function normQuantile(p) {
+    if (!(p > 0) || !(p < 1)) return NaN;
+    var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+             1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+    var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+             6.680131188771972e+01, -1.328068155288572e+01];
+    var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+             -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+    var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00,
+             3.754408661907416e+00];
+    var pl = 0.02425, q, r, x;
+    if (p < pl) {
+      q = Math.sqrt(-2 * Math.log(p));
+      x = (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+          ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    } else if (p <= 1 - pl) {
+      q = p - 0.5; r = q * q;
+      x = (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+          (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+    } else {
+      q = Math.sqrt(-2 * Math.log(1 - p));
+      x = -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+           ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    }
+    var e = normCdf(x) - p;
+    x = x - e / normPdf(x);
+    return x;
+  }
+
+  /* Effect sizes. Every one of them is a function of F0. */
+  function f0From(kind, value, df, p) {
+    if (kind === "f0") return value;
+    if (kind === "rmsea") return df * value * value;
+    if (kind === "mc") return -2 * Math.log(value);
+    if (kind === "gfi") return p * (1 - value) / (2 * value);
+    if (kind === "agfi") return p * (1 - value) * df / (p * (p + 1) - 2 * df * (1 - value));
+    return NaN;
+  }
+  function fromF0(kind, f0, df, p) {
+    if (kind === "f0") return f0;
+    if (kind === "rmsea") return Math.sqrt(f0 / df);
+    if (kind === "mc") return Math.exp(-0.5 * f0);
+    if (kind === "gfi") return p / (p + 2 * f0);
+    if (kind === "agfi") return 1 - (p * (p + 1) / (2 * df)) * (1 - p / (p + 2 * f0));
+    return NaN;
+  }
+  function lambdaOf(f0, N) { return (N - 1) * f0; }
+
+  function powerFit(f0, df, N, alpha) {
+    var crit = chi2Quantile(1 - alpha, df);
+    return { power: 1 - ncChi2Cdf(crit, df, lambdaOf(f0, N)), crit: crit, lambda: lambdaOf(f0, N) };
+  }
+  function nForPower(f0, df, target, alpha) {
+    if (!(f0 > 0)) return null;
+    var lo = 5, hi = 10, i;
+    for (i = 0; i < 60 && powerFit(f0, df, hi, alpha).power < target; i++) hi *= 2;
+    if (powerFit(f0, df, hi, alpha).power < target) return null;
+    while (hi - lo > 1) {
+      var mid = Math.floor((lo + hi) / 2);
+      if (powerFit(f0, df, mid, alpha).power < target) lo = mid; else hi = mid;
+    }
+    return hi;
+  }
+  /* The critical value at which beta stands to alpha in the ratio asked for. */
+  function compromise(f0, df, N, ratio) {
+    var lam = lambdaOf(f0, N);
+    function g(c) { return ncChi2Cdf(c, df, lam) - ratio * chi2Tail(c, df); }
+    var lo = 1e-8, hi = Math.max(df * 4, lam * 4, 10), i;
+    for (i = 0; i < 200 && g(hi) < 0; i++) hi *= 2;
+    for (i = 0; i < 300; i++) {
+      var mid = (lo + hi) / 2;
+      if (g(mid) < 0) lo = mid; else hi = mid;
+      if (hi - lo < 1e-10 * Math.max(1, hi)) break;
+    }
+    var c = (lo + hi) / 2;
+    return { crit: c, alpha: chi2Tail(c, df), beta: ncChi2Cdf(c, df, lam), lambda: lam };
+  }
+  /* Close fit and not-close fit. */
+  function closeFit(eps0, epsA, df, N, alpha) {
+    var lam0 = (N - 1) * df * eps0 * eps0, lamA = (N - 1) * df * epsA * epsA, crit, power;
+    if (epsA > eps0) {
+      crit = ncChi2Quantile(1 - alpha, df, lam0);
+      power = 1 - ncChi2Cdf(crit, df, lamA);
+    } else {
+      crit = ncChi2Quantile(alpha, df, lam0);
+      power = ncChi2Cdf(crit, df, lamA);
+    }
+    return { crit: crit, power: power, lam0: lam0, lamA: lamA, kind: epsA > eps0 ? "close" : "not-close" };
+  }
+  /* Difference test between nested models. */
+  function powerDiff(f0r, f0u, ddf, N, alpha) {
+    var lam = (N - 1) * (f0r - f0u), crit = chi2Quantile(1 - alpha, ddf);
+    return { power: lam > 0 ? 1 - ncChi2Cdf(crit, ddf, lam) : alpha, crit: crit, lambda: lam };
+  }
+  /* Design analysis: power, sign error and exaggeration for one parameter. */
+  function design(D, s, alpha) {
+    if (!(s > 0)) return { power: NaN, typeS: NaN, exaggeration: NaN };
+    var A = Math.abs(D), z = normQuantile(1 - alpha / 2), d = A / s;
+    var pHi = 1 - normCdf(z - d), pLo = normCdf(-z - d);
+    var power = pHi + pLo;
+    var c = z * s, z1 = (c - A) / s, z2 = (-c - A) / s;
+    var eAbs = A * (1 - normCdf(z1)) + s * normPdf(z1) - A * normCdf(z2) + s * normPdf(z2);
+    return {
+      power: power,
+      typeS: power > 0 ? pLo / power : NaN,
+      exaggeration: (power > 0 && A > 0) ? eAbs / (A * power) : NaN,
+      z: z, d: d
+    };
+  }
+  function seAt(seFile, nFile, nNew) { return seFile * Math.sqrt(nFile / nNew); }
+
+  return { chi2Tail: chi2Tail, chi2Cdf: chi2Cdf, ncChi2Cdf: ncChi2Cdf,
+    chi2Quantile: chi2Quantile, ncChi2Quantile: ncChi2Quantile,
+    normCdf: normCdf, normPdf: normPdf, normQuantile: normQuantile,
+    f0From: f0From, fromF0: fromF0, lambdaOf: lambdaOf, powerFit: powerFit,
+    nForPower: nForPower, compromise: compromise, closeFit: closeFit,
+    powerDiff: powerDiff, design: design, seAt: seAt };
+})();
+
+/* ==================================================================
+   Reading Mplus output files
+   ================================================================== */
+function decodeBuffer(ab) {
+  var bytes = new Uint8Array(ab), i, s;
+  if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8)); return s;
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]); return s;
+  }
+  var start = (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+  try {
+    if (typeof TextDecoder !== "undefined")
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(start));
+  } catch (e) { /* not valid UTF-8: read it as Windows-1252 below */ }
+  s = ""; for (i = start; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return s;
+}
+function readTextFile(file, then, fail) {
+  var r = new FileReader();
+  r.onerror = function () { if (fail) fail(); };
+  r.onload = function (e) {
+    var res = (e && e.target) ? e.target.result : r.result, text;
+    try { text = decodeBuffer(res); } catch (err) { if (fail) fail(err); return; }
+    then(text);
+  };
+  r.readAsArrayBuffer(file);
+}
+var MPLUS_SIGNATURE = /(^|\n)[ \t]*(Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION)/;
+
+/* Every parameter of MODEL RESULTS with its estimate and standard error, each
+   carrying the heading it was printed under. */
+function readParameters(text) {
+  var lines = text.split(/\r?\n/), out = [], head = "", i, started = false, group = null;
+  for (i = 0; i < lines.length; i++) {
+    var l = lines[i], t = l.trim();
+    if (/^MODEL RESULTS\s*$/.test(t)) { started = true; continue; }
+    if (!started) continue;
+    if (/^(STANDARDIZED MODEL RESULTS|R-SQUARE|QUALITY OF NUMERICAL RESULTS|MODEL MODIFICATION INDICES|CONFIDENCE INTERVALS|TOTAL, TOTAL INDIRECT|SAVEDATA INFORMATION|TECHNICAL \d+ OUTPUT|MUTHEN & MUTHEN|Beginning Time)/.test(t)) break;
+    var mg = l.match(/^\s{0,4}Group\s+([A-Za-z0-9_.]+)\s*$/);
+    if (mg) { group = mg[1]; continue; }
+    var mh = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+(BY|WITH|ON)\s*$/i);
+    if (mh) { head = mh[1] + " " + mh[2].toUpperCase(); continue; }
+    if (/^\s*(Intercepts|Means|Thresholds|Variances|Residual Variances|Scales|New\/Additional Parameters)\s*$/i.test(t)) { head = t; continue; }
+    var mv = l.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s*$/);
+    if (!mv) { if (t !== "" && !/\d/.test(l)) head = ""; continue; }
+    var est = parseFloat(mv[2]);
+    var se = /^\*/.test(mv[3]) ? NaN : parseFloat(mv[3]);
+    var p = /^\*/.test(mv[5]) ? NaN : parseFloat(mv[5]);
+    if (est === 999 && se === 999) continue;
+    out.push({ head: head, name: mv[1], est: est, se: se, p: p, group: group });
+  }
+  return out;
+}
+function readN(text) {
+  var m = text.match(/Number of observations[^\S\n]+(\d+)/);
+  if (m) return parseInt(m[1], 10);
+  m = text.match(/Number of observations[^\n]*\n((?:[^\n]*\n)*?)\s*\n/);
+  if (m) {
+    var nums = m[1].match(/\d+/g);
+    if (nums) return nums.map(Number).reduce(function (a, b) { return a + b; }, 0);
+  }
+  return null;
+}
+function readGroups(text) {
+  var m = text.match(/Number of groups\s+(\d+)/);
+  return m ? parseInt(m[1], 10) : 1;
+}
+
+/* The results table of a MONTECARLO run. */
+function readMonteCarlo(text) {
+  var lines = text.split(/\r?\n/), rows = [], head = "", i, started = false;
+  for (i = 0; i < lines.length; i++) {
+    var l = lines[i], t = l.trim();
+    if (/^MODEL RESULTS\s*$/.test(t)) { started = true; continue; }
+    if (!started) continue;
+    if (/^(QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|SAVEDATA INFORMATION|MUTHEN & MUTHEN|Beginning Time)/.test(t)) break;
+    var mh = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+(BY|WITH|ON)\s*$/i);
+    if (mh) { head = mh[1] + " " + mh[2].toUpperCase(); continue; }
+    if (/^\s*(Intercepts|Means|Thresholds|Variances|Residual Variances|New\/Additional Parameters)\s*$/i.test(t)) { head = t; continue; }
+    var mv = l.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s*$/);
+    if (!mv) continue;
+    rows.push({ head: head, name: mv[1], population: parseFloat(mv[2]), average: parseFloat(mv[3]),
+      sd: parseFloat(mv[4]), seAverage: parseFloat(mv[5]), mse: parseFloat(mv[6]),
+      coverage: parseFloat(mv[7]), sig: parseFloat(mv[8]) });
+  }
+  var reps = null, req = null;
+  var mr = text.match(/Number of replications\s*\n\s*Requested\s+(\d+)\s*\n\s*Completed\s+(\d+)/);
+  if (mr) { req = parseInt(mr[1], 10); reps = parseInt(mr[2], 10); }
+  return { rows: rows, completed: reps, requested: req,
+    isMonteCarlo: /MONTECARLO|Number of replications/i.test(text) };
+}
+
+/* ==================================================================
+   Page
+   ================================================================== */
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
+  function n3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3); }
+  function n2(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(2); }
+  function statusBlock(kind, tag, text) {
+    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
+  }
+  function num(id) { return Number($(id).value); }
+
+  var ES_NAME = { rmsea: "RMSEA", f0: "F₀", mc: "Mc", gfi: "GFI", agfi: "AGFI" };
+
+  /* ---- power of the test of fit ---------------------------------- */
+  function runFit() {
+    var kind = $("es-type").value, val = num("es-val"), df = Math.round(num("df")), p = Math.round(num("pvars"));
+    var alpha = num("alpha"), N = Math.round(num("nobs")), target = num("target-power");
+    var mode = $("an-type").value, ratio = num("abratio");
+    var bad = [];
+    if (!(df >= 1)) bad.push("The degrees of freedom have to be one or more.");
+    if (!(alpha > 0 && alpha < 0.5)) bad.push("α has to lie between 0 and .5.");
+    if (kind === "rmsea" && !(val >= 0)) bad.push("The RMSEA cannot be negative.");
+    if (kind === "mc" && !(val > 0 && val <= 1)) bad.push("Mc lies between 0 and 1.");
+    if ((kind === "gfi" || kind === "agfi") && !(val > 0 && val <= 1)) bad.push("The index lies between 0 and 1.");
+    if ((kind === "gfi" || kind === "agfi") && !(p >= 1)) bad.push("The number of observed variables has to be one or more.");
+    if (mode === "post" && !(N >= 5)) bad.push("The number of observations has to be five or more.");
+    if (mode === "apriori" && !(target > 0 && target < 1)) bad.push("The power wanted has to lie between 0 and 1.");
+    if (mode === "compromise" && !(ratio > 0)) bad.push("The ratio between the two error probabilities has to be positive.");
+    if (bad.length) { $("fit-out").innerHTML = statusBlock("bad", "Nothing was computed.", bad.join(" ")); return null; }
+
+    var f0 = PW.f0From(kind, val, df, p);
+    if (!(f0 >= 0) || !isFinite(f0)) {
+      $("fit-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "That value of " + ES_NAME[kind] + " does not correspond to a discrepancy that can be reached with these degrees of freedom.");
+      return null;
+    }
+    var out = "", res = null;
+    var line = "F₀ = " + n3(f0) + ", which is an RMSEA of " + p3(PW.fromF0("rmsea", f0, df, p)) +
+      " and an Mc of " + p3(PW.fromF0("mc", f0, df, p)) + " with " + df + " degrees of freedom.";
+    if (mode === "post") {
+      res = PW.powerFit(f0, df, N, alpha);
+      out += '<p class="big">Power = ' + p3(res.power) + "</p>";
+      out += "<p>" + line + " With " + N + " observations the noncentrality parameter is λ = " + n3(res.lambda) +
+        " and the critical value of the chi-square distribution with " + df + " degrees of freedom at α = " +
+        p3(alpha) + " is " + n3(res.crit) + ".</p>";
+    } else if (mode === "apriori") {
+      var n = PW.nForPower(f0, df, target, alpha);
+      if (n === null) {
+        out += statusBlock("warn", "No sample size reaches that power.",
+          "With " + ES_NAME[kind] + " = " + n3(val) + " the discrepancy is zero or so small that the power stays at α however large the sample. " + line);
+      } else {
+        res = PW.powerFit(f0, df, n, alpha);
+        out += '<p class="big">N = ' + n + "</p>";
+        out += "<p>" + line + " That sample size reaches a power of " + p3(res.power) +
+          " for the test of fit at α = " + p3(alpha) + "; one observation fewer gives " +
+          p3(PW.powerFit(f0, df, n - 1, alpha).power) + ".</p>";
+      }
+    } else {
+      var cr = PW.compromise(f0, df, N, ratio);
+      out += '<p class="big">α = ' + p3(cr.alpha) + ", β = " + p3(cr.beta) + "</p>";
+      out += "<p>" + line + " With " + N + " observations and the two error probabilities standing in the ratio β/α = " +
+        n2(ratio) + ", the test rejects the model when the statistic exceeds " + n3(cr.crit) +
+        ". The power that goes with it is " + p3(1 - cr.beta) + ".</p>";
+    }
+    $("fit-out").innerHTML = out;
+    return res;
+  }
+
+  /* ---- close fit -------------------------------------------------- */
+  function runClose() {
+    var e0 = num("eps0"), ea = num("epsa"), df = Math.round(num("cf-df")), N = Math.round(num("cf-n")), alpha = num("alpha");
+    if (!(e0 >= 0) || !(ea >= 0) || !(df >= 1) || !(N >= 5) || e0 === ea) {
+      $("close-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "Both values of the RMSEA have to be zero or more and different from each other, with at least one degree of freedom and five observations.");
+      return null;
+    }
+    var r = PW.closeFit(e0, ea, df, N, alpha);
+    var what = r.kind === "close"
+      ? "This is the test of close fit: the null hypothesis states that the misfit is no larger than an RMSEA of " + p3(e0) +
+        ", and the power is the probability of rejecting it when the misfit is in fact " + p3(ea) + "."
+      : "This is the test of not-close fit: the null hypothesis states that the misfit is at least an RMSEA of " + p3(e0) +
+        ", and the power is the probability of rejecting it, which supports the model, when the misfit is in fact " + p3(ea) + ".";
+    $("close-out").innerHTML = '<p class="big">Power = ' + p3(r.power) + "</p><p>" + what +
+      " The critical value is " + n3(r.crit) + ", with λ under the null of " + n3(r.lam0) +
+      " and λ under the alternative of " + n3(r.lamA) + ".</p>";
+    return r;
+  }
+
+  /* ---- difference test -------------------------------------------- */
+  function runDiff() {
+    var f0r = num("d-f0r"), f0u = num("d-f0u"), ddf = Math.round(num("d-ddf")), N = Math.round(num("d-n")), alpha = num("d-alpha");
+    if (!(ddf >= 1) || !(N >= 5) || !(f0r >= 0) || !(f0u >= 0)) {
+      $("diff-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "Both discrepancies have to be zero or more, with at least one degree of freedom of difference and five observations.");
+      return null;
+    }
+    if (!(alpha > 0 && alpha < 0.5)) {
+      $("diff-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "The size of the test has to lie between 0 and .5. At a size of zero no test rejects, so its power is zero rather than one; " +
+        "an empty box is read as no value at all rather than as a number.");
+      return null;
+    }
+    if (f0r < f0u) {
+      $("diff-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "The restricted model cannot fit better than the unrestricted one: its discrepancy is the larger of the two.");
+      return null;
+    }
+    var r = PW.powerDiff(f0r, f0u, ddf, N, alpha);
+    $("diff-out").innerHTML = '<p class="big">Power = ' + p3(r.power) + "</p>" +
+      "<p>The restrictions cost " + n3(f0r - f0u) + " of discrepancy over " + ddf +
+      " degrees of freedom. With " + N + " observations that is a noncentrality parameter of " + n3(r.lambda) +
+      ", against a critical value of " + n3(r.crit) + " at α = " + p3(alpha) + ".</p>";
+    return r;
+  }
+
+  /* ---- design analysis from a file -------------------------------- */
+  var loaded = null;
+  function renderDesign() {
+    if (!loaded) { $("design-out").innerHTML = ""; return null; }
+    var N = Math.round(num("da-n")), frac = num("da-frac"), alpha = num("da-alpha");
+    if (!(N >= 5) || !(frac > 0) || !(alpha > 0 && alpha < 0.5)) {
+      $("design-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "The design needs five observations or more, a positive fraction and an α between 0 and .5.");
+      return null;
+    }
+    var rows = loaded.params.filter(function (r) { return isFinite(r.se) && r.se > 0; });
+    if (!rows.length) { $("design-out").innerHTML = statusBlock("bad", "Nothing was computed.", "No parameter in this file has a usable standard error."); return null; }
+    var out = "", i;
+    out += '<p class="table-note">Every parameter of the file, with the design analysis of its test at ' + N +
+      ' observations. The true effect is taken to be ' + n2(frac) + ' times the estimate in the file.</p>';
+    out += '<div class="table-wrap"><table><caption class="visually-hidden">Design analysis of each parameter</caption><tr>' +
+      "<th>Parameter</th><th>Estimate</th><th>SE in the file</th><th>SE at " + N + "</th><th>Power</th><th>Sign error</th><th>Exaggeration</th></tr>";
+    var results = [];
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var s = PW.seAt(r.se, loaded.n, N);
+      var d = PW.design(r.est * frac, s, alpha);
+      results.push({ row: r, se: s, d: d });
+      out += "<tr><th scope=\"row\">" + esc((r.head ? r.head + " " : "") + r.name) + "</th>" +
+        '<td class="num">' + n3(r.est) + "</td>" +
+        '<td class="num">' + n3(r.se) + "</td>" +
+        '<td class="num">' + n3(s) + "</td>" +
+        '<td class="num">' + p3(d.power) + "</td>" +
+        '<td class="num">' + (isFinite(d.typeS) ? (d.typeS < 0.0005 ? "&lt; .001" : p3(d.typeS)) : "—") + "</td>" +
+        '<td class="num">' + (isFinite(d.exaggeration) ? n2(d.exaggeration) + "×" : "—") + "</td></tr>";
+    }
+    out += "</table></div>";
+    var weak = results.filter(function (x) { return isFinite(x.d.power) && x.d.power < 0.5; });
+    if (weak.length)
+      out += statusBlock("warn", "Where the design is thin.",
+        weak.length + " of " + results.length + " parameters have a power below .50 at this sample size. " +
+        "A significant estimate of such a parameter is on average " +
+        n2(weak.reduce(function (a, x) { return a + x.d.exaggeration; }, 0) / weak.length) +
+        " times the effect it estimates, which is the exaggeration Gelman and Carlin (2014) describe.");
+    out += '<p class="hint">The standard error at the sample size of the design is the one in the file rescaled by the square root of the ratio of the two sample sizes, which holds for a maximum likelihood estimator of a correctly specified model. The sign error is the probability that an estimate reaching significance has the sign opposite to the true effect; the exaggeration is the expected size of a significant estimate divided by the true effect. With the fraction left at 1 the analysis is about the estimate of this study itself, and is then a post hoc power calculation, which is a function of the p value (Hoenig &amp; Heisey, 2001).</p>';
+    $("design-out").innerHTML = out;
+    return results;
+  }
+
+  function handleFile(file) {
+    readTextFile(file, function (text) {
+      if (!MPLUS_SIGNATURE.test(text)) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file carries none of the headings an " + MP + " output has.");
+        return;
+      }
+      var params = readParameters(text), n = readN(text), groups = readGroups(text);
+      if (!params.length) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file has no MODEL RESULTS section with estimates and standard errors in it.");
+        return;
+      }
+      if (n === null) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The number of observations could not be read from SUMMARY OF ANALYSIS, and the design analysis rescales the standard errors by it.");
+        return;
+      }
+      loaded = { params: params, n: n, groups: groups };
+      $("file-name").textContent = file.name || "";
+      $("da-n").value = n;
+      var warningCount = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
+      var extra = groups > 1 ? " The output has " + groups + " groups; the standard errors are rescaled by the total number of observations, which is an approximation when the groups differ in size." : "";
+      if (warningCount) extra += " " + MP + " printed " + warningCount + " warning" + (warningCount === 1 ? "" : "s") + "; read " + (warningCount === 1 ? "it" : "them") + " in the file before using the table below.";
+      $("report").innerHTML = statusBlock(groups > 1 || warningCount ? "warn" : "ok", warningCount ? "File read, with warnings." : "File read.",
+        "Read " + params.length + " parameters and " + n + " observations." + extra);
+      renderDesign();
+    }, function () {
+      $("report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
+    });
+  }
+
+  /* ---- Monte Carlo ------------------------------------------------ */
+  function handleMc(file) {
+    readTextFile(file, function (text) {
+      var mc = readMonteCarlo(text);
+      if (!mc.isMonteCarlo || !mc.rows.length) {
+        $("mc-report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "This does not look like the output of a MONTECARLO run: the results table of such a run carries the population value, the average estimate, the coverage and the proportion of significant coefficients side by side.");
+        $("mc-out").innerHTML = "";
+        return;
+      }
+      $("file-mc-name").textContent = file.name || "";
+      var out = "", i;
+      out += '<div class="table-wrap"><table><caption class="visually-hidden">Results of the Monte Carlo run</caption><tr>' +
+        "<th>Parameter</th><th>Population</th><th>Average</th><th>Bias</th><th>Relative bias</th><th>SE bias</th><th>Coverage</th><th>Power</th></tr>";
+      var badBias = 0, badSe = 0, badCov = 0;
+      for (i = 0; i < mc.rows.length; i++) {
+        var r = mc.rows[i];
+        var bias = r.average - r.population;
+        var rel = r.population !== 0 ? bias / r.population : NaN;
+        var seBias = r.sd !== 0 ? (r.seAverage - r.sd) / r.sd : NaN;
+        if (isFinite(rel) && Math.abs(rel) > 0.10) badBias++;
+        if (isFinite(seBias) && Math.abs(seBias) > 0.05) badSe++;
+        if (r.coverage < 0.91 || r.coverage > 0.98) badCov++;
+        out += "<tr><th scope=\"row\">" + esc((r.head ? r.head + " " : "") + r.name) + "</th>" +
+          '<td class="num">' + n3(r.population) + "</td>" +
+          '<td class="num">' + n3(r.average) + "</td>" +
+          '<td class="num">' + n3(bias) + "</td>" +
+          '<td class="num">' + (isFinite(rel) ? p3(rel) : "—") + "</td>" +
+          '<td class="num">' + (isFinite(seBias) ? p3(seBias) : "—") + "</td>" +
+          '<td class="num">' + n3(r.coverage) + "</td>" +
+          '<td class="num">' + n3(r.sig) + "</td></tr>";
+      }
+      out += "</table></div>";
+      var notes = [];
+      var warningCount = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
+      if (warningCount) notes.push(MP + " printed " + warningCount + " warning" + (warningCount === 1 ? "" : "s") + "; read " + (warningCount === 1 ? "it" : "them") + " in the file before using the results below.");
+      if (mc.completed !== null)
+        notes.push(mc.completed + " of the " + mc.requested + " replications requested " + (mc.completed === 1 ? "was" : "were") + " completed" +
+          (mc.completed < mc.requested ? ", so every column above describes the replications that converged" : "") + ".");
+      if (badBias) notes.push(badBias + " parameter" + (badBias === 1 ? " has" : "s have") + " a relative bias beyond the ten percent Muthén and Muthén (2002) treat as acceptable.");
+      if (badSe) notes.push(badSe + " parameter" + (badSe === 1 ? " has" : "s have") + " a standard error bias beyond five percent.");
+      if (badCov) notes.push(badCov + " parameter" + (badCov === 1 ? " has" : "s have") + " a coverage outside the range from .91 to .98.");
+      $("mc-report").innerHTML = statusBlock(badBias || badSe || badCov || warningCount ? "warn" : "ok",
+        badBias || badSe || badCov || warningCount ? "Read, with reservations." : "File read.",
+        (notes.length ? notes.join(" ") : "The run meets the criteria of Muthén and Muthén (2002) for bias, for the bias of the standard errors and for coverage.") +
+        " The column headed Power is the proportion of replications in which the parameter differed from zero at the .05 level.");
+      $("mc-out").innerHTML = out;
+    }, function () {
+      $("mc-report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
+    });
+  }
+
+  function wireDrop(dropId, inputId, handler) {
+    var drop = $(dropId), input = $(inputId);
+    drop.addEventListener("click", function () { input.click(); });
+    drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+    drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+    drop.addEventListener("drop", function (e) {
+      e.preventDefault(); drop.classList.remove("over");
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) handler(e.dataTransfer.files[0]);
+    });
+    input.addEventListener("change", function () { if (input.files[0]) handler(input.files[0]); });
+  }
+
+  $("btn-fit").addEventListener("click", runFit);
+  $("btn-close").addEventListener("click", runClose);
+  $("btn-diff").addEventListener("click", runDiff);
+  ["da-n", "da-frac", "da-alpha"].forEach(function (id) { $(id).addEventListener("change", renderDesign); });
+  wireDrop("drop", "file", handleFile);
+  wireDrop("drop-mc", "file-mc", handleMc);
+  window.POWER_PAGE = { runFit: runFit, runClose: runClose, runDiff: runDiff };
+})();
+
+/* ==================================================================
+   Self-test. The expected values were computed separately with the
+   noncentral chi-square and normal routines of SciPy.
+   ================================================================== */
+function selfTest() {
+  var checks = [], failed = 0;
+  function ok(name, got, want, tol) {
+    var t = tol === undefined ? 1e-9 : tol;
+    var good = (typeof want === "number") ? (isFinite(got) && Math.abs(got - want) <= t) : (got === want);
+    if (!good) failed++;
+    checks.push({ name: name, got: got, want: want, ok: good });
+  }
+  function okTrue(name, cond) { ok(name, !!cond, true); }
+
+  /* The central chi-square, against published quantiles. */
+  ok("chi-square quantile, 1 df at .95", PW.chi2Quantile(0.95, 1), 3.841458820694124, 1e-7);
+  ok("chi-square quantile, 4 df at .95", PW.chi2Quantile(0.95, 4), 9.487729036781154, 1e-7);
+  ok("chi-square quantile, 50 df at .95", PW.chi2Quantile(0.95, 50), 67.50480654948924, 1e-6);
+  ok("chi-square quantile, 100 df at .99", PW.chi2Quantile(0.99, 100), 135.8067178278763, 1e-5);
+  ok("the tail inverts the quantile", PW.chi2Tail(PW.chi2Quantile(0.95, 33), 33), 0.05, 1e-9);
+
+  /* The noncentral chi-square: a zero noncentrality is the central one, and
+     the distribution function is monotone and bounded. */
+  ok("a noncentrality of zero gives the central distribution",
+     PW.ncChi2Cdf(67.5048065495, 50, 0), PW.chi2Cdf(67.5048065495, 50), 1e-12);
+  okTrue("the distribution function increases in x",
+     PW.ncChi2Cdf(40, 20, 15) < PW.ncChi2Cdf(60, 20, 15));
+  okTrue("it decreases as the noncentrality grows",
+     PW.ncChi2Cdf(60, 20, 30) < PW.ncChi2Cdf(60, 20, 15));
+  ok("its quantile inverts it", PW.ncChi2Cdf(PW.ncChi2Quantile(0.7, 25, 40), 25, 40), 0.7, 1e-8);
+
+  /* Conversions between the effect sizes, in both directions. */
+  ok("RMSEA to F0", PW.f0From("rmsea", 0.05, 50, 12), 0.125, 1e-15);
+  ok("F0 back to RMSEA", PW.fromF0("rmsea", 0.125, 50, 12), 0.05, 1e-15);
+  ok("Mc to F0", PW.f0From("mc", Math.exp(-0.5 * 0.125), 50, 12), 0.125, 1e-12);
+  ok("F0 back to Mc", PW.fromF0("mc", 0.125, 50, 12), Math.exp(-0.5 * 0.125), 1e-15);
+  ok("GFI to F0", PW.f0From("gfi", 12 / (12 + 2 * 0.125), 50, 12), 0.125, 1e-12);
+  ok("F0 back to GFI", PW.fromF0("gfi", 0.125, 50, 12), 12 / (12 + 2 * 0.125), 1e-15);
+  ok("AGFI and its inverse agree",
+     PW.f0From("agfi", PW.fromF0("agfi", 0.125, 50, 12), 50, 12), 0.125, 1e-10);
+
+  /* The three analyses, against SciPy. */
+  var pf = PW.powerFit(0.125, 50, 300, 0.05);
+  ok("the noncentrality parameter", pf.lambda, 37.375, 1e-12);
+  ok("post hoc power", pf.power, 0.9032936795960695, 1e-8);
+  ok("a priori sample size for a power of .80", PW.nForPower(0.125, 50, 0.80, 0.05), 243);
+  ok("the power at that sample size", PW.powerFit(0.125, 50, 243, 0.05).power, 0.8008582413847242, 1e-8);
+  okTrue("one observation fewer falls short", PW.powerFit(0.125, 50, 242, 0.05).power < 0.80);
+  var cr = PW.compromise(0.125, 50, 300, 1);
+  ok("the compromise critical value", cr.crit, 65.3208894878, 1e-6);
+  ok("its alpha", cr.alpha, 0.0716097770883622, 1e-8);
+  ok("its beta equals its alpha at a ratio of one", cr.beta, cr.alpha, 1e-9);
+  var cr2 = PW.compromise(0.125, 50, 300, 4);
+  ok("a ratio of four holds", cr2.beta / cr2.alpha, 4, 1e-6);
+
+  /* Close fit and not-close fit. */
+  var cf = PW.closeFit(0.05, 0.08, 50, 300, 0.05);
+  ok("the critical value of the test of close fit", cf.crit, 114.7538858075, 1e-5);
+  ok("the power of the test of close fit", cf.power, 0.9275998470467733, 1e-7);
+  ok("it is recognized as the test of close fit", cf.kind, "close");
+  var nf = PW.closeFit(0.08, 0.05, 50, 300, 0.05);
+  ok("the critical value of the test of not-close fit", nf.crit, 111.1966776980, 1e-5);
+  ok("the power of the test of not-close fit", nf.power, 0.9267672927287331, 1e-7);
+  ok("it is recognized as the test of not-close fit", nf.kind, "not-close");
+
+  /* Difference test. */
+  var dt = PW.powerDiff(0.08, 0.05, 4, 300, 0.05);
+  ok("the noncentrality of the difference test", dt.lambda, 8.97, 1e-12);
+  ok("the power of the difference test", dt.power, 0.6618136028419870, 1e-8);
+  ok("restrictions that cost nothing leave the power at alpha", PW.powerDiff(0.05, 0.05, 4, 300, 0.05).power, 0.05, 1e-12);
+
+  /* Design analysis, against the definitions of Gelman and Carlin (2014). */
+  var da = PW.design(0.3, 0.15, 0.05);
+  ok("the power of a parameter twice its standard error", da.power, 0.5160052739761748, 1e-10);
+  ok("its sign error", da.typeS, 7.263595e-05, 1e-9);
+  ok("its exaggeration ratio", da.exaggeration, 1.3862651465671012, 1e-10);
+  var weak = PW.design(0.1, 0.15, 0.05);
+  ok("the power of a parameter smaller than its standard error", weak.power, 0.1022658679908003, 1e-10);
+  ok("its sign error", weak.typeS, 0.0421621025520102, 1e-10);
+  ok("its exaggeration ratio", weak.exaggeration, 3.6370275646584975, 1e-9);
+  okTrue("a negative effect gives the same numbers as its mirror image",
+     Math.abs(PW.design(-0.1, 0.15, 0.05).exaggeration - weak.exaggeration) < 1e-12);
+  okTrue("the exaggeration falls as the power rises",
+     PW.design(0.6, 0.15, 0.05).exaggeration < PW.design(0.3, 0.15, 0.05).exaggeration);
+  ok("a standard error scaled to a larger sample", PW.seAt(0.10, 200, 800), 0.05, 1e-15);
+
+  /* The normal routines. */
+  ok("the normal distribution function at zero", PW.normCdf(0), 0.5, 1e-12);
+  ok("its value at 1.96", PW.normCdf(1.959963984540054), 0.975, 1e-10);
+  ok("the normal quantile at .975", PW.normQuantile(0.975), 1.959963984540054, 1e-10);
+  ok("the normal quantile at .0005", PW.normQuantile(0.0005), -3.290526731491896, 1e-8);
+
+  /* The parser. */
+  var out = "Mplus VERSION 8.11\n\nSUMMARY OF ANALYSIS\n\nNumber of observations                                         420\n\n" +
+    "MODEL RESULTS\n\n" +
+    "                                                    Two-Tailed\n" +
+    "                    Estimate       S.E.  Est./S.E.    P-Value\n\n" +
+    " F1       BY\n    X1                 0.800      0.040     20.000      0.000\n" +
+    "    X2                 0.700      0.045     15.556      0.000\n\n" +
+    " Y        ON\n    F1                 0.300      0.150      2.000      0.046\n\n" +
+    " Residual Variances\n    X1                 0.360      0.030     12.000      0.000\n\n" +
+    "TECHNICAL 1 OUTPUT\n";
+  var pars = readParameters(out);
+  ok("four parameters are read", pars.length, 4);
+  ok("the heading of the first is kept", pars[0].head, "F1 BY");
+  ok("its estimate", pars[0].est, 0.8);
+  ok("the regression is read under its own heading", pars[2].head, "Y ON");
+  ok("the residual variance is read under its heading", pars[3].head, "Residual Variances");
+  ok("the number of observations is read", readN(out), 420);
+
+  var mcOut = "Mplus VERSION 8.11\n\nSUMMARY OF ANALYSIS\n\nNumber of replications\n    Requested                                                  500\n    Completed                                                  498\n\n" +
+    "MODEL RESULTS\n\n" +
+    "                    ESTIMATES              S. E.     M. S. E.  95%  % Sig\n" +
+    "                 Population   Average   Std. Dev.   Average             Cover Coeff\n" +
+    " F1       BY\n" +
+    "  X1                  0.800     0.7987     0.0523     0.0516     0.0027 0.948 1.000\n" +
+    "  X2                  0.700     0.6912     0.0611     0.0590     0.0038 0.932 1.000\n\n" +
+    "TECHNICAL 1 OUTPUT\n";
+  var mc = readMonteCarlo(mcOut);
+  ok("the Monte Carlo table is read", mc.rows.length, 2);
+  ok("the population value", mc.rows[0].population, 0.8);
+  ok("the average estimate", mc.rows[0].average, 0.7987);
+  ok("the coverage", mc.rows[0].coverage, 0.948);
+  ok("the proportion of significant coefficients", mc.rows[0].sig, 1);
+  ok("the replications completed", mc.completed, 498);
+  ok("the replications requested", mc.requested, 500);
+  okTrue("an ordinary output is not read as a Monte Carlo run", readMonteCarlo(out).rows.length === 0);
+
+  return { checks: checks, failed: failed };
+}
+
+(function () {
+  if (!/[?&]selftest=1(&|$)/.test(window.location.search)) return;
+  var out;
+  try { out = selfTest(); }
+  catch (err) { out = { checks: [{ name: "the self-test raised an error: " + (err && err.message ? err.message : String(err)), ok: false }], failed: 1 }; }
+  var b = document.getElementById("selftest-banner");
+  b.hidden = false;
+  b.className = "status " + (out.failed ? "bad" : "ok");
+  b.innerHTML = '<p><span aria-hidden="true">' + (out.failed ? "✗" : "✓") + '</span> <span class="tag">' +
+    (out.failed ? "Self-test failed." : "Self-test passed.") + "</span> " + out.checks.length + " checks, " +
+    out.failed + " failed. They cover the two chi-square distributions and the normal against published quantiles " +
+    "and against an independent implementation, the conversions between the effect sizes in both directions, the " +
+    "agreement between the a priori and the post hoc analyses, the compromise analysis at the ratio it is asked " +
+    "for, the tests of close and not-close fit, the difference test, the design analysis, and the two parsers. " +
+    "Each check is listed in the browser console.</p>";
+  var lines = out.checks.map(function (c) {
+    return (c.ok ? "ok   " : "FAIL ") + c.name + (c.ok ? "" : "  got " + c.got + ", wanted " + c.want);
+  });
+  if (out.failed) console.error(lines.join("\n")); else console.log(lines.join("\n"));
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

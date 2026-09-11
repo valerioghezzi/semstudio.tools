@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="A fit table across several Mplus output files, and the local fit of one of them: standardized residuals, correlation residuals recovered from the residual output, and modification indices ordered by size.">
+<title>Model Fit and Local Fit &#183; semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+table.enum td.num, table.enum th.num { font-variant-numeric: tabular-nums; text-align: right; }
+.filelist { list-style: none; padding: 0; margin: 1rem 0 0; }
+.filelist li { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; align-items: baseline;
+  padding: 0.5rem 0.75rem; border: 1px solid var(--line); border-radius: var(--radius); margin-bottom: 0.5rem; background: var(--panel); }
+.filelist .nm { font-weight: 600; overflow-wrap: anywhere; }
+.filelist .meta { color: var(--muted); font-size: 0.92em; }
+.filelist button { margin-left: auto; }
+.flag { font-weight: 600; }
+.flag.hi { color: #005AB5; }
+.flag.lo { color: #A24A00; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Model Fit and Local Fit</h1>
+  <p class="lede">This page assembles a table of the fit of several models from their output files and reports the local fit of any one of them. The table carries what M<em>plus</em> prints and, alongside it, the differences between the models and one further index. The local part orders the standardized residuals and the modification indices by size, which M<em>plus</em> does not do, and recovers the residuals in the metric of a correlation, which M<em>plus</em> does not print.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> Nothing at all for the fit table: every index in it is printed by default. For the local part, <code>OUTPUT: RESIDUAL MODINDICES(0);</code> &#8212; <code>RESIDUAL</code> prints the estimated and residual matrices, and the argument of <code>MODINDICES</code> is the smallest index that will be printed, which is 10 when nothing is written. Writing 0 prints them all, which is what the correction for their number needs. A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; a run that did not terminate normally is marked as such.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Drop the <code>.out</code> files of the models to be compared on the box below, all at once or a few at a time.</li>
+    <li>Read the fit table. The differences are taken against the model chosen as the reference.</li>
+    <li>Choose one model below for its local fit.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> files here</strong>, or press Enter to choose them.
+    <label class="visually-hidden" for="file">M<em>plus</em> output files</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" multiple aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The files are read in your browser and are not sent anywhere. The order in which they are dropped is the order of the table; a file dropped twice replaces the earlier copy.</p>
+  <ul class="filelist" id="filelist"></ul>
+  <div id="report" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-table">
+  <h2 id="h-table">The fit table</h2>
+  <div class="row">
+    <div class="field w2"><label for="ref">Reference model for the differences</label><select id="ref"><option value="">the first model</option></select></div>
+    <div class="field w2"><label class="check"><input type="checkbox" id="mark" checked> Mark the values that meet the conventional cutoffs</label>
+      <span class="hint">Explained under Methods, together with what those cutoffs are worth.</span></div>
+  </div>
+  <div id="results"><p class="hint">The table appears here once an output file has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-local">
+  <h2 id="h-local">Local fit</h2>
+  <div class="row">
+    <div class="field w2"><label for="pick">Model</label><select id="pick"><option value="">&#8212;</option></select></div>
+    <div class="field w2"><label for="topn">Rows shown in each list</label><input type="number" id="topn" min="5" max="200" step="5" value="20"></div>
+  </div>
+  <div class="row">
+    <div class="field w2"><label for="delta-load">Deviation worth detecting, loadings</label><input type="number" id="delta-load" min="0.01" max="2" step="0.01" value="0.4">
+      <span class="hint">Read against the StdYX expected parameter change of a <code>BY</code> statement.</span></div>
+    <div class="field w2"><label for="delta-struct">Deviation worth detecting, other parameters</label><input type="number" id="delta-struct" min="0.01" max="2" step="0.01" value="0.1">
+      <span class="hint">Regressions, residual covariances, everything that is not a loading.</span></div>
+    <div class="field w2"><label for="power-min">Power above which the test counts as sensitive</label><input type="number" id="power-min" min="0.5" max="0.99" step="0.05" value="0.75"></div>
+  </div>
+  <div id="detail"><p class="hint">Choose a model above.</p></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>What the page reads</h3>
+  <p>The whole of <code>MODEL FIT INFORMATION</code>, the estimator and the counts in <code>SUMMARY OF ANALYSIS</code>, the title of the run, and, when they are there, the residual output and the modification indices. A file that carries none of the fit information is refused and named. Nothing in the table is recomputed from the raw data, because the raw data are not in the file.</p>
+
+  <h3>The one index that is added</h3>
+  <p>M<em>plus</em> prints the chi-square test, the RMSEA with its confidence interval and the probability of close fit, the CFI and the TLI, and the standardized root mean square residual. The table adds McDonald's (1989) centrality index, which is a function of the same discrepancy:</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>F</mi><mn>0</mn></msub><mo>=</mo><mfrac><mrow><mi>max</mi><mo>(</mo><msup><mi>&#x3C7;</mi><mn>2</mn></msup><mo>&#x2212;</mo><mi>df</mi><mo>,</mo><mn>0</mn><mo>)</mo></mrow><mrow><mi>N</mi><mo>&#x2212;</mo><mn>1</mn></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><mi>Mc</mi><mo>=</mo><msup><mi>e</mi><mrow><mo>&#x2212;</mo><mn>0.5</mn><msub><mi>F</mi><mn>0</mn></msub></mrow></msup></mrow></math></div>
+  <p class="where">Here <math><msub><mi>F</mi><mn>0</mn></msub></math> is the population discrepancy, <var>N</var> the sample size and <var>df</var> the degrees of freedom of the model. Mc is on a zero to one scale like the CFI but, unlike it, does not depend on a baseline model, which is why it is worth having next to the CFI when the baseline model of a run is itself unusual. The page also recomputes the RMSEA from the same three numbers, <math><mrow><mi>RMSEA</mi><mo>=</mo><msqrt><mrow><msub><mi>F</mi><mn>0</mn></msub><mo>/</mo><mi>df</mi></mrow></msqrt></mrow></math> multiplied by the square root of the number of groups (Steiger &amp; Lind, 1980, as set out by Browne &amp; Cudeck, 1992), and reports a disagreement with the printed value rather than passing over it, since a disagreement means that the file is not what it appears to be.</p>
+
+  <h3>The differences between models</h3>
+  <p>The table gives the difference in CFI, in RMSEA and in SRMR against the model chosen as the reference, and the difference in chi-square and in degrees of freedom. No cutoff is attached to these differences here. Two reasons: the cutoffs in circulation were derived for measurement invariance, where they belong to the <a href="invariance.html">invariance page</a>, which applies them with the conditions of the studies that produced them; and a difference in chi-square between models estimated with a scaled statistic is not the difference of the printed values, but the corrected quantity computed on the <a href="chi-square-difference.html">difference test page</a>. When the estimator of a file produces a scaled chi-square, the table says so on that row, so that the difference is not read off it by mistake.</p>
+
+  <h3>The conventional cutoffs</h3>
+  <p>With the box above ticked, the table marks a CFI of .95 or more, an RMSEA of .06 or less and an SRMR of .08 or less, which are the values Hu and Bentler (1999) proposed on the basis of a simulation of confirmatory factor models of continuous, normally distributed indicators with a particular range of sample sizes and misspecifications. They are worth marking and not worth obeying. Marsh, Hau and Wen (2004), writing with Hu and Bentler's agreement on the point, show that values derived under one set of conditions do not transfer to another, that a rule which combines two indices behaves differently again, and that a model can meet all three and still be wrong in the part that matters. The local fit below is what says where a model is wrong; the table says only how large the discrepancy is in total.</p>
+
+  <h3>The residuals</h3>
+  <p>The residual output prints the model estimated matrix and the residual matrix, observed minus estimated, and, for the estimators that admit it, the standardized residual, which is the residual divided by its own standard error and is read as a <var>z</var> score. The page orders them by absolute size, which the output does not, and counts those beyond 1.96 and beyond 2.58; values of 999 are the M<em>plus</em> sign for a quantity that is not defined and are dropped rather than shown.</p>
+  <p>It also computes what the output does not print, the residual in the metric of a correlation. The observed matrix is the sum of the two printed matrices, so with <math><mrow><msub><mi>s</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><msub><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>+</mo><msub><mi>e</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub></mrow></math> the correlation residual is</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>r</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>&#x2212;</mo><msub><mover><mi>r</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><msub><mi>s</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msqrt><mrow><msub><mi>s</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><msub><mi>s</mi><mrow><mi>j</mi><mi>j</mi></mrow></msub></mrow></msqrt></mfrac><mo>&#x2212;</mo><mfrac><msub><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>j</mi></mrow></msub><msqrt><mrow><msub><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>i</mi></mrow></msub><msub><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mrow><mi>j</mi><mi>j</mi></mrow></msub></mrow></msqrt></mfrac></mrow></math></div>
+  <p class="where">The two matrices are standardized and subtracted. The result is on the scale of a correlation: a correlation residual of .12 says the model reproduces that correlation .12 too low, whatever the sample size, whereas a <var>z</var> score of 3.4 says only that the discrepancy is large relative to its standard error, which in a large sample it will be even when the discrepancy is trivial. No cutoff is attached to it here.</p>
+
+  <h3>The modification indices</h3>
+  <p>A modification index is the score test of the hypothesis that one fixed parameter is zero: it is what the chi-square of the model would fall by, approximately, if that parameter alone were freed, and it is distributed as a chi-square with one degree of freedom under the hypothesis (Sörbom, 1989). The expected parameter change next to it is the value the freed parameter would take, and the standardized one is that value in the metric of the standardized solution. The page orders all of them together by size, which the output does not do, since M<em>plus</em> prints them grouped by type of statement.</p>
+  <p>Two numbers are given alongside, and only when the file was produced with <code>MODINDICES(0)</code>. The first is the ordinary critical value, 3.84, which is the .05 point of a chi-square with one degree of freedom. The second is the critical value corrected for the number of indices, <math><mrow><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><mn>.05</mn><mo>/</mo><mi>m</mi><mo>)</mo></mrow></math> with <var>m</var> the number of tests the family contains (Dunn, 1961). A printing threshold above zero leaves the indices below it out of the file but not out of the family, and their number is then unknown: the page withholds the corrected value in that case rather than computing it on the subset that happened to be printed, which would correct for too few tests. The corrected value is worth looking at because the largest of many indices is large by construction. MacCallum, Roznowski and Necowitz (1992) showed what follows from ignoring this: modifications made on the strength of the indices alone do not replicate, the more so the smaller the sample, and a sequence of them yields a model that fits the sample it was built on and nothing else. A modification is worth making when the freed parameter has a meaning that can be stated before the index is looked at.</p>
+  <h3>The power of each test, and the reading that follows from it</h3>
+  <p>The modification index is a statistical test, so its power depends on the sample size and on the size of the deviation it is asked to find. In a large sample a deviation of no substantive size gives a significant index; in a small one a real deviation gives an index that is not significant. Saris, Satorra and van der Veld (2009) show that both readings can be settled with quantities the output already carries. The relation between the index, the expected parameter change and the standard error of that change is</p>
+  <div class="eq"><math display="block"><mrow><mi>MI</mi><mo>=</mo><msup><mrow><mo>(</mo><mi>EPC</mi><mo>/</mo><mi>&#x3C3;</mi><mo>)</mo></mrow><mn>2</mn></msup><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><mi>&#x3C3;</mi><mo>=</mo><mi>EPC</mi><mo>/</mo><msqrt><mi>MI</mi></msqrt></mrow></math></div>
+  <p class="where">their Equations 6 and 7. The standard error gives a confidence interval for the parameter that is being tested, <math><mrow><mi>EPC</mi><mo>&#x2213;</mo><mn>1.96</mn><mi>&#x3C3;</mi></mrow></math> (Eq. 8), which the table reports: it says how precisely the size of the deviation is being estimated, which the index alone does not.</p>
+  <p>It also gives the power. Let δ be the smallest deviation one would want the test to find. Under a deviation of that size the index is distributed as a noncentral chi-square with one degree of freedom and noncentrality parameter</p>
+  <div class="eq"><math display="block"><mrow><mi>ncp</mi><mo>=</mo><msup><mrow><mo>(</mo><mi>&#x3B4;</mi><mo>/</mo><mi>&#x3C3;</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>=</mo><mo>(</mo><mi>MI</mi><mo>/</mo><msup><mi>EPC</mi><mn>2</mn></msup><mo>)</mo><msup><mi>&#x3B4;</mi><mn>2</mn></msup></mrow></math></div>
+  <p class="where">their Equations 9 and 10, and the power of the test is <math><mrow><mi>Prob</mi><mo>(</mo><msup><mi>&#x3C7;</mi><mn>2</mn></msup><mo>(</mo><mn>1</mn><mo>,</mo><mi>ncp</mi><mo>)</mo><mo>&gt;</mo><msub><mi>c</mi><mi>&#x3B1;</mi></msub><mo>)</mo></mrow></math>, with <math><msub><mi>c</mi><mi>&#x3B1;</mi></msub></math> the critical value of the test with one degree of freedom (Eq. 11). The page computes it with the same noncentral chi-square routine the <a href="power.html">power page</a> uses. Because δ and the expected parameter change have to be in one metric, the StdYX change is the one used.</p>
+  <p>Index and power together give four situations, which is Table 6 of that paper. A significant index whose test has little power means a deviation is there, since something has shown through a test that was not sensitive. A significant index whose test has a great deal of power means the index has to be read against the size of the change, because a sensitive test reaches significance on a deviation nobody would act on: the page compares the change with δ itself, δ being by definition the smallest deviation worth finding, and reports whether it is larger or smaller. An index that is not significant on a test with power means there is no deviation there, which is the reading the ordinary use of these indices never delivers. An index that is not significant on a test without power means nothing is known about that parameter.</p>
+  <p>The values above the table are the ones the authors suggest, and they say of them that they are arbitrary and belong to the standards of a discipline rather than to statistics: .1 for a standardized structural parameter or a residual covariance, .4 for a loading, and .75 for the power above which a test counts as sensitive. They are meant to be set before the output is read.</p>
+
+  <h3>Self-test</h3>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of the fit information for the estimators that print it differently, the reading of the printed matrices in the block form M<em>plus</em> uses, the recomputation of the RMSEA and of Mc, the recovery of the observed matrix and of the correlation residuals, the ordering and the counts of the residuals and of the modification indices, the corrected critical value, the standard error of the expected parameter change, the noncentrality parameter and the power of the modification index test against the two worked tables of Saris, Satorra and van der Veld, the four readings at their boundaries, and the files the page has to refuse.</p>
+  </div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>Browne, M. W., &amp; Cudeck, R. (1992). Alternative ways of assessing model fit. <em>Sociological Methods &amp; Research, 21</em>(2), 230&#8211;258. <a href="https://doi.org/10.1177/0049124192021002005">https://doi.org/10.1177/0049124192021002005</a></li>
+    <li>Dunn, O. J. (1961). Multiple comparisons among means. <em>Journal of the American Statistical Association, 56</em>(293), 52&#8211;64. <a href="https://doi.org/10.1080/01621459.1961.10482090">https://doi.org/10.1080/01621459.1961.10482090</a></li>
+    <li>Hu, L., &amp; Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives. <em>Structural Equation Modeling, 6</em>(1), 1&#8211;55. <a href="https://doi.org/10.1080/10705519909540118">https://doi.org/10.1080/10705519909540118</a></li>
+    <li>MacCallum, R. C., Roznowski, M., &amp; Necowitz, L. B. (1992). Model modifications in covariance structure analysis: The problem of capitalization on chance. <em>Psychological Bulletin, 111</em>(3), 490&#8211;504. <a href="https://doi.org/10.1037/0033-2909.111.3.490">https://doi.org/10.1037/0033-2909.111.3.490</a></li>
+    <li>Marsh, H. W., Hau, K.-T., &amp; Wen, Z. (2004). In search of golden rules: Comment on hypothesis-testing approaches to setting cutoff values for fit indexes and dangers in overgeneralizing Hu and Bentler's (1999) findings. <em>Structural Equation Modeling, 11</em>(3), 320&#8211;341. <a href="https://doi.org/10.1207/s15328007sem1103_2">https://doi.org/10.1207/s15328007sem1103_2</a></li>
+    <li>McDonald, R. P. (1989). An index of goodness-of-fit based on noncentrality. <em>Journal of Classification, 6</em>(1), 97&#8211;103. <a href="https://doi.org/10.1007/BF01908590">https://doi.org/10.1007/BF01908590</a></li>
+    <li>Saris, W. E., Satorra, A., &amp; van der Veld, W. M. (2009). Testing structural equation models or detection of misspecifications? <em>Structural Equation Modeling, 16</em>(4), 561&#8211;582. <a href="https://doi.org/10.1080/10705510903203433">https://doi.org/10.1080/10705510903203433</a></li>
+    <li>Steiger, J. H., &amp; Lind, J. C. (1980, May). <em>Statistically based tests for the number of common factors</em> [Paper presentation]. Annual meeting of the Psychometric Society, Iowa City, IA, United States.</li>
+    <li>Sörbom, D. (1989). Model modification. <em>Psychometrika, 54</em>(3), 371&#8211;384. <a href="https://doi.org/10.1007/BF02294623">https://doi.org/10.1007/BF02294623</a></li>
+  </ul>
+  </div>
+</details>
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function $(id) { return document.getElementById(id); }
+var MP = "M<em>plus</em>";
+
+/* ==================================================================
+   Reading a file
+   ================================================================== */
+
+function diagnoseFile(text) {
+  if (!text || !text.replace(/\s/g, "").length) return "empty";
+  if (/Mplus VERSION/i.test(text) || /MODEL FIT INFORMATION/.test(text) ||
+      /INPUT INSTRUCTIONS/.test(text) || /TESTS OF MODEL FIT/.test(text)) return "mplus";
+  return "foreign";
+}
+
+function findLine(lines, re, from) {
+  for (var i = from || 0; i < lines.length; i++) if (re.test(lines[i])) return i;
+  return -1;
+}
+
+function labelValue(lines, from, label, span) {
+  var re = new RegExp("^\\s*" + label + "\\s+(-?[0-9]+(?:\\.[0-9]+)?)\\*?\\s*$");
+  var stop = Math.min(lines.length, from + (span || 12));
+  for (var i = from; i < stop; i++) {
+    var m = lines[i].match(re);
+    if (m) return parseFloat(m[1]);
+  }
+  return NaN;
+}
+
+function labelStarred(lines, from, label, span) {
+  var re = new RegExp("^\\s*" + label + "\\s+(-?[0-9]+(?:\\.[0-9]+)?)(\\*?)\\s*$");
+  var stop = Math.min(lines.length, from + (span || 12));
+  for (var i = from; i < stop; i++) {
+    var m = lines[i].match(re);
+    if (m) return { v: parseFloat(m[1]), starred: m[2] === "*" };
+  }
+  return { v: NaN, starred: false };
+}
+
+/* ---- matrices printed in blocks of columns ---- */
+
+function isUnderline(line) {
+  var t = line.trim();
+  return t.length > 0 && /^_+(\s+_+)*$/.test(t);
+}
+function nameTokens(line) {
+  var t = line.trim();
+  if (!t) return null;
+  var parts = t.split(/\s+/), i;
+  for (i = 0; i < parts.length; i++) if (!/^[A-Za-z][A-Za-z0-9_#.]*$/.test(parts[i])) return null;
+  return parts;
+}
+
+function readMatrix(lines, from, to) {
+  var cols = null, prev = null, vals = {}, order = [], i, j;
+  function put(r, c, v) {
+    if (order.indexOf(r) < 0) order.push(r);
+    if (order.indexOf(c) < 0) order.push(c);
+    vals[r + " " + c] = v;
+    vals[c + " " + r] = v;
+  }
+  for (i = from; i < to && i < lines.length; i++) {
+    var line = lines[i], t = line.trim();
+    if (!t) { prev = null; continue; }
+    if (isUnderline(line)) { if (prev) cols = prev; prev = null; continue; }
+    var parts = t.split(/\s+/);
+    var head = parts[0];
+    if (/^-?[\d.]+$/.test(head)) {
+      if (cols) for (j = 0; j < parts.length && j < cols.length; j++) put("__MEAN__", cols[j], parseFloat(parts[j]));
+      prev = null;
+      continue;
+    }
+    var nums = [], ok = true;
+    for (j = 1; j < parts.length; j++) {
+      if (!/^-?[\d.]+$/.test(parts[j])) { ok = false; break; }
+      nums.push(parseFloat(parts[j]));
+    }
+    if (ok && nums.length && cols && /^[A-Za-z][A-Za-z0-9_#.]*$/.test(head)) {
+      for (j = 0; j < nums.length && j < cols.length; j++) put(head, cols[j], nums[j]);
+      prev = null;
+      continue;
+    }
+    prev = nameTokens(line);
+  }
+  return {
+    names: order,
+    get: function (a, b) { var v = vals[a + " " + b]; return v === undefined ? NaN : v; },
+    has: function (a, b) { return vals[a + " " + b] !== undefined; }
+  };
+}
+
+function residualBlocks(lines) {
+  var starts = [], i;
+  for (i = 0; i < lines.length; i++)
+    if (/^\s\s+(Model Estimated|Residuals for|Standardized Residuals|Normalized Residuals)/.test(lines[i]))
+      starts.push({ i: i, title: lines[i].trim() });
+  var out = [];
+  for (i = 0; i < starts.length; i++) {
+    var end = (i + 1 < starts.length) ? starts[i + 1].i : lines.length;
+    var j;
+    for (j = starts[i].i + 1; j < end; j++) if (/^[A-Z][A-Z ]{4,}$/.test(lines[j])) { end = j; break; }
+    out.push({ title: starts[i].title, from: starts[i].i + 1, to: end });
+  }
+  return out;
+}
+
+function readResiduals(lines) {
+  var blocks = residualBlocks(lines), i, res = { estimated: null, residual: null, z: null, extra: 0 };
+  for (i = 0; i < blocks.length; i++) {
+    var b = blocks[i], t = b.title;
+    if (/^Model Estimated Covariances/.test(t)) { if (res.estimated) res.extra++; else res.estimated = readMatrix(lines, b.from, b.to); }
+    else if (/^Residuals for Covariances/.test(t)) { if (res.residual) res.extra++; else res.residual = readMatrix(lines, b.from, b.to); }
+    else if (/^Standardized Residuals \(z-scores\) for Covariances/.test(t)) { if (res.z) res.extra++; else res.z = readMatrix(lines, b.from, b.to); }
+  }
+  return res;
+}
+
+function readModIndices(lines) {
+  var i = findLine(lines, /^MODEL MODIFICATION INDICES/);
+  if (i < 0) return null;
+  var out = [], minPrinted = NaN, j;
+  for (j = i + 1; j < lines.length; j++) {
+    var line = lines[j], t = line.trim();
+    if (!t) continue;
+    if (line.charAt(0) !== " " && /^[A-Z][A-Z ()\/.-]{6,}$/.test(line) && !/Statements/i.test(t)) break;
+    var mm = t.match(/^Minimum M\.I\. value.*?([\d.]+)\s*$/i);
+    if (mm) { minPrinted = parseFloat(mm[1]); continue; }
+    var m = t.match(/^(.*?\S)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s*$/);
+    if (m) {
+      var label = m[1].replace(/\s+/g, " ").trim();
+      if (/^M\.I\./.test(label) || !/[A-Za-z]/.test(label)) continue;
+      out.push({ label: label, mi: parseFloat(m[2]), epc: parseFloat(m[3]),
+                 std: parseFloat(m[4]), stdyx: parseFloat(m[5]) });
+    }
+  }
+  return { list: out, minPrinted: minPrinted };
+}
+
+function readOut(text, name) {
+  var lines = text.split(/\r?\n/), f = { name: name }, i, j, k;
+  f.nWarnings = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
+
+  i = findLine(lines, /^INPUT READING TERMINATED NORMALLY/);
+  f.title = "";
+  if (i >= 0) {
+    for (j = i + 1; j < Math.min(lines.length, i + 8); j++) {
+      var t = lines[j].trim();
+      if (!t) continue;
+      if (/^SUMMARY OF ANALYSIS/.test(t)) break;
+      f.title = t.replace(/;$/, "");
+      break;
+    }
+  }
+
+  f.estimator = "";
+  i = findLine(lines, /^\s*Estimator\s+\S+\s*$/);
+  if (i >= 0) f.estimator = lines[i].trim().split(/\s+/).pop();
+
+  f.ngroups = 1;
+  i = findLine(lines, /^\s*Number of groups\s+\d+/);
+  if (i >= 0) f.ngroups = parseInt(lines[i].match(/(\d+)\s*$/)[1], 10);
+
+  f.n = NaN;
+  i = findLine(lines, /^\s*Number of observations\s+\d+/);
+  if (i >= 0) f.n = parseInt(lines[i].match(/(\d+)\s*$/)[1], 10);
+  if (!isFinite(f.n)) {
+    i = findLine(lines, /^\s*Number of observations\s*$/);
+    if (i >= 0) {
+      var tot = 0;
+      for (k = i + 1; k < Math.min(lines.length, i + 40); k++) {
+        var mg = lines[k].match(/^\s*Group \S+\s+(\d+)\s*$/);
+        if (mg) tot += parseInt(mg[1], 10);
+        else if (lines[k].trim() && tot) break;
+      }
+      if (tot) f.n = tot;
+    }
+  }
+
+  f.nvar = NaN;
+  i = findLine(lines, /^\s*Number of dependent variables\s+\d+/);
+  if (i >= 0) {
+    f.nvar = parseInt(lines[i].match(/(\d+)\s*$/)[1], 10);
+    var i2 = findLine(lines, /^\s*Number of independent variables\s+\d+/);
+    if (i2 >= 0) f.nvar += parseInt(lines[i2].match(/(\d+)\s*$/)[1], 10);
+  }
+
+  f.npar = NaN;
+  i = findLine(lines, /Number of Free Parameters/);
+  if (i >= 0) { var mp = lines[i].match(/(\d+)\s*$/); if (mp) f.npar = parseInt(mp[1], 10); }
+
+  f.chi2 = NaN; f.df = NaN; f.p = NaN; f.scaled = false; f.scaling = NaN;
+  i = findLine(lines, /^Chi-Square Test of Model Fit\s*$/);
+  if (i < 0) i = findLine(lines, /^Chi-Square Test of Model Fit for the Binary/);
+  if (i >= 0) {
+    var st = labelStarred(lines, i, "Value", 8);
+    f.chi2 = st.v; f.scaled = st.starred;
+    f.df = labelValue(lines, i, "Degrees of Freedom", 8);
+    f.p = labelValue(lines, i, "P-Value", 8);
+    f.scaling = labelValue(lines, i, "Scaling Correction Factor", 8);
+    if (isFinite(f.scaling)) f.scaled = true;
+  }
+
+  f.baseChi2 = NaN; f.baseDf = NaN;
+  i = findLine(lines, /^Chi-Square Test of Model Fit for the Baseline Model/);
+  if (i >= 0) { f.baseChi2 = labelValue(lines, i, "Value", 8); f.baseDf = labelValue(lines, i, "Degrees of Freedom", 8); }
+
+  f.rmsea = NaN; f.rmseaLo = NaN; f.rmseaHi = NaN; f.pclose = NaN;
+  i = findLine(lines, /^RMSEA \(Root Mean Square Error Of Approximation\)/);
+  if (i >= 0) {
+    f.rmsea = labelValue(lines, i, "Estimate", 10);
+    for (k = i; k < Math.min(lines.length, i + 10); k++) {
+      var mci = lines[k].match(/90 Percent C\.I\.\s+(-?[\d.]+)\s+(-?[\d.]+)/);
+      if (mci) { f.rmseaLo = parseFloat(mci[1]); f.rmseaHi = parseFloat(mci[2]); break; }
+    }
+    f.pclose = labelValue(lines, i, "Probability RMSEA <= \\.05", 10);
+  }
+
+  f.cfi = NaN; f.tli = NaN;
+  i = findLine(lines, /^CFI\/TLI/);
+  if (i >= 0) { f.cfi = labelValue(lines, i, "CFI", 8); f.tli = labelValue(lines, i, "TLI", 8); }
+
+  f.srmr = NaN; f.srmrW = NaN; f.srmrB = NaN;
+  i = findLine(lines, /^SRMR \(Standardized Root Mean Square Residual\)/);
+  if (i >= 0) {
+    f.srmr = labelValue(lines, i, "Value", 8);
+    f.srmrW = labelValue(lines, i, "Value for Within", 8);
+    f.srmrB = labelValue(lines, i, "Value for Between", 8);
+  }
+  f.wrmr = NaN;
+  i = findLine(lines, /^WRMR \(Weighted Root Mean Square Residual\)/);
+  if (i >= 0) f.wrmr = labelValue(lines, i, "Value", 8);
+
+  f.aic = NaN; f.bic = NaN; f.sabic = NaN;
+  i = findLine(lines, /^Information Criteria/);
+  if (i >= 0) {
+    f.aic = labelValue(lines, i, "Akaike \\(AIC\\)", 12);
+    f.bic = labelValue(lines, i, "Bayesian \\(BIC\\)", 12);
+    f.sabic = labelValue(lines, i, "Sample-Size Adjusted BIC", 12);
+  }
+
+  f.dic = NaN; f.pd = NaN;
+  i = findLine(lines, /^Information Criteria/);
+  if (i >= 0) {
+    f.dic = labelValue(lines, i, "Deviance \\(DIC\\)", 12);
+    f.pd = labelValue(lines, i, "Estimated Number of Parameters \\(pD\\)", 12);
+  }
+
+  f.ppp = NaN;
+  i = findLine(lines, /Posterior Predictive P-Value/);
+  if (i >= 0) { var mppp = lines[i].match(/(-?[\d.]+)\s*$/); if (mppp) f.ppp = parseFloat(mppp[1]); }
+
+  f.residuals = readResiduals(lines);
+  f.mi = readModIndices(lines);
+  f.terminated = !/THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY/.test(text);
+  return f;
+}
+
+/* ==================================================================
+   The quantities the page computes
+   ================================================================== */
+
+function f0Of(chi2, df, n) {
+  if (!isFinite(chi2) || !isFinite(df) || !isFinite(n) || n < 2) return NaN;
+  return Math.max(chi2 - df, 0) / (n - 1);
+}
+function mcOf(chi2, df, n) {
+  var f0 = f0Of(chi2, df, n);
+  return isFinite(f0) ? Math.exp(-0.5 * f0) : NaN;
+}
+function rmseaOf(chi2, df, n, groups) {
+  var f0 = f0Of(chi2, df, n);
+  if (!isFinite(f0) || !(df > 0)) return NaN;
+  return Math.sqrt(f0 / df) * Math.sqrt(groups || 1);
+}
+
+/* The gamma and chi-square routines, in the form used on the power page. */
+var GAMMA_COF = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+                 771.32342877765313, -176.61502916214059, 12.507343278686905,
+                 -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+function gammln(x) {
+  var z = x - 1, a = GAMMA_COF[0], t = z + 7.5, j;
+  for (j = 1; j < 9; j++) a += GAMMA_COF[j] / (z + j);
+  return 0.5 * Math.log(2 * Math.PI) + (z + 0.5) * Math.log(t) - t + Math.log(a);
+}
+function gser(a, x) {
+  var ap = a, sum = 1 / a, del = sum, n;
+  for (n = 1; n <= 2000; n++) {
+    ap += 1; del *= x / ap; sum += del;
+    if (Math.abs(del) < Math.abs(sum) * 1e-16) break;
+  }
+  return sum * Math.exp(-x + a * Math.log(x) - gammln(a));
+}
+function gcf(a, x) {
+  var FPMIN = 1e-300, b = x + 1 - a, c = 1 / FPMIN, d = 1 / b, h = d, i, an, del;
+  for (i = 1; i <= 2000; i++) {
+    an = -i * (i - a); b += 2;
+    d = an * d + b; if (Math.abs(d) < FPMIN) d = FPMIN;
+    c = b + an / c; if (Math.abs(c) < FPMIN) c = FPMIN;
+    d = 1 / d; del = d * c; h *= del;
+    if (Math.abs(del - 1) < 1e-16) break;
+  }
+  return Math.exp(-x + a * Math.log(x) - gammln(a)) * h;
+}
+function chi2Tail(x, df) {
+  if (!(df > 0)) return NaN;
+  if (!(x > 0)) return 1;
+  var a = df / 2, x2 = x / 2;
+  return (x2 < a + 1) ? 1 - gser(a, x2) : gcf(a, x2);
+}
+function chi2Cdf(x, df) { return 1 - chi2Tail(x, df); }
+function ncChi2Cdf(x, df, lam) {
+  if (!(x > 0)) return 0;
+  if (!(lam > 0)) return chi2Cdf(x, df);
+  var half = lam / 2, k0 = Math.max(0, Math.floor(half)), sum = 0, k, logw, w, term;
+  for (k = k0; k <= k0 + 20000; k++) {
+    logw = -half + k * Math.log(half) - gammln(k + 1);
+    w = Math.exp(logw);
+    if (w < 1e-18 && k > k0 + 2) break;
+    term = w * chi2Cdf(x, df + 2 * k);
+    sum += term;
+    if (term < 1e-18 * (sum + 1e-300) && k > k0 + 2) break;
+  }
+  for (k = k0 - 1; k >= 0; k--) {
+    logw = -half + k * Math.log(half) - gammln(k + 1);
+    w = Math.exp(logw);
+    term = w * chi2Cdf(x, df + 2 * k);
+    sum += term;
+    if (w < 1e-18) break;
+  }
+  return Math.min(1, Math.max(0, sum));
+}
+
+/* Saris, Satorra and van der Veld (2009): the standard error of the expected
+   parameter change (Eq. 7), the noncentrality parameter of the test against a
+   deviation of size delta (Eq. 10), and the power of that test (Eq. 11). */
+function epcStandardError(mi, epc) {
+  if (!(mi > 0) || !isFinite(epc)) return NaN;
+  return Math.abs(epc) / Math.sqrt(mi);
+}
+function miNcp(mi, epc, delta) {
+  if (!(mi > 0) || !isFinite(epc) || epc === 0 || !isFinite(delta)) return NaN;
+  return (mi / (epc * epc)) * delta * delta;
+}
+function miPower(mi, epc, delta, alpha) {
+  var ncp = miNcp(mi, epc, delta);
+  if (!isFinite(ncp)) return NaN;
+  var crit = chi1Quantile(1 - (alpha === undefined ? 0.05 : alpha));
+  return 1 - ncChi2Cdf(crit, 1, ncp);
+}
+/* Table 6 of the same paper. */
+function sarisDecision(mi, power, epc, delta, crit, threshold) {
+  if (!isFinite(mi) || !isFinite(power)) return "";
+  var significant = mi > crit, high = power >= threshold;
+  if (significant && !high) return "m";
+  if (!significant && high) return "nm";
+  if (!significant && !high) return "I";
+  return Math.abs(epc) >= delta ? "EPC:m" : "EPC:nm";
+}
+var SARIS_WORDS = {
+  "m": "a misspecification is present",
+  "nm": "no misspecification",
+  "I": "inconclusive",
+  "EPC:m": "a misspecification of a size worth acting on",
+  "EPC:nm": "significant, but smaller than the deviation set"
+};
+
+/* the quantile of a chi-square with one degree of freedom, through the normal */
+function normQuantile(p) {
+  var a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02,
+           1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+  var b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02,
+           6.680131188771972e+01, -1.328068155288572e+01];
+  var c = [-7.784894002430293e-03, -3.223964580411365e-01, -2.400758277161838e+00,
+           -2.549732539343734e+00, 4.374664141464968e+00, 2.938163982698783e+00];
+  var d = [7.784695709041462e-03, 3.224671290700398e-01, 2.445134137142996e+00, 3.754408661907416e+00];
+  var pl = 0.02425, q, r;
+  if (p <= 0) return -Infinity;
+  if (p >= 1) return Infinity;
+  if (p < pl) {
+    q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+           ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  if (p > 1 - pl) {
+    q = Math.sqrt(-2 * Math.log(1 - p));
+    return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) /
+            ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+  }
+  q = p - 0.5; r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q /
+         (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+function chi1Quantile(p) {
+  var z = normQuantile(1 - (1 - p) / 2);
+  return z * z;
+}
+
+function correlationResiduals(est, res) {
+  if (!est || !res || !est.names.length) return null;
+  var names = est.names.filter(function (nm) { return nm !== "__MEAN__"; });
+  var out = [], i, j;
+  for (i = 0; i < names.length; i++) for (j = 0; j <= i; j++) {
+    var a = names[i], b = names[j];
+    if (!est.has(a, b) || !res.has(a, b)) continue;
+    var sAA = est.get(a, a) + res.get(a, a), sBB = est.get(b, b) + res.get(b, b), sAB = est.get(a, b) + res.get(a, b);
+    var eAA = est.get(a, a), eBB = est.get(b, b), eAB = est.get(a, b);
+    if (!(sAA > 0 && sBB > 0 && eAA > 0 && eBB > 0)) continue;
+    var r = sAB / Math.sqrt(sAA * sBB), rh = eAB / Math.sqrt(eAA * eBB);
+    if (!isFinite(r) || !isFinite(rh)) continue;
+    out.push({ a: a, b: b, obs: r, est: rh, d: r - rh, diagonal: i === j });
+  }
+  return out;
+}
+
+function zList(z) {
+  if (!z) return null;
+  var names = z.names.filter(function (nm) { return nm !== "__MEAN__"; });
+  var out = [], i, j;
+  for (i = 0; i < names.length; i++) for (j = 0; j <= i; j++) {
+    var a = names[i], b = names[j];
+    if (!z.has(a, b)) continue;
+    var v = z.get(a, b);
+    if (!isFinite(v) || Math.abs(v) > 900) continue;
+    out.push({ a: a, b: b, z: v, diagonal: i === j });
+  }
+  return out;
+}
+
+/* ==================================================================
+   Formatting
+   ================================================================== */
+
+function numField(id, fallback) {
+  var el = $(id);
+  if (!el) return fallback;
+  var v = parseFloat(el.value);
+  return isFinite(v) && v > 0 ? v : fallback;
+}
+function fx(v, d) { return isFinite(v) ? v.toFixed(d === undefined ? 3 : d) : "&#8212;"; }
+function fdec(v, d) {
+  if (!isFinite(v)) return "&#8212;";
+  return v.toFixed(d === undefined ? 3 : d).replace(/^(-?)0\./, "$1.");
+}
+function fp(v) {
+  if (!isFinite(v)) return "&#8212;";
+  if (v < 0.001) return "&lt;.001";
+  return v.toFixed(3).replace(/^0/, "");
+}
+
+/* ==================================================================
+   State
+   ================================================================== */
+
+var FILES = [];
+
+function addFile(text, name) {
+  var d = diagnoseFile(text);
+  if (d === "empty") return { error: "The file " + esc(name) + " is empty." };
+  if (d === "foreign") return { error: "The file " + esc(name) + " is not an " + MP + " output file. Nothing was read from it." };
+  var f;
+  try { f = readOut(text, name); }
+  catch (err) { return { error: "The file " + esc(name) + " could not be read: " + esc(err.message) + "." }; }
+  if (!isFinite(f.chi2) && !isFinite(f.cfi) && !isFinite(f.aic) && !isFinite(f.ppp) && !isFinite(f.dic))
+    return { error: "The file " + esc(name) + " carries no model fit information at all. Nothing was loaded from it." };
+  var impossible = [];
+  if (isFinite(f.chi2) && f.chi2 < 0) impossible.push("a chi-square of " + fx(f.chi2, 3));
+  if (isFinite(f.df) && (f.df < 0 || f.df !== Math.round(f.df))) impossible.push("degrees of freedom of " + f.df);
+  if (isFinite(f.n) && f.n < 1) impossible.push("a sample size of " + f.n);
+  if (isFinite(f.npar) && f.npar < 0) impossible.push("a number of free parameters of " + f.npar);
+  if (isFinite(f.rmsea) && f.rmsea < 0) impossible.push("an RMSEA of " + fx(f.rmsea, 3));
+  if (isFinite(f.srmr) && f.srmr < 0) impossible.push("a standardized residual of " + fx(f.srmr, 3));
+  if (isFinite(f.scaling) && f.scaling <= 0) impossible.push("a scaling correction factor of " + fx(f.scaling, 4));
+  if (impossible.length)
+    return { error: "Values that cannot be right were read in " + esc(name) + ": " + impossible.join(", ") +
+      ". The chi-square, the RMSEA and the standardized residual are non-negative, the degrees of freedom and the " +
+      "free parameters are non-negative integers, and the scaling correction factor is positive. Nothing was loaded from that file." };
+  var i;
+  /* A file loaded again keeps the place it had, so that the order of the table
+     and the reference model do not change under the reader. */
+  var at = -1;
+  for (i = 0; i < FILES.length; i++) if (FILES[i].name === f.name) { at = i; break; }
+  if (at >= 0) FILES.splice(at, 1, f); else FILES.push(f);
+  return { ok: true, file: f };
+}
+
+function fileByName(nm) {
+  var i;
+  for (i = 0; i < FILES.length; i++) if (FILES[i].name === nm) return FILES[i];
+  return null;
+}
+
+function referenceFile() {
+  var sel = $("ref");
+  if (sel && sel.value) { var f = fileByName(sel.value); if (f) return f; }
+  return FILES.length ? FILES[0] : null;
+}
+
+/* ==================================================================
+   The fit table
+   ================================================================== */
+
+function crossChecks() {
+  var msgs = [], i;
+  if (!FILES.length) return msgs;
+  var bad = FILES.filter(function (f) { return !f.terminated; });
+  if (bad.length) msgs.push({ kind: "bad", text: "The estimation did not terminate normally for " + esc(bad.map(function (f) { return f.name; }).join(", ")) + ". Nothing in those rows means anything." });
+  var warned = FILES.filter(function (f) { return f.nWarnings > 0; });
+  if (warned.length) msgs.push({ kind: "warn", text: MP + " printed warnings in " +
+    esc(warned.map(function (f) { return f.name + " (" + f.nWarnings + ")"; }).join(", ")) +
+    ". The rows are left in the table; read the warnings in the file before reading the table." });
+  var mism = [];
+  for (i = 0; i < FILES.length; i++) {
+    var f = FILES[i];
+    if (!isFinite(f.rmsea) || !isFinite(f.chi2) || !isFinite(f.df) || !isFinite(f.n) || f.df <= 0) continue;
+    var own = rmseaOf(f.chi2, f.df, f.n, f.ngroups);
+    if (isFinite(own) && Math.abs(own - f.rmsea) > 0.0015) mism.push(esc(f.name) + " (printed " + fdec(f.rmsea) + ", recomputed " + fdec(own) + ")");
+  }
+  if (mism.length) msgs.push({ kind: "warn", text: "The RMSEA recomputed from the chi-square, its degrees of freedom and the sample size differs from the printed one for " + mism.join("; ") + ". With a scaled chi-square this is expected, because the printed RMSEA is computed on the scaled statistic in a way that need not agree with the plain formula; with an unscaled one it means the file is not what it appears to be." });
+  var ns = {}, k;
+  for (i = 0; i < FILES.length; i++) if (isFinite(FILES[i].n)) ns[FILES[i].n] = 1;
+  var count = 0;
+  for (k in ns) if (Object.prototype.hasOwnProperty.call(ns, k)) count++;
+  if (count > 1) msgs.push({ kind: "warn", text: "The models were not all fitted on the same number of cases. A fit table across them is a table of separate analyses, not a comparison." });
+  var scaled = FILES.filter(function (f) { return f.scaled; });
+  if (scaled.length) msgs.push({ kind: "warn", text: "The chi-square is scaled for " + esc(scaled.map(function (f) { return f.name; }).join(", ")) + ". The difference between two scaled statistics is not a difference test: it has to be corrected, which the <a href=\"chi-square-difference.html\">difference test page</a> does." });
+  return msgs;
+}
+
+function fitTable() {
+  if (!FILES.length) return "<p class=\"hint\">The table appears here once an output file has been read.</p>";
+  var mark = $("mark") ? $("mark").checked : true;
+  var ref = referenceFile();
+  var html = "<div class=\"table-wrap\"><table class=\"enum\"><caption>Every model that was loaded, in the order the files were added. The differences are taken against " + esc(ref ? (ref.title || ref.name) : "the first model") + ".</caption><thead><tr>" +
+    "<th scope=\"col\">Model</th><th scope=\"col\">Estimator</th><th scope=\"col\" class=\"num\">n</th>" +
+    "<th scope=\"col\" class=\"num\">Parameters</th><th scope=\"col\" class=\"num\">Chi-square</th><th scope=\"col\" class=\"num\">df</th>" +
+    "<th scope=\"col\" class=\"num\">p</th><th scope=\"col\" class=\"num\">CFI</th><th scope=\"col\" class=\"num\">TLI</th>" +
+    "<th scope=\"col\" class=\"num\">RMSEA</th><th scope=\"col\" class=\"num\">90% C.I.</th><th scope=\"col\" class=\"num\">p close</th>" +
+    "<th scope=\"col\" class=\"num\">SRMR</th><th scope=\"col\" class=\"num\">Mc</th>" +
+    "<th scope=\"col\" class=\"num\">AIC</th><th scope=\"col\" class=\"num\">BIC</th>" +
+    "<th scope=\"col\" class=\"num\">&#916;CFI</th><th scope=\"col\" class=\"num\">&#916;RMSEA</th><th scope=\"col\" class=\"num\">&#916;SRMR</th>" +
+    "<th scope=\"col\" class=\"num\">&#916;chi-square</th><th scope=\"col\" class=\"num\">&#916;df</th></tr></thead><tbody>";
+  var i;
+  for (i = 0; i < FILES.length; i++) {
+    var f = FILES[i];
+    var srmr = isFinite(f.srmr) ? f.srmr : (isFinite(f.srmrW) ? f.srmrW : NaN);
+    var srmrNote = (!isFinite(f.srmr) && isFinite(f.srmrW)) ? " w" : "";
+    var mc = mcOf(f.chi2, f.df, f.n);
+    var good = function (cond) { return mark && cond ? " <span class=\"flag hi\"><span aria-hidden=\"true\">&#9679;</span><span class=\"visually-hidden\"> meets the conventional cutoff</span></span>" : ""; };
+    html += "<tr><th scope=\"row\">" + esc(f.title || f.name) + (f.scaled ? " <span class=\"flag lo\" title=\"the chi-square is scaled\">s</span>" : "") + "</th>" +
+      "<td>" + esc(f.estimator || "&#8212;") + "</td>" +
+      "<td class=\"num\">" + (isFinite(f.n) ? f.n : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + (isFinite(f.npar) ? f.npar : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + fx(f.chi2, 2) + "</td>" +
+      "<td class=\"num\">" + (isFinite(f.df) ? f.df : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + fp(f.p) + "</td>" +
+      "<td class=\"num\">" + fdec(f.cfi) + good(f.cfi >= 0.95) + "</td>" +
+      "<td class=\"num\">" + fdec(f.tli) + "</td>" +
+      "<td class=\"num\">" + fdec(f.rmsea) + good(f.rmsea <= 0.06) + "</td>" +
+      "<td class=\"num\">" + (isFinite(f.rmseaLo) ? fdec(f.rmseaLo) + "&#8211;" + fdec(f.rmseaHi) : "&#8212;") + "</td>" +
+      "<td class=\"num\">" + fdec(f.pclose) + "</td>" +
+      "<td class=\"num\">" + fdec(srmr) + srmrNote + good(srmr <= 0.08) + "</td>" +
+      "<td class=\"num\">" + fdec(mc) + "</td>" +
+      "<td class=\"num\">" + fx(f.aic, 2) + "</td>" +
+      "<td class=\"num\">" + fx(f.bic, 2) + "</td>";
+    if (ref && f !== ref) {
+      var rs = isFinite(ref.srmr) ? ref.srmr : ref.srmrW;
+      html += "<td class=\"num\">" + fdec(f.cfi - ref.cfi) + "</td>" +
+        "<td class=\"num\">" + fdec(f.rmsea - ref.rmsea) + "</td>" +
+        "<td class=\"num\">" + fdec(srmr - rs) + "</td>" +
+        "<td class=\"num\">" + fx(f.chi2 - ref.chi2, 2) + "</td>" +
+        "<td class=\"num\">" + (isFinite(f.df) && isFinite(ref.df) ? (f.df - ref.df) : "&#8212;") + "</td>";
+    } else {
+      html += "<td class=\"num\">&#8212;</td><td class=\"num\">&#8212;</td><td class=\"num\">&#8212;</td><td class=\"num\">&#8212;</td><td class=\"num\">&#8212;</td>";
+    }
+    html += "</tr>";
+  }
+  html += "</tbody></table></div>";
+  var notes = [];
+  if (FILES.some(function (f) { return f.scaled; })) notes.push("An <span class=\"flag lo\">s</span> marks a scaled chi-square");
+  if (FILES.some(function (f) { return !isFinite(f.srmr) && isFinite(f.srmrW); })) notes.push("a SRMR followed by w is the within-level value of a two-level model, whose between-level value is given in full below");
+  if (FILES.some(function (f) { return isFinite(f.wrmr); })) notes.push("the weighted root mean square residual is printed by the estimator of some of these files and is given below");
+  if (FILES.some(function (f) { return isFinite(f.ppp); })) notes.push("a Bayesian analysis has a posterior predictive p value in place of the chi-square, given below");
+  if (FILES.some(function (f) { return isFinite(f.dic); })) notes.push("a Bayesian analysis estimated by simulation carries the deviance criterion and the estimated number of parameters in place of the other criteria, given below");
+  if (mark) notes.unshift("A <span class=\"flag hi\" aria-hidden=\"true\">&#9679;</span> marks a value that meets the cutoff named under Methods for that index");
+  if (notes.length) html += "<p class=\"hint\">" + notes.join("; ") + ".</p>";
+  var extra = [];
+  for (i = 0; i < FILES.length; i++) {
+    var g = FILES[i], bits = [];
+    if (isFinite(g.srmrB)) bits.push("SRMR between " + fdec(g.srmrB));
+    if (isFinite(g.wrmr)) bits.push("WRMR " + fdec(g.wrmr));
+    if (isFinite(g.ppp)) bits.push("posterior predictive p " + fdec(g.ppp));
+    if (isFinite(g.sabic)) bits.push("sample-size adjusted BIC " + fx(g.sabic, 2));
+    if (isFinite(g.dic)) bits.push("deviance criterion " + fx(g.dic, 2));
+    if (isFinite(g.pd)) bits.push("estimated number of parameters " + fx(g.pd, 2));
+    if (bits.length) extra.push(esc(g.title || g.name) + ": " + bits.join(", "));
+  }
+  if (extra.length) html += "<p class=\"hint\">" + extra.join(". ") + ".</p>";
+  return html;
+}
+
+/* ==================================================================
+   Local fit
+   ================================================================== */
+
+function residualReport(f, topn) {
+  var html = "", r = f.residuals;
+  if (!r || (!r.z && !r.estimated)) {
+    return "<h3>Residuals</h3><p class=\"hint\">This file carries no residual output. Add <code>RESIDUAL</code> to the OUTPUT command and run the model again.</p>";
+  }
+  var zs = zList(r.z), i;
+  html += "<h3>Standardized residuals</h3>";
+  if (!zs || !zs.length) {
+    html += "<p class=\"hint\">No standardized residuals were printed for this model. " + MP + " prints them for some estimators and not for others; the residuals in the metric of a correlation, below, do not depend on the estimator.</p>";
+  } else {
+    var big = zs.filter(function (x) { return Math.abs(x.z) > 1.96; }).length;
+    var bigger = zs.filter(function (x) { return Math.abs(x.z) > 2.58; }).length;
+    zs.sort(function (a, b) { return Math.abs(b.z) - Math.abs(a.z); });
+    html += "<p>Of the " + zs.length + (zs.length === 1 ? " residual, " : " residuals, ") + big + (big === 1 ? " exceeds" : " exceed") +
+      " 1.96 in absolute value (" + fdec(big / zs.length * 100, 1) + " percent) and " + bigger +
+      (bigger === 1 ? " exceeds" : " exceed") + " 2.58.</p>";
+    html += "<div class=\"table-wrap\"><table class=\"enum\"><caption>The largest standardized residuals, in order.</caption><thead><tr><th scope=\"col\">Pair</th><th scope=\"col\" class=\"num\">z</th></tr></thead><tbody>";
+    for (i = 0; i < Math.min(topn, zs.length); i++)
+      html += "<tr><th scope=\"row\">" + esc(zs[i].a) + (zs[i].diagonal ? " (variance)" : " with " + esc(zs[i].b)) + "</th><td class=\"num\">" + fx(zs[i].z, 2) + "</td></tr>";
+    html += "</tbody></table></div>";
+  }
+
+  var cr = correlationResiduals(r.estimated, r.residual);
+  html += "<h3>Residuals in the metric of a correlation</h3>";
+  if (!cr || !cr.length) {
+    html += "<p class=\"hint\">The estimated and residual matrices are not both in this file, so the correlation residuals cannot be recovered from it.</p>";
+  } else {
+    var off = cr.filter(function (x) { return !x.diagonal; });
+    off.sort(function (a, b) { return Math.abs(b.d) - Math.abs(a.d); });
+    html += "<div class=\"table-wrap\"><table class=\"enum\"><caption>The largest residuals in the metric of a correlation, in order. The observed and the reproduced correlation are given alongside, so that the size of the discrepancy can be read against the size of what is being reproduced.</caption><thead><tr><th scope=\"col\">Pair</th><th scope=\"col\" class=\"num\">Observed</th><th scope=\"col\" class=\"num\">Reproduced</th><th scope=\"col\" class=\"num\">Residual</th></tr></thead><tbody>";
+    for (i = 0; i < Math.min(topn, off.length); i++)
+      html += "<tr><th scope=\"row\">" + esc(off[i].a) + " with " + esc(off[i].b) + "</th><td class=\"num\">" + fdec(off[i].obs) +
+        "</td><td class=\"num\">" + fdec(off[i].est) + "</td><td class=\"num\">" + fdec(off[i].d) + "</td></tr>";
+    html += "</tbody></table></div>";
+    var mx = Math.max.apply(null, off.map(function (x) { return Math.abs(x.d); }));
+    html += "<p class=\"hint\">The largest is " + fdec(mx) + " in absolute value, over " + off.length + " pairs of variables.</p>";
+  }
+  return html;
+}
+
+function miReport(f, topn) {
+  var html = "<h3>Modification indices</h3>";
+  if (!f.mi) return html + "<p class=\"hint\">This file carries no modification indices. Add <code>MODINDICES(0)</code> to the OUTPUT command and run the model again.</p>";
+  var list = f.mi.list.slice(0);
+  if (!list.length) return html + "<p class=\"hint\">The modification indices were requested but none was printed, which means that none reached the smallest value that would be printed" + (isFinite(f.mi.minPrinted) ? ", " + fdec(f.mi.minPrinted, 3) : "") + ".</p>";
+  list.sort(function (a, b) { return b.mi - a.mi; });
+  var m = list.length;
+  var completeFamily = isFinite(f.mi.minPrinted) && Math.abs(f.mi.minPrinted) < 1e-12;
+  var crit = completeFamily ? chi1Quantile(1 - 0.05 / m) : NaN;
+  var i;
+  var beyond = completeFamily ? list.filter(function (x) { return x.mi > crit; }).length : 0;
+  html += "<p>" + m + (m === 1 ? " index was" : " indices were") + " printed" +
+    (isFinite(f.mi.minPrinted) && f.mi.minPrinted > 0 ? ", none below " + fdec(f.mi.minPrinted, 3) : completeFamily ? ", with no lower limit set" : ", with an unread printing threshold") +
+    ". The ordinary critical value is 3.84. " +
+    (completeFamily
+      ? "The Bonferroni value for all " + m + " indices is " + fdec(crit, 2) + ", and " + beyond + (beyond === 1 ? " of them exceeds it" : " of them exceed it") + "."
+      : "A Bonferroni value is not reported because the total number of indices examined is unknown; rerun with <code>MODINDICES(0)</code> to print the complete family.") + "</p>";
+  var dLoad = numField("delta-load", 0.4), dStruct = numField("delta-struct", 0.1), pMin = numField("power-min", 0.75);
+  html += "<div class=\"table-wrap\"><table class=\"enum\"><caption>The modification indices in descending order, across all parameter types, with the standard error of the expected parameter change, the power of each test against the deviation set above, and the reading that follows from the two.</caption><thead><tr><th scope=\"col\">Parameter</th><th scope=\"col\" class=\"num\">M.I.</th><th scope=\"col\" class=\"num\">E.P.C.</th><th scope=\"col\" class=\"num\">StdYX E.P.C.</th><th scope=\"col\" class=\"num\">SE</th><th scope=\"col\" class=\"num\">95% C.I.</th><th scope=\"col\" class=\"num\">&#948;</th><th scope=\"col\" class=\"num\">ncp</th><th scope=\"col\" class=\"num\">Power</th><th scope=\"col\">Reading</th><th scope=\"col\" class=\"num\">Beyond Bonferroni value</th></tr></thead><tbody>";
+  for (i = 0; i < Math.min(topn, list.length); i++) {
+    var x = list[i];
+    var delta = / BY /i.test(x.label) ? dLoad : dStruct;
+    var se = epcStandardError(x.mi, x.stdyx), ncp = miNcp(x.mi, x.stdyx, delta);
+    var pw = miPower(x.mi, x.stdyx, delta, 0.05);
+    var dec = sarisDecision(x.mi, pw, x.stdyx, delta, 3.841458820694124, pMin);
+    html += "<tr><th scope=\"row\">" + esc(x.label) + "</th><td class=\"num\">" + fx(x.mi, 2) + "</td><td class=\"num\">" + fx(x.epc, 3) +
+      "</td><td class=\"num\">" + fdec(x.stdyx) + "</td><td class=\"num\">" + fdec(se) +
+      "</td><td class=\"num\">" + (isFinite(se) ? fdec(x.stdyx - 1.96 * se) + " to " + fdec(x.stdyx + 1.96 * se) : "&#8212;") +
+      "</td><td class=\"num\">" + fdec(delta, 2) + "</td><td class=\"num\">" + fx(ncp, 2) +
+      "</td><td class=\"num\">" + fdec(pw) + "</td><td>" + (dec ? esc(SARIS_WORDS[dec]) : "&#8212;") + "</td><td class=\"num\">" +
+      (completeFamily ? (x.mi > crit ? "yes" : "no") : "not available") + "</td></tr>";
+  }
+  html += "</tbody></table></div>";
+  var counts = { m: 0, nm: 0, I: 0, "EPC:m": 0, "EPC:nm": 0 };
+  for (i = 0; i < list.length; i++) {
+    var y = list[i], dl = / BY /i.test(y.label) ? dLoad : dStruct;
+    var d2 = sarisDecision(y.mi, miPower(y.mi, y.stdyx, dl, 0.05), y.stdyx, dl, 3.841458820694124, pMin);
+    if (d2) counts[d2]++;
+  }
+  function be(n) { return n === 1 ? " is " : " are "; }
+  html += "<p class=\"hint\">Over all " + list.length + (list.length === 1 ? " index: " : " indices: ") + counts["m"] +
+    (counts["m"] === 1 ? " points" : " point") + " to a misspecification; " +
+    counts["EPC:m"] + be(counts["EPC:m"]) + "significant on a sensitive test, with a change worth acting on; " +
+    counts["EPC:nm"] + be(counts["EPC:nm"]) + "significant on a sensitive test, with a change smaller than the deviation set; " +
+    counts["nm"] + (counts["nm"] === 1 ? " says" : " say") + " there is no misspecification; " +
+    counts["I"] + be(counts["I"]) + "inconclusive.</p>";
+  html += "<p class=\"hint\">An index says what the chi-square would fall by if that one parameter were freed. It does not say that the parameter belongs in the model. A modification is worth making when the freed parameter has a meaning that can be stated before the index is looked at, and not otherwise.</p>";
+  return html;
+}
+
+function detailFor(f, topn) {
+  if (!f) return "<p class=\"hint\">Choose a model above.</p>";
+  var html = "<p><strong>" + esc(f.title || f.name) + "</strong>, from <code>" + esc(f.name) + "</code>" +
+    (isFinite(f.npar) ? ", " + f.npar + (f.npar === 1 ? " free parameter" : " free parameters") : "") + (isFinite(f.n) ? ", " + f.n + (f.n === 1 ? " observation" : " observations") : "") + ".</p>";
+  html += residualReport(f, topn);
+  html += miReport(f, topn);
+  return html;
+}
+
+/* ==================================================================
+   The interface
+   ================================================================== */
+
+function renderFileList() {
+  var ul = $("filelist");
+  if (!ul) return;
+  var html = "", i;
+  for (i = 0; i < FILES.length; i++) {
+    var f = FILES[i];
+    var bits = [];
+    if (f.estimator) bits.push(f.estimator);
+    if (isFinite(f.n)) bits.push("n = " + f.n);
+    if (isFinite(f.df)) bits.push(f.df + " degrees of freedom");
+    if (f.residuals && (f.residuals.z || f.residuals.estimated)) bits.push("residuals");
+    if (f.mi) bits.push("modification indices");
+    html += "<li><span class=\"nm\">" + esc(f.name) + "</span><span class=\"meta\">" + esc(bits.join(" · ")) +
+      "</span><button type=\"button\" class=\"ghost\" data-drop=\"" + i + "\">Remove</button></li>";
+  }
+  ul.innerHTML = html;
+  var btns = ul.querySelectorAll("button[data-drop]"), j;
+  for (j = 0; j < btns.length; j++)
+    btns[j].addEventListener("click", function (e) {
+      FILES.splice(parseInt(e.currentTarget.getAttribute("data-drop"), 10), 1);
+      renderAll();
+    });
+}
+
+function fillSelect(sel, firstLabel) {
+  if (!sel) return;
+  var prev = sel.value, html = "<option value=\"\">" + firstLabel + "</option>", i, keep = "";
+  for (i = 0; i < FILES.length; i++) {
+    html += "<option value=\"" + esc(FILES[i].name) + "\">" + esc(FILES[i].title || FILES[i].name) + "</option>";
+    if (FILES[i].name === prev) keep = prev;
+  }
+  sel.innerHTML = html;
+  if (!keep && sel.id === "pick" && FILES.length) keep = FILES[0].name;
+  sel.value = keep;
+}
+
+function currentFile() {
+  var sel = $("pick");
+  if (!sel || !sel.value) return FILES.length ? FILES[0] : null;
+  return fileByName(sel.value);
+}
+
+function renderAll() {
+  renderFileList();
+  fillSelect($("ref"), "the first model");
+  fillSelect($("pick"), "&#8212;");
+  $("results").innerHTML = fitTable();
+  var topn = $("topn") ? Math.max(5, parseInt($("topn").value, 10) || 20) : 20;
+  $("detail").innerHTML = detailFor(currentFile(), topn);
+  var msgs = crossChecks(), html = "", i;
+  for (i = 0; i < msgs.length; i++)
+    html += "<div class=\"status " + (msgs[i].kind === "bad" ? "bad" : "warn") + "\" role=\"status\"><p>" + msgs[i].text + "</p></div>";
+  $("report").innerHTML = html;
+}
+
+function handleFiles(list) {
+  var errors = [], pending = list.length, i;
+  if (!pending) return;
+  function done() {
+    if (--pending > 0) return;
+    renderAll();
+    if (errors.length)
+      $("report").innerHTML = "<div class=\"status bad\" role=\"status\"><p>" + errors.join("</p><p>") + "</p></div>" + $("report").innerHTML;
+  }
+  for (i = 0; i < list.length; i++) {
+    (function (file) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var r = addFile(String(reader.result), file.name);
+        if (r.error) errors.push(r.error);
+        done();
+      };
+      reader.onerror = function () { errors.push("The file " + esc(file.name) + " could not be read."); done(); };
+      reader.readAsText(file);
+    })(list[i]);
+  }
+}
+
+function wire() {
+  var drop = $("drop"), input = $("file");
+  if (!drop || !input) return;
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("click", function (e) { e.stopPropagation(); });
+  input.addEventListener("change", function () { handleFiles(input.files); });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files);
+  });
+  var ids = ["ref", "mark", "pick", "topn", "delta-load", "delta-struct", "power-min"], i;
+  for (i = 0; i < ids.length; i++) {
+    var el = $(ids[i]);
+    if (el) el.addEventListener("change", renderAll);
+  }
+}
+
+/* ==================================================================
+   Self-test
+   ================================================================== */
+
+function fixtureCfa(opts) {
+  opts = opts || {};
+  var L = [];
+  L.push("Mplus VERSION 8.11");
+  L.push("MUTHEN & MUTHEN");
+  L.push("");
+  L.push("INPUT INSTRUCTIONS");
+  L.push("");
+  L.push("  TITLE: " + (opts.title || "one factor") + ";");
+  L.push("  ANALYSIS: ESTIMATOR = " + (opts.est || "ML") + ";");
+  L.push("  OUTPUT: RESIDUAL MODINDICES(0);");
+  L.push("");
+  L.push("INPUT READING TERMINATED NORMALLY");
+  L.push("");
+  L.push((opts.title || "one factor") + ";");
+  L.push("");
+  L.push("SUMMARY OF ANALYSIS");
+  L.push("");
+  L.push("Number of groups                                                  1");
+  L.push("Number of observations                                          " + (opts.n || 500));
+  L.push("");
+  L.push("Number of dependent variables                                    3");
+  L.push("Number of independent variables                                  0");
+  L.push("Number of continuous latent variables                            1");
+  L.push("");
+  L.push("Estimator                                                       " + (opts.est || "ML"));
+  L.push("");
+  L.push("MODEL FIT INFORMATION");
+  L.push("");
+  L.push("Number of Free Parameters                       " + (opts.npar || 12));
+  L.push("");
+  L.push("Chi-Square Test of Model Fit");
+  L.push("");
+  L.push("          Value                            " + (opts.chi2 || 44.5).toFixed(3) + (opts.scaled ? "*" : ""));
+  L.push("          Degrees of Freedom                    " + (opts.df || 24));
+  L.push("          P-Value                           " + (opts.p || 0.0068).toFixed(4));
+  if (opts.scaled) {
+    L.push("          Scaling Correction Factor         1.0946");
+    L.push("            for MLR");
+  }
+  L.push("");
+  L.push("Chi-Square Test of Model Fit for the Baseline Model");
+  L.push("");
+  L.push("          Value                           801.200");
+  L.push("          Degrees of Freedom                    36");
+  L.push("          P-Value                           0.0000");
+  L.push("");
+  L.push("CFI/TLI");
+  L.push("");
+  L.push("          CFI                               " + (opts.cfi || 0.972).toFixed(3));
+  L.push("          TLI                               " + (opts.tli || 0.958).toFixed(3));
+  L.push("");
+  L.push("Loglikelihood");
+  L.push("");
+  L.push("          H0 Value                       -3737.945");
+  L.push("");
+  L.push("Information Criteria");
+  L.push("");
+  L.push("          Akaike (AIC)                    7499.890");
+  L.push("          Bayesian (BIC)                  7550.461");
+  L.push("          Sample-Size Adjusted BIC        7512.375");
+  L.push("            (n* = (n + 2) / 24)");
+  L.push("");
+  L.push("RMSEA (Root Mean Square Error Of Approximation)");
+  L.push("");
+  L.push("          Estimate                           " + (opts.rmsea === undefined ? 0.041 : opts.rmsea).toFixed(3));
+  L.push("          90 Percent C.I.                    0.024  0.058");
+  L.push("          Probability RMSEA <= .05           0.812");
+  L.push("");
+  L.push("SRMR (Standardized Root Mean Square Residual)");
+  L.push("");
+  L.push("          Value                              " + (opts.srmr || 0.036).toFixed(3));
+  L.push("");
+  if (opts.residuals !== false) {
+    L.push("RESIDUAL OUTPUT");
+    L.push("");
+    L.push("     ESTIMATED MODEL AND RESIDUALS (OBSERVED - ESTIMATED)");
+    L.push("");
+    L.push("           Model Estimated Covariances/Correlations/Residual Correlations");
+    L.push("              Y1            Y2            Y3");
+    L.push("              ________      ________      ________");
+    L.push(" Y1             1.000");
+    L.push(" Y2             0.400         1.000");
+    L.push(" Y3             0.300         0.240         1.000");
+    L.push("");
+    L.push("           Residuals for Covariances/Correlations/Residual Correlations");
+    L.push("              Y1            Y2            Y3");
+    L.push("              ________      ________      ________");
+    L.push(" Y1             0.000");
+    L.push(" Y2             0.100         0.000");
+    L.push(" Y3            -0.050         0.020         0.000");
+    L.push("");
+    L.push("           Standardized Residuals (z-scores) for Covariances/Correlations/Residual Correlations");
+    L.push("              Y1            Y2            Y3");
+    L.push("              ________      ________      ________");
+    L.push(" Y1           999.000");
+    L.push(" Y2             3.210       999.000");
+    L.push(" Y3            -1.480         0.640       999.000");
+    L.push("");
+  }
+  if (opts.mi !== false) {
+    L.push("MODEL MODIFICATION INDICES");
+    L.push("");
+    L.push("Minimum M.I. value for printing the modification index     0.000");
+    L.push("");
+    L.push("                            M.I.     E.P.C.  Std E.P.C.  StdYX E.P.C.");
+    L.push("");
+    L.push("BY Statements");
+    L.push("");
+    L.push("F1       BY Y3                    16.257     0.376      0.354        0.289");
+    L.push("");
+    L.push("WITH Statements");
+    L.push("");
+    L.push("Y2       WITH Y1                  12.010     0.152      0.152        0.176");
+    L.push("Y3       WITH Y1                   4.500    -0.081     -0.081       -0.094");
+    L.push("");
+  }
+  return L.join("\n");
+}
+
+function selfTest() {
+  var failures = [], performed = 0, i;
+  function check(name, cond, got) {
+    performed++;
+    if (!cond) failures.push(name + (got !== undefined ? " (" + got + ")" : ""));
+  }
+  function near(a, b, tol) { return isFinite(a) && isFinite(b) && Math.abs(a - b) <= (tol || 1e-9); }
+
+  var saved = FILES;
+  FILES = [];
+
+  var f = readOut(fixtureCfa({}), "one.out");
+  check("the title of the run is read", f.title === "one factor", f.title);
+  check("the estimator is read", f.estimator === "ML", f.estimator);
+  check("the sample size is read", f.n === 500, String(f.n));
+  check("the number of observed variables is read", f.nvar === 3, String(f.nvar));
+  check("the number of free parameters is read", f.npar === 12, String(f.npar));
+  check("the chi-square is read", near(f.chi2, 44.5, 1e-9), String(f.chi2));
+  check("the degrees of freedom are read", f.df === 24, String(f.df));
+  check("the p value of the chi-square is read", near(f.p, 0.0068, 1e-9), String(f.p));
+  check("an unscaled chi-square is not marked as scaled", f.scaled === false, String(f.scaled));
+  check("the baseline chi-square is read", near(f.baseChi2, 801.2, 1e-9), String(f.baseChi2));
+  check("the CFI is read", near(f.cfi, 0.972, 1e-9), String(f.cfi));
+  check("the TLI is read", near(f.tli, 0.958, 1e-9), String(f.tli));
+  check("the RMSEA is read", near(f.rmsea, 0.041, 1e-9), String(f.rmsea));
+  check("the confidence interval of the RMSEA is read", near(f.rmseaLo, 0.024, 1e-9) && near(f.rmseaHi, 0.058, 1e-9), f.rmseaLo + "/" + f.rmseaHi);
+  check("the probability of close fit is read", near(f.pclose, 0.812, 1e-9), String(f.pclose));
+  check("the standardized residual is read", near(f.srmr, 0.036, 1e-9), String(f.srmr));
+  check("the information criteria are read", near(f.aic, 7499.89, 1e-9) && near(f.bic, 7550.461, 1e-9), f.aic + "/" + f.bic);
+  check("the sample-size adjusted criterion is read", near(f.sabic, 7512.375, 1e-9), String(f.sabic));
+
+  var fs = readOut(fixtureCfa({ scaled: true, est: "MLR" }), "scaled.out");
+  check("a scaled chi-square is marked", fs.scaled === true, String(fs.scaled));
+  check("the scaling correction factor is read", near(fs.scaling, 1.0946, 1e-9), String(fs.scaling));
+
+  /* --- the matrices --- */
+  check("the estimated matrix is read", f.residuals.estimated && near(f.residuals.estimated.get("Y2", "Y1"), 0.400, 1e-9), "not read");
+  check("the estimated matrix is symmetric", near(f.residuals.estimated.get("Y1", "Y2"), f.residuals.estimated.get("Y2", "Y1"), 0));
+  check("the diagonal of the estimated matrix is read", near(f.residuals.estimated.get("Y3", "Y3"), 1.0, 1e-9), String(f.residuals.estimated.get("Y3", "Y3")));
+  check("the residual matrix is read", near(f.residuals.residual.get("Y2", "Y1"), 0.100, 1e-9), String(f.residuals.residual.get("Y2", "Y1")));
+  check("a negative residual is read", near(f.residuals.residual.get("Y3", "Y1"), -0.050, 1e-9), String(f.residuals.residual.get("Y3", "Y1")));
+  check("the standardized residuals are read", near(f.residuals.z.get("Y2", "Y1"), 3.210, 1e-9), String(f.residuals.z.get("Y2", "Y1")));
+  check("three variables are found in the matrices", f.residuals.z.names.length === 3, f.residuals.z.names.join(","));
+
+  var zs = zList(f.residuals.z);
+  check("the sentinel 999 is dropped from the standardized residuals", zs.length === 3, String(zs.length));
+  check("the standardized residuals kept are the off-diagonal ones", zs.every(function (x) { return !x.diagonal; }));
+
+  var cr = correlationResiduals(f.residuals.estimated, f.residuals.residual);
+  var y2y1 = cr.filter(function (x) { return (x.a === "Y2" && x.b === "Y1") || (x.a === "Y1" && x.b === "Y2"); })[0];
+  check("the correlation residual of Y1 with Y2 is recovered", near(y2y1.d, 0.5 / Math.sqrt(1 * 1) - 0.4, 1e-12), String(y2y1.d));
+  check("the observed correlation is the sum of the two matrices, standardized", near(y2y1.obs, 0.5, 1e-12), String(y2y1.obs));
+  check("the reproduced correlation is the estimated matrix, standardized", near(y2y1.est, 0.4, 1e-12), String(y2y1.est));
+  var y3y1 = cr.filter(function (x) { return (x.a === "Y3" && x.b === "Y1"); })[0];
+  check("a negative correlation residual is recovered", near(y3y1.d, 0.25 - 0.3, 1e-12), String(y3y1.d));
+  check("the diagonal of the correlation residuals is zero", cr.filter(function (x) { return x.diagonal; }).every(function (x) { return near(x.d, 0, 1e-12); }));
+
+  /* --- modification indices --- */
+  check("the modification indices are read", f.mi && f.mi.list.length === 3, f.mi ? String(f.mi.list.length) : "none");
+  check("the smallest printed index is read", near(f.mi.minPrinted, 0, 1e-12), String(f.mi.minPrinted));
+  var warnedFit = readOut(fixtureCfa({}).replace("MODEL FIT INFORMATION", "*** WARNING in MODEL command\n  A non-blocking test warning.\n\nMODEL FIT INFORMATION"), "warning.out");
+  check("a non-blocking Mplus warning is counted without suppressing fit results",
+    warnedFit.nWarnings === 1 && near(warnedFit.chi2, 44.5, 1e-9),
+    warnedFit.nWarnings + "/" + warnedFit.chi2);
+  var by = f.mi.list.filter(function (x) { return /^F1 BY Y3$/.test(x.label); })[0];
+  check("a loading index is read with its label", !!by, f.mi.list.map(function (x) { return x.label; }).join(" | "));
+  check("the index itself is read", near(by.mi, 16.257, 1e-9), String(by.mi));
+  check("the expected parameter change is read", near(by.epc, 0.376, 1e-9), String(by.epc));
+  check("the standardized expected parameter change is read", near(by.stdyx, 0.289, 1e-9), String(by.stdyx));
+  var wth = f.mi.list.filter(function (x) { return /WITH/.test(x.label); });
+  check("both residual covariance indices are read", wth.length === 2, String(wth.length));
+  check("a negative expected parameter change is read", near(wth[1].epc, -0.081, 1e-9), String(wth[1].epc));
+  check("the header row is not read as an index", !f.mi.list.some(function (x) { return /M\.I\./.test(x.label); }));
+  var truncatedMi = readOut(fixtureCfa({}).replace(
+    "Minimum M.I. value for printing the modification index     0.000",
+    "Minimum M.I. value for printing the modification index    10.000"), "truncated-mi.out");
+  var truncatedMiReport = miReport(truncatedMi, 20);
+  check("Bonferroni is withheld when a positive M.I. printing threshold omits tests",
+    truncatedMiReport.indexOf("total number of indices examined is unknown") > -1 &&
+    truncatedMiReport.indexOf("not available") > -1,
+    truncatedMiReport.slice(0, 300));
+  check("Bonferroni is reported when MODINDICES(0) prints the complete family",
+    miReport(f, 20).indexOf("Bonferroni value for all 3 indices") > -1,
+    miReport(f, 20).slice(0, 300));
+
+  /* --- the computed quantities --- */
+  check("the population discrepancy matches its formula", near(f0Of(44.5, 24, 500), (44.5 - 24) / 499, 1e-12), String(f0Of(44.5, 24, 500)));
+  check("the discrepancy is zero when the chi-square is below its degrees of freedom", near(f0Of(20, 24, 500), 0, 0));
+  check("Mc matches its formula", near(mcOf(44.5, 24, 500), Math.exp(-0.5 * (44.5 - 24) / 499), 1e-15), String(mcOf(44.5, 24, 500)));
+  check("Mc is one for a model whose chi-square equals its degrees of freedom", near(mcOf(24, 24, 500), 1, 1e-15));
+  check("Mc falls as the discrepancy grows", mcOf(100, 24, 500) < mcOf(44.5, 24, 500));
+  check("the RMSEA matches its formula", near(rmseaOf(44.5, 24, 500, 1), Math.sqrt((44.5 - 24) / 499 / 24), 1e-15), String(rmseaOf(44.5, 24, 500, 1)));
+  check("the RMSEA of a perfect fit is zero", near(rmseaOf(10, 24, 500, 1), 0, 0));
+  check("the RMSEA is multiplied by the root of the number of groups", near(rmseaOf(44.5, 24, 500, 4), 2 * rmseaOf(44.5, 24, 500, 1), 1e-15));
+  check("the recomputed RMSEA agrees with a value printed to three decimals", Math.abs(rmseaOf(44.5, 24, 500, 1) - 0.041) < 0.0006, String(rmseaOf(44.5, 24, 500, 1)));
+
+  check("the quantile of a chi-square with one degree of freedom at .95 is 3.84", near(chi1Quantile(0.95), 3.8414588, 1e-4), String(chi1Quantile(0.95)));
+  check("the quantile at .99 is 6.63", near(chi1Quantile(0.99), 6.6348966, 1e-4), String(chi1Quantile(0.99)));
+  check("the corrected critical value grows with the number of tests", chi1Quantile(1 - 0.05 / 20) > chi1Quantile(0.95));
+  check("the corrected critical value for twenty tests is 9.141", near(chi1Quantile(1 - 0.05 / 20), 9.1405935, 1e-4), String(chi1Quantile(1 - 0.05 / 20)));
+
+  var fb = readOut(["Mplus VERSION 8.11", "", "INPUT INSTRUCTIONS", "", "  TITLE: dsem;",
+    "", "INPUT READING TERMINATED NORMALLY", "", "dsem;", "", "SUMMARY OF ANALYSIS", "",
+    "Number of observations                                          200", "",
+    "Estimator                                                    BAYES", "",
+    "MODEL FIT INFORMATION", "", "Number of Free Parameters                              10", "",
+    "Information Criteria", "", "          Deviance (DIC)                        29295.594",
+    "          Estimated Number of Parameters (pD)     280.092", ""].join("\n"), "bayes.out");
+  check("a Bayesian file gives its deviance criterion", near(fb.dic, 29295.594, 1e-6), String(fb.dic));
+  check("a Bayesian file gives its estimated number of parameters", near(fb.pd, 280.092, 1e-6), String(fb.pd));
+  check("a Bayesian file has no chi-square", !isFinite(fb.chi2), String(fb.chi2));
+
+  /* --- the power of the modification index test: the two worked tables --- */
+  var T4 = [[3.20, 0.112, 0.80, 0.146], [3.30, 0.110, 0.83, 0.149], [3.49, 0.107, 0.87, 0.155],
+            [3.80, 0.103, 0.95, 0.164], [4.20, 0.098, 1.05, 0.176], [5.07, 0.089, 1.27, 0.202],
+            [6.47, 0.079, 1.62, 0.245], [9.50, 0.065, 2.38, 0.336], [20.27, 0.044, 5.07, 0.615]];
+  for (i = 0; i < T4.length; i++) {
+    var mi4 = T4[i][0];
+    check("Table 4 of Saris, Satorra and van der Veld, standard error at M.I. " + mi4,
+      near(epcStandardError(mi4, 0.2), T4[i][1], 0.0006), String(epcStandardError(mi4, 0.2)));
+    check("Table 4, noncentrality parameter at M.I. " + mi4,
+      near(miNcp(mi4, 0.2, 0.1), T4[i][2], 0.006), String(miNcp(mi4, 0.2, 0.1)));
+    check("Table 4, power at M.I. " + mi4,
+      near(miPower(mi4, 0.2, 0.1, 0.05), T4[i][3], 0.003), String(miPower(mi4, 0.2, 0.1, 0.05)));
+  }
+  var T5 = [[1.09, 0.050, 4.36, 0.550], [2.15, 0.034, 8.65, 0.840], [3.75, 0.026, 15.0, 0.972],
+            [8.81, 0.017, 34.6, 1.000], [18.13, 0.012, 72.5, 1.000]];
+  for (i = 0; i < T5.length; i++) {
+    var mi5 = T5[i][0];
+    check("Table 5 of the same paper, standard error at M.I. " + mi5,
+      near(epcStandardError(mi5, -0.05), T5[i][1], 0.003), String(epcStandardError(mi5, -0.05)));
+    check("Table 5, noncentrality parameter at M.I. " + mi5,
+      near(miNcp(mi5, -0.05, 0.1), T5[i][2], 0.7), String(miNcp(mi5, -0.05, 0.1)));
+    check("Table 5, power at M.I. " + mi5,
+      near(miPower(mi5, -0.05, 0.1, 0.05), T5[i][3], 0.01), String(miPower(mi5, -0.05, 0.1, 0.05)));
+  }
+  check("the noncentrality parameter is the squared ratio of the deviation to the standard error",
+    near(miNcp(9, 0.3, 0.2), Math.pow(0.2 / epcStandardError(9, 0.3), 2), 1e-9));
+  check("the noncentrality parameter is zero for a deviation of zero", near(miNcp(9, 0.3, 0), 0, 0));
+  check("the power at a deviation of zero is the size of the test", near(miPower(9, 0.3, 1e-12, 0.05), 0.05, 1e-3), String(miPower(9, 0.3, 1e-12, 0.05)));
+  check("the power grows with the index", miPower(20, 0.2, 0.1, 0.05) > miPower(5, 0.2, 0.1, 0.05));
+  check("the power grows with the deviation", miPower(9, 0.3, 0.4, 0.05) > miPower(9, 0.3, 0.2, 0.05));
+  check("no power is returned for an expected parameter change of zero", !isFinite(miPower(9, 0, 0.1, 0.05)));
+  check("no standard error is returned for an index of zero", !isFinite(epcStandardError(0, 0.3)));
+
+  /* --- the four readings --- */
+  var CRIT = 3.841458820694124;
+  check("a significant index on a test without power says a misspecification is present",
+    sarisDecision(10, 0.30, 0.05, 0.1, CRIT, 0.75) === "m", sarisDecision(10, 0.30, 0.05, 0.1, CRIT, 0.75));
+  check("an index that is not significant on a test with power says there is none",
+    sarisDecision(2, 0.90, 0.02, 0.1, CRIT, 0.75) === "nm", sarisDecision(2, 0.90, 0.02, 0.1, CRIT, 0.75));
+  check("an index that is not significant on a test without power is inconclusive",
+    sarisDecision(2, 0.30, 0.02, 0.1, CRIT, 0.75) === "I", sarisDecision(2, 0.30, 0.02, 0.1, CRIT, 0.75));
+  check("a significant index on a test with power is read against the change, large",
+    sarisDecision(10, 0.90, 0.25, 0.1, CRIT, 0.75) === "EPC:m", sarisDecision(10, 0.90, 0.25, 0.1, CRIT, 0.75));
+  check("a significant index on a test with power is read against the change, small",
+    sarisDecision(10, 0.90, 0.05, 0.1, CRIT, 0.75) === "EPC:nm", sarisDecision(10, 0.90, 0.05, 0.1, CRIT, 0.75));
+  check("the boundary of the power threshold counts as sensitive",
+    sarisDecision(10, 0.75, 0.25, 0.1, CRIT, 0.75) === "EPC:m");
+  check("just below the power threshold the reading changes",
+    sarisDecision(10, 0.7499, 0.25, 0.1, CRIT, 0.75) === "m");
+  check("an index exactly at the critical value is not significant",
+    sarisDecision(CRIT, 0.90, 0.02, 0.1, CRIT, 0.75) === "nm");
+  check("a change exactly at the deviation counts as worth acting on",
+    sarisDecision(10, 0.90, 0.1, 0.1, CRIT, 0.75) === "EPC:m");
+
+  /* --- the central and noncentral distributions --- */
+  check("the central chi-square at its .95 point", near(chi2Cdf(3.841458820694124, 1), 0.95, 1e-6), String(chi2Cdf(3.841458820694124, 1)));
+  check("the central chi-square with ten degrees of freedom at its .99 point", near(chi2Cdf(23.209251158954356, 10), 0.99, 1e-6), String(chi2Cdf(23.209251158954356, 10)));
+  check("the noncentral chi-square with no noncentrality is the central one",
+    near(ncChi2Cdf(3.84, 1, 0), chi2Cdf(3.84, 1), 1e-12));
+  check("the noncentral chi-square is smaller than the central one at the same point",
+    ncChi2Cdf(3.84, 1, 5) < chi2Cdf(3.84, 1));
+  check("the noncentral chi-square is computable at a large noncentrality",
+    isFinite(ncChi2Cdf(3.84, 1, 500)) && ncChi2Cdf(3.84, 1, 500) < 1e-6, String(ncChi2Cdf(3.84, 1, 500)));
+
+  /* --- the set of files --- */
+  FILES = [];
+  check("a file with fit information is accepted", addFile(fixtureCfa({ title: "one factor" }), "a.out").ok === true);
+  check("a second file is accepted", addFile(fixtureCfa({ title: "two factors", chi2: 30.1, df: 23, cfi: 0.991, rmsea: 0.025 }), "b.out").ok === true);
+  check("two files are held", FILES.length === 2, String(FILES.length));
+  check("a file dropped twice replaces the earlier copy", (addFile(fixtureCfa({ title: "one factor" }), "a.out"), FILES.length === 2), String(FILES.length));
+  var bad = addFile("", "empty.out");
+  check("an empty file is refused", !!bad.error);
+  bad = addFile("LISREL 8 output\nGOODNESS OF FIT\n", "foreign.out");
+  check("a file that is not an Mplus output is refused", !!bad.error);
+  bad = addFile("Mplus VERSION 8.11\nINPUT INSTRUCTIONS\n  TITLE: nothing;\n", "nofit.out");
+  check("a file with no fit information is refused", !!bad.error);
+  check("a refused file is not held", FILES.length === 2, String(FILES.length));
+
+  var table = fitTable();
+  check("the table names both models", table.indexOf("one factor") > -1 && table.indexOf("two factors") > -1);
+  check("the table carries the differences", table.indexOf("CFI") > -1 && table.indexOf("chi-square") > -1);
+  check("Mc appears in the table", table.indexOf(">Mc<") > -1);
+
+  var msgs = crossChecks();
+  check("no cross-check fires on two ordinary files", msgs.length === 0, msgs.map(function (m) { return m.text; }).join(" | "));
+  FILES = [];
+  addFile(fixtureCfa({ scaled: true, est: "MLR" }), "s.out");
+  msgs = crossChecks();
+  check("a scaled chi-square is reported", msgs.some(function (m) { return /scaled/.test(m.text); }), JSON.stringify(msgs));
+  FILES = [];
+  addFile(fixtureCfa({ rmsea: 0.200 }), "wrong.out");
+  msgs = crossChecks();
+  check("an RMSEA that does not match the chi-square is reported", msgs.some(function (m) { return /recomputed/.test(m.text); }), JSON.stringify(msgs));
+
+  FILES = [];
+  addFile(fixtureCfa({}), "one.out");
+  var det = detailFor(FILES[0], 20);
+  check("the local fit reports the standardized residuals", det.indexOf("Standardized residuals") > -1);
+  check("the local fit reports the correlation residuals", det.indexOf("metric of a correlation") > -1);
+  check("the local fit reports the modification indices", det.indexOf("Modification indices") > -1);
+  check("the largest modification index comes first", det.indexOf("F1 BY Y3") < det.indexOf("Y2 WITH Y1"), "out of order");
+  FILES = [];
+  addFile(fixtureCfa({ residuals: false, mi: false }), "bare.out");
+  var det2 = detailFor(FILES[0], 20);
+  check("a file without residual output says so", det2.indexOf("no residual output") > -1, det2.slice(0, 200));
+  check("a file without modification indices says so", det2.indexOf("no modification indices") > -1);
+
+  FILES = saved;
+  return { failures: failures, performed: performed };
+}
+
+function showSelfTest() {
+  var out = selfTest(), b = $("selftest-banner"), i;
+  b.hidden = false;
+  b.className = "status " + (out.failures.length ? "bad" : "ok");
+  b.setAttribute("role", "status");
+  if (out.failures.length) {
+    var items = "";
+    for (i = 0; i < out.failures.length; i++) items += "<li>" + esc(out.failures[i]) + "</li>";
+    b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10007;</span> <span class=\"tag\">Self-test failed.</span> " +
+      out.failures.length + " of " + out.performed + " checks did not pass.</p><ul>" + items + "</ul>";
+    console.error("self-test failed", out.failures);
+  } else {
+    b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10003;</span> <span class=\"tag\">Self-test passed.</span> " +
+      out.performed + " checks, 0 failed. They cover the reading of the fit information and of the printed matrices from files " +
+      "written for the purpose, the recomputation of the discrepancy, of Mc and of the RMSEA against their formulas written out a " +
+      "second way, the recovery of the observed matrix and of the correlation residuals, the ordering and the counts of the residuals " +
+      "and of the modification indices, the corrected critical value against published quantiles, and the files the page has to refuse.</p>";
+    console.log("self-test passed");
+  }
+}
+
+wire();
+if (/[?&]selftest=1(&|$)/.test(window.location.search)) showSelfTest();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

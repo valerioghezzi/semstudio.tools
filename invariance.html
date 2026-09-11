@@ -102,20 +102,21 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Invariance tables</h1>
-  <p class="lede">Reads the <span class="mp">M<em>plus</em></span> output files of a measurement invariance sequence with two or more groups, places every model on one step of a fixed ladder using the equality constraints printed in TECH1, compares only models that sit on adjacent steps, and reports the fit table, the difference tests, the modification indices and the behavior of each item across groups.</p>
+  <h1>Invariance Tables</h1>
+  <p class="lede">This page reads the <span class="mp">M<em>plus</em></span> output files of a measurement invariance sequence with two or more groups and places every model on one step of a fixed ladder, using the equality constraints printed in TECH1. It then compares the models that sit on adjacent steps and reports the fit table, the difference tests, the modification indices and the behavior of each item across groups.</p>
   <div class="callout" role="note">
-    <strong>What to request from <span class="mp">M<em>plus</em></span>.</strong> <code>OUTPUT: TECH1 MODINDICES STDYX SAMPSTAT;</code> in every model of the sequence. TECH1 is the part that decides everything else: it prints, group by group, the number <span class="mp">M<em>plus</em></span> assigns to each free parameter, and the same number in every group is what identifies a parameter held equal across groups. Without TECH1 a model is still listed and its fit is still read, but it enters no comparison, because degrees of freedom alone do not establish that one constraint set contains another. <code>MODINDICES</code> fills the modification-index table and <code>STDYX SAMPSTAT</code> the item plot. With the abbreviated syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code> ask only for <code>TECH1</code>, which is all <span class="mp">M<em>plus</em></span> accepts there; one such file holds the whole sequence and the page splits it into its models.
+    <strong>What to request from <span class="mp">M<em>plus</em></span>.</strong> <code>OUTPUT: TECH1 MODINDICES;</code> in every model of the sequence. TECH1 is the part that decides everything else: it prints, group by group, the number <span class="mp">M<em>plus</em></span> assigns to each free parameter, and the same number in every group is what identifies a parameter held equal across groups. Without TECH1 a model is still listed and its fit is still read, but it enters no comparison, because degrees of freedom alone do not establish that one constraint set contains another. <code>MODINDICES</code> fills the modification-index table; the two figures are drawn from the unstandardized MODEL RESULTS, which <span class="mp">M<em>plus</em></span> prints without being asked. With the abbreviated syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code> one file holds the whole sequence and the page splits it into its models.
+    A warning printed by M<em>plus</em> is reported and does not remove a model from the list; what removes a comparison is a statistic that is missing or a run that did not converge.
   </div>
 </header>
-<main id="main">
+<main id="main" tabindex="-1">
   <p id="selftest" class="status" hidden></p>
 
   <section aria-labelledby="h-steps">
     <h2 id="h-steps">What to do</h2>
     <ol class="steps">
       <li>Estimate each model of your invariance sequence in <span class="mp">M<em>plus</em></span>, in a separate input file with the extension <code>.inp</code>: the configural model, the metric model, the scalar model and whichever further models you fitted. All of them have to use the same data file, the same observed variables, the same grouping variable and the same estimator.</li>
-      <li>Add this line to every one of those inputs, exactly as it is written here: <code>OUTPUT: TECH1 MODINDICES STDYX SAMPSTAT;</code></li>
+      <li>Add this line to every one of those inputs, exactly as it is written here: <code>OUTPUT: TECH1 MODINDICES;</code></li>
       <li>Run every input. <span class="mp">M<em>plus</em></span> writes one plain text file per input, with the same name and the extension <code>.out</code>, in the folder the input is in. One output per model.</li>
       <li>Drag all of those <code>.out</code> files onto the box below at once, or press the box and select them all there. Drop them in any order you like: the page reads the constraints of each model and works out the order of the sequence itself. Files can also be added in more than one go; each new file joins the list. The files are read inside your browser and nothing leaves your computer.</li>
       <li>Read the list of files under the box. Each row names the file, the number of groups, the sample size, the estimator, the degrees of freedom, and the step of the ladder the constraints in TECH1 put that model on.</li>
@@ -127,7 +128,7 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
 
   <section aria-labelledby="h-load">
     <h2 id="h-load">Load the output files</h2>
-    <p>Drop one output file per model into the box, all of them together, or press the box to choose them. Two or more groups are needed. Reading the constraints, the chi-square contribution of each group, the difference tests and the item plot are all defined for any number of groups from two upward.</p>
+    <p>Drop one output file per model into the box, all of them together, or press the box to choose them. Every run has to have two or more groups.</p>
 
     <label class="drop" id="drop" for="pick">
       <strong>Drop one .out file per model here</strong>
@@ -146,7 +147,7 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
 
   <section id="secLadder" aria-labelledby="h-ladder" hidden>
     <h2 id="h-ladder">The invariance ladder</h2>
-    <div id="ladder" aria-live="polite"></div>
+    <div id="ladder"></div>
   </section>
 
   <section id="secFit" aria-labelledby="h-fit" hidden>
@@ -163,7 +164,7 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
   <section id="secCompare" aria-labelledby="h-compare" hidden>
     <h2 id="h-compare">Comparisons between adjacent steps</h2>
     <fieldset>
-      <legend>The one choice this section asks for</legend>
+      <legend>Significance level</legend>
       <div class="row">
         <div class="field">
           <label for="selAlpha">Compare each p-value with this significance level</label>
@@ -176,22 +177,24 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
       </div>
       <p class="hint">Whether the groups are of comparable size is read from the per-group sample sizes in the output files, not chosen here: the largest group being more than one and a half times the smallest is what makes the stricter cutoffs of Chen (2007) the ones that match the comparison.</p>
     </fieldset>
-    <div id="comparisons" aria-live="polite"></div>
+    <div id="comparisons"></div>
     <div class="actions"><button type="button" class="secondary" id="btnCopyComp">Copy the comparison table</button><span id="copyCompState" role="status" class="small"></span></div>
   </section>
 
-  <section class="tracks" aria-labelledby="h-guidance">
-    <h2 id="h-guidance">How to read the changes in fit</h2>
+  <details class="fold" id="fold-h-guidance">
+  <summary><h2 id="h-guidance">How to read the changes in fit</h2></summary>
+  <div class="fold-body">
     <p>The difference test answers whether the added constraints worsen fit beyond sampling error. With a large sample it reaches significance for a difference of no practical size, which is why the change in the approximate fit indices is reported next to it. The values below have been proposed as guidance, each under the conditions its authors studied. A change exactly equal to a cutoff counts here as within it.</p>
     <ul>
-      <li>Cheung and Rensvold (2002): a change in CFI of at least −.010, that is a drop no larger than .010, supports the constrained model. Their simulations used two groups and normal continuous indicators.</li>
-      <li>Chen (2007): for groups of comparable size with more than 300 cases in each, a change in CFI of −.010 together with a change in RMSEA of .015 and a change in SRMR of .030 when the constraints are on loadings, or .010 when they are on intercepts, thresholds or residual variances. For unequal groups with 300 or fewer cases in each, the stricter values are −.005 for CFI, .010 for RMSEA and .025 for SRMR with loadings or .005 with intercepts and residual variances. Those are the two designs she studied; a sequence that falls between them, equal groups of 200 for instance, matches neither, and the comparison table then lists both sets and marks neither as matching.</li>
-      <li>Rutkowski and Svetina (2014), for comparisons across many groups: a change in CFI of −.020 with a change in RMSEA of .030 at the metric step, and −.010 with .010 at the scalar step. Their design used 10 and 20 groups of 600 to 6,000 cases each, with one continuous factor, and the page marks their values as matching only a sequence with at least ten groups.</li>
-      <li>Meade, Johnson and Braddy (2008) found ΔCFI to be affected little by sample size and by the number of indicators and factors, which is why one value serves for the whole design, and proposed −.002 as a criterion more sensitive than −.010; it flags differences that the larger cutoffs let through. Their cutoffs for ΔMcDonald's NCI, which the page does not compute, do depend on the number of factors and indicators.</li>
-      <li>Svetina, Rutkowski and Rutkowski (2020) set out the sequence for ordered-categorical indicators, where thresholds enter alongside loadings, and collect the cutoffs proposed for that case. They state that the values are not interchangeable across designs and that the ones derived for continuous indicators should not be carried over to categorical ones without checking.</li>
+      <li>Cheung and Rensvold (2002): a change in CFI of at least −0.010, that is a drop no larger than 0.010, supports the constrained model. Their simulations used two groups and normal continuous indicators.</li>
+      <li>Chen (2007): for two groups of comparable size with more than 300 cases in each, a change in CFI of −0.010 together with a change in RMSEA of 0.015 and a change in SRMR of 0.030 when the constraints are on loadings, or 0.010 when they are on intercepts, thresholds or residual variances. For two unequal groups with 300 or fewer cases in each, the stricter values are −0.005 for CFI, 0.010 for RMSEA and 0.025 for SRMR with loadings or 0.005 with intercepts and residual variances. Chen simulated two groups of 150, 250 or 500 cases, and the sample-size condition is read here per group, following Svetina et al. (2020, p. 114): the page compares the smallest group with 300. Those are the two designs Chen studied; a sequence that falls between them, two equal groups of 200 for instance, matches neither, and the comparison table then lists both sets and marks neither as matching.</li>
+      <li>Rutkowski and Svetina (2014), for comparisons across many groups: a change in CFI of −0.020 with a change in RMSEA of 0.030 at the metric step, and −0.010 with 0.010 at the scalar step. Their design used 10 and 20 groups of 600 to 6,000 cases each, with one continuous factor, and the page marks their values as matching only a sequence with at least ten groups.</li>
+      <li>Meade, Johnson and Braddy (2008) found ΔCFI to be affected little by sample size and by the number of indicators and factors, and proposed −0.002 as a criterion more sensitive than −0.010; it flags differences that the larger cutoffs let through. Their cutoffs for ΔMcDonald's NCI, which the page does not compute, do depend on the number of factors and indicators.</li>
+      <li>Svetina, Rutkowski and Rutkowski (2020) set out the sequence for ordered categorical indicators, in which threshold invariance is tested first and the loadings are added to it at the next step, and collect the cutoffs proposed for that case. They state that the values are not interchangeable across designs and that the ones derived for continuous indicators should not be carried over to categorical ones without checking.</li>
     </ul>
     <p>These criteria are approximate. They come from simulations run under specific conditions of sample size, number and size of groups, number of indicators, type of indicator and kind and amount of misspecification, and they do not exhaust the evaluation. That evaluation also rests on the theory behind the instrument, on the size and the location of the non-invariant parameters, on what those parameters do to the comparisons the study is about, and on the decision, which is the researcher's, to accept partial invariance and to report which constraints were released and why. A change within a cutoff is not evidence that the constraints hold, and a change beyond one is not by itself a reason to reject them. Putnick and Bornstein (2016) and Vandenberg and Lance (2000) review how the sequence is reported and where it goes wrong; Millsap (2011) treats what invariance does and does not license about the comparison of groups.</p>
-  </section>
+  </div>
+</details>
 
   <section id="secMI" aria-labelledby="h-mi" hidden>
     <h2 id="h-mi">Modification indices</h2>
@@ -214,12 +217,12 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
         </select>
       </div>
     </div>
-    <div id="mitable" aria-live="polite"></div>
+    <div id="mitable"></div>
   </section>
 
   <section id="secPlot" aria-labelledby="h-plot" hidden>
     <h2 id="h-plot">The behavior of an item across groups</h2>
-    <p>The figure draws, for one item, what the model says its expected value is at each score on the factor, one line per group. Two lines with different slopes are a loading that differs; two parallel lines at different heights are an intercept or a threshold that differs.</p>
+    <p>The figure draws, for one item, the value the model predicts for it at each score on the factor, one line per group. Two lines with different slopes are a loading that differs; two parallel lines at different heights are an intercept or a threshold that differs.</p>
     <div class="plotgrid">
       <div>
         <div class="field">
@@ -317,11 +320,12 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
     </div>
   </section>
 
-  <section class="tracks" aria-labelledby="h-methods">
-    <h2 id="h-methods">Methods and formulas</h2>
+  <details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
 
     <h3>The ladder and where a model sits on it</h3>
-    <p>Every model that the page reads is placed on exactly one step of a fixed ladder. The steps, in order, are: configural, no parameter held equal across groups; metric, the loadings held equal; scalar, the loadings and the intercepts, or the thresholds when the indicators are ordered-categorical; strict, also the residual variances; then two optional structural steps, the factor variances and covariances, and the factor means. Nothing else is a step. A model that releases part of the constraints of its step, such as a scalar model with one intercept left free, sits on that same step and carries the flag <span class="tag-partial">partial</span>. Partial invariance is a property of a model at a step, not a step of its own; treating it as a step is what lets two models be compared that stand in no nesting relation.</p>
+    <p>Every model that the page reads is placed on exactly one step of a fixed ladder. With continuous indicators the steps, in order, are: configural, no parameter held equal across groups; metric, the loadings held equal; scalar, the loadings and the intercepts held equal; strict, also the residual variances; then two optional structural steps, the factor variances and covariances, and the factor means. With ordered categorical indicators the second step is threshold invariance and the third is thresholds and loadings, for the reason given below, and the page names the two steps accordingly. Nothing else is a step. A model that releases part of the constraints of its step, such as a scalar model with one intercept left free, sits on that same step and carries the flag <span class="tag-partial">partial</span>. Partial invariance is a property of a model at a step, not a step of its own; treating it as a step is what lets two models be compared that stand in no nesting relation.</p>
     <p>The step comes from the constraints <span class="mp">M<em>plus</em></span> actually imposed, read in TECH1. <span class="mp">M<em>plus</em></span> numbers the free parameters group by group and prints the numbers matrix by matrix; a parameter that carries the same number in every group is estimated once for all groups, which is what an equality constraint across groups means, and a parameter printed as 0 is not free. The page collects, for each class of parameters, how many cells are equal in every group, how many are free, and how many are equal in some groups but not all. A class is <em>fully constrained</em> when no cell of it is left loose, <em>partial</em> when some are, and <em>free</em> when none is constrained. The step is then the highest class that is constrained at all:</p>
     <p class="table-note" id="ladder-rule">The class of parameters that decides the step, and the step it decides.</p>
     <div class="table-wrap fit">
@@ -331,82 +335,90 @@ td .glyph, th .glyph { font-weight: 700; margin-right: 0.2em; }
           <tr><td>factor means</td><td>5, factor means</td></tr>
           <tr><td>factor variances and covariances</td><td>4, factor variances and covariances</td></tr>
           <tr><td>residual variances</td><td>3, strict</td></tr>
-          <tr><td>intercepts or thresholds</td><td>2, scalar</td></tr>
-          <tr><td>loadings</td><td>1, metric</td></tr>
+          <tr><td>intercepts, or thresholds together with loadings</td><td>2, scalar, or thresholds and loadings</td></tr>
+          <tr><td>loadings, or thresholds alone</td><td>1, metric, or threshold</td></tr>
           <tr><td>none of them</td><td>0, configural</td></tr>
         </tbody>
       </table>
     </div>
-    <p>Factor means, factor variances and, with ordered-categorical indicators, the scale factors or the residual variances of the underlying response variables are fixed at the start of the sequence to identify the model, not to impose invariance. The page counts them as constraints only once the loadings and the intercepts or thresholds are themselves constrained. Counting them earlier would make the configural model look more constrained than the scalar one and the whole ladder would run backwards.</p>
+    <p>Factor means, factor variances and, with ordered categorical indicators, the scale factors or the residual variances of the underlying response variables carry the restrictions that identify the model rather than an invariance hypothesis, and which of them is fixed at the foot of the sequence depends on how the model was identified: under marker-variable identification the factor variances are free in every group, under variance identification they are fixed at one. The page therefore reads none of them as an invariance constraint before the loadings and the intercepts or thresholds are themselves constrained. Reading them as constraints earlier would make the configural model look more constrained than the scalar one and the whole ladder would run backward.</p>
     <p>No other evidence is used and none can be supplied. A file name, the title of the run and the number of degrees of freedom say nothing about which parameters were held equal across groups, and a model whose output has no TECH1 section is therefore listed without a step, with the reason, and takes part in no comparison. There is no control on this page that sets the step of a model.</p>
 
     <h3>Which models are compared</h3>
     <p>A comparison is produced only between two models on adjacent steps, and only in these forms: the full model of a step against the full model of the next step, the full model of a step against the partial model of the next step, and, when a full and a partial model share one step, the two against each other, which is the test of the constraints the partial model releases. No other pair is compared. In particular two models on steps that are not adjacent are never compared, even when their degrees of freedom would allow it.</p>
-    <p>Adjacency alone is not enough. Before any test the page checks the constraint sets themselves. Each constrained cell is written as a set of atoms: one atom for every pair of groups that share a parameter number, and one atom for every group in which the parameter is not free, for the classes where a fixed parameter is an invariance constraint rather than an identifying restriction. The comparison is produced only when the set of one model is a proper superset of the set of the other; the model with the larger set is the restricted one, the other is the unrestricted one, and the page names both together with the number of restrictions that separates them, class by class. When the sets are equal, or when neither contains the other, no test is produced and the page says which constraints are present in one model and missing in the other. Since the number of restrictions counted this way is the difference in free parameters, the page also checks it against the difference in degrees of freedom and reports a mismatch.</p>
-    <p>The ladder has one exception, and it is stated wherever it applies. With ordered-categorical indicators the thresholds and the loadings are not separately identified in the usual parameterization, so the metric step is not a step of its own and the sequence goes from the configural model to one that constrains both (Wu &amp; Estabrook, 2016). When every model read carries thresholds and none of them constrains the loadings alone, the page marks the metric step as not applicable, closes the ladder over it, and compares the scalar step with the configural one, saying so in the row. If a model that constrains the loadings alone is loaded, the step is occupied and the ordinary adjacency applies again.</p>
-    <p>Without TECH1 there is no constraint set, so the model takes part in no comparison. Degrees of freedom are a necessary condition and not a sufficient one: two models can differ by three degrees of freedom without either one being a restriction of the other, and a difference test computed on such a pair looks entirely plausible and means nothing.</p>
+    <p>Adjacency alone is not enough. Before any test the page checks the constraint sets themselves. Each constrained cell is written as a set of atoms: one atom for every pair of groups that share a parameter number, and one atom for every group in which the parameter is not free, for the classes where a fixed parameter is an invariance constraint rather than an identifying restriction. The comparison is produced only when the set of one model is a proper superset of the set of the other; the model with the larger set is the restricted one, the other is the unrestricted one, and the page names both together with the number of restrictions that separates them, class by class. When the sets are equal, or when neither contains the other, no test is produced and the page says which constraints are present in one model and missing in the other.</p>
+    <p>The count of restrictions is net of what the step gives back. A step of the sequence adds equality constraints and frees the parameters that identified the model below it: <span class="mp">M<em>plus</em></span> fixes the factor means at zero in every group while the intercepts or the thresholds are free and estimates <var>k</var> − 1 of them once those are held equal, and under variance identification it does the same with the factor variances at the metric step. The page counts the constraints added, subtracts the identifying parameters the restricted model frees, and reports both numbers. That net count is the difference in free parameters, so it is checked against the difference in degrees of freedom and a mismatch is reported.</p>
+    <p>With ordered categorical indicators the ladder takes the order Wu and Estabrook (2016) established. A model that holds only the loadings equal across groups is equivalent to the baseline model, because the identification of the baseline model already implies it (their Section 5.2), so it imposes no testable restriction and is no step: the page reports it as equivalent to the configural model and leaves it off the ladder. The step above the configural model is threshold invariance, the thresholds held equal with the loadings free (their Proposition 4), and the step above that adds the loadings (their Proposition 7). Wu and Estabrook recommend testing threshold invariance first and only then the other parameters, and the page names the two steps accordingly. Threshold invariance is itself testable only when each item has three thresholds or more, that is four categories or more: with binary and ternary items a linear transformation matches the thresholds across groups, so a model with invariant thresholds alone is again equivalent to the configural model. The page reads the number of thresholds per item from TECH1 and says so under the ladder when the items have fewer. When no model in the list constrains the thresholds alone, the threshold step is closed over and the model that constrains thresholds and loadings is compared with the configural one, which is the comparison Proposition 7 defines; the row says so.</p>
+    <p>Without TECH1 there is no constraint set, so the model takes part in no comparison. Degrees of freedom are a necessary condition and not a sufficient one: two models can differ by three degrees of freedom without either one being a restriction of the other, and a difference test computed on such a pair looks plausible and means nothing.</p>
 
     <h3>Groups</h3>
-    <p>Everything above is defined for <var>k</var> groups with <var>k</var> at least 2: a cell is constrained when it carries the same parameter number in every one of the <var>k</var> groups, and the count of restrictions on a cell is the number of parameters it removes, that is the number of free groups minus the number of distinct parameter numbers among them. A cell that is equal in some groups and free in others is reported separately and is not treated as a constraint of the class, because the class is then neither constrained nor free. The chi-square contribution of each group is read for all <var>k</var> groups. The item plot draws one line per group. Every part of it is defined for any number of groups from two upward.</p>
+    <p>Everything above is defined for <var>k</var> groups with <var>k</var> at least 2: a cell is constrained when it carries the same parameter number in every one of the <var>k</var> groups, and the count of restrictions on a cell is the number of parameters it removes, that is the number of free groups minus the number of distinct parameter numbers among them. A cell that is equal in some groups and free in others is reported separately and is not treated as a constraint of the class, because the class is then neither constrained nor free. The chi-square contribution of each group is read for all <var>k</var> groups, and the item plot draws one line per group.</p>
 
     <h3>The difference test, by estimator</h3>
-    <p>The test depends on the estimator, and the page never assumes one: when the <code>Estimator</code> line of an output cannot be read, that model enters no difference test, and the reason is printed in its row. The estimator cannot be supplied by hand, because a difference test computed under the wrong one is a plausible number that means nothing.</p>
+    <p>The test depends on the estimator, and the page never assumes one: when the <code>Estimator</code> line of an output cannot be read, that model enters no difference test, and the reason is printed in its row. The estimator cannot be supplied by hand, because a difference test computed under the wrong one is not interpretable.</p>
     <p>ML, MLF, GLS and WLS produce a statistic that is asymptotically chi-square distributed, and the difference of two of them is again chi-square distributed:</p>
     <div class="eq"><math display="block"><mrow><mi>T</mi><mo>=</mo><msubsup><mi>&#x3C7;</mi><mn>0</mn><mn>2</mn></msubsup><mo>&#x2212;</mo><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi mathvariant="normal">&#x394;</mi><mrow><mi>d</mi><mi>f</mi></mrow><mo>=</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></math></div>
     <p class="where">Here <var>T</var> is the difference statistic, χ²<sub>0</sub> and <var>df</var><sub>0</sub> are the chi-square and the degrees of freedom of the restricted model, χ²<sub>1</sub> and <var>df</var><sub>1</sub> are those of the unrestricted model, and Δ<var>df</var> is the number of degrees of freedom the test is referred to.</p>
     <p>MLR, MLM and WLSM print a statistic already divided by a scaling correction factor <math><mrow><mi>c</mi></mrow></math>, so the scaled difference test of Satorra and Bentler (2001) multiplies the printed values back before differencing them:</p>
     <div class="eq"><math display="block"><mrow><msub><mi>c</mi><mi>d</mi></msub><mo>=</mo><mfrac><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>1</mn></msub></mrow><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>T</mi><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mn>0</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msubsup><mi>&#x3C7;</mi><mn>1</mn><mn>2</mn></msubsup><msub><mi>c</mi><mn>1</mn></msub></mrow><msub><mi>c</mi><mi>d</mi></msub></mfrac></mrow></math></div>
     <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>df</var><sub>0</sub> and <var>df</var><sub>1</sub> are the degrees of freedom of the restricted and of the unrestricted model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their scaling correction factors, χ²<sub>0</sub> and χ²<sub>1</sub> are the chi-square values printed for them, and <var>T</var> is the difference statistic.</p>
-    <p><var>T</var> is referred to a chi-square distribution with <math><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></math> degrees of freedom. When <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> comes out zero or negative, or when <var>T</var> comes out negative, the test is not a non-significant test: the statistic in that form cannot be referred to a chi-square distribution and nothing follows from it, for either model. Satorra and Bentler (2010) give a version that is positive by construction. It needs one further <span class="mp">M<em>plus</em></span> run of the restricted model in which the unrestricted solution supplies the starting values and estimation stops before the first update, <code>ANALYSIS: ITERATIONS = 0;</code>, whose scaling correction factor <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math> replaces <math><mrow><msub><mi>c</mi><mn>0</mn></msub></mrow></math> in the numerator of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>. That run is a separate file and is not part of an invariance sequence, so the page reports the obstruction and points to the model comparison tool, which takes the third output.</p>
-    <p>MLMV, WLSMV and ULSMV adjust both the mean and the variance of the statistic, and the difference of two such statistics is not chi-square distributed under any rescaling. The test has to be produced by <span class="mp">M<em>plus</em></span> with the DIFFTEST option, in two runs:</p>
-    <pre class="syntax">! Step 1: the less restricted model
+    <p><var>T</var> is referred to a chi-square distribution with <math><mrow><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub></mrow></math> degrees of freedom. When <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> comes out zero or negative, or when <var>T</var> comes out negative, no test is defined: in that form the statistic cannot be referred to a chi-square distribution, and nothing follows from it for either model. Satorra and Bentler (2010) give a version that is positive by construction. It needs one further <span class="mp">M<em>plus</em></span> run of the <em>unrestricted</em> model evaluated at the estimates of the restricted model, with those estimates as starting values and no iteration taken; its scaling correction factor <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math> replaces <math><mrow><msub><mi>c</mi><mn>1</mn></msub></mrow></math>, the factor of the unrestricted model, in the numerator of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>, which gives <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mrow><mo stretchy="false">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>10</mn></msub><mo stretchy="false">)</mo></mrow><mo>/</mo><mrow><mo stretchy="false">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow></math>. Asparouhov and Muthén (2013, equation 4) give the steps for <span class="mp">M<em>plus</em></span>: <code>OUTPUT: SVALUES;</code> in the restricted run, the MODEL command it prints pasted into the unrestricted input as starting values, and <code>ANALYSIS: CONVERGENCE = 100000000;</code> so that no iteration is taken. That run is a separate file and is not part of an invariance sequence, so the page reports the obstruction and points to the chi-square difference test page, which takes the third output.</p>
+    <p>MLMV, WLSMV and ULSMV adjust both the mean and the variance of the statistic, and the difference of two such statistics is not chi-square distributed. The rescaling that makes it so (Asparouhov &amp; Muthén, 2006, equations 7 and 10) needs the derivatives of both models, which the printed output does not contain, so the test has to be produced by <span class="mp">M<em>plus</em></span> itself with the DIFFTEST option, in two runs:</p>
+    <pre class="syntax">! Step 1: the unrestricted model (H1)
 SAVEDATA:   DIFFTEST = deriv.dat;
 
-! Step 2: the more restricted model, same data and variables
+! Step 2: the restricted model (H0), same data and variables
 ANALYSIS:   DIFFTEST = deriv.dat;</pre>
-    <p>The second output then carries a block headed <code>Chi-Square Test for Difference Testing</code>. The page reads that block from the restricted model of each pair and reports it; when the block is absent it prints the two runs to make and computes nothing. ULS prints no chi-square test of model fit, and BAYES prints none either, so for those two estimators there is no difference test to compute.</p>
+    <p>The second output then carries a block headed <code>Chi-Square Test for Difference Testing</code>. That block belongs to the one comparison whose derivatives file the run read, and since <span class="mp">M<em>plus</em></span> 6 its degrees of freedom are the difference in the number of free parameters (Asparouhov &amp; Muthén, 2010). The page therefore reports it for the pair whose difference in degrees of freedom it matches, and for no other; when it is absent, or belongs to another pair, the page says so and prints the two runs to make. ULS prints no chi-square test of model fit, and BAYES prints none either, so for those two estimators there is no difference test to compute.</p>
     <p>The page recomputes every test from the fit statistics of the two models. When the sequence comes from the abbreviated syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code>, <span class="mp">M<em>plus</em></span> prints difference tests of its own inside that file; the page does not use them. It splits the file into its models, places each on the ladder from its own TECH1 and computes the tests itself, so that the pair being tested is stated and can be checked.</p>
 
     <h3>Differences in fit indices</h3>
     <p>Each difference is the value of the restricted model minus the value of the unrestricted model, for CFI, RMSEA and SRMR, so that a drop in CFI is negative and a rise in RMSEA is positive. The cutoffs proposed for those differences are collected in the guidance section above, with the conditions each was derived under; the comparison table marks a difference as within or beyond the criteria that match this comparison, by a label and a glyph and not by color alone.</p>
 
     <h3>Modification indices</h3>
-    <p>The modification index of a constraint is the drop in the chi-square that releasing that one constraint would produce, tested on one degree of freedom, and the expected parameter change is the value the parameter would take. The thresholds offered are the .05, .01 and .001 quantiles of a chi-square distribution with one degree of freedom, 3.841, 6.635 and 10.828. The indices are shown per model and per group and sorted by size. Under an equality constraint across groups the same index appears in every group, with expected changes of opposite sign: it is one constraint, not <var>k</var> of them, and releasing it costs one degree of freedom in total. A high index says where to look, not what to conclude; constraints are released one at a time, the model is refitted, and the number of released constraints belongs in the report.</p>
+    <p>The modification index of a constraint is the drop in the chi-square that releasing that one constraint would produce, tested on one degree of freedom, and the expected parameter change is the amount by which the parameter is expected to move once it is released, not the value it would take. The thresholds offered are the .05, .01 and .001 quantiles of a chi-square distribution with one degree of freedom, 3.841, 6.635 and 10.828. The indices are shown per model and per group and sorted by size. Under an equality constraint across groups the same index appears in every group, and with two groups the expected changes have opposite signs: it is one constraint, not <var>k</var> of them, and releasing it costs one degree of freedom in total. A high index says where to look, not what to conclude; constraints are released one at a time, the model is refitted, and the number of released constraints belongs in the report.</p>
 
     <h3>The two figures</h3>
     <p>The first figure draws one item across the groups. For a continuous indicator the expected value of item <var>j</var> in group <var>g</var> is a straight line in the factor:</p>
     <div class="eq"><math display="block"><mrow><mrow><mi mathvariant="normal">E</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>y</mi><mi>j</mi></msub><mo>|</mo><mi>&#x3B7;</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msub><mi>&#x3BD;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mo>+</mo><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mi>&#x3B7;</mi></mrow></math></div>
     <p class="where">Here <var>y</var><sub><var>j</var></sub> is item <var>j</var>, η is the factor it loads on, ν<sub><var>jg</var></sub> is the intercept of that item in group <var>g</var> and λ<sub><var>jg</var></sub> is its loading in that group.</p>
-    <p>The line is drawn over the range each group covers, from its own factor mean minus 2.5 factor standard deviations to its mean plus 2.5. The band option adds <math><mrow><msub><mi>&#x3BD;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mo>+</mo><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mi>&#x3B7;</mi><mo>&#xB1;</mo><mi>k</mi><msqrt><msub><mi>&#x3B8;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub></msqrt></mrow></math> for <var>k</var> equal to 1 or 1.96, where θ<sub><var>jg</var></sub> is the residual variance of the item in that group. The distribution option instead draws the normal density of the item at the factor mean of its own group, with mean <math><mrow><msub><mi>&#x3BD;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mo>+</mo><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><msub><mi>&#x3B1;</mi><mi>g</mi></msub></mrow></math> and variance θ<sub><var>jg</var></sub>, where α<sub><var>g</var></sub> is the factor mean in group <var>g</var>. For an ordered-categorical indicator the vertical axis is the underlying response variable <var>y</var>*, ν is zero, the thresholds of the item are drawn as light reference lines, and the residual variance is not printed under the delta parameterization: it is recovered from the scale factor as</p>
+    <p>Every line is drawn over one range, from the smallest of the group factor means minus 2.5 factor standard deviations of that group to the largest plus 2.5, so that the groups are read against the same axis. The band option adds <math><mrow><msub><mi>&#x3BD;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mo>+</mo><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mi>&#x3B7;</mi><mo>&#xB1;</mo><mi>k</mi><msqrt><msub><mi>&#x3B8;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub></msqrt></mrow></math> for <var>k</var> equal to 1 or 1.96, where θ<sub><var>jg</var></sub> is the residual variance of the item in that group. The distribution option instead draws the normal density of the item at the factor mean of its own group, with mean <math><mrow><msub><mi>&#x3BD;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mo>+</mo><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><msub><mi>&#x3B1;</mi><mi>g</mi></msub></mrow></math> and variance θ<sub><var>jg</var></sub>, where α<sub><var>g</var></sub> is the factor mean in group <var>g</var>. For an ordered categorical indicator the vertical axis is the underlying response variable <var>y</var>*, ν is zero, the thresholds of the item are drawn as light reference lines, and the residual variance is not printed under the delta parameterization: it is recovered from the scale factor as</p>
     <div class="eq"><math display="block"><mrow><msub><mi>&#x3B8;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><msup><msub><mi>&#x3B4;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mn>2</mn></msup></mfrac><mo>&#x2212;</mo><msup><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mn>2</mn></msup><msub><mi>&#x3C8;</mi><mi>g</mi></msub></mrow></math></div>
-    <p class="where">Here θ<sub><var>jg</var></sub> is the residual variance of item <var>j</var> in group <var>g</var> on the metric of the underlying response variable, δ<sub><var>jg</var></sub> is the scale factor <span class="mp">M<em>plus</em></span> prints for that item in that group, λ<sub><var>jg</var></sub> is its loading and ψ<sub><var>g</var></sub> is the variance of the factor in that group.</p>
+    <p class="where">Here θ<sub><var>jg</var></sub> is the residual variance of item <var>j</var> in group <var>g</var> on the metric of the underlying response variable, δ<sub><var>jg</var></sub> is the scale factor <span class="mp">M<em>plus</em></span> prints for that item in that group (Muthén &amp; Asparouhov, 2002), λ<sub><var>jg</var></sub> is its loading and ψ<sub><var>g</var></sub> is the variance of the factor in that group. The identity holds for an item that loads on one factor and on nothing else: with a cross-loading, or with a covariate in the model, the variance of the underlying response variable has further terms and the page does not recover θ from the scale factor.</p>
     <p>The identity follows from <math><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msup><mi>y</mi><mo>&#x2217;</mo></msup><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mn>1</mn><mo>/</mo><msup><msub><mi>&#x3B4;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mn>2</mn></msup></mrow></math> and <math><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msup><mi>y</mi><mo>&#x2217;</mo></msup><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msup><msub><mi>&#x3BB;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub><mn>2</mn></msup><msub><mi>&#x3C8;</mi><mi>g</mi></msub><mo>+</mo><msub><mi>&#x3B8;</mi><mrow><mi>j</mi><mi>g</mi></mrow></msub></mrow></math>. Under the theta parameterization the residual variance is printed and is used as it stands. Under the figure the page states, with the numbers, where the groups part: in slope, that is in the loading, in intercept or in threshold, and in residual standard deviation when the figure carries one. A difference smaller than .001 is not reported as a difference, and when nothing differs the page says that the lines coincide, since a figure of coincident lines shows only the one drawn last.</p>
     <p>The second figure puts one class of parameters of one model on a single axis: the items on the vertical axis, and on the horizontal one the estimate in each group with the interval</p>
     <div class="eq"><math display="block"><mrow><msub><mi>b</mi><mi>g</mi></msub><mo>&#xB1;</mo><mn>1.959964</mn><mo>&#xD7;</mo><mrow><mi>SE</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mi>g</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></math></div>
     <p class="where">Here <var>b</var><sub><var>g</var></sub> is the estimate of the parameter in group <var>g</var> as printed under MODEL RESULTS, <var>SE</var>(<var>b</var><sub><var>g</var></sub>) is the standard error printed beside it, and 1.959964 is the .975 quantile of the standard normal distribution.</p>
-    <p>read from MODEL RESULTS, which is the 95 percent Wald interval <span class="mp">M<em>plus</em></span> itself reports under CINTERVAL. Whether a parameter is held equal across groups is read from TECH1, by the rule used for the ladder: one number in every group. Such a row carries one estimate, drawn once as an open diamond and labelled as held equal, because <var>k</var> coincident points would read as <var>k</var> groups that happen to agree when they are one parameter. A parameter fixed by the model, the loading that sets the metric of the factor for instance, is drawn once as an open marker without an interval and labelled as fixed. When TECH1 is missing the page falls back to the same estimate and the same standard error in every group and says that it did so. Two intervals that do not overlap are a hint about where to look; the test of the constraint is the difference test between the two models.</p>
-    <p>Both figures are drawn in a coordinate system whose unit is the typographic point, and the viewBox spans <math><mrow><mi>w</mi><mo>/</mo><mn>25.4</mn><mo>&#xD7;</mo><mn>72</mn></mrow></math> units, with <var>w</var> the chosen width in millimeters, so a type size given in points is that size in the exported figure at the stated width. The axes are black, with two spines and no box, ticks pointing outward and no gridlines; the only reference lines are the thresholds and, in the second figure, the zero, drawn lighter than any data element. The number of ticks is the largest for which the labels still leave a gap between them, and the number of decimals is the smallest at which every label is the value it stands for and no two labels are alike. Threshold labels sit in the margin beside the plotting area, where no curve reaches them, and are pushed apart when two thresholds fall close together. Each group has a color from the Okabe-Ito palette, a dash pattern and, if you ask for them, a marker shape, so that the groups stay apart in grayscale and under any color-vision deficiency; the legend has a band of its own under the plotting area and cannot overlap the data. Residual bands are drawn under the lines at a fill opacity of 0.16 for two groups and less for more, so the lines remain the most salient element. The figure is exported as SVG, which is vectorial and carries its width in millimeters, and as PNG at the stated width and a resolution of 300, 600 or 1200 dpi; both are produced from the figure on the screen, so what is saved is what is shown.</p>
+    <p>That interval is the 95 percent Wald interval <span class="mp">M<em>plus</em></span> itself reports under CINTERVAL. Whether a parameter is held equal across groups is read from TECH1, by the rule used for the ladder: one number in every group. Such a row carries one estimate, drawn once as an open diamond and labeled as held equal, because <var>k</var> coincident points would read as <var>k</var> groups that happen to agree when they are one parameter. A parameter fixed by the model, the loading that sets the metric of the factor for instance, is drawn once as an open marker without an interval and labeled as fixed; a parameter fixed in some groups and free in the rest is labeled as fixed in some groups. When TECH1 is missing the page falls back to the same estimate and the same standard error in every group and says that it did so. Two intervals that do not overlap are a hint about where to look; the test of the constraint is the difference test between the two models.</p>
+    <p>Both figures are drawn in a coordinate system whose unit is the typographic point, and the viewBox spans <math><mrow><mi>w</mi><mo>/</mo><mn>25.4</mn><mo>&#xD7;</mo><mn>72</mn></mrow></math> units, with <var>w</var> the chosen width in millimeters, so a type size given in points is that size in the exported figure at the stated width. The axes are black, with two spines and no box, ticks pointing outward and no gridlines; the only reference lines are the thresholds and, in the second figure, the zero, drawn lighter than any data element. The number of ticks is the largest for which the labels still leave a gap between them, and the number of decimals is the smallest at which every label is the value it stands for and no two labels are alike. Threshold labels sit in the margin beside the plotting area, where no curve reaches them, and are pushed apart when two thresholds fall close together. Each group has a color from the Okabe-Ito palette, a dash pattern and, when requested, a marker shape, so that the groups stay apart in grayscale and under any color-vision deficiency; the legend has a band of its own under the plotting area and cannot overlap the data. Residual bands are drawn under the lines at a fill opacity of 0.16 for two groups and less for more, so the lines remain the most salient element. The figure is exported as SVG, which is a vector format and carries its width in millimeters, and as PNG at the stated width and a resolution of 300, 600 or 1200 dpi; both are produced from the figure on the screen, so what is saved is what is shown.</p>
 
     <h3>The chi-square tail</h3>
     <p>The p-value is the upper tail <math><mrow><mrow><mi mathvariant="normal">P</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>X</mi><mo>&#x2265;</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></math> of a chi-square distribution, computed from the regularized incomplete gamma function by its series expansion below the crossover and by its continued fraction above it. The upper tail is computed directly rather than as <math><mrow><mn>1</mn><mo>&#x2212;</mo><mrow><mi>F</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></math>, which loses every significant digit once p falls below about <math><mrow><msup><mn>10</mn><mrow><mo>&#x2212;</mo><mn>16</mn></mrow></msup></mrow></math>.</p>
-  </section>
+  </div>
+</details>
 
-  <section class="tracks" aria-labelledby="h-refs">
-    <h2 id="h-refs">References</h2>
+  <details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
     <ul class="refs">
-      <li>Chen, F. F. (2007). Sensitivity of goodness of fit indexes to lack of measurement invariance. <em>Structural Equation Modeling, 14</em>(3), 464&ndash;504. https://doi.org/10.1080/10705510701301834</li>
-      <li>Cheung, G. W., &amp; Rensvold, R. B. (2002). Evaluating goodness-of-fit indexes for testing measurement invariance. <em>Structural Equation Modeling, 9</em>(2), 233&ndash;255. https://doi.org/10.1207/S15328007SEM0902_5</li>
-      <li>Meade, A. W., Johnson, E. C., &amp; Braddy, P. W. (2008). Power and sensitivity of alternative fit indices in tests of measurement invariance. <em>Journal of Applied Psychology, 93</em>(3), 568&ndash;592. https://doi.org/10.1037/0021-9010.93.3.568</li>
-      <li>Millsap, R. E. (2011). <em>Statistical approaches to measurement invariance</em>. Routledge. https://doi.org/10.4324/9780203821961</li>
-      <li>Putnick, D. L., &amp; Bornstein, M. H. (2016). Measurement invariance conventions and reporting: The state of the art and future directions for psychological research. <em>Developmental Review, 41</em>, 71&ndash;90. https://doi.org/10.1016/j.dr.2016.06.004</li>
-      <li>Rutkowski, L., &amp; Svetina, D. (2014). Assessing the hypothesis of measurement invariance in the context of large-scale international surveys. <em>Educational and Psychological Measurement, 74</em>(1), 31&ndash;57. https://doi.org/10.1177/0013164413498257</li>
-      <li>Satorra, A., &amp; Bentler, P. M. (2001). A scaled difference chi-square test statistic for moment structure analysis. <em>Psychometrika, 66</em>(4), 507&ndash;514. https://doi.org/10.1007/BF02296192</li>
-      <li>Satorra, A., &amp; Bentler, P. M. (2010). Ensuring positiveness of the scaled difference chi-square test statistic. <em>Psychometrika, 75</em>(2), 243&ndash;248. https://doi.org/10.1007/s11336-009-9135-y</li>
-      <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using <span class="mp">M<em>plus</em></span> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111&ndash;130. https://doi.org/10.1080/10705511.2019.1602776</li>
-      <li>Vandenberg, R. J., &amp; Lance, C. E. (2000). A review and synthesis of the measurement invariance literature: Suggestions, practices, and recommendations for organizational research. <em>Organizational Research Methods, 3</em>(1), 4&ndash;70. https://doi.org/10.1177/109442810031002</li>
-      <li>Wu, H., &amp; Estabrook, R. (2016). Identification of confirmatory factor analysis models of different levels of invariance for ordered categorical outcomes. <em>Psychometrika, 81</em>(4), 1014&ndash;1045. https://doi.org/10.1007/s11336-016-9506-0</li>
+      <li>Asparouhov, T., &amp; Muthén, B. (2006, May 26). <em>Robust chi square difference testing with mean and variance adjusted test statistics</em> (<span class="mp">M<em>plus</em></span> Web Notes No. 10). Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/webnotes/webnote10.pdf">https://www.statmodel.com/download/webnotes/webnote10.pdf</a></li>
+      <li>Asparouhov, T., &amp; Muthén, B. (2010, May 3). <em>Simple second order chi-square correction</em>. Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/WLSMV_new_chi21.pdf">https://www.statmodel.com/download/WLSMV_new_chi21.pdf</a></li>
+      <li>Asparouhov, T., &amp; Muthén, B. (2013, April 17). <em>Computing the strictly positive Satorra–Bentler chi-square test in <span class="mp">M<em>plus</em></span></em> (<span class="mp">M<em>plus</em></span> Web Notes No. 12). Muthén &amp; Muthén. <a href="https://www.statmodel.com/examples/webnotes/SB5.pdf">https://www.statmodel.com/examples/webnotes/SB5.pdf</a></li>
+      <li>Chen, F. F. (2007). Sensitivity of goodness of fit indexes to lack of measurement invariance. <em>Structural Equation Modeling, 14</em>(3), 464&ndash;504. <a href="https://doi.org/10.1080/10705510701301834">https://doi.org/10.1080/10705510701301834</a></li>
+      <li>Cheung, G. W., &amp; Rensvold, R. B. (2002). Evaluating goodness-of-fit indexes for testing measurement invariance. <em>Structural Equation Modeling, 9</em>(2), 233&ndash;255. <a href="https://doi.org/10.1207/S15328007SEM0902_5">https://doi.org/10.1207/S15328007SEM0902_5</a></li>
+      <li>Meade, A. W., Johnson, E. C., &amp; Braddy, P. W. (2008). Power and sensitivity of alternative fit indices in tests of measurement invariance. <em>Journal of Applied Psychology, 93</em>(3), 568&ndash;592. <a href="https://doi.org/10.1037/0021-9010.93.3.568">https://doi.org/10.1037/0021-9010.93.3.568</a></li>
+      <li>Millsap, R. E. (2011). <em>Statistical approaches to measurement invariance</em>. Routledge. <a href="https://doi.org/10.4324/9780203821961">https://doi.org/10.4324/9780203821961</a></li>
+      <li>Muthén, B., &amp; Asparouhov, T. (2002, December 9). <em>Latent variable analysis with categorical outcomes: Multiple-group and growth modeling in <span class="mp">M<em>plus</em></span></em> (<span class="mp">M<em>plus</em></span> Web Notes No. 4). Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/webnotes/CatMGLong.pdf">https://www.statmodel.com/download/webnotes/CatMGLong.pdf</a></li>
+      <li>Putnick, D. L., &amp; Bornstein, M. H. (2016). Measurement invariance conventions and reporting: The state of the art and future directions for psychological research. <em>Developmental Review, 41</em>, 71&ndash;90. <a href="https://doi.org/10.1016/j.dr.2016.06.004">https://doi.org/10.1016/j.dr.2016.06.004</a></li>
+      <li>Rutkowski, L., &amp; Svetina, D. (2014). Assessing the hypothesis of measurement invariance in the context of large-scale international surveys. <em>Educational and Psychological Measurement, 74</em>(1), 31&ndash;57. <a href="https://doi.org/10.1177/0013164413498257">https://doi.org/10.1177/0013164413498257</a></li>
+      <li>Satorra, A., &amp; Bentler, P. M. (2001). A scaled difference chi-square test statistic for moment structure analysis. <em>Psychometrika, 66</em>(4), 507&ndash;514. <a href="https://doi.org/10.1007/BF02296192">https://doi.org/10.1007/BF02296192</a></li>
+      <li>Satorra, A., &amp; Bentler, P. M. (2010). Ensuring positiveness of the scaled difference chi-square test statistic. <em>Psychometrika, 75</em>(2), 243&ndash;248. <a href="https://doi.org/10.1007/s11336-009-9135-y">https://doi.org/10.1007/s11336-009-9135-y</a></li>
+      <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using <span class="mp">M<em>plus</em></span> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111&ndash;130. <a href="https://doi.org/10.1080/10705511.2019.1602776">https://doi.org/10.1080/10705511.2019.1602776</a></li>
+      <li>Vandenberg, R. J., &amp; Lance, C. E. (2000). A review and synthesis of the measurement invariance literature: Suggestions, practices, and recommendations for organizational research. <em>Organizational Research Methods, 3</em>(1), 4&ndash;70. <a href="https://doi.org/10.1177/109442810031002">https://doi.org/10.1177/109442810031002</a></li>
+      <li>Wu, H., &amp; Estabrook, R. (2016). Identification of confirmatory factor analysis models of different levels of invariance for ordered categorical outcomes. <em>Psychometrika, 81</em>(4), 1014&ndash;1045. <a href="https://doi.org/10.1007/s11336-016-9506-0">https://doi.org/10.1007/s11336-016-9506-0</a></li>
     </ul>
-  </section>
+  </div>
+</details>
 </main>
 <footer class="site">
   <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
@@ -434,12 +446,15 @@ function num(t){
   var v = parseFloat(s.replace(/([Dd])([+-]?\d)/, "e$2"));
   return isFinite(v) ? v : null;
 }
+/* A true minus sign, not a hyphen, so that every number the page prints is set
+   the way a manuscript sets it. */
+function minus(t){ return String(t).replace(/-/g, "\u2212"); }
 function fmt(x, d){
-  return (x === null || x === undefined || !isFinite(x)) ? "\u2014" : Number(x).toFixed(d === undefined ? 3 : d);
+  return (x === null || x === undefined || !isFinite(x)) ? "\u2014" : minus(Number(x).toFixed(d === undefined ? 3 : d));
 }
 function fmtDelta(x, d){
   if(x === null || x === undefined || !isFinite(x)) return "\u2014";
-  var s = Number(x).toFixed(d === undefined ? 3 : d);
+  var s = minus(Number(x).toFixed(d === undefined ? 3 : d));
   return (x > 0 ? "+" : "") + s;
 }
 /* APA form: no leading zero, "< .001" below one thousandth */
@@ -643,6 +658,7 @@ function parseOutput(text, fileName){
   var r = emptyModel(fileName), m, i;
   var t = String(text).replace(/\r\n?/g, "\n");
   r.text = t;
+  r.nWarnings = (t.match(/^\s*\*\*\* WARNING/gm) || []).length;
   /* A title is set before anything else: a file that turns out to be unreadable
      still has to be named in the messages about it. */
   r.title = String(fileName || "output").replace(/\.(out|txt|log)$/i, "");
@@ -990,8 +1006,7 @@ function constraintProfile(t1, declaredGroups){
   if(!t1) return null;
   var gs = t1.order.slice();
   if(gs.length < 2)
-    return { error: "TECH1 reports " + gs.length + " " + plural(gs.length, "group") +
-      ". Reading the constraints across groups needs at least two, so this model takes part in no comparison." };
+    return { error: "This output has one group. Measurement invariance is a statement about two or more groups, so there are no constraints across groups to read and this model takes part in no comparison. Estimate the model with a GROUPING command, or with KNOWNCLASS, and load the output of that run." };
   if(declaredGroups && declaredGroups > 1 && gs.length !== declaredGroups)
     return { error: "The output declares " + declaredGroups + " groups but TECH1 holds " + gs.length +
       " parameter specification " + plural(gs.length, "section") + ". The output is incomplete or in a form this page does not read, so this model takes part in no comparison." };
@@ -1018,7 +1033,17 @@ function constraintProfile(t1, declaredGroups){
   }
 
   var thresholds = cellsOf("TAU").length > 0;
-  /* With ordered-categorical indicators and the latent response variable
+  /* How many thresholds each item has, which is the number of categories minus
+     one. Wu and Estabrook (2016) show that threshold invariance is testable
+     only from three thresholds upward, so the smallest count is kept. */
+  var perItem = {};
+  cellsOf("TAU").forEach(function(c){
+    var it = String(c).split("$")[0];
+    perItem[it] = (perItem[it] || 0) + 1;
+  });
+  var thrCounts = Object.keys(perItem).map(function(k){ return perItem[k]; });
+  var minThresholds = thrCounts.length ? Math.min.apply(null, thrCounts) : 0;
+  /* With ordered categorical indicators and the latent response variable
      parameterization the loadings are printed in BETA and LAMBDA is a matrix of
      fixed ones. Reading LAMBDA as the loadings would then report that there are
      none. */
@@ -1099,6 +1124,7 @@ function constraintProfile(t1, declaredGroups){
   });
 
   return { groups: gs, classes: classes, atoms: atoms, thresholds: thresholds,
+           minThresholds: minThresholds,
            satMatrix: satMatrix, delta: hasDelta, mismatched: mismatched };
 }
 
@@ -1106,41 +1132,74 @@ function constraintProfile(t1, declaredGroups){
    7. The ladder
    ========================================================================= */
 
+/* With ordered categorical indicators the second step is threshold invariance
+   and the third is thresholds and loadings (Wu & Estabrook, 2016, Propositions
+   4 and 7), so those two steps carry a second name and a second description,
+   used whenever every model read has thresholds. */
 var STEPS = [
   { key:"configural", name:"Configural",  what:"the same form in every group; no parameter held equal" },
-  { key:"metric",     name:"Metric",      what:"the loadings held equal across groups" },
-  { key:"scalar",     name:"Scalar",      what:"the loadings and the intercepts, or the thresholds with ordered-categorical indicators" },
+  { key:"metric",     name:"Metric",      what:"the loadings held equal across groups",
+    ordName:"Threshold", ordWhat:"the thresholds held equal across groups" },
+  { key:"scalar",     name:"Scalar",      what:"the loadings and the intercepts held equal across groups",
+    ordName:"Thresholds and loadings", ordWhat:"the thresholds and the loadings held equal across groups" },
   { key:"strict",     name:"Strict",      what:"also the residual variances held equal" },
   { key:"fvar",       name:"Factor variances and covariances", what:"also the variances and covariances of the factors held equal" },
   { key:"fmean",      name:"Factor means", what:"also the means of the factors held equal" }
 ];
 
+/* The names of the steps depend on the type of indicator, so a sequence of
+   models with thresholds is named once and every label is taken from here. */
+var ORDINAL_SEQUENCE = false;
+function sequenceIsOrdinal(models){
+  var withProfile = (models || []).filter(function(m){ return m.profile && !m.profile.error; });
+  return withProfile.length > 0 && withProfile.every(function(m){ return m.profile.thresholds; });
+}
+function stepName(i){ return (ORDINAL_SEQUENCE && STEPS[i].ordName) ? STEPS[i].ordName : STEPS[i].name; }
+function stepWhat(i){ return (ORDINAL_SEQUENCE && STEPS[i].ordWhat) ? STEPS[i].ordWhat : STEPS[i].what; }
+
 function stateOf(prof, cl){ return prof && prof.classes && prof.classes[cl] ? prof.classes[cl].state : "absent"; }
 function isConstrained(prof, cl){ var s = stateOf(prof, cl); return s === "all" || s === "partial"; }
-/* Factor means, factor variances and, with ordered-categorical indicators, the
+/* Factor means, factor variances and, with ordered categorical indicators, the
    scale factors are fixed to identify the model while the loadings and the
    intercepts or thresholds are still free. Counted as constraints at that
    stage they would make the configural model look more constrained than the
-   scalar one and the ladder would run backwards. */
+   scalar one and the ladder would run backward. */
 function gateOn(prof){
   return isConstrained(prof, "SAT") && (isConstrained(prof, "INT") || isConstrained(prof, "SOG"));
 }
 
 function stepFromProfile(prof){
   if(!prof || prof.error) return null;
-  var gate = gateOn(prof), resGate = prof.thresholds ? gate : true, step;
+  /* With ordered categorical indicators the second step is threshold
+     invariance and the third is thresholds and loadings: Wu and Estabrook
+     (2016) show that a model with invariant loadings alone is equivalent to
+     the baseline model and recommend testing the thresholds first. */
+  var ord = !!prof.thresholds;
+  var sat = isConstrained(prof, "SAT");
+  var lev = ord ? isConstrained(prof, "SOG") : (isConstrained(prof, "INT") || isConstrained(prof, "SOG"));
+  var gate = gateOn(prof), resGate = ord ? gate : true, step, equivalent = false;
   if(gate && isConstrained(prof, "FMEAN")) step = 5;
   else if(gate && isConstrained(prof, "FCOV")) step = 4;
   else if(resGate && isConstrained(prof, "RES")) step = 3;
-  else if(isConstrained(prof, "INT") || isConstrained(prof, "SOG")) step = 2;
-  else if(isConstrained(prof, "SAT")) step = 1;
+  else if(ord){
+    if(sat && lev) step = 2;
+    else if(lev) step = 1;
+    else{ step = 0; equivalent = sat; }
+  }
+  else if(lev) step = 2;
+  else if(sat) step = 1;
   else step = 0;
 
   var cum = [];
-  if(step >= 1) cum.push("SAT");
-  if(step >= 2){
-    if(stateOf(prof, "SOG") !== "absent") cum.push("SOG");
-    if(stateOf(prof, "INT") !== "absent") cum.push("INT");
+  if(ord){
+    if(step >= 1 && stateOf(prof, "SOG") !== "absent") cum.push("SOG");
+    if(step >= 2) cum.push("SAT");
+  }else{
+    if(step >= 1) cum.push("SAT");
+    if(step >= 2){
+      if(stateOf(prof, "SOG") !== "absent") cum.push("SOG");
+      if(stateOf(prof, "INT") !== "absent") cum.push("INT");
+    }
   }
   if(step >= 3) cum.push("RES");
   if(step >= 4) cum.push("FCOV");
@@ -1148,6 +1207,7 @@ function stepFromProfile(prof){
   var partial = cum.some(function(cl){ return stateOf(prof, cl) === "partial"; });
   var holes = cum.filter(function(cl){ return stateOf(prof, cl) === "none"; });
   return { step: step, partial: partial || holes.length > 0, holes: holes, gate: gate,
+           equivalentToConfigural: equivalent, ordinal: ord,
            released: cum.filter(function(cl){ return stateOf(prof, cl) === "partial"; }) };
 }
 
@@ -1158,7 +1218,8 @@ function stepFromProfile(prof){
    TECH1 section has no step and takes part in no comparison. */
 function placementOf(m){
   if(m.stepFromConstraints !== null)
-    return { step: m.stepFromConstraints, partial: m.partial, source: "tech1" };
+    return { step: m.stepFromConstraints, partial: m.partial, source: "tech1",
+             equivalentToConfigural: !!(m.stepDetail && m.stepDetail.equivalentToConfigural) };
   return { step: null, partial: false, source: "none" };
 }
 
@@ -1166,23 +1227,25 @@ function usable(m){
   return m.problems.length === 0 && m.chi2 !== null && m.df !== null;
 }
 
-/* With ordered-categorical indicators the metric step is not a step of its own:
-   thresholds and loadings are not separately identified in the usual
-   parameterization, and the sequence goes from the configural model to a model
-   that constrains both (Wu and Estabrook, 2016). When every model read has
-   thresholds and no model constrains the loadings alone, the metric step is
-   marked as not applicable and the scalar step follows the configural one. */
+/* A step with no model on it is closed over only when the sequence is one for
+   which the step below it is still the right reference. With ordered categorical
+   indicators the threshold step is a step of its own (Wu & Estabrook, 2016,
+   Proposition 4); when no model in the list constrains the thresholds alone, the
+   model that constrains thresholds and loadings is compared with the configural
+   one, which is the comparison Wu and Estabrook's Proposition 7 defines. */
 function skippedSteps(models){
   var withProfile = models.filter(function(m){ return usable(m) && m.profile && !m.profile.error; });
   if(!withProfile.length) return {};
   var allOrdinal = withProfile.every(function(m){ return m.profile.thresholds; });
-  var anyMetric = withProfile.some(function(m){ return placementOf(m).step === 1; });
-  return (allOrdinal && !anyMetric) ? { 1: "ordered-categorical indicators" } : {};
+  var anyOnStep1 = withProfile.some(function(m){ return placementOf(m).step === 1; });
+  return (allOrdinal && !anyOnStep1)
+    ? { 1: "no model in this list constrains the thresholds alone" } : {};
 }
 
 function buildLadder(models){
   var steps = [], conflicts = [], i;
   for(i = 0; i < STEPS.length; i++) steps.push({ full: null, partial: null, extra: [] });
+  ORDINAL_SEQUENCE = sequenceIsOrdinal(models);
   var skips = skippedSteps(models);
   models.forEach(function(m){
     var pl = placementOf(m);
@@ -1191,18 +1254,29 @@ function buildLadder(models){
        repeating it here as a placement problem would say the same thing twice. */
     if(!usable(m)) return;
     if(pl.step === null){
-      conflicts.push("<b>" + esc(m.title) + "</b> (" + esc(m.fileName) + ") cannot be placed on the ladder: " +
-        (m.tech1
-          ? "its TECHNICAL 1 section was read but the constraints in it could not be interpreted, so which parameters are held equal across groups is unknown."
-          : "its output has no TECHNICAL 1 section, so which parameters are held equal across groups cannot be read.") +
-        " The step of a model comes from those constraints and from nothing else, so this model is left off the ladder and takes part in no comparison. Add <code>TECH1</code> to the OUTPUT command of that input, run it again, and load the new output.");
+      if(m.profile && m.profile.error)
+        conflicts.push("<b>" + esc(m.title) + "</b> (" + esc(m.fileName) + ") is not on the ladder. " + m.profile.error);
+      else
+        conflicts.push("<b>" + esc(m.title) + "</b> (" + esc(m.fileName) + ") cannot be placed on the ladder: " +
+          (m.tech1
+            ? "its TECHNICAL 1 section was read but the constraints in it could not be interpreted, so which parameters are held equal across groups is unknown."
+            : "its output has no TECHNICAL 1 section, so which parameters are held equal across groups cannot be read.") +
+          " The step of a model comes from those constraints and from nothing else, so this model is left off the ladder and takes part in no comparison." +
+          (m.tech1 ? "" : " Add <code>TECH1</code> to the OUTPUT command of that input, run it again, and load the new output."));
+      return;
+    }
+    /* A model with ordered categorical indicators that holds only the loadings
+       equal imposes no testable restriction on the baseline model, so it is not
+       a step and is not placed. */
+    if(pl.equivalentToConfigural){
+      conflicts.push("<b>" + esc(m.title) + "</b> holds the loadings equal across groups and leaves the thresholds free. With ordered categorical indicators a model of that kind is equivalent to the configural model (Wu and Estabrook, 2016, Section 5.2): the invariance of the loadings cannot be tested by itself, so this model is no step of the ladder and enters no comparison. Test threshold invariance first, in a model that constrains the thresholds alone.");
       return;
     }
     var slot = steps[pl.step], role = pl.partial ? "partial" : "full";
     if(slot[role] === null) slot[role] = m;
     else{
       slot.extra.push(m);
-      conflicts.push("Step " + (pl.step + 1) + ", " + STEPS[pl.step].name.toLowerCase() + ", already holds the " + role +
+      conflicts.push("Step " + (pl.step + 1) + ", " + stepName(pl.step).toLowerCase() + ", already holds the " + role +
         " model <b>" + esc(slot[role].title) + "</b>, so <b>" + esc(m.title) + "</b> was left off the ladder. A step holds one full model and at most one partial model, and the step of each comes from the constraints in its own TECH1, so two models with the same constraint set cannot both be placed. Remove one of the two files.");
     }
   });
@@ -1240,24 +1314,54 @@ function containment(A, B){
   for(i = 0; i < kb.length; i++) setB[kb[i]] = 1;
   var onlyA = ka.filter(function(k){ return !setB[k]; });
   var onlyB = kb.filter(function(k){ return !setA[k]; });
-  var added = {}, total = 0;
+  var added = {}, sum = 0;
   CLASSES.forEach(function(cl){
     var key = ex[cl] ? "eqRestrictions" : "restrictions";
     var d = (pb.classes[cl] ? pb.classes[cl][key] : 0) - (pa.classes[cl] ? pa.classes[cl][key] : 0);
     if(d !== 0) added[cl] = d;
-    total += d;
+    sum += d;
   });
   if(!onlyA.length && !onlyB.length)
     return { decided: true, relation: "equal", onlyA: onlyA, onlyB: onlyB,
              reason: "The two models impose exactly the same constraints across groups, so there is nothing to test between them." };
-  if(!onlyA.length)
-    return { decided: true, relation: "BinA", restricted: B, unrestricted: A, added: added, total: total,
-             nAtoms: onlyB.length };
-  if(!onlyB.length)
+  if(!onlyA.length){
+    var freedB = freedIdentifying(pa, pb, ex);
+    return { decided: true, relation: "BinA", restricted: B, unrestricted: A, added: added,
+             total: sum - freedB.n, gross: sum, freed: freedB, nAtoms: onlyB.length };
+  }
+  if(!onlyB.length){
+    var freedA = freedIdentifying(pb, pa, ex);
     return { decided: true, relation: "AinB", restricted: A, unrestricted: B,
-             added: invertAdded(added), total: -total, nAtoms: onlyA.length };
+             added: invertAdded(added), total: -sum - freedA.n, gross: -sum,
+             freed: freedA, nAtoms: onlyA.length };
+  }
   return { decided: true, relation: "crossed", onlyA: onlyA, onlyB: onlyB,
            reason: describeCrossed(A, B, onlyA, onlyB) };
+}
+
+/* The sequence does not only add constraints: it frees the parameters that
+   identified the model one step below. Mplus fixes the factor means at zero in
+   every group until the intercepts or the thresholds are held equal, and under
+   variance identification the factor variances at one until the loadings are;
+   at that step it estimates k − 1 of them. Each parameter freed this way is one
+   degree of freedom given back, so the restrictions read in TECH1 are counted
+   net of them, which is what the difference in degrees of freedom counts. Only
+   the classes that identify the model at this stage are looked at, which are
+   the ones the comparison of the constraint sets already leaves out. */
+function fixedIdentifyingAtoms(prof, ex){
+  var out = {};
+  Object.keys(prof.atoms).forEach(function(k){
+    var q = k.split("|");
+    if(q[3] === "fix" && ex[q[0]]) out[k] = 1;
+  });
+  return out;
+}
+function freedIdentifying(unrestricted, restricted, ex){
+  var fu = fixedIdentifyingAtoms(unrestricted, ex), fr = fixedIdentifyingAtoms(restricted, ex);
+  var names = {}, n = 0;
+  Object.keys(fu).forEach(function(k){ if(!fr[k]){ n++; names[k.split("|")[0]] = 1; } });
+  Object.keys(fr).forEach(function(k){ if(!fu[k]){ n--; names[k.split("|")[0]] = 1; } });
+  return { n: n, classes: Object.keys(names) };
 }
 function invertAdded(added){
   var out = {};
@@ -1284,10 +1388,18 @@ function describeCrossed(A, B, onlyA, onlyB){
     "<b>" + esc(A.title) + "</b> holds equal across groups: " + summarizeAtoms(onlyA) + ", which <b>" + esc(B.title) + "</b> leaves free. " +
     "<b>" + esc(B.title) + "</b> holds equal: " + summarizeAtoms(onlyB) + ", which <b>" + esc(A.title) + "</b> leaves free.";
 }
+/* The singular of each class, so that one added constraint reads "1 intercept"
+   and not "1 intercepts". */
+var CLASS_ONE = {
+  SAT: "loading", INT: "intercept", SOG: "threshold", RES: "residual variance",
+  FCOV: "factor variance or covariance", FMEAN: "factor mean",
+  REG: "regression among factors"
+};
 function addedText(added){
   var parts = [];
   CLASSES.forEach(function(cl){
-    if(added[cl] > 0) parts.push(added[cl] + " " + (CLASS_NAME[cl] || cl));
+    if(added[cl] > 0)
+      parts.push(added[cl] + " " + (added[cl] === 1 ? (CLASS_ONE[cl] || cl) : (CLASS_NAME[cl] || cl)));
   });
   return parts.length ? parts.join(", ") : "no parameter";
 }
@@ -1373,7 +1485,7 @@ function scaledDifference(H0, H1){
     out.error = (out.cd <= 0
       ? "The difference scaling correction is not positive (cd = " + fmt(out.cd, 4) + ")."
       : "The scaled statistic comes out negative (T = " + fmt(numerator / out.cd) + ").") +
-      " This is not a non-significant test: in this form the statistic cannot be referred to a chi-square distribution and nothing follows from it, for either model. The version of Satorra and Bentler (2010) is positive by construction and is the way forward. It needs one further <span class='mp'>M<em>plus</em></span> run of the restricted model in which the unrestricted solution supplies the starting values and estimation stops before the first update (<code>ANALYSIS: ITERATIONS = 0;</code>); its scaling correction factor c10 replaces c of the restricted model in the numerator of cd. That run is not part of an invariance sequence: load the three outputs in the <a href=\"chi-square-difference.html\">model comparison tool</a>, which takes it.";
+      " This is not a non-significant test: in this form the statistic cannot be referred to a chi-square distribution and nothing follows from it, for either model. The remedy is the version of Satorra and Bentler (2010), which is positive by construction. It needs one further <span class='mp'>M<em>plus</em></span> run of the <em>unrestricted</em> model with the estimates of the restricted model as starting values and no iteration, obtained as Asparouhov and Muthén (2013) describe (<code>OUTPUT: SVALUES;</code> in the restricted run, the MODEL command it prints pasted into the unrestricted input, <code>ANALYSIS: CONVERGENCE = 100000000;</code>); the scaling correction factor of that run, c10, takes the place of c1, the factor of the unrestricted model, in the numerator of cd. That run is not part of an invariance sequence: load the three outputs in the <a href=\"chi-square-difference.html\">chi-square difference test page</a>, which takes it.";
     return out;
   }
   out.stat = numerator / out.cd;
@@ -1386,11 +1498,23 @@ function differenceTest(pair){
   if(method === "classical") return classicalDifference(H0, H1);
   if(method === "scaled") return scaledDifference(H0, H1);
   if(method === "difftest"){
-    if(H0.difftest)
+    var ddfPair = H0.df - H1.df;
+    /* A DIFFTEST block belongs to the one comparison whose derivatives file the
+       run read, and since Mplus 6 its degrees of freedom are the difference in
+       the number of free parameters (Asparouhov & Muthén, 2010). A block whose
+       degrees of freedom do not match this pair was written for another
+       unrestricted model and is not reported here. */
+    if(H0.difftest && H0.difftest.df === ddfPair)
       return { kind: "difftest", stat: H0.difftest.value, ddf: H0.difftest.df, p: H0.difftest.p,
-               dfPrinted: H0.df - H1.df };
+               dfPrinted: ddfPair };
+    if(H0.difftest)
+      return { kind: "difftest", error: "The Chi-Square Test for Difference Testing block in <b>" + esc(H0.title) +
+        "</b> is on " + H0.difftest.df + " " + plural(H0.difftest.df, "degree") + " of freedom, while this pair differs by " + ddfPair +
+        ". Such a block belongs to the one comparison whose derivatives file the run read, and since <span class='mp'>M<em>plus</em></span> 6 its degrees of freedom equal the difference in the number of free parameters (Asparouhov &amp; Muthén, 2010), so this one was saved by another unrestricted model and is not used here. Run <b>" +
+        esc(H1.title) + "</b> with <code>SAVEDATA: DIFFTEST = deriv.dat;</code> and then <b>" + esc(H0.title) +
+        "</b> with <code>ANALYSIS: DIFFTEST = deriv.dat;</code>, and load that output." };
     if(H1.difftest)
-      return { kind: "difftest", error: "The DIFFTEST block appears in <b>" + esc(H1.title) + "</b>, the less restricted model. <span class='mp'>M<em>plus</em></span> prints it in the run that reads the derivatives file, which has to be the restricted one. Swap the two runs." };
+      return { kind: "difftest", error: "The DIFFTEST block appears in <b>" + esc(H1.title) + "</b>, the unrestricted model. <span class='mp'>M<em>plus</em></span> prints it in the run that reads the derivatives file, which has to be the restricted one. Swap the two runs." };
     return { kind: "difftest", error: "Neither output carries a Chi-Square Test for Difference Testing block. With " + esc(pair.estimator) + " the printed chi-square is adjusted in mean and variance and its difference is not chi-square distributed, so the test has to come from <span class='mp'>M<em>plus</em></span>: run <b>" + esc(H1.title) + "</b> with <code>SAVEDATA: DIFFTEST = deriv.dat;</code> and then <b>" + esc(H0.title) + "</b> with <code>ANALYSIS: DIFFTEST = deriv.dat;</code>, and load the second output again." +
       ((H0.printedDiffTests || H1.printedDiffTests)
         ? " One of these outputs does carry difference tests that <span class='mp'>M<em>plus</em></span> printed for the abbreviated invariance syntax. The page does not use them, because every test it reports has to name the two models it comes from and be recomputed from their fit statistics; estimate the two models in separate runs with the option above."
@@ -1405,7 +1529,7 @@ function differenceTest(pair){
 
 var METHOD_NAME = {
   classical: "chi-square difference",
-  scaled: "Satorra-Bentler scaled difference (2001)",
+  scaled: "Satorra–Bentler scaled difference (2001)",
   difftest: "DIFFTEST, read from the restricted output",
   nochi2: "none available",
   bayes: "none available",
@@ -1435,9 +1559,9 @@ function buildComparisons(ladder){
         if(!m) return;
         if(!ref){
           out.push({ kind: "across", stepA: stepBelow, stepB: s, models: [null, m], role: role,
-                     refused: "Step " + (stepBelow + 1) + ", " + STEPS[stepBelow].name.toLowerCase() + ", holds no model, so <b>" + esc(m.title) +
-                       "</b> has nothing to be compared with. A comparison with a step further down would skip a level of the ladder and is not made. Load the " +
-                       STEPS[stepBelow].name.toLowerCase() + " model, or give one of the models you loaded that step." });
+                     refused: "Step " + (stepBelow + 1) + ", " + stepName(stepBelow).toLowerCase() + ", holds no model, so <b>" + esc(m.title) +
+                       "</b> has nothing to be compared with. A comparison with a step further down would skip a level of the ladder and is not made. Estimate the " +
+                       stepName(stepBelow).toLowerCase() + " model and load its output; the step of a model is read from its own TECH1 and cannot be set here." });
           return;
         }
         out.push({ kind: "across", stepA: stepBelow, stepB: s, refRole: refRole, role: role,
@@ -1462,8 +1586,13 @@ function evaluateComparison(c){
   c.unrestricted = rel.unrestricted;
   c.added = rel.added;
   c.addedTotal = rel.total;
+  c.freed = rel.freed;
   c.evidence = "TECH1: every constraint of <b>" + esc(c.unrestricted.title) + "</b> also holds in <b>" + esc(c.restricted.title) +
-    "</b>, which adds " + addedText(rel.added) + ".";
+    "</b>, which adds " + addedText(rel.added) +
+    (rel.freed && rel.freed.n > 0
+      ? " and frees " + rel.freed.n + " " + plural(rel.freed.n, "parameter") + " that identified the model one step below (" +
+        rel.freed.classes.map(function(cl){ return CLASS_NAME[cl] || cl; }).join(", ") + ")"
+      : "") + ".";
 
   var chk = checkPair(c.restricted, c.unrestricted);
   c.warnings = chk.warnings;
@@ -1482,7 +1611,8 @@ function evaluateComparison(c){
       return c;
     }
     if(rel.total !== ddf)
-      c.warnings.push("The constraints read in TECH1 add " + rel.total + " " + plural(rel.total, "restriction") +
+      c.warnings.push("The constraints read in TECH1 come to " + rel.total + " " + plural(rel.total, "restriction") +
+        (rel.freed && rel.freed.n > 0 ? " (" + rel.gross + " added, " + rel.freed.n + " given back by the identifying parameters the restricted model frees)" : "") +
         " while the degrees of freedom rise by " + ddf + ". The two counts should agree; check that the two outputs are the models you mean to compare and that no restriction was imposed in MODEL CONSTRAINT.");
     /* With a robust estimator the printed chi-square is already divided by its
        correction factor, so the two values have to be multiplied back before
@@ -1539,6 +1669,13 @@ function guidanceRows(c, ctx){
   /* Rutkowski and Svetina (2014) simulated 10 and 20 groups; their values are
      marked as matching only a design of that size. */
   var many = ctx.nGroups !== null && ctx.nGroups >= 10;
+  /* Every cutoff below was derived with normal continuous indicators, and Chen
+     (2007) and Cheung and Rensvold (2002) with two groups, so a comparison of
+     models with ordered categorical indicators, or with a different number of
+     groups, matches none of them (Svetina, Rutkowski, & Rutkowski, 2020,
+     Table 1). Every row is still listed for reference. */
+  var cont = !ctx.categorical;
+  var two = ctx.nGroups === 2;
   function add(source, condition, index, cutoff, value, higherIsBetter, applies){
     rows.push({ source: source, condition: condition, index: index, cutoff: cutoff,
       value: (value === null || value === undefined) ? null : value, applies: applies,
@@ -1547,11 +1684,11 @@ function guidanceRows(c, ctx){
       higherIsBetter: higherIsBetter });
   }
   add("Cheung and Rensvold (2002)", "two groups, continuous indicators, minimum fit function",
-      "\u0394CFI", -0.010, d.cfi, true, ctx.nGroups === 2);
+      "\u0394CFI", -0.010, d.cfi, true, two && cont);
   (chenCorner === "neither" ? ["large", "small"] : [chenCorner]).forEach(function(corner){
-    var strict = corner === "small", applies = (chenCorner === corner);
-    var cond = strict ? "unequal groups with 300 or fewer cases in each"
-                      : "groups of comparable size with more than 300 cases in each";
+    var strict = corner === "small", applies = two && cont && (chenCorner === corner);
+    var cond = strict ? "two unequal groups, the smaller with 300 or fewer cases"
+                      : "two groups of comparable size, the smaller with more than 300 cases";
     add("Chen (2007)", cond, "\u0394CFI", strict ? -0.005 : -0.010, d.cfi, true, applies);
     add("Chen (2007)", cond, "\u0394RMSEA", strict ? 0.010 : 0.015, d.rmsea, false, applies);
     if(kind !== "intercepts" && kind !== "residuals")
@@ -1564,10 +1701,10 @@ function guidanceRows(c, ctx){
   });
   if(ctx.nGroups === null || ctx.nGroups >= 5){
     var rsCond = "10 or 20 groups of 600 to 6,000 cases each, continuous indicators";
-    add("Rutkowski and Svetina (2014)", rsCond + ", metric step", "\u0394CFI", -0.020, d.cfi, true, many && kind === "loadings");
-    add("Rutkowski and Svetina (2014)", rsCond + ", metric step", "\u0394RMSEA", 0.030, d.rmsea, false, many && kind === "loadings");
-    add("Rutkowski and Svetina (2014)", rsCond + ", scalar step", "\u0394CFI", -0.010, d.cfi, true, many && kind === "intercepts");
-    add("Rutkowski and Svetina (2014)", rsCond + ", scalar step", "\u0394RMSEA", 0.010, d.rmsea, false, many && kind === "intercepts");
+    add("Rutkowski and Svetina (2014)", rsCond + ", metric step", "\u0394CFI", -0.020, d.cfi, true, many && cont && kind === "loadings");
+    add("Rutkowski and Svetina (2014)", rsCond + ", metric step", "\u0394RMSEA", 0.030, d.rmsea, false, many && cont && kind === "loadings");
+    add("Rutkowski and Svetina (2014)", rsCond + ", scalar step", "\u0394CFI", -0.010, d.cfi, true, many && cont && kind === "intercepts");
+    add("Rutkowski and Svetina (2014)", rsCond + ", scalar step", "\u0394RMSEA", 0.010, d.rmsea, false, many && cont && kind === "intercepts");
   }
   add("Meade, Johnson and Braddy (2008)", "a more sensitive criterion, offered beside the others",
       "\u0394CFI", -0.002, d.cfi, true, false);
@@ -1578,10 +1715,15 @@ function guidanceRows(c, ctx){
    the conditions the cutoffs were derived under. */
 function guidanceNote(ctx){
   var per = ctx.minGroupN, out = [];
-  if(per === null)
+  if(ctx.categorical)
+    out.push("The indicators are ordered categorical. Every cutoff listed here was derived with normal continuous indicators, and Svetina, Rutkowski and Rutkowski (2020) advise against carrying those values over unchanged, so none of them is marked as matching this comparison.");
+  if(ctx.nGroups !== null && ctx.nGroups !== 2)
+    out.push("Cheung and Rensvold (2002) and Chen (2007) simulated two groups. This comparison has " + ctx.nGroups +
+      ", so their values are listed for reference and not marked as matching.");
+  else if(per === null)
     out.push("The number of cases in each group could not be read, so it is not known which of the two sets of values proposed by Chen (2007) matches this comparison; both are listed and neither is marked as matching.");
   else if(!((!ctx.unequal && per > 300) || (ctx.unequal && per <= 300)))
-    out.push("Chen (2007) derived one set of values for groups of comparable size with more than 300 cases in each and another for unequal groups with 300 or fewer in each. This comparison has " +
+    out.push("Chen (2007) derived one set of values for two groups of comparable size with more than 300 cases in each and another for two unequal groups with 300 or fewer in each; the condition is read here per group, following Svetina et al. (2020, p. 114). This comparison has " +
       (ctx.unequal ? "unequal groups" : "groups of comparable size") + " with " + per +
       " cases in the smallest, which is neither of the two, so both sets are listed and neither is marked as matching.");
   if(ctx.nGroups !== null && ctx.nGroups >= 5 && ctx.nGroups < 10)
@@ -1640,7 +1782,7 @@ function renderFileList(){
     else meta.push("estimator not read");
     if(m.df !== null) meta.push("df = " + m.df);
     var placed = pl.step !== null
-      ? "step read from TECH1: " + esc(STEPS[pl.step].name.toLowerCase()) + (pl.partial ? ", partial" : "")
+      ? "step read from TECH1: " + esc(stepName(pl.step).toLowerCase()) + (pl.partial ? ", partial" : "")
       : (m.tech1 ? "no step: the constraints in TECH1 could not be interpreted"
                  : "no step: this output has no TECH1 section");
     li.innerHTML =
@@ -1682,13 +1824,15 @@ function renderLadder(ladder){
   h += '<ol class="ladder">';
   ladder.steps.forEach(function(st, i){
     var occupied = st.full || st.partial;
-    var closed = (ladder.skips || {})[i] && !occupied;
+    /* The reason the step is closed over is a sentence, not a flag: printing
+       the flag would put "true" into the text. */
+    var closed = occupied ? null : ((ladder.skips || {})[i] || null);
     h += '<li data-n="' + (i + 1) + '" class="' + (occupied ? "occupied" : "") + '">' +
-      '<span class="step-name">' + esc(STEPS[i].name) + '</span>' +
-      '<p class="step-what">' + esc(STEPS[i].what) + '</p>';
+      '<span class="step-name">' + esc(stepName(i)) + '</span>' +
+      '<p class="step-what">' + esc(stepWhat(i)) + '</p>';
     if(closed){
-      h += '<p class="step-what">Not a step of its own here: with ' + esc(closed) +
-        ' the thresholds and the loadings are not separately identified in the usual parameterization, so the sequence goes from the configural model to one that constrains both (Wu and Estabrook, 2016). The ladder closes over this step and the next one is compared with the configural model.</p>';
+      h += '<p class="step-what">This step is closed over: ' + esc(closed) +
+        '. With ordered categorical indicators Wu and Estabrook (2016) recommend testing the thresholds first, in a model of their own; without such a model the model on the step above is compared with the configural one, which tests the thresholds and the loadings together.</p>';
     }
     h += '<div class="slots">' + slotHtml("Full", st.full, i) + slotHtml("Partial", st.partial, i) + '</div>';
     if(st.extra.length)
@@ -1699,12 +1843,24 @@ function renderLadder(ladder){
   h += '</ol>';
 
   var conflicts = ladder.conflicts.slice();
+  /* Threshold invariance is testable only when each item has three thresholds
+     or more: with binary and ternary items a linear transformation matches the
+     thresholds across groups, so a model with invariant thresholds alone is
+     statistically equivalent to the configural one (Wu and Estabrook, 2016,
+     Section 5.1). */
+  var ordProfiles = MODELS.filter(function(m){ return usable(m) && m.profile && !m.profile.error && m.profile.thresholds; });
+  if(ordProfiles.length){
+    var minThr = Math.min.apply(null, ordProfiles.map(function(m){ return m.profile.minThresholds || 0; }));
+    if(minThr > 0 && minThr < 3)
+      conflicts.push("The items carry " + minThr + " " + plural(minThr, "threshold") + " each, that is " + (minThr + 1) +
+        " categories. Wu and Estabrook (2016) show that with binary or ternary items a model that holds only the thresholds equal across groups is statistically equivalent to the configural model, so the threshold step of this ladder may impose no restriction the configural model does not already meet; read the degrees of freedom of the two models before reporting a test between them.");
+  }
   MODELS.forEach(function(m){
     if(!usable(m)) return;
     var pl = m.placement || placementOf(m);
     if(m.stepDetail && m.stepDetail.holes && m.stepDetail.holes.length)
       conflicts.push("<b>" + esc(m.title) + "</b> constrains " + esc(m.stepDetail.holes.map(function(cl){ return CLASS_NAME[cl]; }).join(" and ")) +
-        " not at all while constraining a class above them. The constraints do not follow the order of the ladder; the model is placed on the highest class it constrains and flagged as partial. Wu and Estabrook (2016) discuss orderings of this kind for ordered-categorical indicators.");
+        " not at all while constraining a class above them, so its constraints do not follow the order of the ladder. The model is placed on the highest class it constrains and flagged as partial; state in the report which class was left free.");
   });
   if(conflicts.length)
     h += statusBox("warn", "Check", "<ul><li>" + conflicts.join("</li><li>") + "</li></ul>");
@@ -1741,8 +1897,8 @@ function renderFit(){
   MODELS.forEach(function(m){
     var pl = m.placement || placementOf(m);
     var scaled = methodOf(m.estimator) === "scaled";
-    h += '<tr><td>' + esc(m.title) + '<br><span class="small">' + esc(m.fileName) + '</span></td>' +
-      '<td>' + (pl.step === null ? (m.tech1 ? "no step: TECH1 unreadable" : "no step: no TECH1") : esc(STEPS[pl.step].name)) +
+    h += '<tr><th scope="row">' + esc(m.title) + '<br><span class="small">' + esc(m.fileName) + '</span></th>' +
+      '<td>' + (pl.step === null ? (m.tech1 ? "no step: TECH1 unreadable" : "no step: no TECH1") : esc(stepName(pl.step))) +
         (pl.partial ? ' <span class="tag-partial">partial</span>' : "") + '</td>' +
       '<td class="num">' + fmtInt(m.npar) + '</td>' +
       '<td class="num">' + fmt(m.chi2) + (scaled && m.scf !== null ? '<span class="small"><br>scaled, c = ' + fmt(m.scf, 4) + '</span>' : "") + '</td>' +
@@ -1823,11 +1979,11 @@ function renderConstraints(){
         loose.push(CLASS_NAME[cl] + ": " + P.classes[cl].loose.slice(0, 8).join(", ").replace(/\|/g, " on ") +
           (P.classes[cl].loose.length > 8 ? ", and " + (P.classes[cl].loose.length - 8) + " more" : ""));
     });
-    h += '<tr><td>' + esc(m.title) + '</td><td>' +
-      (m.stepFromConstraints === null ? "—" : esc(STEPS[m.stepFromConstraints].name) + (m.partial ? " (partial)" : "")) + '</td>';
+    h += '<tr><th scope="row">' + esc(m.title) + '</th><td>' +
+      (m.stepFromConstraints === null ? "—" : esc(stepName(m.stepFromConstraints)) + (m.partial ? " (partial)" : "")) + '</td>';
     SHOWN_CLASSES.forEach(function(cl){
       var identifying = (cl === "FMEAN" || cl === "FCOV" || (cl === "RES" && P.thresholds)) && !gate;
-      h += '<td>' + (identifying ? '<span class="small">fixed to identify the model</span>' : stateLabel(P, cl)) + '</td>';
+      h += '<td>' + (identifying ? '<span class="small">not read as a constraint before the scalar step</span>' : stateLabel(P, cl)) + '</td>';
     });
     h += '<td>' + (loose.length ? esc(loose.join("; ")) : '<span class="small">nothing</span>') + '</td></tr>';
   });
@@ -1839,9 +1995,9 @@ function renderConstraints(){
   var ordinal = withT1.filter(function(m){ return m.profile.thresholds; });
   h += '<p><span class="mp">M<em>plus</em></span> numbers the free parameters group by group and gives the same number to parameters it estimates once for all groups. A class is read as equal in every group when every one of its cells carries one number in each of the ' +
     esc(String(withT1[0].profile.groups.length)) + ' groups, as partial when some cells are left free, and as free when none is constrained. The last column names the cells that were released.</p>';
-  h += '<p>Factor means, factor variances and, with ordered-categorical indicators, the scale factors are fixed at the start of the sequence to identify the model. They are read as constraints only once the loadings and the intercepts or thresholds are constrained; before that the table says so.</p>';
+  h += '<p>Factor means, factor variances and, with ordered categorical indicators, the scale factors or the residual variances of the underlying response variables carry the restrictions that identify the model. Whether they are fixed or free at the foot of the sequence depends on how the model was identified, so the page reads them as invariance constraints only once the loadings and the intercepts or thresholds are constrained; before that the table says so, and the parameters the restricted model frees at that step are subtracted from the count of restrictions in the comparison table.</p>';
   if(ordinal.length)
-    h += '<p>' + esc(String(ordinal.length)) + ' of these outputs use ordered-categorical indicators: the thresholds are read in TAU, the loadings in ' +
+    h += '<p>' + esc(String(ordinal.length)) + ' of these outputs use ordered categorical indicators: the thresholds are read in TAU, the loadings in ' +
       esc(ordinal[0].profile.satMatrix) + ', and the residual variances in DELTA under the delta parameterization or on the diagonal of THETA under the theta parameterization.</p>';
   if(mixed.length)
     h += statusBox("warn", "Equal in some groups only", "In " +
@@ -1868,7 +2024,11 @@ function comparisonContext(c){
     /* Whether the groups are of unequal size is read from the per-group
        sample sizes of the models being compared, not chosen: it decides which
        of the cutoffs proposed by Chen (2007) matches this comparison. */
-    unequal: (sizes.length > 1 && lo > 0) ? (Math.max.apply(null, sizes) / lo > 1.5) : false
+    unequal: (sizes.length > 1 && lo > 0) ? (Math.max.apply(null, sizes) / lo > 1.5) : false,
+    /* The type of indicator is read from TECH1: a model with thresholds has
+       ordered categorical indicators, and the published cutoffs were all
+       derived with continuous ones. */
+    categorical: !!(m && m.profile && !m.profile.error && m.profile.thresholds)
   };
 }
 
@@ -1897,9 +2057,9 @@ function comparisonLabel(c){
   if(c.restricted){
     var rs = (c.restricted.placement || placementOf(c.restricted)),
         us = (c.unrestricted.placement || placementOf(c.unrestricted));
-    return '<b>' + esc(c.unrestricted.title) + '</b> <span class="small">(' + esc(STEPS[us.step].name.toLowerCase()) +
+    return '<b>' + esc(c.unrestricted.title) + '</b> <span class="small">(' + esc(stepName(us.step).toLowerCase()) +
       (us.partial ? ", partial" : "") + ", df = " + fmtInt(c.unrestricted.df) + ')</span><br>→ <b>' + esc(c.restricted.title) +
-      '</b> <span class="small">(' + esc(STEPS[rs.step].name.toLowerCase()) + (rs.partial ? ", partial" : "") + ", df = " + fmtInt(c.restricted.df) + ')</span>';
+      '</b> <span class="small">(' + esc(stepName(rs.step).toLowerCase()) + (rs.partial ? ", partial" : "") + ", df = " + fmtInt(c.restricted.df) + ')</span>';
   }
   var names = (c.pairModels || c.models || []).filter(Boolean).map(function(m){ return "<b>" + esc(m.title) + "</b>"; });
   return names.join(" and ") || "—";
@@ -1930,7 +2090,7 @@ function renderComparisons(comparisons){
     h += '<tr>' +
       '<td>' + comparisonLabel(c) +
         (c.kind === "within" ? '<span class="small"><br>the constraints the partial model releases</span>' : "") +
-        (c.closedOver ? '<span class="small"><br>the ' + esc(STEPS[c.stepB - 1].name.toLowerCase()) + ' step is closed over: ' + esc(c.closedOver) + '</span>' : "") + '</td>' +
+        (c.closedOver ? '<span class="small"><br>the ' + esc(stepName(c.stepB - 1).toLowerCase()) + ' step is closed over: ' + esc(c.closedOver) + '</span>' : "") + '</td>' +
       '<td>' + (c.refused ? '<span class="small">no test</span>' : esc(METHOD_NAME[c.method] || "—")) + '</td>';
     if(c.refused || !c.test || c.test.error){
       h += '<td class="num">—</td><td class="num">' + (c.ddfPrinted ? c.ddfPrinted : "—") + '</td><td class="num">—</td>' +
@@ -1968,9 +2128,9 @@ function renderComparisons(comparisons){
         if(c.test.kind === "scaled")
           h += '<p class="small">cd = ' + fmt(c.test.cd, 4) + ', from c = ' + fmt(c.restricted.scf, 4) + ' in the restricted model and c = ' +
             fmt(c.unrestricted.scf, 4) + ' in the unrestricted one.</p>';
-        if(c.test.kind === "difftest" && c.test.dfPrinted !== undefined && c.test.ddf !== c.test.dfPrinted)
-          h += '<p class="small">The degrees of freedom of the DIFFTEST result (' + c.test.ddf + ') differ from the difference between the printed degrees of freedom (' +
-            c.test.dfPrinted + '). With mean- and variance-adjusted estimators the printed degrees of freedom are adjusted, so the two need not agree; the DIFFTEST value is the one to report.</p>';
+        if(c.test.kind === "difftest")
+          h += '<p class="small">The value comes from the <code>Chi-Square Test for Difference Testing</code> block of ' + esc(c.restricted.title) +
+            ', on ' + c.test.ddf + ' ' + plural(c.test.ddf, "degree") + ' of freedom, which is the difference between the degrees of freedom of the two models. Since <span class="mp">M<em>plus</em></span> 6 those two counts agree for nested models (Asparouhov and Muthén, 2010), and a block whose degrees of freedom do not match the pair is not used here.</p>';
       }
       var g2 = (c.test && !c.test.error) ? guidanceRows(c, comparisonContext(c)) : [];
       if(g2.length){
@@ -2026,7 +2186,7 @@ function renderMI(){
     var present = m.text.indexOf("MODEL MODIFICATION INDICES") >= 0;
     box.innerHTML = statusBox("info", present ? "Nothing above the printing threshold" : "Not requested",
       present
-        ? "The section is there and holds no row: no index reached the threshold at which <span class='mp'>M<em>plus</em></span> prints them, which is lowered by writing <code>MODINDICES (0)</code>. No single constraint comes out as untenable."
+        ? "The section is there and holds no row: no index reached the threshold at which <span class='mp'>M<em>plus</em></span> prints them, which is lowered by writing <code>MODINDICES (0)</code>. No single constraint stands out."
         : "This output has no MODEL MODIFICATION INDICES section. Add <code>MODINDICES</code> to the OUTPUT command and run it again.");
     return;
   }
@@ -2037,7 +2197,7 @@ function renderMI(){
   if(!rows.length){
     box.innerHTML = statusBox("ok", "None above the threshold",
       "No modification index reaches " + fmt(threshold) + (group ? " in group " + esc(group) : "") +
-      ": no single constraint comes out as untenable at that level.");
+      ": no single constraint stands out at that level.");
     return;
   }
   var h = '<div class="table-wrap"><table><caption>Modification indices of ' + esc(m.title) +
@@ -2052,8 +2212,10 @@ function renderMI(){
   h += '</tbody></table></div>';
   if(rows.length > 200) h += '<p class="small">The first 200 of ' + rows.length + ' rows are shown.</p>';
   h += '<p class="small">The largest is <b>' + esc(rows[0].par) + '</b> in group ' + esc(rows[0].group || "—") +
-    ', M.I. = ' + fmt(rows[0].mi) + '. Under an equality constraint across groups the same index appears in every group, with expected changes of opposite sign: it is one constraint, not ' +
-    esc(String(m.nGroups)) + ' of them, and releasing it costs one degree of freedom in total. A high index says where to look, not what to conclude; release one constraint at a time, refit, and report how many were released.</p>';
+    ', M.I. = ' + fmt(rows[0].mi) + '. Under an equality constraint across groups the same index appears in every group' +
+    (m.nGroups === 2 ? ", with expected changes of opposite sign" : "") +
+    ': it is one constraint, not ' + esc(String(m.nGroups)) +
+    ' of them, and releasing it costs one degree of freedom in total. A high index says where to look, not what to conclude; release one constraint at a time, refit, and report how many were released.</p>';
   el("mitable").innerHTML = h;
 }
 
@@ -2319,8 +2481,11 @@ function itemsOf(m){
 
 function renderPlotControls(){
   var sel = el("plotModel"), prev = sel.value;
-  var candidates = MODELS.filter(function(m){ return itemsOf(m).length; });
-  var list = candidates.length ? candidates : MODELS;
+  /* Both figures compare groups, so a run with one group has nothing to draw
+     and is not offered. */
+  var multi = MODELS.filter(function(m){ return groupsWithParams(m).length > 1; });
+  var candidates = multi.filter(function(m){ return itemsOf(m).length; });
+  var list = candidates.length ? candidates : multi;
   sel.innerHTML = list.map(function(m){ return '<option value="' + m.id + '">' + esc(m.title) + '</option>'; }).join("");
   if(prev && list.some(function(m){ return String(m.id) === prev; })) sel.value = prev;
   var m = modelById(+sel.value);
@@ -2409,9 +2574,14 @@ function renderPlot(){
   el("fieldBand").hidden = (type !== "band");
   var host = el("plot"), note = el("plotNote");
   function fail(text){ host.innerHTML = ""; host.style.maxWidth = ""; note.innerHTML = text; }
+  if(!m && MODELS.length){
+    fail("None of the outputs loaded has two or more groups. Both figures compare the groups of one model, so there is nothing to draw: load the output of a run with a GROUPING command.");
+    return;
+  }
   if(!m || !item){
     fail(m
-      ? "This output has no MODEL RESULTS section with parameters per group, so there is nothing to draw. The abbreviated invariance syntax does not write one; estimate the models in separate runs, and ask for <code>STDYX</code> and <code>SAMPSTAT</code>."
+      ? "No MODEL RESULTS section with one block of parameters per group was read in this output, so there is nothing to draw. The figure is built from the unstandardized estimates <span class='mp'>M<em>plus</em></span> prints there." +
+        (m.fromShortcut ? " This model comes from a file written with the abbreviated invariance syntax, which holds several models in one output; estimate the model in a run of its own and load that output." : "")
       : "");
     return;
   }
@@ -2422,7 +2592,8 @@ function renderPlot(){
       (d.thresholds.length ? true : (d.nu !== null && isFinite(d.nu)));
   });
   if(!data.length){
-    fail("No readable parameters for " + esc(item) + " in this model: check that the output prints the loading, the intercept or the thresholds and the factor variance, and that none of them was printed as a row of asterisks. MODEL RESULTS is needed, which the abbreviated invariance syntax does not write.");
+    fail("No readable parameters for " + esc(item) + " in this model: check that the output prints the loading, the intercept or the thresholds and the factor variance under MODEL RESULTS, group by group, and that none of them was printed as a row of asterisks." +
+      (m.fromShortcut ? " This model comes from a file written with the abbreviated invariance syntax; estimate it in a run of its own and load that output." : ""));
     return;
   }
   /* The band and the distribution need a positive residual variance in every
@@ -2436,6 +2607,10 @@ function renderPlot(){
       : "<b>The band and the distribution are not drawn.</b> This output gives neither the residual variance of " + esc(item) +
         " nor a scale factor it could be recovered from, in every group. Ask for the Scales section under the delta parameterization, or for Residual Variances under the theta parameterization. The line of expected values is drawn instead.";
     type = "expected";
+    /* The control has to say what is on the screen, so it is put back to the
+       form that was drawn rather than left on the one that was refused. */
+    el("plotType").value = "expected";
+    el("fieldBand").hidden = true;
   }
   var ordinal = data.some(function(d){ return d.thresholds.length > 0; });
   var marks = el("chkMarks").checked;
@@ -2575,7 +2750,7 @@ function renderPlot(){
     });
   }
 
-  /* thresholds: light reference lines, labelled in the right-hand gutter where
+  /* thresholds: light reference lines, labeled in the right-hand gutter where
      no curve can reach them */
   var gutterLabels = [];
   if(ordinal && type !== "density"){
@@ -2682,7 +2857,7 @@ function renderPlot(){
   msg.push("<b>The caption is drawn into the figure</b>, so the exported SVG and PNG carry it: " +
     esc(caption) + " What follows is not in the figure.");
   if(ordinal)
-    msg.push("The item is ordered-categorical: the vertical axis is the underlying response variable y*, and the light dotted lines are the thresholds" +
+    msg.push("The item is ordered categorical: the vertical axis is the underlying response variable y*, and the light dotted lines are the thresholds" +
       (thrShared ? ", equal in every group" : (thrTrimmed ? " of " + esc(data[0].group) + " alone, since drawing every group's would fill the figure" : " of each group, in the color of that group")) + "." +
       (type !== "expected" ? " The residual variance " + (data.some(function(d){ return d.fromScale; })
         ? "is recovered from the scale factor as <math><mrow><mn>1</mn><mo>/</mo><msup><mi>&#x3B4;</mi><mn>2</mn></msup><mo>&#x2212;</mo><msup><mi>&#x3BB;</mi><mn>2</mn></msup><mi>&#x3C8;</mi></mrow></math>." : "is read as printed.") : ""));
@@ -2731,6 +2906,10 @@ function cellState(m, matrix, cell){
   free.forEach(function(v){ if(!distinct[v]){ distinct[v] = 1; nd++; } });
   if(free.length === nums.length && nd === 1) return "equal";
   if(nd === free.length && free.length === nums.length) return "free";
+  /* A cell free in some groups and fixed in others is not a cell held equal in
+     some groups: the loading that sets the metric of the factor, and the scale
+     factor of the first group, look like this. */
+  if(free.length < nums.length) return "fixedsome";
   return "some";
 }
 
@@ -2812,11 +2991,15 @@ function renderForest(){
   var host = el("forest"), note = el("forestNote");
   function fail(text){ host.innerHTML = ""; host.style.maxWidth = ""; note.innerHTML = text; }
   renderForestControls();
-  if(!m){ fail(""); return; }
+  if(!m){
+    fail(MODELS.length ? "None of the outputs loaded has two or more groups, so this figure has no groups to compare." : "");
+    return;
+  }
   var kind = el("fpar").value;
   var rows = forestRows(m, kind);
   if(!rows.length){
-    fail("This output prints no " + esc(PARAM_INFO[kind].name) + " per group that could be read. MODEL RESULTS with one section per group is needed, which the abbreviated invariance syntax does not write; with the delta parameterization the residual variance is not a free parameter and the scale factors are printed under Scales instead.");
+    fail("This output prints no " + esc(PARAM_INFO[kind].name) + " per group that could be read. MODEL RESULTS with one section per group is needed; with the delta parameterization the residual variance is not a free parameter and the scale factors are printed under Scales instead." +
+      (m.fromShortcut ? " This model comes from a file written with the abbreviated invariance syntax; estimate it in a run of its own and load that output." : ""));
     return;
   }
   var gs = groupsWithParams(m);
@@ -2842,7 +3025,8 @@ function renderForest(){
 
   /* ---- layout ---- */
   var tick = fs * 0.42;
-  var tagFor = { equal: "held equal", fixed: "fixed", some: "equal in some groups", "equal?": "one estimate" };
+  var tagFor = { equal: "held equal", fixed: "fixed", some: "equal in some groups",
+                 fixedsome: "fixed in some groups", "equal?": "one estimate" };
   var labW = 0;
   rows.forEach(function(r){
     labW = Math.max(labW, textW(r.label, fs));
@@ -2956,6 +3140,12 @@ function renderForest(){
       (fixedRows.length === 1 ? "is" : "are") + " fixed by the model rather than estimated (" +
       fixedRows.map(function(r){ return esc(r.label); }).join(", ") +
       "), drawn as an open marker without an interval.");
+  var fixedSome = rows.filter(function(r){ return r.state === "fixedsome"; });
+  if(fixedSome.length)
+    msg.push(fixedSome.length + " " + plural(fixedSome.length, "row") + " " +
+      (fixedSome.length === 1 ? "is" : "are") + " fixed in some groups and free in the rest (" +
+      fixedSome.map(function(r){ return esc(r.label); }).join(", ") +
+      "), which is how the parameter that sets the metric of the factor, or the scale factor of the first group, is printed.");
   if(scaleRow)
     msg.push("Under the delta parameterization the residual variance of the underlying response variable is not a free parameter, so the scale factor δ printed under Scales is shown instead; the residual variance follows as <math><mrow><mn>1</mn><mo>/</mo><msup><mi>&#x3B4;</mi><mn>2</mn></msup><mo>&#x2212;</mo><msup><mi>&#x3BB;</mi><mn>2</mn></msup><mi>&#x3C8;</mi></mrow></math>.");
   msg.push("An interval is the estimate ± 1.96 standard errors, read from MODEL RESULTS. Intervals that do not overlap are a hint and not a test; the difference test between the two models is the test.");
@@ -2998,7 +3188,7 @@ function exportPNG(which){
     var k = Math.sqrt(MAX_CANVAS_PIXELS / (w * hpx)), reduced = Math.max(72, Math.floor(dpi * k));
     w = Math.round(mm / 25.4 * reduced); hpx = Math.round(w * ratio);
     window.alert("At " + dpi + " dpi the image would go past the canvas memory limit of this browser and would be saved blank. The resolution has been reduced to " +
-      reduced + " dpi (" + w + " by " + hpx + " pixels). For the full resolution use the SVG export, which is vectorial.");
+      reduced + " dpi (" + w + " by " + hpx + " pixels). For the full resolution use the SVG export, which is a vector format.");
     dpi = reduced;
   }
   var xml = new XMLSerializer().serializeToString(node), img = new Image();
@@ -3051,6 +3241,10 @@ function copyTable(hostId, stateId){
    ========================================================================= */
 
 function renderAll(){
+  /* The names of the steps depend on the type of indicator, and every part of
+     the page below uses them, so the sequence is named before anything is
+     drawn. */
+  ORDINAL_SEQUENCE = sequenceIsOrdinal(MODELS);
   renderFileList();
   var has = MODELS.length > 0;
   ["secLadder", "secFit", "secConstraints", "secCompare", "secMI", "secPlot", "secForest"].forEach(function(id){
@@ -3063,7 +3257,6 @@ function renderAll(){
     ["miModel", "miGroup", "plotModel", "plotItem"].forEach(function(id){ el(id).innerHTML = ""; });
     el("copyFitState").textContent = ""; el("copyCompState").textContent = "";
     el("labX").value = ""; el("labY").value = "";
-    el("loadStatus").innerHTML = "";
     el("dropHint").textContent = "or press to choose them; several at a time";
     return;
   }
@@ -3093,7 +3286,7 @@ function addParsed(o){
 function loadFiles(files){
   var list = Array.prototype.slice.call(files);
   if(!list.length) return;
-  var pending = list.length, done = 0, failures = [];
+  var pending = list.length, done = 0, failures = [], rejected = [];
   var collected = new Array(pending);
   el("loadStatus").innerHTML = statusBox("info", "Reading", list.length + " " + plural(list.length, "file") + " being read.");
   function finish(){
@@ -3105,13 +3298,19 @@ function loadFiles(files){
     var msgs = [];
     msgs.push(MODELS.length + " " + plural(MODELS.length, "model") + " in the list.");
     if(failures.length) msgs.push("Not read: " + failures.map(esc).join(", ") + ".");
+    rejected.forEach(function(r){ msgs.push("<b>" + esc(r.name) + "</b> " + r.why + ", so it was not put in the list."); });
     if(duplicates.length) msgs.push("The same model appears more than once (" +
       duplicates.map(function(d){ return esc(d[0].fileName) + " and " + esc(d[1].fileName); }).join("; ") +
       "). Two copies of one model land on the same step of the ladder, where only one of them can sit; remove the copy.");
-    el("loadStatus").innerHTML = statusBox(failures.length ? "warn" : "ok",
-      failures.length ? "Read with problems" : "Read", msgs.join(" "));
+    var warned = MODELS.filter(function(m){ return m.nWarnings > 0; });
+    if(warned.length) msgs.push("<span class='mp'>M<em>plus</em></span> printed warnings in " +
+      warned.map(function(m){ return esc(m.fileName) + " (" + m.nWarnings + ")"; }).join(", ") +
+      "; the models stay in the list, and the warnings are to be read in the files before the comparisons are read.");
+    var bad = failures.length || rejected.length;
     el("dropHint").textContent = "press to add more files";
     renderAll();
+    el("loadStatus").innerHTML = statusBox(bad ? "bad" : (warned.length ? "warn" : "ok"),
+      bad ? "Not all the files were read" : (warned.length ? "Read, with warnings" : "Read"), msgs.join(" "));
   }
   list.forEach(function(f, pos){
     function step(){ if(++done === pending) finish(); }
@@ -3132,7 +3331,17 @@ function loadFiles(files){
           if(!made.length) failures.push(f.name);
         }else{
           var o2 = parseOutput(t, f.name);
-          made.push(o2);
+          if(!o2.isMplus){
+            rejected.push({ name: f.name, why: t.trim().length
+              ? "carries none of the headings <span class='mp'>M<em>plus</em></span> always writes, so it is not an output file"
+              : "is empty: <span class='mp'>M<em>plus</em></span> writes the output as the run proceeds, so the run was interrupted or the file was opened before it finished" });
+          }else if(o2.nGroups === 1){
+            rejected.push({ name: f.name, why: "is the output of a single-group run" +
+              (o2.groups && o2.groups.length ? " (" + esc(o2.groups.map(function(g){ return g.name || g; }).join(", ")) + ")" : "") +
+              ", and every model on this page is a comparison between two or more groups" });
+          }else{
+            made.push(o2);
+          }
         }
         collected[pos] = made;
       }catch(e){
@@ -3171,6 +3380,15 @@ el("drop").addEventListener("drop", function(e){
 
 el("btnClear").addEventListener("click", function(){
   MODELS = [];
+  /* Starting again means starting from the defaults: a significance level, a
+     threshold or a class of parameters chosen for one sequence must not decide
+     what the next one shows. */
+  el("selAlpha").value = "0.05";
+  el("miThreshold").value = "6.635";
+  el("fpar").value = "loading";
+  el("plotType").value = "expected";
+  el("plotBand").value = "1";
+  el("fieldBand").hidden = true;
   renderAll();
 });
 el("selAlpha").addEventListener("change", renderAll);
@@ -3234,6 +3452,11 @@ function makeOutput(o){
     if(s === "partial") return index < items.length - 1;   /* the last one is released */
     return false;
   }
+  /* Mplus fixes the factor means at zero in every group while the intercepts or
+     the thresholds are free, and estimates k − 1 of them once those are held
+     equal across groups. The synthetic outputs follow the same rule, so that
+     the constraints in TECH1 and the degrees of freedom agree. */
+  var meansFreed = ["int", "sog"].some(function(k){ return con[k] === "all" || con[k] === "partial"; });
   function vector(name, cells, values){
     var out = "\n           " + name + "\n", i, j;
     for(i = 0; i < cells.length; i += block){
@@ -3398,7 +3621,8 @@ function makeOutput(o){
       });
       res.push("");
       res.push(" Means");
-      res.push(row("F", con.fmean ? 0.000 : pick(gi, "alpha", 0, gi === 0 ? 0.000 : 0.300 * gi), gi === 0 || con.fmean ? 0.000 : 0.070));
+      res.push(row("F", (con.fmean || !meansFreed) ? 0.000 : pick(gi, "alpha", 0, gi === 0 ? 0.000 : 0.300 * gi),
+                     (gi === 0 || con.fmean || !meansFreed) ? 0.000 : 0.070));
       res.push("");
       if(ordinal){
         res.push(" Thresholds");
@@ -3464,14 +3688,14 @@ function makeOutput(o){
       body += matrix("THETA", items, items, function(r, c){
         if(r !== c) return 0;
         var i = items.indexOf(r);
-        /* With ordered-categorical indicators and the theta parameterization the
+        /* With ordered categorical indicators and the theta parameterization the
            residual variance of y* is fixed at 1 in the first group and free in
            the others, and fixed in every group once strict invariance is asked
            for. With continuous indicators it is an ordinary free parameter. */
         if(ordinal) return con.res === "all" ? 0 : (gi === 0 ? 0 : number("THETAF|" + r + "|" + gi, false));
         return number("THETA|" + r, stateFor("res", i));
       });
-    body += vector("ALPHA", ["F"], [con.fmean ? 0 : (gi === 0 ? 0 : number("ALPHA|F|" + gi, false))]);
+    body += vector("ALPHA", ["F"], [(con.fmean || !meansFreed || gi === 0) ? 0 : number("ALPHA|F|" + gi, false)]);
     body += matrix("PSI", ["F"], ["F"], function(){
       return con.fcov ? number("PSI|F", true) : (opt.fixFirstVariance && gi === 0 ? 0 : number("PSI|F|" + gi, false));
     });
@@ -3600,6 +3824,24 @@ function runSelfTest(quick){
   near("comparison: the classical difference", cm.test.stat, 4.0, 1e-9);
   same("comparison: the added restrictions match the degrees of freedom", cm.addedTotal, cm.ddfPrinted);
   near("comparison: the change in CFI", cm.deltas.cfi, 0.993 - 0.995, 1e-12);
+  /* The scalar step adds four intercept constraints and frees the k − 1 factor
+     means that identified the model below it, so the count of restrictions is
+     three, which is the difference in degrees of freedom. */
+  var sm = byPair["metric>scalar"];
+  same("the scalar step adds four intercepts", sm.added.INT, 4);
+  same("the scalar step frees the factor mean of the second group", sm.freed.n, 1);
+  same("the freed parameter is a factor mean", sm.freed.classes.join(","), "FMEAN");
+  same("the restrictions are counted net of it", sm.addedTotal, 3);
+  same("and that is the difference in degrees of freedom", sm.addedTotal, sm.ddfPrinted);
+  ok("so no mismatch is reported", (sm.warnings || []).join(" ").indexOf("should agree") < 0);
+  var sp = byPair["metric>scalarPart"];
+  same("a partial scalar model frees it as well", sp.addedTotal, sp.ddfPrinted);
+  var ss = byPair["scalarPart>scalar"];
+  same("between two models of the same step nothing is freed", ss.freed.n, 0);
+  same("and one intercept separates them", ss.addedTotal, 1);
+  var st3 = byPair["scalar>strict"];
+  same("the strict step adds four residual variances and frees nothing", st3.addedTotal, 4);
+  same("which is the difference in degrees of freedom", st3.addedTotal, st3.ddfPrinted);
 
   /* the same assignment twice gives the same ladder */
   var again = buildLadder(models);
@@ -3610,16 +3852,22 @@ function runSelfTest(quick){
        return [s.full ? s.full.title : null, s.partial ? s.partial.title : null];
      })));
 
-  /* 4b. Ordered-categorical indicators: the metric step is closed over */
+  /* 4b. Ordered categorical indicators. Wu and Estabrook (2016) show that a
+         model with invariant loadings alone is equivalent to the baseline
+         model (p. 1026) and recommend testing the thresholds first (p. 1037),
+         so the second step is threshold invariance (Proposition 4) and the
+         third is thresholds and loadings (Proposition 7). */
   var ordConf = parseOutput(makeOutput({ title:"ordinal configural", ordinal:true, estimator:"WLSMV",
     con:{}, df:20, chi2:18.2, npar:30, wrmr:0.812 }), "o1.out");
   var ordScal = parseOutput(makeOutput({ title:"ordinal scalar", ordinal:true, estimator:"WLSMV",
-    con:{ sat:"all", sog:"all" }, df:27, chi2:31.4, npar:23, wrmr:1.014,
-    difftest:{ value:12.8, df:7, p:0.0771 } }), "o2.out");
+    con:{ sat:"all", sog:"all" }, df:26, chi2:31.4, npar:24, wrmr:1.014,
+    difftest:{ value:12.8, df:6, p:0.0771 } }), "o2.out");
   same("ordinal: the configural model is on step 0", ordConf.stepFromConstraints, 0);
-  same("ordinal: the scalar model is on step 2", ordScal.stepFromConstraints, 2);
+  same("ordinal: thresholds and loadings sit on step 2", ordScal.stepFromConstraints, 2);
   var ordLadder = buildLadder([ordConf, ordScal]);
-  ok("ordinal: the metric step is closed over", !!ordLadder.skips[1]);
+  ok("ordinal: the empty threshold step is closed over", !!ordLadder.skips[1]);
+  same("ordinal: the reason the step is closed over is a sentence", typeof ordLadder.skips[1], "string");
+  same("ordinal: step 2 is named for the thresholds", stepName(1), "Threshold");
   var ordComps = buildComparisons(ordLadder).map(evaluateComparison);
   var ordMade = ordComps.filter(function(c){ return !c.refused; });
   ok("ordinal: the comparison is made", ordMade.length === 1,
@@ -3629,12 +3877,46 @@ function runSelfTest(quick){
     near("ordinal: the DIFFTEST value is used", ordMade[0].test.stat, 12.8, 1e-9);
     same("ordinal: the configural model is the unrestricted one", ordMade[0].unrestricted.title, "ordinal configural");
   }
-  /* with a metric model in the list the step is no longer closed over */
-  var ordMetric = parseOutput(makeOutput({ title:"ordinal metric", ordinal:true, estimator:"WLSMV",
-    con:{ sat:"all" }, df:23, chi2:24.0, npar:27, wrmr:0.9 }), "o3.out");
-  same("ordinal: a loadings-only model is on the metric step", ordMetric.stepFromConstraints, 1);
-  ok("ordinal: with a metric model the step is not closed over",
-     !buildLadder([ordConf, ordMetric, ordScal]).skips[1]);
+  /* a model that constrains the thresholds alone is the step of its own */
+  var ordThr = parseOutput(makeOutput({ title:"ordinal thresholds", ordinal:true, estimator:"WLSMV",
+    con:{ sog:"all" }, df:23, chi2:24.0, npar:27, wrmr:0.9,
+    difftest:{ value:6.4, df:3, p:0.0937 } }), "o3.out");
+  same("ordinal: the number of thresholds per item is read from TECH1", ordConf.profile.minThresholds, 1);
+  same("ordinal: a thresholds-only model is on the threshold step", ordThr.stepFromConstraints, 1);
+  ok("ordinal: a thresholds-only model is not flagged as out of order", ordThr.partial === false);
+  var ordFull = buildLadder([ordConf, ordThr, ordScal]);
+  ok("ordinal: with a threshold model the step is not closed over", !ordFull.skips[1]);
+  same("ordinal: the threshold step holds it", ordFull.steps[1].full.title, "ordinal thresholds");
+  var ordSeq = buildComparisons(ordFull).map(evaluateComparison).filter(function(c){ return !c.refused; });
+  ok("ordinal: the sequence is configural to thresholds to thresholds and loadings",
+     ordSeq.length === 2 &&
+     ordSeq[0].unrestricted.title === "ordinal configural" && ordSeq[0].restricted.title === "ordinal thresholds" &&
+     ordSeq[1].unrestricted.title === "ordinal thresholds" && ordSeq[1].restricted.title === "ordinal scalar",
+     ordSeq.map(function(c){ return c.unrestricted.title + ">" + c.restricted.title; }).join(" | "));
+  /* a model that constrains the loadings alone is equivalent to the baseline
+     model, so it is no step and enters no comparison */
+  var ordLoad = parseOutput(makeOutput({ title:"ordinal loadings only", ordinal:true, estimator:"WLSMV",
+    con:{ sat:"all" }, df:23, chi2:24.0, npar:27, wrmr:0.9 }), "o4.out");
+  same("ordinal: a loadings-only model is not a step above the configural one", ordLoad.stepFromConstraints, 0);
+  ok("ordinal: a loadings-only model is reported as equivalent to the configural model",
+     ordLoad.stepDetail.equivalentToConfigural === true);
+  var ordLoadLadder = buildLadder([ordConf, ordLoad, ordScal]);
+  ok("ordinal: it is left off the ladder", !ordLoadLadder.steps[0].partial &&
+     ordLoadLadder.steps[0].full.title === "ordinal configural" &&
+     ordLoadLadder.conflicts.join(" ").indexOf("equivalent to the configural model") > 0);
+  ok("ordinal: it enters no comparison",
+     buildComparisons(ordLoadLadder).map(evaluateComparison).every(function(c){
+       return !c.restricted || (c.restricted.title !== "ordinal loadings only" && c.unrestricted.title !== "ordinal loadings only");
+     }));
+  /* a DIFFTEST block is reported only for the pair its degrees of freedom
+     belong to: the block in the thresholds-and-loadings run was written
+     against the thresholds model, not against the configural one */
+  var wrongPair = differenceTest({ restricted: ordScal, unrestricted: ordThr, method: "difftest", estimator: "WLSMV" });
+  ok("a DIFFTEST block whose degrees of freedom do not match the pair is not used",
+     !!wrongPair.error && wrongPair.stat === undefined);
+  var rightPair = differenceTest({ restricted: ordScal, unrestricted: ordConf, method: "difftest", estimator: "WLSMV" });
+  near("a DIFFTEST block whose degrees of freedom match the pair is used", rightPair.stat, 12.8, 1e-9);
+  same("its degrees of freedom are the difference between the two models", rightPair.ddf, ordScal.df - ordConf.df);
 
   /* 5. Randomized constraint configurations */
   var rounds = quick ? 120 : 600, bad = 0, notes = [];
@@ -3867,6 +4149,37 @@ function runSelfTest(quick){
      guidanceRows({ added: { SAT: 3 }, deltas: { cfi: -0.004 } },
                   { minGroupN: 400, n: 1200, nGroups: 3, unequal: false })
        .filter(function(r){ return r.source.indexOf("Cheung") === 0 && r.applies; }).length === 0);
+  /* Every published cutoff was derived with normal continuous indicators, and
+     Chen (2007) and Cheung and Rensvold (2002) with two groups. */
+  var catCtx = { minGroupN: 400, n: 800, nGroups: 2, unequal: false, categorical: true };
+  var catRows = guidanceRows({ added: { SOG: 4 }, deltas: { cfi: -0.004, rmsea: 0.005, srmr: 0.01 } }, catCtx);
+  ok("with ordered categorical indicators no cutoff is marked as matching",
+     catRows.length > 0 && catRows.filter(function(r){ return r.applies; }).length === 0);
+  ok("but every cutoff is still listed",
+     catRows.filter(function(r){ return r.source.indexOf("Chen") === 0; }).length > 0);
+  ok("and the note says why", guidanceNote(catCtx).indexOf("ordered categorical") > 0);
+  ok("with three groups Chen's values do not match",
+     guidanceRows({ added: { INT: 4 }, deltas: { cfi: -0.004 } },
+                  { minGroupN: 400, n: 1200, nGroups: 3, unequal: false })
+       .filter(function(r){ return r.source.indexOf("Chen") === 0 && r.applies; }).length === 0);
+  ok("with twelve groups Chen's values do not match either",
+     guidanceRows({ added: { SAT: 3 }, deltas: { cfi: -0.004 } },
+                  { minGroupN: 800, n: 9600, nGroups: 12, unequal: false })
+       .filter(function(r){ return r.source.indexOf("Chen") === 0 && r.applies; }).length === 0);
+  ok("with ordered categorical indicators the many-group values do not match",
+     guidanceRows({ added: { SAT: 3 }, deltas: { cfi: -0.004 } },
+                  { minGroupN: 800, n: 8000, nGroups: 10, unequal: false, categorical: true })
+       .filter(function(r){ return r.source.indexOf("Rutkowski") === 0 && r.applies; }).length === 0);
+  /* The two pages state Chen's condition in the same words: per group, with the
+     smallest group compared with 300, and the two corners conjunctive. */
+  ok("Chen's condition is read from the smallest group",
+     guidanceRows({ added: { SAT: 3 }, deltas: { cfi: -0.004 } },
+                  { minGroupN: 200, n: 800, nGroups: 2, unequal: true })
+       .filter(function(r){ return r.source.indexOf("Chen") === 0 && r.applies && Math.abs(r.cutoff + 0.005) < 1e-12; }).length === 1);
+  ok("unequal groups with a large smallest group match neither corner",
+     guidanceRows({ added: { SAT: 3 }, deltas: { cfi: -0.004 } },
+                  { minGroupN: 600, n: 2400, nGroups: 2, unequal: true })
+       .filter(function(r){ return r.source.indexOf("Chen") === 0 && r.applies; }).length === 0);
 
   /* 11. The ladder refuses what does not nest */
   var g2t = [{ name: "G1", n: 400 }, { name: "G2", n: 400 }];
@@ -3949,8 +4262,8 @@ function runSelfTest(quick){
      firstMade([wc, wm]).test.error.indexOf("SAVEDATA: DIFFTEST") > 0);
   near("WLSMV with the DIFFTEST block uses the printed value", firstMade([wc, wmD]).test.stat, 7.4, 1e-9);
   same("WLSMV with the DIFFTEST block uses its degrees of freedom", firstMade([wc, wmD]).test.ddf, 3);
-  ok("a DIFFTEST block in the less restricted output is reported as being in the wrong run",
-     firstMade([wcD, wm]).test.error.indexOf("less restricted") > 0);
+  ok("a DIFFTEST block in the unrestricted output is reported as being in the wrong run",
+     firstMade([wcD, wm]).test.error.indexOf("the unrestricted model") > 0);
   /* the estimator that was not read */
   var noEst = mk2({ title: "noest", noEstimatorLine: true, con: {}, df: 24, chi2: 20 });
   var noEst2 = mk2({ title: "noest2", noEstimatorLine: true, con: { sat: "all" }, df: 27, chi2: 26 });
@@ -3978,7 +4291,7 @@ function runSelfTest(quick){
     same("the released constraint is the one tested", within[0].addedTotal, 1);
     same("the partial model is the unrestricted one", within[0].unrestricted.title, "scalarP");
   }
-  /* ordered-categorical indicators, both parameterizations */
+  /* ordered categorical indicators, both parameterizations */
   ["delta", "theta"].forEach(function(par){
     var oc = mk2({ title: "oc" + par, ordinal: true, parameterization: par, estimator: "WLSMV",
                    con: {}, df: 24, chi2: 20, wrmr: 0.9 });
@@ -4112,6 +4425,20 @@ function runSelfTest(quick){
   same("the intercept the model releases is not marked as held equal", intRows[3].state, "free");
   ok("the intercepts the model holds equal are marked",
      intRows.slice(0, 3).every(function(r){ return r.state === "equal"; }));
+  /* A cell fixed in one group and free in the others is not a cell held equal
+     in some of them: the scale factors of the delta parameterization are the
+     ordinary case. */
+  MODELS = [];
+  addParsed(parseOutput(makeOutput({ title: "delta model", groups: figGroups, ordinal: true,
+    parameterization: "delta", estimator: "WLSMV", con: {}, df: 24, chi2: 20, wrmr: 0.9 }), "delta.out"));
+  var scaleRows = forestRows(MODELS[0], "residual");
+  ok("a scale factor fixed in the first group alone is marked as fixed in some groups",
+     scaleRows.length > 0 && scaleRows.every(function(r){ return r.state === "fixedsome"; }),
+     scaleRows.map(function(r){ return r.label + ":" + r.state; }).join(" "));
+  MODELS = [];
+  addParsed(parseOutput(makeOutput({ title: "forest model", groups: figGroups,
+    con: { sat: "all", int: "partial" }, df: 30, chi2: 33 }), "for.out"));
+  fm = MODELS[0];
   /* the drawing itself */
   renderAll();
   var fig1 = el("plot").querySelector("svg"), fig2 = el("forest").querySelector("svg");
@@ -4203,7 +4530,7 @@ renderAll();
 </script>
 <script>
 /* A table wider than the box that holds it scrolls inside that box. The shadow
-   at the edge of the box is a colour cue on its own, so the same thing is said
+   at the edge of the box is a color cue on its own, so the same thing is said
    in a line under the box, and the box is made focusable and given the name of
    the table, so that it can also be scrolled from the keyboard. */
 (function(){
@@ -4240,6 +4567,136 @@ renderAll();
     new MutationObserver(later).observe(document.getElementById("main") || document.body,
       { childList: true, subtree: true });
   }
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>

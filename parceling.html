@@ -37,14 +37,14 @@
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Item parceling</h1>
+  <h1>Item Parceling</h1>
   <p class="lede">This page builds item parcels for a latent construct by the strategies set out by Little, Rioux, Odejimi and Stickley (2022), inspects how far the parcels are balanced in strength and in size, and writes the M<em>plus</em> <code>DEFINE</code> syntax that creates them together with a measurement model skeleton. The item names, their loadings, the facet each item belongs to and the pairs of items that share variance beyond the factor are all read from the output of the item-level model; nothing about the items is typed on this page.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: STDYX MODINDICES;</code> on an item-level model fitted first. The standardized loadings are what the balancing strategy orders the items by, and the modification indices are what the purposeful strategy uses to decide which items belong in the same parcel. Little, Rioux, Odejimi and Stickley (2022) treat the item-level model as the step that comes before any parcel is built.
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: STDYX MODINDICES;</code> on an item-level model fitted first. The standardized loadings are what the balancing strategy orders the items by, and the modification indices are what the purposeful strategy uses to decide which items belong in the same parcel. Little, Rioux, Odejimi and Stickley (2022) treat the item-level model as the step that comes before any parcel is built. A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
   </div>
 </header>
 
-<main id="main">
+<main id="main" tabindex="-1">
 
 <div id="selftest-banner" hidden></div>
 
@@ -54,7 +54,7 @@
     <li>Fit the model at the item level in M<em>plus</em>, with every item as an indicator of the construct it belongs to, and add this line to the input file, exactly as it is written here: <code>OUTPUT: STDYX MODINDICES;</code></li>
     <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the same folder as the input.</li>
     <li>Drag the <code>.out</code> file onto the box below, or click that box, or move the focus to it and press Enter, to choose the file from your computer. It is read inside your browser and nothing leaves your computer.</li>
-    <li>Choose whose items are to be parceled: one factor, or every factor at once with each factor taken as a facet of one construct. The item names, their standardized loadings and their facet all come from that choice.</li>
+    <li>Choose which items are to be parceled: those of one factor, or those of every factor at once, each factor then taken as a facet of one construct. The item names, their standardized loadings and their facet all come from that choice.</li>
     <li>Choose how the items are to be allocated, how many parcels are wanted, and whether a parcel is the mean or the sum of its items. These are decisions about the scheme, not values from the file.</li>
     <li>Press <em>Build the parcels from this file</em>, then read the allocation table, the M<em>plus</em> input written under it, and the paragraph that describes what was done.</li>
   </ol>
@@ -63,10 +63,10 @@
 
 <section aria-labelledby="h-file">
   <h2 id="h-file">Load the M<em>plus</em> output</h2>
-  <div class="drop" id="drop" tabindex="0" role="button" aria-describedby="drop-hint">
+  <div class="drop" id="drop">
     <strong>Drop the M<em>plus</em> <code>.out</code> file of the item-level model here</strong>, or press Enter to choose one.
     <label class="visually-hidden" for="file">M<em>plus</em> output file of the item-level model</label>
-    <input type="file" id="file" accept=".out,.txt,text/plain">
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
     <span class="file-name" id="file-name"></span>
   </div>
   <p id="drop-hint" class="hint">Windows-1252, UTF-8 and UTF-16 output files are all decoded. Only the first group of a multiple-group output is read.</p>
@@ -183,20 +183,21 @@
   </div>
 </section>
 
-<section class="tracks" aria-labelledby="h-when">
-  <h2 id="h-when">When parceling is appropriate and when it distorts the model</h2>
+<details class="fold" id="fold-h-when">
+  <summary><h2 id="h-when">When parceling is appropriate and when it distorts the model</h2></summary>
+  <div class="fold-body">
 
   <p>Everything in this section is an account of what the cited authors argue. None of it is a rule, and none of it settles a particular application.</p>
 
   <h3>The question the decision turns on</h3>
-  <p>Little, Rioux, Odejimi and Stickley (2022) put the decision on the aim of the analysis. If the aim is to study the behavior of the items — developing an instrument, examining how a particular item works — parceling should not be done, because the items are the object of study. If the aim is to model the relationships among latent variables, they treat parceling as a viable technique for recovering population values, and refer that conclusion to Little, Cunningham, Shahar and Widaman (2002). The same authors state that a parceling scheme has to be justified, executed well, and reported transparently, and that misguided parceling is never recommended.</p>
+  <p>Little, Rioux, Odejimi and Stickley (2022) make the decision turn on the aim of the analysis. If the aim is to study the behavior of the items — developing an instrument, examining how a particular item works — parceling should not be done, because the items are the object of study. If the aim is to model the relationships among latent variables, they treat parceling as a viable technique for recovering population values, and refer that conclusion to Little, Cunningham, Shahar and Widaman (2002). The same authors state that a parceling scheme has to be justified, executed well, and reported transparently, and that a parceling scheme chosen without a rationale is not recommended.</p>
 
   <h3>The items in a parcel have to be unidimensional</h3>
-  <p>The strategies for a unidimensional item set — random assignment, purposeful parceling, the balancing technique — are described by Little, Rioux, Odejimi and Stickley (2022) for items that measure one construct. Random assignment in particular is said to rest on the strong assumption that the items are interchangeable in the population, and to be recommended for unidimensional indicators, or for a large set of items with high communality, with sampling variability low; the sample size they attach to that condition is above about 200. When items are not interchangeable, the allocation is no longer arbitrary and the choice of allocation begins to matter.</p>
-  <p>The consequence of parceling items that are not unidimensional is the main argument against parceling that these authors report, and they attribute it to Bandalos (2002): with multidimensional or multifaceted constructs, parcels can bias the estimated factor loadings in the measurement model and confuse the interpretation of the structural relations. Their own position is that this holds when parcels are created randomly or improperly, and that parcels built by a strategy suited to the dimensionality of the items — the two multidimensional strategies below — can make the structure of a multidimensional construct easier rather than harder to interpret, a position they attribute to Graham, Tatterson and Widaman (2000).</p>
+  <p>The strategies for a unidimensional item set — random assignment, purposeful parceling, the balancing technique — are described by Little, Rioux, Odejimi and Stickley (2022) for items that measure one construct. Random assignment in particular is said to rest on the strong assumption that the items are interchangeable in the population, and to be recommended for unidimensional indicators, or for a large set of items with high communality, when sampling variability is low; the sample size they attach to that condition is above about 200. When items are not interchangeable, the allocation is no longer arbitrary and the choice of allocation begins to matter.</p>
+  <p>The arguments against parceling are reviewed at length in Little, Cunningham, Shahar and Widaman (2002) and Matsunaga (2008), to which Little, Rioux, Odejimi and Stickley (2022) refer. The consequence of parceling items that are not unidimensional is the main argument against parceling that these authors report, and they attribute it to Bandalos (2002): with multidimensional or multifaceted constructs, parcels can bias the estimated factor loadings in the measurement model and confuse the interpretation of the structural relations. Their own position is that this holds when parcels are created randomly or improperly, and that parcels built by a strategy suited to the dimensionality of the items — the two multidimensional strategies below — can make the structure of a multidimensional construct easier rather than harder to interpret, a position they attribute to Graham, Tatterson and Widaman (2000).</p>
 
   <h3>What to do with a multidimensional item set</h3>
-  <p>Little, Rioux, Odejimi and Stickley (2022) describe two schemes, and the choice between them is a choice about what the latent construct is to mean. In facet-representative parceling, the items of one facet go into one parcel, so the uniqueness of the facet is isolated inside that parcel and the common factor captures only what the facets share; this is an implicit way of estimating what would otherwise be a higher-order model, and they recommend it when the interest is in the higher-order construct alone. In domain-representative parceling, the items of each facet are spread over the parcels, so the secondary variance becomes common to the parcels and enters the latent factor along with the original common variance; they recommend it when each facet's specific variance is expected to relate to other constructs in the model beyond the variance the facets share, referring that recommendation to Kishton and Widaman (1994) and Little, Rhemtulla, Gibson and Schoemann (2013). They also report that in the comparison of the two schemes on an Internal–External Locus of Control measure by Kishton and Widaman (1994) the domain-representative scheme performed better.</p>
+  <p>Little, Rioux, Odejimi and Stickley (2022) describe two schemes, and the choice between them is a choice about what the latent construct is to mean. Both have older names, which they list: the first has been called homogeneous parceling, the isolated uniqueness strategy (Hall, Snell &amp; Foust, 1999) and factored homogeneous item dimensions (Comrey, 1961); the second heterogeneous parceling and the distributed uniqueness strategy (Hall, Snell &amp; Foust, 1999), and its present name comes from Kishton and Widaman (1994). In facet-representative parceling, the items of one facet go into one parcel, so the uniqueness of the facet is isolated inside that parcel and the common factor captures only what the facets share; this is an implicit way of estimating what would otherwise be a higher-order model, and they recommend it when the interest is in the higher-order construct alone. In domain-representative parceling, the items of each facet are spread over the parcels, so the secondary variance becomes common to the parcels and enters the latent factor along with the original common variance; they recommend it when each facet's specific variance is expected to relate to other constructs in the model beyond the variance the facets share, referring that recommendation to Kishton and Widaman (1994) and Little, Rhemtulla, Gibson and Schoemann (2013). They also report that in the comparison of the two schemes on an Internal–External Locus of Control measure by Kishton and Widaman (1994) the domain-representative scheme performed better.</p>
 
   <h3>The effect on fit and on parameter estimates</h3>
   <p>Two effects are separated in the source. The first is that fit improves. Little, Rioux, Odejimi and Stickley (2022) report the demonstration in their own Section 3, where an item-level model with poor fit becomes a parcel-level model with good fit, and they attribute a general version of the finding to Landis, Beal and Tesluk (2000): improvements in fit are generally the result of a stronger measurement model. They also note that a model with four parceled indicators per construct rather than three is overidentified and that the extra degrees of freedom typically produce an arbitrary improvement in fit.</p>
@@ -206,10 +207,12 @@
   <h3>What they recommend reporting</h3>
   <p>The review of the developmental literature in Section 5 of Little, Rioux, Odejimi and Stickley (2022) found that reporting was often incomplete, and states what a report should contain: the results of the preliminary analyses used to inform the strategy, such as an item-level exploratory or confirmatory factor analysis; a rationale for the technique and for the number of parcels; and the items combined in each parcel. Where space does not allow it, they suggest supplementary materials. On checking the parcels against the items, they recommend modeling the data at the item level first, to identify the causes of misspecification and to inform how the parcels are built, attributing that recommendation to Bandalos and Finney (2001), Little, Rhemtulla, Gibson and Schoemann (2013) and Rhemtulla (2016); and they recommend examining local misfit in the parcel-level model, noting that the RMSEA and the SRMR were found by Rhemtulla (2016) to increase in parcel-level models relative to item-level models when there was misspecification.</p>
   <p>Two further pieces of guidance from the same source bear on what this page writes. They recommend averaging the items rather than summing them, so that the parcel keeps the metric of the response scale; with effects-coded scaling the mean of the construct is then the mean of the items. And they recommend against proration, that is against averaging the items that are present when some are missing, on the ground that proration is a within-person mean imputation whose assumptions are often untenable and which is associated with bias even under data missing completely at random, referring to Lee, Bartholow, McCarthy, Pedersen and Sher (2015), Mazza, Enders and Ruehlman (2015) and Schafer and Graham (2002). Their suggestion is that the parcel be computed only when all its items are present, and that the incomplete items be entered as auxiliary variables when full information maximum likelihood is used.</p>
-</section>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-guide">
-  <h2 id="h-guide">How many parcels, and how many items in each</h2>
+<details class="fold" id="fold-h-guide">
+  <summary><h2 id="h-guide">How many parcels, and how many items in each</h2></summary>
+  <div class="fold-body">
   <p>These are the recommendations of Little, Rioux, Odejimi and Stickley (2022), reported as such.</p>
   <ul>
     <li>Three parcels per construct is the configuration they call optimum. With three indicators the construct is just identified once a scaling constraint is chosen, so there are no within-construct degrees of freedom and all the misfit of the model is between constructs.</li>
@@ -218,13 +221,15 @@
     <li>The number of items in a parcel does not have to be the same for every parcel, and not every item has to be assigned to a parcel. An item that sits at the center of the construct — their example is “I feel lonely” in a loneliness scale — can be left as an indicator on its own.</li>
     <li>They give no minimum number of items per parcel. Their examples run from two items upward, and their remark on designing a measure with parceling in mind is that multiples of three are a good starting point for the number of items, with at least three indicators for each subscale.</li>
   </ul>
-</section>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-methods">
-  <h2 id="h-methods">Methods and procedures</h2>
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and procedures</h2></summary>
+  <div class="fold-body">
   <p>Each strategy below is the procedure described in the section of Little, Rioux, Odejimi and Stickley (2022) named with it, together with the rules this page uses to settle the cases the description leaves open. Those rules are marked as such.</p>
   <h3>Reading the output file</h3>
-  <p>Everything about the items is read from the <code>.out</code> file of the item-level model, and nothing about them can be entered on this page. The <code>STDYX Standardization</code> section supplies the item names and their standardized loadings, SUMMARY OF ANALYSIS supplies the name of the data file that the written input then names in turn, and MODEL MODIFICATION INDICES supplies the pairs of items the purposeful strategy keeps together. Windows-1252, UTF-8 and UTF-16 encodings are decoded, Fortran <code>D</code> exponents are accepted, an estimate printed with asterisks in place of its standard error is still read, and the <code>999.000</code> sentinel, which M<em>plus</em> prints for a quantity it could not compute, is discarded rather than read as a loading of 999. Only the first group of a multiple-group output is read, and when the invariance shortcut has written several models into one file the first of them is read.</p>
+  <p>Everything about the items is read from the <code>.out</code> file of the item-level model, and nothing about them can be entered on this page. The <code>STDYX Standardization</code> section supplies the item names and their standardized loadings, SUMMARY OF ANALYSIS supplies the name of the data file that the written input then names in turn, the input echoed under INPUT INSTRUCTIONS supplies the <code>NAMES</code> and <code>MISSING</code> statements that the written input repeats, and MODEL MODIFICATION INDICES supplies the pairs of items the purposeful strategy keeps together. Windows-1252, UTF-8 and UTF-16 encodings are decoded, Fortran <code>D</code> exponents are accepted, an estimate printed with asterisks in place of its standard error is still read, and the <code>999.000</code> sentinel, which M<em>plus</em> prints for a quantity it could not compute, is discarded rather than read as a loading of 999. Only the first group of a multiple-group output is read, and when the invariance shortcut has written several models into one file the first of them is read.</p>
   <p>Choosing one factor gives its items and their loadings on it. Choosing every factor at once gives the items of all of them and writes the name of the factor an item loads on as its facet, which is the input the two multidimensional strategies need; an item that loads on more than one factor is assigned the factor on which its loading is largest in absolute value, and is named in the message, because such an item is not cleanly a member of one facet. The construct in the written input is the factor the items came from; with every factor taken as a facet the output holds no name for the construct the facets share, so the input calls it G.</p>
 
   <h3>The balancing technique</h3>
@@ -234,7 +239,8 @@
   <p>Section 3.2.1. The items are shuffled by the Fisher–Yates algorithm and then cut into parcels whose sizes are as equal as they can be. The numbers come from a counter-based generator rather than from <code>Math.random</code>, so an allocation is reproduced exactly from its seed; a seed of zero is a valid state. With more than one draw the page repeats the allocation over consecutive seeds, records for each the range of the parcel loading sums, and shows the draw at the median of that distribution, naming the seed that produced it. The median draw is shown rather than the best one because selecting the allocation that looks best is the data-driven step the source asks to be justified. The dispersion reported is the dispersion of the balance of the loadings, which is what can be computed without fitting anything; the parcel-allocation variability of Sterba (2019) and Sterba and MacCallum (2010) is variability in the parameter estimates and the fit, and obtaining it means fitting the model under each allocation.</p>
 
   <h3>Purposeful parceling</h3>
-  <p>Sections 3.2.4 and 3.2.5, followed by the balancing technique for the items that were not kept together, which is the combination described at the end of Section 3.2.6. The source names two patterns worth acting on, and both are read from the modification indices in the output rather than named by the reader: a pair of items with a large residual covariance, printed under <code>WITH Statements</code>, and a pair of items whose cross-loadings on another construct are of similar size and opposite sign, printed under <code>BY Statements</code>, which cancel when the two are averaged. Rules used here: a pair counts when its modification index reaches the threshold set above the table, which selects among the indices M<em>plus</em> printed and changes nothing that was estimated; for the cross-loading pattern the two items are paired on the same other factor, largest positive expected parameter change with largest negative, and only when the smaller of the two changes is at least half the larger in absolute value, since a pair of very unequal cross-loadings does not cancel; items linked directly, or linked through a third item, form one group, so that no item can be claimed by two parcels. The largest group is then seeded into the first parcel, the next into the second, and so on, with a group beyond the last parcel going to the parcel then holding the fewest items; each remaining item, taken in decreasing order of loading, goes to the parcel with the fewest items, ties broken by the smaller sum of loadings. Because each group occupies a parcel of its own, at most the number of groups plus the number of items in no group can be filled, and asking for more parcels than that is refused with the number that can be filled.</p>
+  <p>Sections 3.2.4 and 3.2.5, followed by the balancing technique for the items that were not kept together, which is the combination described at the end of Section 3.2.6. Section 3.2.4 names three patterns in the modification indices of the item-level model: a pair of items with a noticeably high cross-loading on the same other construct, which can be parceled together so that the cross-loading is estimated at the parcel level; a pair of items whose cross-loadings on another construct are of similar size and opposite sign, which cancel when the two are averaged; and a pair of items with a high residual covariance. This page acts on the second and the third, both read from the output rather than named by the reader: the opposite-sign pair is printed under <code>BY Statements</code> and the residual covariance under <code>WITH Statements</code>. The first pattern is not acted on, because whether a shared cross-loading is to be kept and estimated or removed is a decision about the model that the indices alone do not settle; two items that both load on another construct are left to be placed by their loadings, and the cross-loading is visible in the printed indices. The source also says that cross-loadings usually take priority over correlated residuals; this page gives no priority to either pattern, since every pair that reaches the threshold is kept together. Rules used here: a pair counts when its modification index reaches the threshold set above the table, which selects among the indices M<em>plus</em> printed and changes nothing that was estimated; for the cross-loading pattern the two items are paired on the same other factor, largest positive expected parameter change with largest negative, and only when the smaller of the two changes is at least half the larger in absolute value, since a pair of very unequal cross-loadings does not cancel; items linked directly, or linked through a third item, form one group, so that no item can be claimed by two parcels. The largest group is then seeded into the first parcel, the next into the second, and so on, with a group beyond the last parcel going to the parcel then holding the fewest items; each remaining item, taken in decreasing order of loading, goes to the parcel with the fewest items, ties broken by the smaller sum of loadings. Because each group occupies a parcel of its own, at most the number of groups plus the number of items in no group can be filled, and asking for more parcels than that is refused with the number that can be filled.</p>
+  <p>The operation this strategy performs is also the objection raised against it. Placing two items with a high residual covariance in the same parcel removes that covariance from the parcel-level model, and Coffman and MacCallum (2005) and Little, Cunningham, Shahar and Widaman (2002) hold that aggregating items whose residuals are correlated hides the misspecification and inflates the fit of the parcel-level model. Little, Rioux, Odejimi and Stickley (2022) present the same operation as the way to keep local dependence from distorting the measurement model, on the condition that the items are unidimensional and that the decision is reported. Both readings describe the same consequence: the parcel-level model is no longer able to show what was folded into a parcel. The page therefore prints, beside the allocation, every pair it kept together with the modification index it was read from, so that the pairs can be reported and the fit of the parcel-level model interpreted with them in view.</p>
 
   <h3>Facet-representative parceling</h3>
   <p>Section 3.3.1. Every parcel is built from the items of one facet. When the number of parcels equals the number of facets there is one parcel per facet. When more parcels are asked for, the extra ones are given to the facets with the most items per parcel, and the items of a facet split over two or more parcels are divided by the balancing rule; this follows the source's remark that a facet with more than three scores can itself be parceled. Fewer parcels than facets is refused, because two facets sharing a parcel would defeat the purpose of the scheme, which is to isolate the uniqueness of each facet inside its own parcel. A facet with a single item yields a parcel that is that item, which the source allows and the page reports.</p>
@@ -254,38 +260,45 @@
   <p>The mean says how strongly the parcel marks the construct; the sum is what an equal split of total strength would equalize, and the balancing technique reduces the spread of it, that is</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>range</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><munder><mi>max</mi><mi>p</mi></munder><mspace width="0.17em"></mspace><msub><mi>S</mi><mi>p</mi></msub><mo>&#x2212;</mo><munder><mi>min</mi><mi>p</mi></munder><mspace width="0.17em"></mspace><msub><mi>S</mi><mi>p</mi></msub></mrow></math></div>
   <p class="where">Here range(<var>S</var>) is the spread reported under the allocation table, and the maximum and the minimum are taken over the parcels of the scheme.</p>
-  <p>A plain sequential split — the items cut into consecutive blocks in the order they were read from the file — is summarized beside the allocation for comparison. Over 2,500 generated problems with four to two hundred items and two to twenty parcels the balancing technique gave a smaller spread of parcel loading sums than that split in 96.8% of them and the same spread in a further 0.3%; the median reduction was 83.6% of the spread the sequential split produced. The page warns when the mean loadings of the parcels range over more than .10; that threshold is a display convention of this page and not a criterion from the literature. It also reports when the parcels differ in size by more than one item, which is not a fault — the source states that parcels need not hold the same number of items — but does mean that a larger parcel is more reliable than a smaller one and will carry a larger loading for that reason alone.</p>
+  <p>A plain sequential split — the items cut into consecutive blocks in the order they were read from the file — is summarized beside the allocation for comparison. Over 2,500 generated problems, each with 4 to 200 items and 2 to 20 parcels drawn uniformly and standardized loadings drawn uniformly between .30 and .90, the balancing technique gave a smaller spread of parcel loading sums than that split in 98.2% of them and the same spread in the remaining 1.8%; the median reduction was 80.4% of the spread the sequential split produced. The page warns when the mean loadings of the parcels range over more than .10; that threshold is a display convention of this page and not a criterion from the literature. It also reports when the parcels differ in size by more than one item, which is not a fault — the source states that parcels need not hold the same number of items — but does mean that a larger parcel is more reliable than a smaller one and will carry a larger loading for that reason alone.</p>
 
   <h3>The syntax, and what is checked in it</h3>
-  <p>A parcel written as an average appears as the sum of its items in parentheses divided by their number, rather than through a function that aggregates them, so that the value of the parcel depends on every item in it. The reason is the source's recommendation against proration; the input carries a comment asking that the covariance coverage the program prints be compared with the coverage of the least complete item of each parcel, which is how proration would show itself. Names longer than eight characters, names that are M<em>plus</em> operators or keywords, names that repeat, and names that are not legal variable names are refused before anything is written, with the offending names given. A parcel name that would collide with an item name is changed and the change is visible in the table. The generated input is then read back and checked against what it was meant to say: that <code>NAMES</code> lists the items as they were read from the output, that <code>USEVARIABLES</code> lists the parcels and no item, that there is one <code>DEFINE</code> statement per parcel using exactly the items allocated to it and, for an average, dividing by the right number, that every variable used in <code>DEFINE</code> is declared or created earlier, that the <code>BY</code> statement names every parcel, that no line exceeds the ninety characters the program reads, and that no name exceeds eight characters. The checks are written against the requirement rather than against the generator, so that a generator wrong twice in the same way does not pass.</p>
+  <p>A parcel written as an average appears as the sum of its items in parentheses divided by their number, rather than through a function that aggregates them, so that the value of the parcel depends on every item in it. The reason is the source's recommendation against proration; the input carries a comment asking that the covariance coverage the program prints be compared with the coverage of the least complete item of each parcel, which is how proration would show itself. Names longer than eight characters, names that are M<em>plus</em> operators or keywords, names that repeat, and names that are not legal variable names are refused before anything is written, with the offending names given. A parcel name that would collide with an item name is changed and the change is visible in the table. The <code>NAMES</code> and <code>MISSING</code> statements are those of the item-level model, read from the input echoed at the head of the output, because the written input reads the same data file and has to declare the same columns; when the output does not echo them, or the <code>NAMES</code> statement uses a range that cannot be expanded without the data file, the items alone are listed and the input says that the line has to be completed. The generated input is then read back and checked against what it was meant to say: that <code>NAMES</code> lists those columns and holds every item, that <code>USEVARIABLES</code> lists the parcels and no item, that no line of the <code>MODEL</code> command carries more than one parameter label, that there is one <code>DEFINE</code> statement per parcel using exactly the items allocated to it and, for an average, dividing by the right number, that every variable used in <code>DEFINE</code> is declared or created earlier, that the <code>BY</code> statement names every parcel, that no line exceeds the ninety characters the program reads, and that no name exceeds eight characters. The checks are written against the requirement rather than against the generator, so that a generator wrong twice in the same way does not pass.</p>
 
   <h3>What the page does not do</h3>
-  <p>It does not fit any model. It cannot tell whether the items in a parcel are unidimensional, cannot compute modification indices, and cannot compare a parcel-level solution with an item-level one; all three have to be done in M<em>plus</em>, and the source treats the item-level model as the step that comes first. It does not read raw data, so it cannot compute the parcels themselves, only the syntax that computes them, and it cannot check for missing values or for items that are keyed the wrong way round. It does not accept an allocation, a loading or an item name typed by hand, so an item that is not in the output cannot be parceled here. The loadings it orders items by are the standardized loadings of the model that was fitted, so they are only as good as that model. Only one construct is handled at a time; a model with several constructs means running the page once for each and merging the inputs. The two multidimensional strategies take the facet structure as given rather than testing it. Nothing here decides whether a construct should be parceled at all.</p>
-</section>
+  <p>It does not fit any model. It cannot tell whether the items in a parcel are unidimensional, cannot compute modification indices, and cannot compare a parcel-level solution with an item-level one; all three have to be done in M<em>plus</em>, and the source treats the item-level model as the step that comes first. It does not read raw data, so it cannot compute the parcels themselves, only the syntax that computes them, and it cannot check for missing values or for items that are keyed reverse-keyed. It does not accept an allocation, a loading or an item name typed by hand, so an item that is not in the output cannot be parceled here. The loadings it orders items by are the standardized loadings of the model that was fitted, so they are only as good as that model. Only one construct is handled at a time; a model with several constructs means running the page once for each and merging the inputs. The two multidimensional strategies take the facet structure as given rather than testing it. Nothing here decides whether a construct should be parceled at all.</p>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="h-refs">
-  <h2 id="h-refs">References</h2>
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
   <ul class="refs">
-    <li>Bandalos, D. L. (2002). The effects of item parceling on goodness-of-fit and parameter estimate bias in structural equation modeling. <em>Structural Equation Modeling, 9</em>(1), 78–102. https://doi.org/10.1207/S15328007SEM0901_5</li>
+    <li>Bandalos, D. L. (2002). The effects of item parceling on goodness-of-fit and parameter estimate bias in structural equation modeling. <em>Structural Equation Modeling, 9</em>(1), 78–102. <a href="https://doi.org/10.1207/S15328007SEM0901_5">https://doi.org/10.1207/S15328007SEM0901_5</a></li>
     <li>Bandalos, D. L., &amp; Finney, S. J. (2001). Item parceling issues in structural equation modeling. In G. A. Marcoulides &amp; R. E. Schumacker (Eds.), <em>New developments and techniques in structural equation modeling</em> (pp. 269–296). Erlbaum.</li>
-    <li>Comrey, A. L. (1961). Factored homogeneous item dimensions in personality research. <em>Educational and Psychological Measurement, 21</em>(2), 417–431.</li>
+    <li>Coffman, D. L., &amp; MacCallum, R. C. (2005). Using parcels to convert path analysis models into latent variable models. <em>Multivariate Behavioral Research, 40</em>(2), 235–259. <a href="https://doi.org/10.1207/s15327906mbr4002_4">https://doi.org/10.1207/s15327906mbr4002_4</a></li>
+    <li>Comrey, A. L. (1961). Factored homogeneous item dimensions in personality research. <em>Educational and Psychological Measurement, 21</em>(2), 417–431. <a href="https://doi.org/10.1177/001316446102100215">https://doi.org/10.1177/001316446102100215</a></li>
     <li>Graham, J. W., Tatterson, J. W., &amp; Widaman, K. F. (2000). <em>Creating parcels for multi-dimensional constructs in structural equation modeling</em> [Conference presentation]. Annual meeting of the Society of Multivariate Experimental Psychology, Saratoga Springs, NY.</li>
-    <li>Hall, R. J., Snell, A. F., &amp; Foust, M. S. (1999). Item parceling strategies in SEM: Investigating the subtle effects of unmodeled secondary constructs. <em>Organizational Research Methods, 2</em>(3), 233–256. https://doi.org/10.1177/109442819923002</li>
-    <li>Kishton, J. M., &amp; Widaman, K. F. (1994). Unidimensional versus domain representative parceling of questionnaire items: An empirical example. <em>Educational and Psychological Measurement, 54</em>(3), 757–765.</li>
-    <li>Landis, R. S., Beal, D. J., &amp; Tesluk, P. E. (2000). A comparison of approaches to forming composite measures in structural equation models. <em>Organizational Research Methods, 3</em>(2), 186–207. https://doi.org/10.1177/109442810032003</li>
-    <li>Little, T. D., Cunningham, W. A., Shahar, G., &amp; Widaman, K. F. (2002). To parcel or not to parcel: Exploring the question, weighing the merits. <em>Structural Equation Modeling, 9</em>(2), 151–173. https://doi.org/10.1207/S15328007SEM0902_1</li>
-    <li>Little, T. D., Lindenberger, U., &amp; Nesselroade, J. R. (1999). On selecting indicators for multivariate measurement and modeling with latent variables: When “good” indicators are bad and “bad” indicators are good. <em>Psychological Methods, 4</em>(2), 192–211. https://doi.org/10.1037/1082-989X.4.2.192</li>
-    <li>Little, T. D., Rhemtulla, M., Gibson, K., &amp; Schoemann, A. M. (2013). Why the items versus parcels controversy needn't be one. <em>Psychological Methods, 18</em>(3), 285–300. https://doi.org/10.1037/a0033266</li>
-    <li>Little, T. D., Rioux, C., Odejimi, O. A., &amp; Stickley, Z. L. (2022). <em>Parceling in structural equation modeling: A comprehensive introduction for developmental scientists</em>. Cambridge University Press. https://doi.org/10.1017/9781009211659</li>
-    <li>Marsh, H. W., Lüdtke, O., Nagengast, B., Morin, A. J. S., &amp; von Davier, M. (2013). Why item parcels are (almost) never appropriate: Two wrongs do not make a right — camouflaging misspecification with item parcels in CFA models. <em>Psychological Methods, 18</em>(3), 257–284. https://doi.org/10.1037/a0032773</li>
-    <li>Matsunaga, M. (2008). Item parceling in structural equation modeling: A primer. <em>Communication Methods and Measures, 2</em>(4), 260–293. https://doi.org/10.1080/19312450802458935</li>
-    <li>Rhemtulla, M. (2016). Population performance of SEM parceling strategies under measurement and structural model misspecification. <em>Psychological Methods, 21</em>(3), 348–368. https://doi.org/10.1037/met0000072</li>
-    <li>Sterba, S. K. (2019). Problems with rationales for parceling that fail to consider parcel-allocation variability. <em>Multivariate Behavioral Research, 54</em>(2), 264–287. https://doi.org/10.1080/00273171.2018.1522497</li>
-    <li>Sterba, S. K., &amp; MacCallum, R. C. (2010). Variability in parameter estimates and model fit across repeated allocations of items to parcels. <em>Multivariate Behavioral Research, 45</em>(2), 322–358. https://doi.org/10.1080/00273171003680302</li>
-    <li>Sterba, S. K., &amp; Rights, J. D. (2017). Effects of parceling on model selection: Parcel-allocation variability in model ranking. <em>Psychological Methods, 22</em>(1), 47–68. https://doi.org/10.1037/met0000067</li>
+    <li>Hall, R. J., Snell, A. F., &amp; Foust, M. S. (1999). Item parceling strategies in SEM: Investigating the subtle effects of unmodeled secondary constructs. <em>Organizational Research Methods, 2</em>(3), 233–256. <a href="https://doi.org/10.1177/109442819923002">https://doi.org/10.1177/109442819923002</a></li>
+    <li>Kishton, J. M., &amp; Widaman, K. F. (1994). Unidimensional versus domain representative parceling of questionnaire items: An empirical example. <em>Educational and Psychological Measurement, 54</em>(3), 757–765. <a href="https://doi.org/10.1177/0013164494054003022">https://doi.org/10.1177/0013164494054003022</a></li>
+    <li>Landis, R. S., Beal, D. J., &amp; Tesluk, P. E. (2000). A comparison of approaches to forming composite measures in structural equation models. <em>Organizational Research Methods, 3</em>(2), 186–207. <a href="https://doi.org/10.1177/109442810032003">https://doi.org/10.1177/109442810032003</a></li>
+    <li>Lee, M. R., Bartholow, B. D., McCarthy, D. M., Pedersen, S. L., &amp; Sher, K. J. (2015). Two alternative approaches to conventional person-mean imputation scoring of the Self-Rating of the Effects of Alcohol Scale (SRE). <em>Psychology of Addictive Behaviors, 29</em>(1), 231–236. <a href="https://doi.org/10.1037/adb0000015">https://doi.org/10.1037/adb0000015</a></li>
+    <li>Little, T. D., Cunningham, W. A., Shahar, G., &amp; Widaman, K. F. (2002). To parcel or not to parcel: Exploring the question, weighing the merits. <em>Structural Equation Modeling, 9</em>(2), 151–173. <a href="https://doi.org/10.1207/S15328007SEM0902_1">https://doi.org/10.1207/S15328007SEM0902_1</a></li>
+    <li>Little, T. D., Lindenberger, U., &amp; Nesselroade, J. R. (1999). On selecting indicators for multivariate measurement and modeling with latent variables: When “good” indicators are bad and “bad” indicators are good. <em>Psychological Methods, 4</em>(2), 192–211. <a href="https://doi.org/10.1037/1082-989X.4.2.192">https://doi.org/10.1037/1082-989X.4.2.192</a></li>
+    <li>Little, T. D., Rhemtulla, M., Gibson, K., &amp; Schoemann, A. M. (2013). Why the items versus parcels controversy needn't be one. <em>Psychological Methods, 18</em>(3), 285–300. <a href="https://doi.org/10.1037/a0033266">https://doi.org/10.1037/a0033266</a></li>
+    <li>Little, T. D., Rioux, C., Odejimi, O. A., &amp; Stickley, Z. L. (2022). <em>Parceling in structural equation modeling: A comprehensive introduction for developmental scientists</em>. Cambridge University Press. <a href="https://doi.org/10.1017/9781009211659">https://doi.org/10.1017/9781009211659</a></li>
+    <li>Marsh, H. W., Lüdtke, O., Nagengast, B., Morin, A. J. S., &amp; von Davier, M. (2013). Why item parcels are (almost) never appropriate: Two wrongs do not make a right — camouflaging misspecification with item parcels in CFA models. <em>Psychological Methods, 18</em>(3), 257–284. <a href="https://doi.org/10.1037/a0032773">https://doi.org/10.1037/a0032773</a></li>
+    <li>Matsunaga, M. (2008). Item parceling in structural equation modeling: A primer. <em>Communication Methods and Measures, 2</em>(4), 260–293. <a href="https://doi.org/10.1080/19312450802458935">https://doi.org/10.1080/19312450802458935</a></li>
+    <li>Mazza, G. L., Enders, C. K., &amp; Ruehlman, L. S. (2015). Addressing item-level missing data: A comparison of proration and full information maximum likelihood estimation. <em>Multivariate Behavioral Research, 50</em>(5), 504–519. <a href="https://doi.org/10.1080/00273171.2015.1068157">https://doi.org/10.1080/00273171.2015.1068157</a></li>
+    <li>Rhemtulla, M. (2016). Population performance of SEM parceling strategies under measurement and structural model misspecification. <em>Psychological Methods, 21</em>(3), 348–368. <a href="https://doi.org/10.1037/met0000072">https://doi.org/10.1037/met0000072</a></li>
+    <li>Schafer, J. L., &amp; Graham, J. W. (2002). Missing data: Our view of the state of the art. <em>Psychological Methods, 7</em>(2), 147–177. <a href="https://doi.org/10.1037/1082-989X.7.2.147">https://doi.org/10.1037/1082-989X.7.2.147</a></li>
+    <li>Sterba, S. K. (2019). Problems with rationales for parceling that fail to consider parcel-allocation variability. <em>Multivariate Behavioral Research, 54</em>(2), 264–287. <a href="https://doi.org/10.1080/00273171.2018.1522497">https://doi.org/10.1080/00273171.2018.1522497</a></li>
+    <li>Sterba, S. K., &amp; MacCallum, R. C. (2010). Variability in parameter estimates and model fit across repeated allocations of items to parcels. <em>Multivariate Behavioral Research, 45</em>(2), 322–358. <a href="https://doi.org/10.1080/00273171003680302">https://doi.org/10.1080/00273171003680302</a></li>
+    <li>Sterba, S. K., &amp; Rights, J. D. (2017). Effects of parceling on model selection: Parcel-allocation variability in model ranking. <em>Psychological Methods, 22</em>(1), 47–68. <a href="https://doi.org/10.1037/met0000067">https://doi.org/10.1037/met0000067</a></li>
   </ul>
-  <p class="hint">Sterba and Rights (2017) is listed with the year, volume, issue and pages given in the reference list of Little, Rioux, Odejimi and Stickley (2022); the digital object identifier is the same one that circulates with the 2016 online-first record.</p>
-</section>
+  <p class="hint">Sterba and Rights (2017) appeared online in 2016; the year, volume, issue and pages given are those of the printed issue, as in the reference list of Little, Rioux, Odejimi and Stickley (2022).</p>
+</div>
+</details>
 
 </main>
 
@@ -879,9 +892,23 @@ var PGEN = (function () {
     L.push("DATA:      FILE = " + (spec.dataFile || "your-data.dat") + ";");
     L.push("");
     L.push("VARIABLE:");
-    L.push(wrap("  NAMES =    ", items.map(function (t) { return t.name; }), "             ") + ";");
+    /* The columns of the data file are those the item-level model
+       declared; they were read from the input echoed in the output.
+       Without them only the items can be listed, and the line has to be
+       completed by hand before the input is run. */
+    var columns = (spec.columns && spec.columns.length) ? spec.columns : null;
+    if (!columns) {
+      L.push("  ! The output did not echo the NAMES statement of the item-level");
+      L.push("  ! model, so only the items are listed here. List every column of");
+      L.push("  ! the data file, in order, before running this input.");
+    }
+    L.push(wrap("  NAMES =    ", columns || items.map(function (t) { return t.name; }), "             ") + ";");
     L.push(wrap("  USEVARIABLES = ", pn, "                 ") + ";");
-    L.push("  ! MISSING = ALL (-99);");
+    if (spec.missing) L.push("  MISSING = " + spec.missing + ";");
+    else {
+      L.push("  ! The item-level model declared no MISSING statement; add one");
+      L.push("  ! here if the data file codes missing values.");
+    }
     L.push("");
     L.push("DEFINE:");
     L.push("  ! Each parcel is written as an explicit expression over its own");
@@ -911,13 +938,15 @@ var PGEN = (function () {
       L.push(wrap("  " + spec.construct + " BY ", pn, "           ") + ";");
     } else if (spec.scaling === "effects") {
       L.push("  ! Effects coding: the loadings average one and the intercepts");
-      L.push("  ! average zero, so the mean of the construct is the mean of the");
-      L.push("  ! parcels and its variance is the average variance they explain.");
+      L.push("  ! average zero, so the construct is scaled in the metric of the");
+      L.push("  ! average parcel. One label to a line, as the program requires.");
       var lam = [], tau = [];
       for (i = 0; i < pn.length; i++) { lam.push("L" + (i + 1)); tau.push("T" + (i + 1)); }
-      var by = [];
-      for (i = 0; i < pn.length; i++) by.push(pn[i] + (i === 0 ? "*" : "") + " (" + lam[i] + ")");
-      L.push(wrap("  " + spec.construct + " BY ", by, "           ") + ";");
+      var lead = "  " + spec.construct + " BY ", pad = new Array(lead.length + 1).join(" ");
+      for (i = 0; i < pn.length; i++) {
+        L.push((i === 0 ? lead : pad) + pn[i] + (i === 0 ? "*" : "") + " (" + lam[i] + ")" +
+          (i === pn.length - 1 ? ";" : ""));
+      }
       for (i = 0; i < pn.length; i++) L.push("  [" + pn[i] + "] (" + tau[i] + ");");
       L.push("  [" + spec.construct + "*];");
       L.push("  " + spec.construct + "*;");
@@ -935,8 +964,9 @@ var PGEN = (function () {
       L.push("");
       L.push("  ! Two indicators do not identify a construct in a single-group,");
       L.push("  ! single-occasion model. Constraining the two loadings equal");
-      L.push("  ! identifies them; in a longitudinal or multiple-group model the");
-      L.push("  ! invariance constraints do so instead and the line below can go.");
+      L.push("  ! identifies them: remove the exclamation marks from the two lines");
+      L.push("  ! below. In a longitudinal or multiple-group model the invariance");
+      L.push("  ! constraints identify them instead and the two lines are not needed.");
       L.push("  ! " + spec.construct + " BY " + pn[0] + "* (LAM)");
       L.push("  !" + new Array(String(spec.construct).length + 6).join(" ") + " " + pn[1] + "  (LAM);");
     }
@@ -957,11 +987,23 @@ var PGEN = (function () {
       return m ? m[1] : "";
     };
     var names = spec.items.map(function (t) { return t.name; });
-    var varSec = section("VARIABLE");
+    var varSec = section("VARIABLE").replace(/!.*$/gm, "");
+    var columns = (spec.columns && spec.columns.length) ? spec.columns : names;
     var namesList = ((varSec.match(/NAMES\s*=\s*([^;]*);/i) || [, ""])[1]).split(/[\s,]+/).filter(Boolean);
-    add(namesList.length === names.length && namesList.every(function (v, i) { return v === names[i]; }),
-      "NAMES lists the " + names.length + " items in the order the output prints them.",
-      "NAMES does not list the items as the output printed them.");
+    add(namesList.length === columns.length && namesList.every(function (v, i) { return v === columns[i]; }),
+      spec.columns && spec.columns.length
+        ? "NAMES lists the " + columns.length + " columns the item-level model declared, in its order."
+        : "NAMES lists the " + names.length + " items in the order the output prints them, because the output echoed no NAMES statement.",
+      "NAMES does not list the columns of the data file as the item-level model declared them.");
+    var upper = namesList.map(function (v) { return v.toUpperCase(); });
+    var notDeclared = names.filter(function (v) { return upper.indexOf(v.toUpperCase()) < 0; });
+    add(notDeclared.length === 0,
+      "Every item is among the columns NAMES declares.",
+      "Items missing from NAMES: " + notDeclared.join(", ") + ".");
+    var missLine = varSec.match(/MISSING\s*=\s*([^;]*);/i);
+    add(spec.missing ? (!!missLine && missLine[1].replace(/\s+/g, " ").trim() === spec.missing) : !missLine,
+      spec.missing ? "MISSING repeats the statement of the item-level model." : "No MISSING statement was declared by the item-level model, and none is invented here.",
+      "The MISSING statement does not match the item-level model.");
 
     var uv = ((varSec.match(/USEVARIABLES\s*=\s*([^;]*);/i) || [, ""])[1]).split(/[\s,]+/).filter(Boolean);
     add(uv.length === spec.names.length && uv.every(function (v, i) { return v === spec.names[i]; }),
@@ -1009,19 +1051,24 @@ var PGEN = (function () {
     var undeclared = [];
     for (i = 0; i < order.length; i++) {
       var vs = (made[order[i]].match(/[A-Za-z][A-Za-z0-9_]*/g) || []);
-      for (q = 0; q < vs.length; q++) if (names.indexOf(vs[q]) < 0 && order.slice(0, i).indexOf(vs[q]) < 0 && undeclared.indexOf(vs[q]) < 0) undeclared.push(vs[q]);
+      for (q = 0; q < vs.length; q++) if (namesList.indexOf(vs[q]) < 0 && order.slice(0, i).indexOf(vs[q]) < 0 && undeclared.indexOf(vs[q]) < 0) undeclared.push(vs[q]);
     }
     add(undeclared.length === 0,
       "Every variable used in DEFINE is declared in NAMES or created earlier in DEFINE.",
       "Used in DEFINE but never declared: " + undeclared.join(", ") + ".");
 
     /* the model */
-    var modSec = section("MODEL");
+    var modSec = section("MODEL").replace(/!.*$/gm, "");
     var byLine = new RegExp(spec.construct + "\\s+BY\\s+([^;]*);", "i").exec(modSec);
-    var byVars = byLine ? (byLine[1].match(/[A-Za-z][A-Za-z0-9_]*/g) || []).filter(function (v) { return spec.names.indexOf(v) >= 0; }) : [];
+    var byVars = byLine ? (byLine[1].replace(/\([^)]*\)/g, " ").match(/[A-Za-z][A-Za-z0-9_]*/g) || []).filter(function (v) { return spec.names.indexOf(v) >= 0; }) : [];
     add(byVars.length === spec.names.length,
       "The measurement model regresses all " + spec.names.length + " parcels on " + spec.construct + ".",
       "The BY statement does not name all the parcels.");
+    /* the program accepts one label to a line */
+    var multi = modSec.split("\n").filter(function (l) { return (l.match(/\([A-Za-z][A-Za-z0-9_]*\)/g) || []).length > 1; });
+    add(multi.length === 0,
+      "No line of the MODEL command carries more than one parameter label.",
+      "More than one label on a line: " + multi.map(function (l) { return l.trim(); }).join(" | "));
 
     /* line length and name length */
     var longLines = [], lines = text.split("\n");
@@ -1203,7 +1250,7 @@ function readModIndices(lines) {
    with a cross-loading on the same other factor at or above the
    threshold with expected parameter changes of opposite sign and
    comparable size, which is the pair Little, Rioux, Odejimi and
-   Stickley (2022) describe as cancelling when the two are averaged.
+   Stickley (2022) describe as canceling when the two are averaged.
    Items linked directly or through a third item form one group. */
 function groupsFromModIndices(items, mi, threshold) {
   var index = {}, i, q;
@@ -1257,6 +1304,47 @@ function groupsFromModIndices(items, mi, threshold) {
   return { groups: groups, residual: residual, crossed: crossed };
 }
 
+/* The VARIABLE command of the input that produced the output, echoed
+   under INPUT INSTRUCTIONS. The written input reads the same data file,
+   so its NAMES statement has to list the same columns in the same order,
+   and its MISSING statement the same code; both are taken from here. A
+   range written as a-b is expanded when both ends are a stem and a
+   number, which is the only reading possible without the data file. */
+function readEchoedVariable(text) {
+  var t = String(text).replace(/\r\n?/g, "\n");
+  var head = t.search(/^\s*INPUT INSTRUCTIONS\s*$/m);
+  if (head < 0) return null;
+  var rest = t.slice(t.indexOf("\n", head) + 1);
+  var stop = rest.search(/^\s*(INPUT READING TERMINATED|\*\*\* (WARNING|ERROR|FATAL)|SUMMARY OF ANALYSIS)/m);
+  if (stop >= 0) rest = rest.slice(0, stop);
+  rest = rest.replace(/!.*$/gm, "");
+  var v = /^\s*VARIABLE\s*:([\s\S]*?)(?=^\s*(?:DATA|DEFINE|ANALYSIS|MODEL|OUTPUT|SAVEDATA|PLOT|MONTECARLO)\b[^:\n]*:|$(?![\s\S]))/im.exec(rest);
+  if (!v) return null;
+  var body = v[1], out = { names: null, missing: null };
+  var mn = /(?:^|;)\s*NAMES\s*(?:ARE|IS|=)\s*([^;]*)/i.exec(body);
+  if (mn) {
+    var toks = mn[1].replace(/\s+/g, " ").trim().split(" "), names = [], i, m, k;
+    for (i = 0; i < toks.length; i++) {
+      if (toks[i] === "") continue;
+      m = /^([A-Za-z][A-Za-z0-9_]*?)(\d+)-([A-Za-z][A-Za-z0-9_]*?)(\d+)$/.exec(toks[i]);
+      if (m && m[1].toUpperCase() === m[3].toUpperCase() && parseInt(m[4], 10) >= parseInt(m[2], 10)) {
+        var width = (m[2].length === m[4].length && /^0/.test(m[2])) ? m[2].length : 0;
+        for (k = parseInt(m[2], 10); k <= parseInt(m[4], 10); k++) {
+          var s = String(k);
+          while (s.length < width) s = "0" + s;
+          names.push(m[1] + s);
+        }
+      } else if (toks[i].indexOf("-") >= 0) {
+        return { names: null, missing: null, unreadable: toks[i] };
+      } else names.push(toks[i]);
+    }
+    out.names = names;
+  }
+  var mm = /(?:^|;)\s*MISSING\s*(?:ARE|IS|=)\s*([^;]*)/i.exec(body);
+  if (mm) out.missing = mm[1].replace(/\s+/g, " ").trim();
+  return out;
+}
+
 function parseMplus(text) {
   var sc = normalizeShortcut(text);
   var body = sc ? sc.text : text;
@@ -1269,9 +1357,11 @@ function parseMplus(text) {
   }
   var out = {
     shortcut: sc, hasStdyx: std.order.length > 0, std: std, raw: raw,
+    isMplus: /Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS/i.test(String(text)),
     estimator: null, nGroups: 1,
     converged: /THE MODEL ESTIMATION TERMINATED NORMALLY/.test(body),
-    warnings: (body.match(/^\s*\*\*\* WARNING[^\n]*/gm) || []).length
+    warnings: (body.match(/^\s*\*\*\* WARNING[^\n]*/gm) || []).length,
+    variable: readEchoedVariable(text)
   };
   var me = /^\s*Estimator\s+([A-Z]+)/m.exec(body);
   if (me) out.estimator = me[1];
@@ -1380,10 +1470,10 @@ var PTEXT = (function () {
       : "Each parcel is the sum of its items. Little, Rioux, Odejimi and Stickley (2022) recommend the average instead, because the average keeps the metric of the response scale.");
 
     if (k === 3) out.push("Three parcels were used because a construct with three indicators is just identified once a scaling constraint is chosen, which Little, Rioux, Odejimi and Stickley (2022) give as the reason to prefer three.");
-    else if (k === 2) out.push("Two parcels were used. A two-indicator construct is identified here by the constraints imposed across occasions or groups; in a single-group, single-occasion model the two loadings would have to be constrained equal.");
-    else if (k >= 4) out.push(k + " parcels were used, which leaves the construct overidentified; Little, Rioux, Odejimi and Stickley (2022) note that the extra degrees of freedom tend to improve fit for reasons that have nothing to do with the model being right.");
+    else if (k === 2) out.push("Two parcels were used. Little, Rioux, Odejimi and Stickley (2022) accept two indicators in longitudinal and multiple-group models, where the invariance constraints identify the loadings and intercepts; in a single-group, single-occasion model the two loadings have to be constrained equal.");
+    else if (k >= 4) out.push("With " + k + " parcels the construct is overidentified; Little, Rioux, Odejimi and Stickley (2022) note that the leftover degrees of freedom typically give an arbitrary improvement in fit.");
 
-    out.push("The full allocation is reported so that the scheme can be reproduced, and the model was also fitted at the item level so that the parcel-level results could be compared with it.");
+    out.push("The full allocation is reported so that the scheme can be reproduced, and the loadings that informed it come from the item-level model, which is reported alongside the parcel-level model.");
     return out.join(" ");
   }
 
@@ -1619,7 +1709,23 @@ function parcelSelfTest() {
   var bad3 = PGEN.checkSyntax(txt.replace(/USEVARIABLES = [^;]*;/, "USEVARIABLES = P1 P2 P3 V1;"), spec);
   ok("an item left in USEVARIABLES would be caught", bad3.some(function (c) { return !c.ok; }), true);
   var spec2 = { items: its, parcels: al.parcels, names: pn, construct: "F1", agg: "sum", scaling: "effects", strategy: "balanced", dataFile: "d.dat", seed: 1 };
-  ok("sums with effects coding pass their checks", PGEN.checkSyntax(PGEN.buildSyntax(spec2), spec2).filter(function (c) { return !c.ok; }).length, 0);
+  var txt2 = PGEN.buildSyntax(spec2);
+  ok("sums with effects coding pass their checks", PGEN.checkSyntax(txt2, spec2).filter(function (c) { return !c.ok; }).length, 0);
+  ok("effects coding puts one label on each line", txt2.split("\n").filter(function (l) { return (l.match(/\([A-Za-z][A-Za-z0-9_]*\)/g) || []).length > 1; }).length, 0);
+  ok("three labels on one line would be caught", PGEN.checkSyntax(txt2.replace(/F1 BY P1\* \(L1\)\n\s+P2 \(L2\)\n\s+P3 \(L3\);/, "F1 BY P1* (L1) P2 (L2) P3 (L3);"), spec2).some(function (c) { return !c.ok; }), true);
+
+  /* ---- the columns of the data file, from the echoed input ---- */
+  var echo = "Mplus VERSION 8.11\nMUTHEN & MUTHEN\n\nINPUT INSTRUCTIONS\n\n  TITLE: t;\n  DATA: FILE = d.dat;\n  VARIABLE: NAMES ARE id sex V1-V12 age;\n" +
+    "            USEVARIABLES ARE V1-V12;\n            MISSING ARE ALL (-999);\n  MODEL: F1 BY V1-V12;\n\nINPUT READING TERMINATED NORMALLY\n\nSUMMARY OF ANALYSIS\n";
+  var ev = readEchoedVariable(echo);
+  ok("the NAMES statement is read from the echoed input, ranges expanded", ev.names.join(" "), "id sex V1 V2 V3 V4 V5 V6 V7 V8 V9 V10 V11 V12 age");
+  ok("the MISSING statement is read from the echoed input", ev.missing, "ALL (-999)");
+  ok("an output without an echoed input yields no columns", readEchoedVariable("Mplus VERSION 8.11\nMODEL RESULTS\n"), null);
+  var spec3 = { items: its, parcels: al.parcels, names: pn, construct: "F1", agg: "mean", scaling: "fixed", strategy: "balanced", dataFile: "d.dat", seed: 1, columns: ev.names, missing: ev.missing };
+  var txt3 = PGEN.buildSyntax(spec3);
+  ok("the written input repeats the columns and the missing code of the item-level model", /NAMES =\s+id sex V1[\s\S]*age;/.test(txt3) && /MISSING = ALL \(-999\);/.test(txt3), true);
+  ok("and passes its checks", PGEN.checkSyntax(txt3, spec3).filter(function (c) { return !c.ok; }).length, 0);
+  ok("a NAMES line that drops an item would be caught", PGEN.checkSyntax(txt3.replace(/ V12 age;/, " age;"), spec3).some(function (c) { return !c.ok; }), true);
 
   /* ---- the paragraph ---- */
   var par = PTEXT.describe({ items: its, result: al, agg: "mean", construct: "F1", seed: 1, parcelNames: pn });
@@ -1667,12 +1773,45 @@ function parcelSelfTest() {
     domain: "Section 3.3.2. The items of each facet are spread over the parcels, so the facet variance becomes common to them and enters the latent factor. Needs a facet for every item, which means reading every factor of the output at once."
   };
 
-  var state = { items: [], construct: "F1", dataFile: null, last: null };
+  var state = { items: [], construct: "F1", dataFile: null, columns: null, missing: null, last: null };
 
   /* ---- controls ---------------------------------------------------- */
+
+  /* Which strategies the items in hand can be built by. The two facet
+     strategies need a facet on every item, which only the choice of
+     every factor at once supplies; the purposeful strategy needs the
+     modification indices of the output. An option that the file cannot
+     serve is disabled, with the reason in the hint, rather than offered
+     and refused after the button is pressed. */
+  function strategyBlocks() {
+    var out = {};
+    if (!state.items.length) return out;
+    var withFacet = state.items.every(function (t) { return t.facet !== null && t.facet !== undefined && t.facet !== ""; });
+    if (!withFacet) {
+      var why = (lastParsed && lastParsed.std.order.length > 1)
+        ? "the items in hand carry no facet; choose every factor at once above to give each item the factor it loads on as its facet."
+        : "the output holds a single factor, so the items carry no facet to represent.";
+      out.facet = why; out.domain = why;
+    }
+    if (!lastParsed || !lastParsed.hasModIndices) {
+      out.purposeful = "this output has no MODEL MODIFICATION INDICES section; add MODINDICES to the OUTPUT command of the item-level model and load the new output.";
+    }
+    return out;
+  }
+
   function syncControls() {
-    var s = $("strategy").value;
-    $("strategy-hint").textContent = STRATEGY_HINT[s] || "";
+    var sel = $("strategy"), blocks = strategyBlocks(), i, o;
+    for (i = 0; i < sel.options.length; i++) {
+      o = sel.options[i];
+      o.disabled = Object.prototype.hasOwnProperty.call(blocks, o.value);
+    }
+    if (Object.prototype.hasOwnProperty.call(blocks, sel.value)) sel.value = "balanced";
+    var s = sel.value;
+    var blockedNote = "";
+    for (var k in blocks) if (Object.prototype.hasOwnProperty.call(blocks, k)) {
+      blockedNote += " Not available for this file: " + sel.querySelector('option[value="' + k + '"]').textContent + ", because " + blocks[k];
+    }
+    $("strategy-hint").textContent = (STRATEGY_HINT[s] || "") + blockedNote;
     $("random-controls").hidden = s !== "random";
     $("mi-controls").hidden = s !== "purposeful";
     $("count-label").textContent = $("count-mode").value === "per"
@@ -1680,11 +1819,35 @@ function parcelSelfTest() {
       : "How many parcels";
   }
 
+  /* The three result panels describe one allocation of one item set
+     under one set of settings. As soon as any of those changes, what
+     they show is no longer what the form says, so they are emptied and
+     say why. */
+  function clearResults(why) {
+    if (!state.last) {
+      /* a refusal may be on screen; it too belongs to the old settings,
+         so the panels go back to their empty state */
+      if ($("alloc").querySelector(".status")) {
+        $("alloc").innerHTML = '<p class="hint">The parcels, the items in each of them and their balance appear here once an output file has been read and the parcels have been built.</p>';
+        $("syntax").innerHTML = '<p class="hint">The <code>DEFINE</code> statements, the <code>USEVARIABLES</code> line and a measurement model skeleton appear here once the parcels have been built.</p>';
+      }
+      return;
+    }
+    state.last = null;
+    $("alloc").innerHTML = '<p class="hint">' + esc(why) + '</p>';
+    $("syntax").innerHTML = '<p class="hint">No syntax is written until the parcels are built.</p>';
+    $("report-text").value = "";
+  }
+  var SETTINGS_CHANGED = "The settings changed after the parcels were built, so the allocation was removed. Press Build the parcels from this file to build them under the new settings.";
+  var ITEMS_CHANGED = "The items changed, so the allocation built from the previous ones was removed. Press Build the parcels from this file to build them from the items now in hand.";
+
   /* ---- what was read from the file --------------------------------- */
   function describeItems() {
     var el = $("items-note");
     if (!state.items.length) {
-      el.textContent = "No file has been read yet, so there are no items to parcel.";
+      el.textContent = lastParsed
+        ? "No items have been read, so there is nothing to parcel."
+        : "No file has been read yet, so there are no items to parcel.";
       return;
     }
     var withF = state.items.filter(function (t) { return t.facet !== null && t.facet !== ""; }).length;
@@ -1779,6 +1942,8 @@ function parcelSelfTest() {
         said.push(esc(x.a) + " with " + esc(x.b) + " (cross-loadings of opposite sign on " + esc(x.factor) + ")");
       });
       r.notes.push("Read from the modification indices at a threshold of " + $("mi-threshold").value + ": " + said.join("; ") + ".");
+      if (state.miNote.residual.length)
+        r.notes.push("A residual covariance folded into a parcel is no longer visible at the parcel level, and the fit of the parcel-level model improves for that reason alone. Coffman and MacCallum (2005) and Little, Cunningham, Shahar and Widaman (2002) treat this as a reason to establish first that the items are unidimensional; report the pairs listed above together with the model.");
     }
 
     /* the variability over draws, for the random strategy */
@@ -1885,7 +2050,8 @@ function parcelSelfTest() {
     var spec = {
       items: state.items, parcels: st.result.parcels, names: st.names,
       construct: st.construct, agg: st.agg, scaling: $("scaling").value,
-      strategy: st.strategy, dataFile: state.dataFile, seed: st.seed
+      strategy: st.strategy, dataFile: state.dataFile, seed: st.seed,
+      columns: state.columns, missing: state.missing
     };
     var text = PGEN.buildSyntax(spec);
     var checks = PGEN.checkSyntax(text, spec);
@@ -1937,12 +2103,31 @@ function parcelSelfTest() {
   function handleFile(file) {
     if (!file) return;
     $("file-name").textContent = file.name;
-    state.dataFile = null;
+    state.dataFile = null; state.columns = null; state.missing = null;
+    clearResults(ITEMS_CHANGED);
     readTextFile(file, function (text) {
+      if (/^\s*Within Level\s*$/m.test(String(text)) && /^\s*Between Level\s*$/m.test(String(text))) {
+        setStatus($("mplus-report"), "bad", "Nothing was read from this file.",
+          "MODEL RESULTS is split into a <em>Within Level</em> and a <em>Between Level</em> block, so this is a " +
+          "two-level model. The loadings of the two levels are different quantities and parcels cannot be built across them. Fit the item-level model at the level the parcels are meant for and load that output here.");
+        return;
+      }
       var parsed;
       try { parsed = parseMplus(String(text)); }
       catch (e) { setStatus($("mplus-report"), "bad", "The file could not be read.", esc(String(e && e.message ? e.message : e))); return; }
       lastParsed = parsed;
+      lastParsed.nWarnings = (String(text).match(/^\s*\*\*\* WARNING/gm) || []).length;
+      if (!parsed.isMplus) {
+        setStatus($("mplus-report"), "bad", "Nothing was read from this file.",
+          "It carries none of the headings " + MPLUS + " writes in every output, so it is not an " + MPLUS +
+          " output file. Drop the file with the extension <code>.out</code> that the item-level model produced, " +
+          "not the data file, the input file or a table copied out of the output.");
+        $("factor-picker").hidden = true;
+        state.items = [];
+        describeItems();
+        syncControls();
+        return;
+      }
       if (!parsed.hasStdyx) {
         setStatus($("mplus-report"), "bad", "Nothing was read from this file.",
           "It has no <code>STDYX Standardization</code> section, and the loadings this page orders the items " +
@@ -1952,6 +2137,7 @@ function parcelSelfTest() {
         $("factor-picker").hidden = true;
         state.items = [];
         describeItems();
+        syncControls();
         return;
       }
       var sel = $("factor-select");
@@ -1979,13 +2165,17 @@ function parcelSelfTest() {
     var choice = $("factor-select").value;
     var res = mplusToItems(lastParsed, choice);
     if (res.error) { setStatus($("mplus-report"), "bad", "Nothing to read.", esc(res.error)); return; }
+    if (first !== true) clearResults(ITEMS_CHANGED);
     state.items = res.items;
     state.dataFile = lastParsed.dataFile;
+    state.columns = (lastParsed.variable && lastParsed.variable.names) ? lastParsed.variable.names : null;
+    state.missing = (lastParsed.variable && lastParsed.variable.missing) ? lastParsed.variable.missing : null;
     /* The construct of the written input is the factor the items were read
        from. With every factor taken as a facet the output holds no name for
        the construct they share, so the input calls it G and says so. */
     state.construct = choice === "*" ? "G" : choice;
     describeItems();
+    syncControls();
     var extra = [];
     extra.push("Read " + res.items.length + " items from the STDYX section" +
       (choice === "*" ? ", each with the factor it loads on as its facet, and the construct they share is called G in the written input, a name the output does not hold" : " for the factor " + choice) + ".");
@@ -2005,8 +2195,16 @@ function parcelSelfTest() {
     }
     if (lastParsed.dataFile) extra.push("The written input names the same data file as the output, " + lastParsed.dataFile + ".");
     else extra.push("The name of the data file could not be read from the output, so the written input names your-data.dat and that line has to be corrected before it is run.");
-    setStatus($("mplus-report"), "ok", "Items read from the file.", extra.map(esc).join(" "));
-    if (first !== true) return;
+    if (state.columns) extra.push("Its NAMES statement repeats the " + state.columns.length + " columns the item-level model declared" +
+      (state.missing ? ", and its MISSING statement repeats " + state.missing : ", and the item-level model declared no MISSING statement") + ".");
+    else if (lastParsed.variable && lastParsed.variable.unreadable) extra.push("The NAMES statement of the item-level model uses the range " + lastParsed.variable.unreadable +
+      ", which cannot be expanded without the data file, so the written input lists the items only and its NAMES line has to be completed before it is run.");
+    else extra.push("The output does not echo the NAMES statement of the item-level model, so the written input lists the items only and its NAMES line has to be completed before it is run.");
+    var nw = lastParsed && lastParsed.nWarnings ? lastParsed.nWarnings : 0;
+    var body = extra.map(esc).join(" ");
+    if (nw) body += " " + MPLUS + " printed " + nw + " warning" + (nw === 1 ? "" : "s") +
+      "; read " + (nw === 1 ? "it" : "them") + " in the file before accepting a set of parcels.";
+    setStatus($("mplus-report"), nw ? "warn" : "ok", nw ? "Items read, with warnings." : "Items read from the file.", body);
   }
 
   /* ---- self-test banner --------------------------------------------------- */
@@ -2029,6 +2227,10 @@ function parcelSelfTest() {
 
   /* ---- wiring ------------------------------------------------------------- */
   function wire() {
+    var i, settings = ["strategy", "count-mode", "count-value", "agg", "seed", "draws", "mi-threshold", "prefix", "scaling"];
+    for (i = 0; i < settings.length; i++) {
+      $(settings[i]).addEventListener("change", function () { clearResults(SETTINGS_CHANGED); });
+    }
     $("strategy").addEventListener("change", syncControls);
     $("count-mode").addEventListener("change", syncControls);
     $("build").addEventListener("click", build);
@@ -2068,6 +2270,136 @@ function parcelSelfTest() {
   else start();
 })();
 
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
 </script>
 </body>
 </html>

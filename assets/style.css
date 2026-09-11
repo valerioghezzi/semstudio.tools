@@ -59,7 +59,7 @@ header.site, footer.site, main {
   margin-inline: auto;
 }
 @media (max-width: 48rem) { header.site, footer.site, main { width: min(100% - 2rem, 62rem); } }
-@media (max-width: 30rem) { header.site, footer.site, main { width: min(100% - 1.25rem, 62rem); } }
+@media (max-width: 30rem) { header.site, footer.site, main { width: min(100% - 2rem, 62rem); } }
 header.site {
   padding-top: 1rem;
   display: grid; align-items: start;
@@ -118,6 +118,9 @@ main > section > :first-child, .split-col > section > :first-child { margin-top:
 main > section > :last-child, .split-col > section > :last-child { margin-bottom: 0; }
 
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 3px; }
+/* The target of the skip link takes focus so that the next Tab continues from
+   the content; it is not a control, so it shows no ring of its own. */
+main:focus, main:focus-visible { outline: none; }
 
 code, pre, kbd, .mono { font-family: var(--mono); font-size: 0.92em; }
 code { background: var(--line-soft); padding: 0.05em 0.35em; border-radius: 4px; }
@@ -214,7 +217,11 @@ tr.hl td { background: var(--warn-bg); }
 caption, .table-note { text-align: left; font-weight: 700; color: var(--ink); font-size: 1rem; line-height: 1.5; }
 caption {
   padding: 0 0 0.35rem; caption-side: top;
-  position: sticky; left: 0; width: max-content; max-width: min(100%, var(--measure));
+  /* Sticky at the left edge so that it stays in view while the table is
+     scrolled, and no wider than the box itself, so that a long name wraps
+     instead of running past the right edge where it cannot be reached. */
+  position: sticky; left: 0; width: auto;
+  max-width: min(var(--measure), calc(100vw - 2.5rem));
 }
 
 /* Forms */
@@ -240,8 +247,11 @@ textarea { min-height: 8rem; font-family: var(--mono); font-size: 0.9rem; white-
 .row .field { margin: 0.3rem 0; flex: 1 1 12rem; }
 fieldset { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.8rem 1rem; margin: 1rem 0; }
 legend { font-weight: 700; padding: 0 0.4rem; }
-.check { display: flex; gap: 0.5rem; align-items: flex-start; font-weight: 400; }
-.check input { margin-top: 0.35rem; }
+/* The box and its text sit side by side, and the text stays one run: a label
+   written as a flex container turns every inline child into a column of its
+   own, which breaks a long <code> word into one letter group per line. */
+.check { display: block; position: relative; padding-left: 1.6rem; font-weight: 400; }
+.check input { position: absolute; left: 0; top: 0.35rem; margin: 0; }
 
 button, .button {
   font: inherit; font-weight: 600; cursor: pointer;
@@ -358,9 +368,9 @@ body.home main { width: min(100% - 2rem, 62rem); margin-inline: auto; }
 .group h2 {
   display: flex; align-items: center; gap: 0.7rem;
   margin: 0 0 1rem;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--ink-soft);
   max-width: none;
@@ -400,7 +410,8 @@ body.home main { width: min(100% - 2rem, 62rem); margin-inline: auto; }
 }
 .tile::after {
   content: "\2192"; position: absolute; right: 1.15rem; top: 1.2rem;
-  font-size: 1.15rem; line-height: 1; color: var(--accent); opacity: 0.55;
+  font-size: 1.15rem; line-height: 1; opacity: 1;
+  color: color-mix(in srgb, var(--accent) 65%, var(--ink));
   transition: transform 0.16s ease, opacity 0.16s ease;
 }
 .tile .t {
@@ -474,6 +485,13 @@ details { padding: 0.85rem 1.25rem; margin: 1.25rem 0; }
 .row .field.w4 { flex: 1 1 24rem; }
 .field.w1 input, .field.w1 select { max-width: 100%; }
 
+/* Two file boxes side by side are one pair of targets, and they read as a pair
+   only when they are the same size: each box takes the height of the taller of
+   the two instead of stopping at the end of its own text. */
+.row.stretch { align-items: stretch; }
+.row.stretch > .field { display: flex; }
+.row.stretch > .field > .drop { flex: 1 1 auto; margin: 0; }
+
 /* A table of a few columns keeps its own width instead of being stretched
    across the whole content band. */
 .table-wrap.fit { width: max-content; max-width: 100%; }
@@ -484,7 +502,7 @@ details { padding: 0.85rem 1.25rem; margin: 1.25rem 0; }
 
 /* Generated syntax: one width, one padding, and a height beyond which the
    block scrolls inside itself instead of burying the rest of the page. */
-pre.syntax { max-height: 30rem; overflow: auto; contain: paint; }
+pre.syntax { max-height: 42rem; overflow: auto; contain: paint; }
 /* The heading of such a block and the button that copies it stay on one
    line, the button at the end of it, on every page that has them. */
 .block-head { display: flex; flex-wrap: wrap; gap: 0.3rem 1.2rem; align-items: baseline; justify-content: space-between; }
@@ -578,3 +596,62 @@ ol.steps > li::before {
   display: flex; align-items: center; justify-content: center;
 }
 ol.steps code { font-size: 0.9em; }
+
+/* ------------------------------------------------------------------
+   Foldable sections. A page opens with what has to be done and with
+   the controls; the methods, the formulas and the references are
+   there but closed, so that the page is short until they are asked
+   for. The heading keeps its level inside the summary, so the
+   structure of the page is unchanged for a screen reader.
+   ------------------------------------------------------------------ */
+details.fold {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--bg); padding: 0 1.25rem; margin: 1.25rem 0;
+}
+details.fold > summary {
+  list-style: none; cursor: pointer; font-weight: inherit;
+  padding: 0.15rem 0; margin: 0 -1.25rem; padding-left: 1.25rem; padding-right: 1.25rem;
+  border-radius: var(--radius);
+}
+details.fold > summary::-webkit-details-marker { display: none; }
+details.fold > summary > h2 {
+  display: flex; align-items: center; gap: 0.6rem;
+  margin: 0.85rem 0; border: 0; padding: 0;
+}
+details.fold > summary > h2::before {
+  content: ""; flex: none; width: 0.62em; height: 0.62em;
+  border-right: 2.5px solid var(--accent, currentColor);
+  border-bottom: 2.5px solid var(--accent, currentColor);
+  transform: rotate(-45deg); transition: transform 120ms ease-in-out;
+}
+details.fold[open] > summary > h2::before { transform: rotate(45deg); }
+details.fold > summary:hover > h2 { color: var(--brand); }
+details.fold > summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+details.fold > .fold-body { padding-bottom: 1rem; }
+details.fold > .fold-body > :first-child { margin-top: 0; }
+@media (prefers-reduced-motion: reduce) { details.fold > summary > h2::before { transition: none; } }
+@media print { details.fold > .fold-body { display: block !important; } }
+
+
+/* ---------------------------------------------------------------------------
+   Text inside a figure. An SVG drawn with a viewBox scales with the width of
+   its box, so a size that reads well on a wide screen falls below legibility
+   on a telephone. The size is set here rather than on the element, so that it
+   can be raised as the box narrows; the value is in user units of the viewBox,
+   whose width is 640 to 760 in every figure on this site.
+   --------------------------------------------------------------------------- */
+svg.chart text, svg.figure text { font-size: 13px; }
+@media (max-width: 760px) {
+  svg.chart text, svg.figure text { font-size: 17px; }
+}
+@media (max-width: 480px) {
+  svg.chart text, svg.figure text { font-size: 22px; }
+}
+
+/* The key of a figure, set as text below it rather than inside the drawing,
+   so that it is read at the size of the page and cannot be cut off when the
+   figure is scaled down. */
+ul.legend { list-style: none; padding: 0; margin: 0.4rem 0 0.9rem; display: flex; flex-wrap: wrap; gap: 0.25rem 1.2rem;
+  font-size: 0.92rem; color: var(--ink-soft); max-width: var(--measure); }
+ul.legend li { display: flex; align-items: center; gap: 0.4rem; margin: 0; }
+ul.legend .swatch { width: 0.9rem; height: 0.9rem; border: 1px solid #333; border-radius: 2px; flex: none; }

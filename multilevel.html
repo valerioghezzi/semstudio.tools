@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Reliability of a measure with nested data: intraclass correlations, design effect, omega at the within and between levels and the coefficients of Lai (2021) for within-cluster, shared and configural constructs, with level-specific fit by the partially saturated model method.">
+<title>Multilevel Reliability · semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+.big { font-size: 1.35rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Multilevel Reliability</h1>
+  <p class="lede">With nested data a scale has more than one reliability, and which one is wanted depends on what the construct is taken to be and on which score is used. This page reads the output of a two-level factor model and reports the intraclass correlation of each item, the design effect, the reliability at each level and the coefficients Lai (2021) derives for a within-cluster construct, for a shared cluster-level construct and for a configural construct. It also assembles the level-specific fit of the model by the partially saturated model method of Ryu and West (2009), and writes the four inputs that method needs.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: STDYX;</code> on a <code>TYPE = TWOLEVEL</code> analysis. The unstandardized parameters are what the coefficients are computed from, as in the syntax Lai (2021) publishes; the standardized ones are what the construct replicability <var>H</var> of Hancock and Mueller (2001), which Geldhof, Preacher and Zyphur (2014) call maximal reliability needs. The number of clusters and the size of each are printed by M<em>plus</em> on its own, and the harmonic mean of the cluster sizes, which two of the coefficients need, is computed from them. A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Fit the two-level factor model in M<em>plus</em> with <code>STDYX</code> in the OUTPUT command and keep the <code>.out</code> file.</li>
+    <li>Drop it on the box below.</li>
+    <li>Say what the construct is taken to be. The choice is not a detail of estimation: a construct that exists within clusters, one that is shared by the members of a cluster and one that exists at both levels are three different things, and each has its own coefficient.</li>
+    <li>Read the coefficients with the note beside each one, which says which score it is the reliability of.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> file of the two-level model here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file">M<em>plus</em> output file of the two-level model</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere.</p>
+  <div id="report" aria-live="polite"></div>
+  <fieldset id="kind-set">
+    <legend>What the construct is</legend>
+    <label class="check"><input type="radio" name="kind" id="k-within" value="within" checked> <b>Within-cluster</b>: it belongs to the individual, and the clustering is a nuisance. The reliability wanted is that of the individual score, purged of the cluster level.</label>
+    <label class="check"><input type="radio" name="kind" id="k-shared" value="shared"> <b>Shared</b>: it belongs to the cluster and the individuals are its raters, as with a classroom climate rated by its pupils. The reliability wanted is that of the cluster mean.</label>
+    <label class="check"><input type="radio" name="kind" id="k-config" value="config"> <b>Configural</b>: it exists at both levels with the same meaning, and both the individual score and the cluster mean are of interest.</label>
+  </fieldset>
+</section>
+
+<section aria-labelledby="h-results">
+  <h2 id="h-results">What the file gives</h2>
+  <div id="results"><p class="hint">The tables appear here once an output file has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-fit">
+  <h2 id="h-fit">Level-specific fit</h2>
+  <p>A two-level model is tested by one chi-square that mixes the two levels, and the within-level part, resting on many more observations, dominates it: a between-level model that fits badly can pass unnoticed. Ryu and West (2009) separate the two by fitting the model with one level saturated at a time. This page writes the four inputs that method needs and assembles the table from the four outputs.</p>
+  <ol class="steps">
+    <li>Press <em>Write the four inputs</em>. The page writes them from the model of the file already loaded, or from the description you type below when no file is loaded.</li>
+    <li>Run all four in M<em>plus</em>.</li>
+    <li>Drop the four <code>.out</code> files on the box below, in any order. The page recognizes each of them by its model.</li>
+  </ol>
+  <div class="field">
+    <label for="fit-defs">Factors and their items</label>
+    <textarea id="fit-defs" rows="3" spellcheck="false">FW BY y1-y6;</textarea>
+    <span class="hint">One factor to a line, written as in M<em>plus</em>. Used only when no file has been loaded above; with a file, the model in the file is used.</span>
+  </div>
+  <div class="row">
+    <div class="field w2"><label for="fit-cluster">Cluster variable</label><input type="text" id="fit-cluster" value="CLUSTER" spellcheck="false"></div>
+    <div class="field w2"><label for="fit-data">Data file</label><input type="text" id="fit-data" value="mydata.dat" spellcheck="false"></div>
+  </div>
+  <p class="actions"><button type="button" id="btn-fit-syntax">Write the four inputs</button></p>
+  <div id="fit-syntax"></div>
+  <div class="drop" id="drop-fit" aria-describedby="fit-hint">
+    <strong>Drop the four <code>.out</code> files here</strong>, or press Enter to choose them.
+    <label class="visually-hidden" for="file-fit">The four partially saturated outputs</label>
+    <input type="file" id="file-fit" accept=".out,.txt,text/plain" multiple>
+    <span class="file-name" id="file-fit-name"></span>
+  </div>
+  <p id="fit-hint" class="hint">Each file is recognized by the title the page writes into it. The table appears as soon as the pair needed for a level is present.</p>
+  <div id="fit-report" aria-live="polite"></div>
+  <div id="fit-out"></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>What is nested in what</h3>
+  <p>The variance of an item observed on individuals nested in clusters splits into a part that varies between clusters and a part that varies within them. The intraclass correlation is the share of the first,</p>
+  <div class="eq"><math display="block"><mrow><mi>ICC</mi><mo>=</mo><mfrac><msubsup><mi>&#x3C3;</mi><mi>b</mi><mn>2</mn></msubsup><mrow><msubsup><mi>&#x3C3;</mi><mi>b</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>w</mi><mn>2</mn></msubsup></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><mi>Deff</mi><mo>=</mo><mn>1</mn><mo>+</mo><mrow><mo>(</mo><mover><mi>n</mi><mo>&#x2015;</mo></mover><mo>&#x2212;</mo><mn>1</mn><mo>)</mo></mrow><mi>ICC</mi></mrow></math></div>
+  <p class="where">Here σ²<sub><var>b</var></sub> and σ²<sub><var>w</var></sub> are the between-cluster and within-cluster variances of the item, <var>n</var>̄ the average cluster size and Deff the design effect, the factor by which the clustering inflates the sampling variance of a mean compared with a simple random sample of the same size. M<em>plus</em> prints the intraclass correlations of a two-level analysis; the page reads them when they are there and computes them from the variance components when they are not.</p>
+
+  <h3>Reliability at each level</h3>
+  <p>Geldhof, Preacher and Zyphur (2014) apply the ordinary coefficients to the parameters of each level of the model:</p>
+  <div class="eq"><math display="block"><mrow><msup><mi>&#x3C9;</mi><mi>w</mi></msup><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mi>w</mi></msubsup><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>w</mi></msup></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mi>w</mi></msubsup><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>w</mi></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>w</mi></msubsup></mrow></mfrac></mrow></math></div>
+  <p class="where">Here λ<sup><var>w</var></sup><sub><var>i</var></sub> is the within-level loading of item <var>i</var>, ψ<sup><var>w</var></sup> the within-level factor variance, which the model usually fixes at one, and θ<sup><var>w</var></sup><sub><var>i</var></sub> its within-level residual variance. The between-level coefficient has the same form with the between-level parameters. Their maximal reliability uses the standardized loadings of the level in question, <math><mrow><mi>H</mi><mo>=</mo><msup><mrow><mo>[</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>/</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mfrac><msubsup><mi>&#x3BB;</mi><mi>i</mi><mn>2</mn></msubsup><mrow><mn>1</mn><mo>&#x2212;</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mo>]</mo></mrow><mrow><mo>&#x2212;</mo><mn>1</mn></mrow></msup></mrow></math>. The same authors report that the between-level maximal reliability is badly biased upward when the between-level reliability and the intraclass correlations are low and the clusters are small, and write that they cannot recommend its use in applied multilevel research; the page prints it with that warning attached.</p>
+
+  <h3>Which coefficient goes with which construct</h3>
+  <p>Lai (2021) shows that the coefficients above are the reliability of no score anyone computes, and derives the reliability of the scores that are actually used, one for each meaning the construct can have. The formulas below are the ones his supplementary syntax computes.</p>
+  <p>For a <b>within-cluster</b> construct the score of interest is the individual's, and its reliability is ω<sup><var>w</var></sup> above, estimated in a model whose between level is left saturated so that the within-level structure is not distorted by a between-level model that may be wrong.</p>
+  <p>For a <b>configural</b> construct the raw score of an individual carries both levels, and its reliability is</p>
+  <div class="eq"><math display="block"><mrow><msup><mi>&#x3C9;</mi><mrow><mn>2</mn><mi>L</mi></mrow></msup><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>&#x3C8;</mi><mi>b</mi></msup><mo>)</mo></mrow></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>&#x3C8;</mi><mi>b</mi></msup><mo>)</mo></mrow><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>b</mi></msubsup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>w</mi></msubsup></mrow></mfrac></mrow></math></div>
+  <p class="where">Here λ<sub><var>i</var></sub> is the loading of item <var>i</var>, held equal across the two levels as a configural construct requires, ψ<sup><var>b</var></sup> is the between-level factor variance with the within-level one fixed at one, and θ<sup><var>b</var></sup><sub><var>i</var></sub> and θ<sup><var>w</var></sup><sub><var>i</var></sub> are the residual variances at the two levels.</p>
+  <p>The reliability of the <b>cluster mean</b> of that same score carries the sampling error of a mean over a finite number of members:</p>
+  <div class="eq"><math display="block"><mrow><msup><mi>&#x3C9;</mi><mi>b</mi></msup><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>b</mi></msup></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>b</mi></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>b</mi></msubsup><mo>+</mo><mfrac><mrow><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>w</mi></msubsup><mo>+</mo><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup></mrow><mover><mi>n</mi><mo>&#x2015;</mo></mover></mfrac></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <var>n</var>̄ is the harmonic mean of the cluster sizes, which is the value Lai uses in his syntax and the one this page computes from the cluster sizes M<em>plus</em> prints. The term divided by it is the variance of the cluster mean of the within-level part of the composite: with large clusters it vanishes and the coefficient approaches the one computed from the between-level parameters alone, and with small clusters it dominates.</p>
+  <p>For a <b>shared</b> construct there is no within-level factor, since what is measured belongs to the cluster and the differences among its members are disagreement. The within level is then left saturated and its whole composite variance enters as error:</p>
+  <div class="eq"><math display="block"><mrow><msup><mi>&#x3C9;</mi><mi>b</mi></msup><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mi>b</mi></msubsup><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>b</mi></msup></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mi>b</mi></msubsup><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>b</mi></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>b</mi></msubsup><mo>+</mo><mfrac><mrow><msup><mn>1</mn><mo>&#x2032;</mo></msup><msup><mi mathvariant="bold">&#x3A3;</mi><mi>w</mi></msup><mn>1</mn></mrow><mover><mi>n</mi><mo>&#x2015;</mo></mover></mfrac></mrow></mfrac></mrow></math></div>
+  <p class="where">Here <b>Σ</b><sup><var>w</var></sup> is the within-level covariance matrix of the items, left unstructured, and 1′<b>Σ</b><sup><var>w</var></sup>1 the sum of all its elements, that is the within-level variance of the unit-weighted total. The page computes it from the within-level variances and covariances the file prints, and says so when the within level of the model is not saturated, since the quantity is then the one the structure implies rather than the one the data show.</p>
+
+  <h3>Level-specific fit</h3>
+  <p>Ryu and West (2009) obtain the fit of one level by saturating the other. Fitting the model with the within level saturated gives a chi-square that reflects the between-level model alone, and the reverse gives one that reflects the within-level model. Their fit indices use those statistics with a baseline that is itself partially saturated, so that the saturated half of the model does not inflate the index:</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>CFI</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><mi>max</mi><mo>(</mo><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow><mrow><mi>max</mi><mo>(</mo><msubsup><mi>&#x3C7;</mi><mrow><mi>I</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>I</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow></mfrac></mrow></math></div>
+  <p class="where">Here χ²<sub>PS−B</sub> and <var>df</var><sub>PS−B</sub> are those of the model with the between level hypothesized and the within level saturated, and χ²<sub>I−B</sub> and <var>df</var><sub>I−B</sub> those of the model with the between level an independence model and the within level saturated. The within-level index is the mirror image of this one.</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mi>J</mi></mrow></mfrac></msqrt><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mi>N</mi></mrow></mfrac></msqrt></mrow></math></div>
+  <p class="where">Here <var>J</var> is the number of clusters and <var>N</var> the total number of observations: the between-level index is scaled by the number of clusters, which is the sample size that level rests on, and the within-level one by the number of observations. Both are set to zero when the quantity under the root is negative.</p>
+
+  <h3>Self-test</h3>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of a two-level output, of the cluster sizes and of the intraclass correlations, the harmonic mean, every coefficient against the values the published syntax of Lai (2021) returns for the same parameters, the level-specific fit indices against their definitions, and the cases the page has to refuse.</p>
+  </div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>Bentler, P. M. (1990). Comparative fit indexes in structural models. <em>Psychological Bulletin, 107</em>(2), 238–246. <a href="https://doi.org/10.1037/0033-2909.107.2.238">https://doi.org/10.1037/0033-2909.107.2.238</a></li>
+    <li>Geldhof, G. J., Preacher, K. J., &amp; Zyphur, M. J. (2014). Reliability estimation in a multilevel confirmatory factor analysis framework. <em>Psychological Methods, 19</em>(1), 72–91. <a href="https://doi.org/10.1037/a0032138">https://doi.org/10.1037/a0032138</a></li>
+    <li>Hancock, G. R., &amp; Mueller, R. O. (2001). Rethinking construct reliability within latent variable systems. In R. Cudeck, S. du Toit, &amp; D. Sörbom (Eds.), <em>Structural equation modeling: Present and future</em> (pp. 195–216). Scientific Software International.</li>
+    <li>Lai, M. H. C. (2021). Composite reliability of multilevel data: It's about observed scores and construct meanings. <em>Psychological Methods, 26</em>(1), 90–102. <a href="https://doi.org/10.1037/met0000287">https://doi.org/10.1037/met0000287</a></li>
+    <li>Muthén, B. O., &amp; Satorra, A. (1995). Complex sample data in structural equation modeling. <em>Sociological Methodology, 25</em>, 267&#8211;316. <a href="https://doi.org/10.2307/271070">https://doi.org/10.2307/271070</a></li>
+    <li>Ryu, E., &amp; West, S. G. (2009). Level-specific evaluation of model fit in multilevel structural equation modeling. <em>Structural Equation Modeling, 16</em>(4), 583–601. <a href="https://doi.org/10.1080/10705510903203466">https://doi.org/10.1080/10705510903203466</a></li>
+  </ul>
+  </div>
+</details>
+</main>
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+var MP = "M<em>plus</em>";
+
+function decodeBuffer(ab) {
+  var bytes = new Uint8Array(ab), i, s;
+  if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8)); return s;
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]); return s;
+  }
+  var start = (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+  try {
+    if (typeof TextDecoder !== "undefined")
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(start));
+  } catch (e) { /* not valid UTF-8: read as Windows-1252 */ }
+  s = ""; for (i = start; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return s;
+}
+function readTextFile(file, then, fail) {
+  var r = new FileReader();
+  r.onerror = function () { if (fail) fail(); };
+  r.onload = function (e) {
+    var res = (e && e.target) ? e.target.result : r.result, text;
+    try { text = decodeBuffer(res); } catch (err) { if (fail) fail(err); return; }
+    then(text);
+  };
+  r.readAsArrayBuffer(file);
+}
+var MPLUS_SIGNATURE = /(^|\n)[ \t]*(Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION)/;
+
+/* ==================================================================
+   Numerical core
+   ================================================================== */
+var ML = (function () {
+  /* A row of MODEL RESULTS. Maximum likelihood prints four numbers and
+     Bayesian estimation five with a significance mark, so the row is read as
+     a name followed by the numbers it happens to carry. */
+  var ROW = /^\s{2,}([A-Za-z][A-Za-z0-9_$#.&]*)\s+(-?\d+\.\d+(?:[DdEe][-+]?\d+)?)((?:\s+(?:-?\d+\.\d+(?:[DdEe][-+]?\d+)?|\*+))*)\s*\*?\s*$/;
+
+  /* The parameters of a two-level model, level by level. */
+  function readModel(text, section) {
+    var lines = text.split(/\r?\n/), i, started = false, level = null, head = "";
+    var out = { within: emptyLevel(), between: emptyLevel(), levels: [] };
+    var startRe = section === "std" ? /^STDYX Standardization\s*$/ : /^MODEL RESULTS\s*$/;
+    for (i = 0; i < lines.length; i++) {
+      var l = lines[i], t = l.trim();
+      if (!started) { if (startRe.test(t)) started = true; continue; }
+      if (section !== "std" && /^(STANDARDIZED MODEL RESULTS|STDYX Standardization)/.test(t)) break;
+      if (/^(R-SQUARE|QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|MODEL MODIFICATION INDICES|DIAGRAM INFORMATION|MUTHEN & MUTHEN|Beginning Time|SAVEDATA INFORMATION)/.test(t)) break;
+      if (/^Within Level\s*$/i.test(t)) { level = "within"; head = ""; out.levels.push("within"); continue; }
+      if (/^Between Level\s*$/i.test(t)) { level = "between"; head = ""; out.levels.push("between"); continue; }
+      if (/^Level \d+\s*$/i.test(t)) { level = "other"; head = ""; out.levels.push(t); continue; }
+      if (!level) continue;
+      var mh = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+(BY|WITH|ON)\s*$/i);
+      if (mh) { head = mh[1].toUpperCase() + " " + mh[2].toUpperCase(); continue; }
+      if (/^\s*(Intercepts|Means|Thresholds|Variances|Residual Variances|New\/Additional Parameters)\s*$/i.test(t)) { head = t.toUpperCase(); continue; }
+      var mv = l.match(ROW);
+      if (!mv) { if (t !== "" && !/\d/.test(l)) head = ""; continue; }
+      if (level === "other") continue;
+      var name = mv[1].toUpperCase(), est = parseFloat(mv[2]);
+      var dest = out[level];
+      if (/ BY$/.test(head)) {
+        var f = head.split(" ")[0];
+        if (!dest.by[f]) { dest.by[f] = []; dest.factors.push(f); }
+        dest.by[f].push({ item: name, est: est });
+      } else if (/ WITH$/.test(head)) {
+        dest.withs.push({ a: head.split(" ")[0], b: name, est: est });
+      } else if (head === "VARIANCES") dest.variance[name] = est;
+      else if (head === "RESIDUAL VARIANCES") dest.resid[name] = est;
+    }
+    return out;
+  }
+  function emptyLevel() { return { factors: [], by: {}, resid: {}, variance: {}, withs: [] }; }
+
+  /* The cluster sizes, from the block Mplus prints under SUMMARY OF DATA. */
+  function readClusterSizes(text) {
+    var lines = text.split(/\r?\n/), i, at = -1, sizes = [];
+    for (i = 0; i < lines.length; i++)
+      if (/Size \(s\)\s+Cluster ID with Size s/i.test(lines[i])) { at = i; break; }
+    if (at < 0) return null;
+    var currentSize = null, count = 0;
+    for (i = at + 1; i < lines.length; i++) {
+      var l = lines[i], t = l.trim();
+      if (t === "") { if (currentSize !== null && count) { pushSize(); } if (/^\s*$/.test(l) && sizes.length && blank(lines, i)) break; continue; }
+      if (!/^[\s\d]+$/.test(l)) break;
+      var lead = l.match(/^(\s*)(\d+)/);
+      if (!lead) break;
+      var indent = lead[1].length;
+      var toks = t.split(/\s+/).map(Number);
+      if (indent < 15) {
+        if (currentSize !== null) pushSize();
+        currentSize = toks[0];
+        count = toks.length - 1;
+      } else {
+        count += toks.length;
+      }
+    }
+    if (currentSize !== null) pushSize();
+    function pushSize() { var k; for (k = 0; k < count; k++) sizes.push(currentSize); currentSize = null; count = 0; }
+    function blank(ls, j) { return (ls[j + 1] === undefined) || /^\s*$/.test(ls[j + 1]); }
+    return sizes.length ? sizes : null;
+  }
+  function harmonicMean(sizes) {
+    if (!sizes || !sizes.length) return null;
+    var s = 0, i;
+    for (i = 0; i < sizes.length; i++) { if (!(sizes[i] > 0)) return null; s += 1 / sizes[i]; }
+    return sizes.length / s;
+  }
+  function mean(sizes) {
+    if (!sizes || !sizes.length) return null;
+    var s = 0, i;
+    for (i = 0; i < sizes.length; i++) s += sizes[i];
+    return s / sizes.length;
+  }
+  /* The intraclass correlations Mplus prints, when it prints them. */
+  function readIcc(text) {
+    var m = /ESTIMATED INTRACLASS CORRELATIONS FOR THE Y VARIABLES([\s\S]*?)\n\s*\n\s*\n/.exec(text);
+    if (!m) return null;
+    var out = {}, rows = m[1].split(/\r?\n/), i;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i].match(/^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s*$/);
+      if (r) out[r[1].toUpperCase()] = parseFloat(r[2]);
+    }
+    return Object.keys(out).length ? out : null;
+  }
+  function readNumbers(text) {
+    var out = { n: null, clusters: null };
+    var m = text.match(/Number of observations[^\S\n]+(\d+)/);
+    if (m) out.n = parseInt(m[1], 10);
+    m = text.match(/Number of clusters\s+(\d+)/);
+    if (m) out.clusters = parseInt(m[1], 10);
+    return out;
+  }
+  function readFit(text) {
+    var out = { chi2: null, df: null, p: null, title: null };
+    var m = text.match(/Chi-Square Test of Model Fit\s*\n\s*\n?\s*Value\s+(-?\d+\.\d+)\s*\n\s*Degrees of Freedom\s+(\d+)\s*\n\s*P-Value\s+(-?\d+\.\d+)/);
+    if (m) { out.chi2 = parseFloat(m[1]); out.df = parseInt(m[2], 10); out.p = parseFloat(m[3]); }
+    var mt = text.match(/INPUT INSTRUCTIONS[\s\S]*?TITLE:\s*([^\n;]+)/i);
+    if (mt) out.title = mt[1].trim();
+    return out;
+  }
+
+  /* Sums over the items of one factor at one level. */
+  function sums(level, factor, items) {
+    var rows = level.by[factor] || [], i, sumL = 0, sumTheta = 0, used = [];
+    for (i = 0; i < rows.length; i++) {
+      if (items && items.indexOf(rows[i].item) < 0) continue;
+      sumL += rows[i].est;
+      used.push(rows[i].item);
+    }
+    for (i = 0; i < used.length; i++) {
+      var th = level.resid[used[i]];
+      if (typeof th === "number") sumTheta += th;
+    }
+    return { sumL: sumL, sumTheta: sumTheta, items: used };
+  }
+  function totalWithinVariance(level, items) {
+    var i, j, s = 0, ok = true;
+    for (i = 0; i < items.length; i++) {
+      var v = level.resid[items[i]];
+      if (typeof v !== "number") v = level.variance[items[i]];
+      if (typeof v !== "number") { ok = false; continue; }
+      s += v;
+    }
+    for (i = 0; i < level.withs.length; i++) {
+      var w = level.withs[i];
+      if (items.indexOf(w.a) >= 0 && items.indexOf(w.b) >= 0) s += 2 * w.est;
+    }
+    return ok ? s : null;
+  }
+
+  /* The coefficients. Every one of them is the formula the source publishes. */
+  function omegaLevel(sumL, psi, sumTheta) {
+    var num = sumL * sumL * psi;
+    return num / (num + sumTheta);
+  }
+  function omega2L(sumL, psiW, psiB, sumThetaW, sumThetaB) {
+    var num = sumL * sumL * (psiW + psiB);
+    return num / (num + sumThetaB + sumThetaW);
+  }
+  function omegaBConfigural(sumL, psiW, psiB, sumThetaW, sumThetaB, nbar) {
+    var num = sumL * sumL * psiB;
+    return num / (num + sumThetaB + (sumThetaW + sumL * sumL * psiW) / nbar);
+  }
+  function omegaBShared(sumLb, psiB, sumThetaB, withinTotal, nbar) {
+    var num = sumLb * sumLb * psiB;
+    return num / (num + sumThetaB + withinTotal / nbar);
+  }
+  function maximalH(stdLoadings) {
+    var acc = 0, i;
+    for (i = 0; i < stdLoadings.length; i++) {
+      var l2 = stdLoadings[i] * stdLoadings[i];
+      if (l2 >= 1) return NaN;
+      acc += l2 / (1 - l2);
+    }
+    return acc > 0 ? 1 / (1 + 1 / acc) : NaN;
+  }
+  function designEffect(icc, nbar) { return 1 + (nbar - 1) * icc; }
+
+  /* Level-specific fit, from the four partially saturated models. */
+  function cfiPS(chi2, df, chi2Ind, dfInd) {
+    var a = Math.max(chi2 - df, 0), b = Math.max(chi2Ind - dfInd, 0);
+    if (!(b > 0)) return NaN;
+    return 1 - a / b;
+  }
+  function rmseaPS(chi2, df, size) {
+    if (!(df > 0) || !(size > 0)) return NaN;
+    var v = (chi2 - df) / (df * size);
+    return v > 0 ? Math.sqrt(v) : 0;
+  }
+
+  return { readModel: readModel, readClusterSizes: readClusterSizes, harmonicMean: harmonicMean,
+    mean: mean, readIcc: readIcc, readNumbers: readNumbers, readFit: readFit, sums: sums,
+    totalWithinVariance: totalWithinVariance, omegaLevel: omegaLevel, omega2L: omega2L,
+    omegaBConfigural: omegaBConfigural, omegaBShared: omegaBShared, maximalH: maximalH,
+    designEffect: designEffect, cfiPS: cfiPS, rmseaPS: rmseaPS };
+})();
+
+/* ==================================================================
+   Page
+   ================================================================== */
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
+  function n3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3); }
+  function n2(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(2); }
+  function statusBlock(kind, tag, text) {
+    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
+  }
+  var loaded = null;
+
+  function kind() {
+    return $("k-within").checked ? "within" : ($("k-shared").checked ? "shared" : "config");
+  }
+
+  function analyse() {
+    var raw = loaded.raw, std = loaded.std, sizes = loaded.sizes;
+    var w = raw.within, b = raw.between;
+    var nbar = ML.harmonicMean(sizes), nmean = ML.mean(sizes);
+    var out = { nbar: nbar, nmean: nmean, sizes: sizes, notes: [] };
+    var fw = w.factors[0] || null, fb = b.factors[0] || null;
+    out.fw = fw; out.fb = fb;
+    /* Items: those of the within factor, or of the between factor when the
+       within level has none, which is the shared case. */
+    var items = fw ? w.by[fw].map(function (r) { return r.item; })
+                   : (fb ? b.by[fb].map(function (r) { return r.item; }) : []);
+    out.items = items;
+    if (!items.length) { out.error = "No factor with items was read at either level."; return out; }
+
+    var sw = fw ? ML.sums(w, fw, items) : null;
+    var sb = fb ? ML.sums(b, fb, items) : null;
+    var psiW = fw ? (typeof w.variance[fw] === "number" ? w.variance[fw] : 1) : null;
+    var psiB = fb ? (typeof b.variance[fb] === "number" ? b.variance[fb] : 1) : null;
+    out.psiW = psiW; out.psiB = psiB;
+    out.sumLw = sw ? sw.sumL : null; out.sumThetaW = sw ? sw.sumTheta : null;
+    out.sumLb = sb ? sb.sumL : null; out.sumThetaB = sb ? sb.sumTheta : null;
+
+    /* Are the loadings the same at the two levels, as a configural construct
+       requires? Read, not assumed. */
+    out.equalLoadings = null;
+    if (sw && sb) {
+      var same = true, i;
+      for (i = 0; i < items.length; i++) {
+        var a = (w.by[fw].filter(function (r) { return r.item === items[i]; })[0] || {}).est;
+        var c = (b.by[fb].filter(function (r) { return r.item === items[i]; })[0] || {}).est;
+        if (typeof a !== "number" || typeof c !== "number" || Math.abs(a - c) > 1e-6) { same = false; break; }
+      }
+      out.equalLoadings = same;
+    }
+
+    /* Item variances and intraclass correlations. */
+    out.icc = [];
+    for (var k = 0; k < items.length; k++) {
+      var it = items[k];
+      var lw = sw ? (w.by[fw].filter(function (r) { return r.item === it; })[0] || {}).est : null;
+      var lb = sb ? (b.by[fb].filter(function (r) { return r.item === it; })[0] || {}).est : null;
+      var thw = w.resid[it], thb = b.resid[it];
+      if (typeof thw !== "number") thw = w.variance[it];
+      if (typeof thb !== "number") thb = b.variance[it];
+      var vw = (typeof lw === "number" && psiW !== null ? lw * lw * psiW : 0) + (typeof thw === "number" ? thw : NaN);
+      var vb = (typeof lb === "number" && psiB !== null ? lb * lb * psiB : 0) + (typeof thb === "number" ? thb : NaN);
+      var icc = (loaded.icc && typeof loaded.icc[it] === "number") ? loaded.icc[it]
+                : ((isFinite(vw) && isFinite(vb) && (vw + vb) > 0) ? vb / (vw + vb) : NaN);
+      out.icc.push({ item: it, within: vw, between: vb, icc: icc,
+        deff: (isFinite(icc) && nmean) ? ML.designEffect(icc, nmean) : NaN });
+    }
+
+    /* The coefficients. */
+    out.omegaW = (sw && psiW !== null) ? ML.omegaLevel(sw.sumL, psiW, sw.sumTheta) : NaN;
+    out.omegaBtilde = (sb && psiB !== null) ? ML.omegaLevel(sb.sumL, psiB, sb.sumTheta) : NaN;
+    out.omega2L = (sw && sb && psiW !== null && psiB !== null && out.equalLoadings)
+      ? ML.omega2L(sw.sumL, psiW, psiB, sw.sumTheta, sb.sumTheta) : NaN;
+    out.omegaBconfig = (sw && sb && psiW !== null && psiB !== null && nbar && out.equalLoadings)
+      ? ML.omegaBConfigural(sw.sumL, psiW, psiB, sw.sumTheta, sb.sumTheta, nbar) : NaN;
+    out.withinTotal = ML.totalWithinVariance(w, items);
+    out.omegaBshared = (sb && psiB !== null && nbar && out.withinTotal !== null)
+      ? ML.omegaBShared(sb.sumL, psiB, sb.sumTheta, out.withinTotal, nbar) : NaN;
+
+    /* Maximal reliability, from the standardized loadings of each level. */
+    out.Hw = NaN; out.Hb = NaN;
+    if (std && std.within.factors.length) {
+      var f2 = std.within.factors[0];
+      out.Hw = ML.maximalH(std.within.by[f2].filter(function (r) { return items.indexOf(r.item) >= 0; }).map(function (r) { return r.est; }));
+    }
+    if (std && std.between.factors.length) {
+      var f3 = std.between.factors[0];
+      out.Hb = ML.maximalH(std.between.by[f3].filter(function (r) { return items.indexOf(r.item) >= 0; }).map(function (r) { return r.est; }));
+    }
+    return out;
+  }
+
+  function render() {
+    if (!loaded) { $("results").innerHTML = '<p class="hint">The tables appear here once an output file has been read.</p>'; return null; }
+    var a = analyse(), out = "", i;
+    if (a.error) { $("results").innerHTML = statusBlock("bad", "Nothing was computed.", a.error); return null; }
+    var k = kind();
+
+    out += "<h3>The clusters</h3>";
+    if (a.sizes && a.sizes.length) {
+      var mn = Math.min.apply(null, a.sizes), mx = Math.max.apply(null, a.sizes);
+      out += "<p>" + a.sizes.length + " clusters, of " + (mn === mx ? mn + " members each" :
+        ("between " + mn + " and " + mx + " members")) + ". The average size is " + n2(a.nmean) +
+        " and their harmonic mean, which is the value two of the coefficients below are computed with, is " + n2(a.nbar) + ".</p>";
+    } else {
+      out += statusBlock("warn", "No cluster sizes in the file.",
+        "The block " + MP + " prints under SUMMARY OF DATA with the size of every cluster is not in this file, so the harmonic mean of the cluster sizes is unknown and the coefficients that need it are not computed. Running the same model with <code>TYPE = TWOLEVEL BASIC</code> prints it.");
+    }
+
+    out += "<h3>Each item</h3>";
+    out += '<div class="table-wrap"><table><caption class="visually-hidden">Variance components of each item</caption><tr>' +
+      "<th>Item</th><th>Within</th><th>Between</th><th>ICC</th>" + (a.nmean ? "<th>Design effect</th>" : "") + "</tr>";
+    for (i = 0; i < a.icc.length; i++) {
+      var r = a.icc[i];
+      out += "<tr><th scope=\"row\">" + esc(r.item) + "</th>" +
+        '<td class="num">' + n3(r.within) + "</td>" +
+        '<td class="num">' + n3(r.between) + "</td>" +
+        '<td class="num">' + p3(r.icc) + "</td>" +
+        (a.nmean ? '<td class="num">' + n2(r.deff) + "</td>" : "") + "</tr>";
+    }
+    out += "</table></div>";
+    out += '<p class="hint">' + (loaded.icc ? "The intraclass correlations are the ones " + MP + " prints." :
+      "The intraclass correlations are computed from the variance components of the model, since the file does not print them.") +
+      " The design effect uses the average cluster size.</p>";
+
+    out += "<h3>Reliability</h3>";
+    var rows = [];
+    if (k === "within") {
+      rows.push(["ω<sup>w</sup>", a.omegaW, "the reliability of the individual score for a construct that lives within clusters (Lai, 2021)"]);
+      rows.push(["H<sup>w</sup>", a.Hw, "the maximal reliability of the same score (Geldhof, Preacher, &amp; Zyphur, 2014)"]);
+    } else if (k === "shared") {
+      rows.push(["ω<sup>b</sup>", a.omegaBshared, "the reliability of the cluster mean for a construct shared by the members of a cluster (Lai, 2021)"]);
+      rows.push(["ω̃<sup>b</sup>", a.omegaBtilde, "the between-level coefficient computed from the between-level parameters alone, which is the reliability of a cluster mean over infinitely many members (Geldhof, Preacher, &amp; Zyphur, 2014)"]);
+      rows.push(["H<sup>b</sup>", a.Hb, "the maximal reliability at the between level, reported with the reservation below"]);
+    } else {
+      rows.push(["ω<sup>2L</sup>", a.omega2L, "the reliability of the raw individual score, which carries both levels (Lai, 2021)"]);
+      rows.push(["ω<sup>b</sup>", a.omegaBconfig, "the reliability of the cluster mean of that score, with the sampling error of a mean over " + n2(a.nbar) + " members (Lai, 2021)"]);
+      rows.push(["ω<sup>w</sup>", a.omegaW, "the reliability of the individual score once the cluster level is removed"]);
+      rows.push(["ω̃<sup>b</sup>", a.omegaBtilde, "the coefficient computed from the between-level parameters alone"]);
+    }
+    out += '<div class="table-wrap"><table><caption class="visually-hidden">Reliability coefficients</caption><tr><th>Coefficient</th><th>Value</th><th>What it is the reliability of</th></tr>';
+    for (i = 0; i < rows.length; i++)
+      out += "<tr><th scope=\"row\">" + rows[i][0] + '</th><td class="num">' + p3(rows[i][1]) + "</td><td>" + rows[i][2] + "</td></tr>";
+    out += "</table></div>";
+
+    if (k === "config" && a.equalLoadings === false)
+      out += statusBlock("warn", "The loadings differ between the levels.",
+        "A configural construct is one whose loadings are the same at the two levels, and in this file they are not. " +
+        "The coefficients that require that equality, ω<sup>2L</sup> and ω<sup>b</sup>, are not computed. Either constrain the loadings across levels and fit the model again, or treat the construct as within-cluster or as shared.");
+    if (k === "shared" && a.withinTotal === null)
+      out += statusBlock("warn", "The within-level composite variance could not be read.",
+        "The coefficient for a shared construct needs the whole variance of the total at the within level, that is the sum of the within-level variances and covariances of the items. Fit the model with the within level saturated, as Lai (2021) does, so that those covariances are in the output.");
+    if (k === "shared" && isFinite(a.Hb))
+      out += statusBlock("warn", "On the maximal reliability at the between level.",
+        "Geldhof, Preacher and Zyphur (2014) found it strongly biased upward when the between-level reliability is low, the intraclass correlations are small or the clusters are few, and they write that they cannot recommend its use in applied multilevel research. It is printed here because it is defined, not because it should be reported on its own.");
+    if (k !== "shared" && a.fw && a.fb && !isFinite(a.omegaBconfig) && a.nbar === null)
+      out += statusBlock("info", "Without the cluster sizes.",
+        "The coefficients for the cluster mean need the harmonic mean of the cluster sizes, which this file does not carry.");
+
+    out += '<p class="hint">Every coefficient is computed from the unstandardized parameters of the file, which is how the syntax published with Lai (2021) computes them. ' +
+      "The within-level factor variance read here is " + n3(a.psiW) + " and the between-level one " + n3(a.psiB) + ".</p>";
+
+    $("results").innerHTML = out;
+    return a;
+  }
+
+  var HIDE_ON_FAILURE = [];
+  /* Anything a refused file must not leave behind. */
+  var EMPTY_HTML = {};
+  function rememberEmpty(ids) {
+    ids.forEach(function (id) { if ($(id)) EMPTY_HTML[id] = $(id).innerHTML; });
+  }
+  function clearAfterFailure() {
+    var id;
+    for (id in EMPTY_HTML) if (Object.prototype.hasOwnProperty.call(EMPTY_HTML, id) && $(id)) $(id).innerHTML = EMPTY_HTML[id];
+    HIDE_ON_FAILURE.forEach(function (h) { if ($(h)) $(h).hidden = true; });
+    if ($("file-name")) $("file-name").textContent = "";
+  }
+
+  function handleFile(file) {
+    readTextFile(file, function (text) {
+      loaded = null;
+      clearAfterFailure();
+      if (!String(text).replace(/\s/g, "").length) {
+        $("report").innerHTML = statusBlock("bad", "Nothing to read.",
+          "The file is empty. " + MP + " writes the output as the run proceeds, so an empty file usually means the " +
+          "run was interrupted or the file was opened before it finished.");
+        return;
+      }
+      if (!MPLUS_SIGNATURE.test(text)) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file carries none of the headings an " + MP + " output has, so it is not an output file.");
+        return;
+      }
+      var raw = ML.readModel(text, "raw");
+      if (!raw.levels.length) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The MODEL RESULTS section of this file has no <em>Within Level</em> and <em>Between Level</em> headings, so it is not the output of a two-level analysis.");
+        return;
+      }
+      if (raw.levels.some(function (l) { return l !== "within" && l !== "between"; })) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The output has more than two levels. Every coefficient on this page is defined for two.");
+        return;
+      }
+      loaded = { raw: raw, std: ML.readModel(text, "std"), sizes: ML.readClusterSizes(text),
+        icc: ML.readIcc(text), numbers: ML.readNumbers(text), fit: ML.readFit(text), text: text };
+      $("file-name").textContent = file.name || "";
+      var msg = "Read a two-level model with " + (raw.within.factors.length ? raw.within.factors.length + " factor" + (raw.within.factors.length === 1 ? "" : "s") + " at the within level" : "no factor at the within level") +
+        " and " + (raw.between.factors.length ? raw.between.factors.length + " at the between level" : "none at the between level") + ". " +
+        (loaded.numbers.clusters ? loaded.numbers.clusters + " clusters, " : "") +
+        (loaded.numbers.n ? loaded.numbers.n + " observations. " : "") +
+        (loaded.sizes ? "The size of every cluster is in the file." : "The cluster sizes are not in the file.");
+      var warningCount = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
+      if (warningCount) msg += " " + MP + " printed " + warningCount + " warning" + (warningCount === 1 ? "" : "s") + "; read " + (warningCount === 1 ? "it" : "them") + " in the file before interpreting the coefficients.";
+      $("report").innerHTML = statusBlock(loaded.sizes && !warningCount ? "ok" : "warn", warningCount ? "File read, with warnings." : "File read.", msg);
+      render();
+    }, function () {
+      $("report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
+    });
+  }
+
+  rememberEmpty(["results"]);
+  var drop = $("drop"), input = $("file");
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener("change", function () { if (input.files[0]) handleFile(input.files[0]); });
+  ["k-within", "k-shared", "k-config"].forEach(function (id) { $(id).addEventListener("change", render); });
+  window.ML_PAGE = { analyse: function () { return loaded ? analyse() : null; },
+    current: function () {
+      if (!loaded) return null;
+      var a = analyse();
+      if (a.error || !a.items.length) return null;
+      return { items: a.items, fw: a.fw || "FW", fb: a.fb || "FB",
+               cluster: (loaded.text.match(/CLUSTER\s+IS\s+([A-Za-z][A-Za-z0-9_]*)/i) || [])[1] || null,
+               data: (loaded.text.match(/FILE\s+IS\s+([^\s;]+)/i) || [])[1] || null };
+    },
+    load: function (text) { loaded = { raw: ML.readModel(text, "raw"), std: ML.readModel(text, "std"),
+      sizes: ML.readClusterSizes(text), icc: ML.readIcc(text), numbers: ML.readNumbers(text),
+      fit: ML.readFit(text), text: text }; return analyse(); } };
+})();
+
+/* ==================================================================
+   Level-specific fit: the four inputs, and the table from their outputs
+   ================================================================== */
+var PSFIT = (function () {
+  function wrap(prefix, items, suffix) {
+    var lines = [], cur = prefix, i;
+    for (i = 0; i < items.length; i++) {
+      var piece = " " + items[i];
+      if ((cur + piece).length > 84) { lines.push(cur); cur = "    " + items[i]; }
+      else cur += piece;
+    }
+    if (suffix) {
+      var sep = /^[);]/.test(suffix) ? "" : " ";
+      if ((cur + sep + suffix).length > 84) { lines.push(cur); cur = "    " + suffix; }
+      else cur += sep + suffix;
+    }
+    lines.push(cur);
+    return lines.join("\n");
+  }
+  function saturated(items, indent) {
+    var out = [], i, j;
+    for (i = 0; i < items.length - 1; i++)
+      out.push(wrap(indent + items[i] + " WITH", items.slice(i + 1), ";"));
+    out.push(wrap(indent + items[0], items.slice(1), ";"));
+    return out.join("\n");
+  }
+  function independence(items, indent) { return wrap(indent + items[0], items.slice(1), ";"); }
+  function inputs(spec) {
+    var it = spec.items, defs = spec.defs, head =
+      "DATA: FILE IS " + spec.data + ";\n\n" +
+      "VARIABLE:\n" + wrap("  NAMES ARE", spec.names.length ? spec.names : it, ";") + "\n" +
+      wrap("  USEVARIABLES ARE", it, ";") + "\n" +
+      "  CLUSTER IS " + spec.cluster + ";\n\n" +
+      "ANALYSIS:\n  TYPE = TWOLEVEL;\n  ESTIMATOR = " + spec.estimator + ";\n\n";
+    var out = [];
+    out.push({ key: "PS-B", title: "PS-B: between level hypothesized, within level saturated",
+      text: "TITLE: PS-B between hypothesized within saturated;\n\n" + head +
+        "MODEL:\n  %WITHIN%\n" + saturated(it, "  ") + "\n  %BETWEEN%\n" + defs.between + "\n\nOUTPUT:\n" });
+    out.push({ key: "PS-W", title: "PS-W: within level hypothesized, between level saturated",
+      text: "TITLE: PS-W within hypothesized between saturated;\n\n" + head +
+        "MODEL:\n  %WITHIN%\n" + defs.within + "\n  %BETWEEN%\n" + saturated(it, "  ") + "\n\nOUTPUT:\n" });
+    out.push({ key: "IND-B", title: "Baseline for the between level: independence between, saturated within",
+      text: "TITLE: IND-B independence between saturated within;\n\n" + head +
+        "MODEL:\n  %WITHIN%\n" + saturated(it, "  ") + "\n  %BETWEEN%\n" + independence(it, "  ") + "\n\nOUTPUT:\n" });
+    out.push({ key: "IND-W", title: "Baseline for the within level: independence within, saturated between",
+      text: "TITLE: IND-W independence within saturated between;\n\n" + head +
+        "MODEL:\n  %WITHIN%\n" + independence(it, "  ") + "\n  %BETWEEN%\n" + saturated(it, "  ") + "\n\nOUTPUT:\n" });
+    return out;
+  }
+  function identify(text) {
+    var m = /TITLE:\s*(PS-B|PS-W|IND-B|IND-W)\b/i.exec(text);
+    return m ? m[1].toUpperCase() : null;
+  }
+  function table(files) {
+    var byKey = {}, i;
+    for (i = 0; i < files.length; i++) if (files[i].key) byKey[files[i].key] = files[i];
+    var rows = [], notes = [];
+    var J = null, N = null;
+    for (i = 0; i < files.length; i++) {
+      if (files[i].clusters) J = files[i].clusters;
+      if (files[i].n) N = files[i].n;
+    }
+    if (byKey["PS-B"] && byKey["IND-B"] && J)
+      rows.push({ level: "Between", chi2: byKey["PS-B"].chi2, df: byKey["PS-B"].df, p: byKey["PS-B"].p,
+        cfi: ML.cfiPS(byKey["PS-B"].chi2, byKey["PS-B"].df, byKey["IND-B"].chi2, byKey["IND-B"].df),
+        rmsea: ML.rmseaPS(byKey["PS-B"].chi2, byKey["PS-B"].df, J), size: J, sizeName: "clusters" });
+    else if (byKey["PS-B"])
+      notes.push("The between level has its chi-square but not its baseline or the number of clusters, so its fit indices are not computed.");
+    if (byKey["PS-W"] && byKey["IND-W"] && N)
+      rows.push({ level: "Within", chi2: byKey["PS-W"].chi2, df: byKey["PS-W"].df, p: byKey["PS-W"].p,
+        cfi: ML.cfiPS(byKey["PS-W"].chi2, byKey["PS-W"].df, byKey["IND-W"].chi2, byKey["IND-W"].df),
+        rmsea: ML.rmseaPS(byKey["PS-W"].chi2, byKey["PS-W"].df, N), size: N, sizeName: "observations" });
+    else if (byKey["PS-W"])
+      notes.push("The within level has its chi-square but not its baseline or the number of observations, so its fit indices are not computed.");
+    return { rows: rows, notes: notes, have: Object.keys(byKey) };
+  }
+  return { inputs: inputs, identify: identify, table: table, saturated: saturated, wrap: wrap };
+})();
+
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function n3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3); }
+  function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
+  function statusBlock(kind, tag, text) {
+    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
+  }
+  function expand(list) {
+    var out = [], i;
+    for (i = 0; i < list.length; i++) {
+      var m = /^([A-Za-z][A-Za-z0-9_]*?)(\d+)-([A-Za-z][A-Za-z0-9_]*?)(\d+)$/.exec(list[i]);
+      if (m && m[1].toUpperCase() === m[3].toUpperCase()) {
+        var lo = parseInt(m[2], 10), hi = parseInt(m[4], 10), k;
+        if (hi >= lo && hi - lo < 500) { for (k = lo; k <= hi; k++) out.push((m[1] + k).toUpperCase()); continue; }
+      }
+      out.push(list[i].toUpperCase());
+    }
+    return out;
+  }
+  function specFromForm() {
+    var fromFile = (window.ML_PAGE && window.ML_PAGE.current) ? window.ML_PAGE.current() : null;
+    if (fromFile) {
+      var fwName = fromFile.fw, fbName = fromFile.fb;
+      if (fbName === fwName) fbName = fwName.length < 8 ? fwName + "B" : "FB";
+      return { items: fromFile.items, names: fromFile.items,
+        data: fromFile.data || ($("fit-data").value.trim() || "mydata.dat"),
+        cluster: (fromFile.cluster || $("fit-cluster").value.trim() || "CLUSTER").toUpperCase(),
+        estimator: "MLR", source: "file",
+        defs: { within: "  " + fwName + " BY " + fromFile.items.join(" ") + ";",
+                between: "  " + fbName + " BY " + fromFile.items.join(" ") + ";" } };
+    }
+    var lines = $("fit-defs").value.split(/\r?\n/), items = [], within = [], between = [], i;
+    for (i = 0; i < lines.length; i++) {
+      var t = lines[i].replace(/!.*$/, "").trim();
+      if (!t) continue;
+      var m = /^([A-Za-z][A-Za-z0-9_]*)\s+BY\s+(.+?);?$/i.exec(t);
+      if (!m) return { error: "This line is not a factor definition: " + esc(t) };
+      var these = expand(m[2].split(/[\s,]+/).filter(function (x) { return x.length; }));
+      items = items.concat(these);
+      var fn = m[1].toUpperCase();
+      within.push("  " + fn + " BY " + these.join(" ") + ";");
+      between.push("  " + (fn.length < 8 ? fn + "B" : "FB") + " BY " + these.join(" ") + ";");
+    }
+    if (items.length < 3) return { error: "The model needs at least three items." };
+    return { items: items, names: items, data: $("fit-data").value.trim() || "mydata.dat",
+      cluster: ($("fit-cluster").value.trim() || "CLUSTER").toUpperCase(), estimator: "MLR",
+      defs: { within: within.join("\n"), between: between.join("\n") } };
+  }
+  function writeSyntax() {
+    var spec = specFromForm();
+    if (spec.error) { $("fit-syntax").innerHTML = statusBlock("bad", "Nothing was written.", spec.error); return null; }
+    var list = PSFIT.inputs(spec), html = "", i;
+    for (i = 0; i < list.length; i++)
+      html += '<div class="panel"><h3>' + esc(list[i].title) + "</h3><pre><code>" + esc(list[i].text) + "</code></pre></div>";
+    html += '<p class="hint">Run the four inputs and drop their outputs below. The first two give the chi-square of each level, the other two the baseline each level-specific CFI needs.</p>';
+    if (spec.source === "file")
+      html = statusBlock("info", "Written from the file.",
+        "The four inputs use the items and the factor of the output loaded above, its data file and its cluster variable.") + html;
+    $("fit-syntax").innerHTML = html;
+    return list;
+  }
+  function renderFit(files) {
+    var t = PSFIT.table(files), out = "", i;
+    if (!t.rows.length) {
+      $("fit-out").innerHTML = statusBlock("info", "Not enough files yet.",
+        "Read so far: " + (t.have.length ? t.have.join(", ") : "none") + ". The between level needs PS-B and IND-B, the within level PS-W and IND-W." +
+        (t.notes.length ? " " + t.notes.join(" ") : ""));
+      return t;
+    }
+    out += '<div class="table-wrap"><table><caption class="visually-hidden">Level-specific fit</caption><tr>' +
+      "<th>Level</th><th>χ²</th><th>df</th><th>p</th><th>CFI</th><th>RMSEA</th><th>Scaled by</th></tr>";
+    for (i = 0; i < t.rows.length; i++) {
+      var r = t.rows[i];
+      out += "<tr><th scope=\"row\">" + r.level + "</th>" +
+        '<td class="num">' + n3(r.chi2) + "</td>" +
+        '<td class="num">' + r.df + "</td>" +
+        '<td class="num">' + p3(r.p) + "</td>" +
+        '<td class="num">' + p3(r.cfi) + "</td>" +
+        '<td class="num">' + p3(r.rmsea) + "</td>" +
+        '<td class="num">' + r.size + " " + r.sizeName + "</td></tr>";
+    }
+    out += "</table></div>";
+    out += '<p class="hint">The chi-square of each row is that of the model with the other level saturated, which is the level-specific test of Ryu and West (2009). The CFI compares it with the partially saturated independence model of the same level, and the RMSEA divides by the number of clusters at the between level and by the number of observations at the within level.</p>';
+    if (t.notes.length) out += statusBlock("info", "Also.", t.notes.join(" "));
+    $("fit-out").innerHTML = out;
+    return t;
+  }
+  var fitFiles = [];
+  function handleFitFiles(list) {
+    var pending = list.length, i;
+    if (!pending) return;
+    var read = [];
+    for (i = 0; i < list.length; i++) {
+      (function (f) {
+        readTextFile(f, function (text) {
+          var key = PSFIT.identify(text), fit = ML.readFit(text), nums = ML.readNumbers(text);
+          read.push({ name: f.name, key: key, chi2: fit.chi2, df: fit.df, p: fit.p, clusters: nums.clusters, n: nums.n });
+          if (--pending === 0) done(read);
+        }, function () { if (--pending === 0) done(read); });
+      })(list[i]);
+    }
+    function done(read2) {
+      var keep = fitFiles.filter(function (o) { return !read2.some(function (r) { return r.key && r.key === o.key; }); });
+      fitFiles = keep.concat(read2);
+      var named = fitFiles.filter(function (f) { return f.key; });
+      var unnamed = fitFiles.filter(function (f) { return !f.key; });
+      $("file-fit-name").textContent = fitFiles.map(function (f) { return f.name; }).join(", ");
+      $("fit-report").innerHTML = statusBlock(unnamed.length ? "warn" : "ok",
+        "Read " + fitFiles.length + " file" + (fitFiles.length === 1 ? "" : "s") + ".",
+        (named.length ? "Recognized: " + named.map(function (f) { return f.key; }).join(", ") + ". " : "") +
+        (unnamed.length ? unnamed.length + " file" + (unnamed.length === 1 ? " carries" : "s carry") +
+          " no TITLE beginning with PS-B, PS-W, IND-B or IND-W, so it could not be placed. Use the four inputs this page writes, whose titles it recognizes." : ""));
+      renderFit(fitFiles);
+    }
+  }
+  var drop = $("drop-fit"), input = $("file-fit");
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer.files) handleFitFiles(e.dataTransfer.files);
+  });
+  input.addEventListener("change", function () { if (input.files) handleFitFiles(input.files); });
+  $("btn-fit-syntax").addEventListener("click", writeSyntax);
+  window.PSFIT_PAGE = { writeSyntax: writeSyntax, specFromForm: specFromForm };
+})();
+
+/* ==================================================================
+   Self-test
+   ================================================================== */
+function selfTest() {
+  var checks = [], failed = 0;
+  function ok(name, got, want, tol) {
+    var t = tol === undefined ? 1e-12 : tol;
+    var good = (typeof want === "number") ? (isFinite(got) && Math.abs(got - want) <= t) : (got === want);
+    if (!good) failed++;
+    checks.push({ name: name, got: got, want: want, ok: good });
+  }
+  function okTrue(name, cond) { ok(name, !!cond, true); }
+
+  /* A synthetic two-level output with equal loadings across levels. */
+  var out = [
+    "Mplus VERSION 8.11", "", "SUMMARY OF ANALYSIS", "",
+    "Number of groups                                                 1",
+    "Number of observations                                         250", "",
+    "Estimator                                                      MLR", "",
+    "SUMMARY OF DATA", "",
+    "     Number of clusters                         30", "",
+    "       Size (s)    Cluster ID with Size s", "",
+    "         10        1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20",
+    "          5        21 22 23 24 25 26 27 28 29 30", "",
+    "", "MODEL RESULTS", "",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    "Within Level", "",
+    " FW       BY",
+    "    Y1                 0.800      0.040     20.000      0.000",
+    "    Y2                 0.700      0.040     17.500      0.000",
+    "    Y3                 0.900      0.040     22.500      0.000",
+    "    Y4                 0.600      0.040     15.000      0.000", "",
+    " Y1       WITH",
+    "    Y2                 0.050      0.010      5.000      0.000",
+    "    Y3                 0.050      0.010      5.000      0.000",
+    "    Y4                 0.050      0.010      5.000      0.000", "",
+    " Y2       WITH",
+    "    Y3                 0.050      0.010      5.000      0.000",
+    "    Y4                 0.050      0.010      5.000      0.000", "",
+    " Y3       WITH",
+    "    Y4                 0.050      0.010      5.000      0.000", "",
+    " Variances",
+    "    FW                 1.000      0.000    999.000    999.000", "",
+    " Residual Variances",
+    "    Y1                 0.360      0.030     12.000      0.000",
+    "    Y2                 0.510      0.030     17.000      0.000",
+    "    Y3                 0.190      0.030      6.333      0.000",
+    "    Y4                 0.640      0.030     21.333      0.000", "",
+    "Between Level", "",
+    " FB       BY",
+    "    Y1                 0.800      0.060     13.333      0.000",
+    "    Y2                 0.700      0.060     11.667      0.000",
+    "    Y3                 0.900      0.060     15.000      0.000",
+    "    Y4                 0.600      0.060     10.000      0.000", "",
+    " Variances",
+    "    FB                 0.300      0.050      6.000      0.000", "",
+    " Residual Variances",
+    "    Y1                 0.050      0.010      5.000      0.000",
+    "    Y2                 0.060      0.010      6.000      0.000",
+    "    Y3                 0.040      0.010      4.000      0.000",
+    "    Y4                 0.080      0.010      8.000      0.000", "",
+    "STANDARDIZED MODEL RESULTS", "", "", "STDYX Standardization", "",
+    "Within Level", "",
+    " FW       BY",
+    "    Y1                 0.800      0.030     26.667      0.000",
+    "    Y2                 0.700      0.030     23.333      0.000",
+    "    Y3                 0.900      0.030     30.000      0.000",
+    "    Y4                 0.600      0.030     20.000      0.000", "",
+    "Between Level", "",
+    " FB       BY",
+    "    Y1                 0.870      0.040     21.750      0.000",
+    "    Y2                 0.842      0.040     21.050      0.000",
+    "    Y3                 0.925      0.040     23.125      0.000",
+    "    Y4                 0.758      0.040     18.950      0.000", "",
+    "TECHNICAL 1 OUTPUT"
+  ].join("\n");
+
+  var raw = ML.readModel(out, "raw");
+  ok("the two levels are read", raw.levels.join(","), "within,between");
+  ok("the within factor is read", raw.within.factors[0], "FW");
+  ok("its four loadings are read", raw.within.by.FW.length, 4);
+  ok("a within loading", raw.within.by.FW[2].est, 0.9);
+  ok("the within factor variance", raw.within.variance.FW, 1);
+  ok("a within residual variance", raw.within.resid.Y4, 0.64);
+  ok("the within covariances are read", raw.within.withs.length, 6);
+  ok("the between factor variance", raw.between.variance.FB, 0.3);
+  ok("a between residual variance", raw.between.resid.Y1, 0.05);
+  var std = ML.readModel(out, "std");
+  ok("the standardized within loadings are read", std.within.by.FW[0].est, 0.8);
+  ok("the standardized between loadings are read", std.between.by.FB[0].est, 0.87);
+
+  var sizes = ML.readClusterSizes(out);
+  ok("thirty cluster sizes are read", sizes.length, 30);
+  ok("twenty of them are ten", sizes.filter(function (s) { return s === 10; }).length, 20);
+  ok("ten of them are five", sizes.filter(function (s) { return s === 5; }).length, 10);
+  ok("their harmonic mean", ML.harmonicMean(sizes), 7.5, 1e-12);
+  ok("their average", ML.mean(sizes), 250 / 30, 1e-12);
+  var nums = ML.readNumbers(out);
+  ok("the number of clusters", nums.clusters, 30);
+  ok("the number of observations", nums.n, 250);
+
+  /* The coefficients, against the values the published formulas give for
+     these parameters, computed separately. */
+  var a = ML_PAGE.load(out);
+  ok("omega at the within level", a.omegaW, 0.8411214953271029, 1e-12);
+  ok("the between-level coefficient computed from between parameters alone", a.omegaBtilde, 0.9215017064846417, 1e-12);
+  ok("omega of the raw two-level score", a.omega2L, 0.8584005869405722, 1e-12);
+  ok("omega of the cluster mean, configural construct", a.omegaBconfig, 0.6197398622800305, 1e-12);
+  ok("the within-level variance of the total", a.withinTotal, 2.3, 1e-12);
+  ok("omega of the cluster mean, shared construct", a.omegaBshared, 0.8341915550978373, 1e-12);
+  ok("the loadings are recognized as equal across levels", a.equalLoadings, true);
+  ok("the within variance of the first item", a.icc[0].within, 1, 1e-12);
+  ok("its between variance", a.icc[0].between, 0.242, 1e-12);
+  ok("its intraclass correlation", a.icc[0].icc, 0.1948470209339775, 1e-12);
+  ok("its design effect", a.icc[0].deff, 2.4288781535158348, 1e-12);
+  ok("the maximal reliability at the within level", a.Hw, 0.8832351338934927, 1e-12);
+
+  /* With unequal loadings the configural coefficients are refused. */
+  var out2 = out.replace("    Y3                 0.900      0.060     15.000      0.000",
+                         "    Y3                 0.500      0.060      8.333      0.000");
+  var a2 = ML_PAGE.load(out2);
+  ok("unequal loadings across levels are detected", a2.equalLoadings, false);
+  okTrue("omega of the raw score is then not computed", !isFinite(a2.omega2L));
+  okTrue("omega of the cluster mean is then not computed", !isFinite(a2.omegaBconfig));
+  okTrue("the within-level coefficient is still computed", isFinite(a2.omegaW));
+
+  /* Level-specific fit. */
+  ok("the level-specific CFI", ML.cfiPS(30, 20, 400, 30), 0.9729729729729730, 1e-12);
+  ok("a perfect fit gives one", ML.cfiPS(20, 20, 400, 30), 1, 1e-12);
+  ok("the between-level RMSEA is scaled by the number of clusters", ML.rmseaPS(30, 20, 30), 0.1290994448735805, 1e-12);
+  ok("the within-level RMSEA is scaled by the observations", ML.rmseaPS(60, 25, 250), 0.0748331477354788, 1e-12);
+  ok("a chi-square below its degrees of freedom gives zero", ML.rmseaPS(15, 20, 30), 0);
+  var tbl = PSFIT.table([
+    { key: "PS-B", chi2: 30, df: 20, p: 0.07, clusters: 30, n: 250 },
+    { key: "IND-B", chi2: 400, df: 30, clusters: 30, n: 250 },
+    { key: "PS-W", chi2: 60, df: 25, p: 0.001, clusters: 30, n: 250 },
+    { key: "IND-W", chi2: 900, df: 30, clusters: 30, n: 250 }
+  ]);
+  ok("both levels are reported when the four files are there", tbl.rows.length, 2);
+  ok("the between row uses the number of clusters", tbl.rows[0].size, 30);
+  ok("the within row uses the number of observations", tbl.rows[1].size, 250);
+  ok("the between CFI", tbl.rows[0].cfi, 0.9729729729729730, 1e-12);
+  var partial = PSFIT.table([{ key: "PS-B", chi2: 30, df: 20, clusters: 30, n: 250 }]);
+  ok("one file alone gives no row", partial.rows.length, 0);
+  okTrue("and says what is missing", partial.notes.length > 0);
+  ok("a file is identified by its title", PSFIT.identify("TITLE: PS-W within hypothesized between saturated;"), "PS-W");
+  ok("a file without such a title is not identified", PSFIT.identify("TITLE: my model;"), null);
+
+  /* The four inputs. */
+  var spec = { items: ["Y1", "Y2", "Y3", "Y4"], names: ["Y1", "Y2", "Y3", "Y4"], data: "d.dat",
+    cluster: "SCHOOL", estimator: "MLR",
+    defs: { within: "  FW BY Y1 Y2 Y3 Y4;", between: "  FB BY Y1 Y2 Y3 Y4;" } };
+  var ins = PSFIT.inputs(spec);
+  ok("four inputs are written", ins.length, 4);
+  okTrue("the first saturates the within level", ins[0].text.indexOf("Y1 WITH Y2 Y3 Y4;") > 0);
+  okTrue("the baseline for the between level has no between covariance",
+     ins[2].text.slice(ins[2].text.indexOf("%BETWEEN%")).indexOf("WITH") < 0);
+  okTrue("every input names the cluster variable", ins.every(function (x) { return x.text.indexOf("CLUSTER IS SCHOOL;") > 0; }));
+  okTrue("no line passes the ninetieth column",
+     ins.every(function (x) { return x.text.split("\n").every(function (l) { return l.length <= 90; }); }));
+  okTrue("each input is identified by its own title",
+     ins.map(function (x) { return PSFIT.identify(x.text); }).join(",") === "PS-B,PS-W,IND-B,IND-W");
+
+  return { checks: checks, failed: failed };
+}
+
+(function () {
+  if (!/[?&]selftest=1(&|$)/.test(window.location.search)) return;
+  var out;
+  try { out = selfTest(); }
+  catch (err) { out = { checks: [{ name: "the self-test raised an error: " + (err && err.message ? err.message : String(err)), ok: false }], failed: 1 }; }
+  var b = document.getElementById("selftest-banner");
+  b.hidden = false;
+  b.className = "status " + (out.failed ? "bad" : "ok");
+  b.innerHTML = '<p><span aria-hidden="true">' + (out.failed ? "✗" : "✓") + '</span> <span class="tag">' +
+    (out.failed ? "Self-test failed." : "Self-test passed.") + "</span> " + out.checks.length + " checks, " + out.failed +
+    " failed. They cover the reading of a two-level output at both levels and in the standardized section, the cluster " +
+    "sizes and their harmonic mean, every reliability coefficient against the value its published formula gives for the " +
+    "same parameters, the intraclass correlation and the design effect, the level-specific fit indices, and the four " +
+    "inputs the page writes. Each check is listed in the browser console.</p>";
+  var lines = out.checks.map(function (c) {
+    return (c.ok ? "ok   " : "FAIL ") + c.name + (c.ok ? "" : "  got " + c.got + ", wanted " + c.want);
+  });
+  if (out.failed) console.error(lines.join("\n")); else console.log(lines.join("\n"));
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

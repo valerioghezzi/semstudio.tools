@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
 <meta name="description" content="Draw interaction plots, test simple slopes and locate the Johnson-Neyman region from an Mplus output file, entirely in your browser.">
-<title>Interaction plots and simple slopes · semstudio.tools</title>
+<title>Interaction Plots and Simple Slopes · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
@@ -45,7 +45,7 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   .figpanel > .exportbar .field, .figpanel > .exportbar input, .figpanel > .exportbar select { max-width: 100%; width: 100%; }
   .figpanel > .exportbar .buttons { flex-direction: column; }
 }
-/* The controls that export a figure: each labelled field keeps the width of
+/* The controls that export a figure: each labeled field keeps the width of
    what it holds, and the two buttons sit together at the end of the row. */
 .exportbar { display: flex; flex-wrap: wrap; gap: 0.6rem 0.9rem; align-items: end; margin: 0.9rem 0 0; }
 .exportbar .field { margin: 0; flex: 0 1 auto; min-width: 0; }
@@ -61,31 +61,32 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All tools</a>
   </nav>
-  <h1>Interaction plots and simple slopes</h1>
-  <p class="lede">This page reads an <span class="mp">M</span><em>plus</em> output file, draws the interaction between a predictor and a moderator, tests the simple slope of X on Y at chosen values of the moderator, and locates the Johnson&ndash;Neyman thresholds that fall inside the range of the moderator the data cover. Every number it computes with is read from that file, and none of them can be typed in.</p>
+  <h1>Interaction Plots and Simple Slopes</h1>
+  <p class="lede">This page reads an <span class="mp">M</span><em>plus</em> output file, draws the interaction between a predictor and a moderator, tests the simple slope of Y on X at chosen values of the moderator, and locates the Johnson&ndash;Neyman thresholds that fall inside the range of the moderator the data cover.</p>
   <div class="callout" role="note">
-    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3;</code> for an interaction between observed variables, with <code>TECH4</code> added when the interaction is between latent variables. TECH1 numbers the free parameters and TECH3 prints their covariance matrix: together they give the standard error of a simple slope and the Johnson&ndash;Neyman thresholds, and SAMPSTAT gives the means, standard deviations and observed minimum and maximum used for the levels of the moderator and for the axes.
+    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3 TECH4;</code>. TECH1 numbers the free parameters and TECH3 prints their covariance matrix: together they give the standard error of a simple slope and the Johnson&ndash;Neyman thresholds. SAMPSTAT gives the means, standard deviations and observed minimum and maximum of the observed variables, used for the levels of the moderator and for the axes. TECH4 gives the estimated means, variances and covariances of the latent variables, which is where the page reads them when the interaction is between factors declared with <code>XWITH</code>. STDYX gives the standardized solution. <span class="mp">M</span><em>plus</em> prints all of them for a model with a latent interaction from Version 7.4 on (Muthén &amp; Muthén, 2015); an earlier version writes a warning naming the option it refused, and the page then falls back on the <em>Variances</em> and <em>WITH</em> blocks of MODEL RESULTS and says so.
+    A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
   </div>
 </header>
-<main id="main">
+<main id="main" tabindex="-1">
 
 <p id="selftest" class="status info" hidden></p>
 
 <section aria-labelledby="s-steps">
   <h2 id="s-steps">What to do</h2>
   <ol class="steps">
-    <li>Open the <span class="mp">M</span><em>plus</em> input file of the model that contains the interaction, the file with the extension <code>.inp</code>, and add this line to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3;</code></li>
-    <li>Add <code>TECH4</code> to that same line, so that it reads <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3 TECH4;</code>, only when the interaction is between two latent variables formed with <code>XWITH</code>. TECH4 prints the estimated means and variances of the latent variables, which are not in the sample statistics.</li>
+    <li>Open the <span class="mp">M</span><em>plus</em> input file of the model that contains the interaction, the file with the extension <code>.inp</code>, and add this line to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3 TECH4;</code></li>
+    <li>Leave the line as it is when the interaction is between two latent variables declared with <code>XWITH</code>. That model is estimated with <code>TYPE = RANDOM</code>, and TECH4 is what carries the quantities the standardized solution needs: the estimated variances of the two factors, their covariance, and the estimated variance of the dependent variable when that is itself a factor. The product term does not appear among the rows of TECH4; its variance follows from the variances and the covariance of its two components. If the run answers with the warning that TECH4 or STANDARDIZED is not available for <code>TYPE = RANDOM</code>, which versions before 7.4 do (Muthén &amp; Muthén, 2015), the page reads the variances of the factors from the <em>Variances</em> block and their covariance from the <em>WITH</em> block of MODEL RESULTS, takes their means as zero, which is where <span class="mp">M</span><em>plus</em> fixes them, and rebuilds the variance of the dependent variable from the model.</li>
     <li>Run that input in <span class="mp">M</span><em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the folder the input is in.</li>
     <li>Drag the <code>.out</code> file onto the box below, or press <em>Choose the .out file</em> and pick it there. The file is read inside your browser and nothing leaves your computer.</li>
     <li>Read the paragraph headed <em>Output read</em>. It names every regression found in MODEL RESULTS, the estimator, whether TECH1 and TECH3 are in the file, and any row the program printed as asterisks.</li>
     <li>Choose the dependent variable, the predictor whose slope is drawn, and how the moderator enters the model: one continuous variable, one categorical variable with numeric codes, or a set of dummy variables with one product term each.</li>
     <li>Choose the moderator and the term that carries the product of the predictor and the moderator. The page names the coefficients it read for them; those values cannot be changed here.</li>
-    <li>Set the levels of a continuous moderator at which the slope is to be drawn. They start at one standard deviation below the mean, at the mean and at one standard deviation above it, all three read from the file, and you can change them because which levels to draw is a decision about the figure. The codes of a categorical moderator are read from the file and are not adjustable.</li>
-    <li>Read the figure, the table of simple slopes under it, and the Johnson&ndash;Neyman section, which reports the values of the moderator at which the slope stops differing from zero.</li>
+    <li>Set the levels of a continuous moderator at which the slope is to be drawn. They start at one standard deviation below the mean, at the mean and at one standard deviation above it, all three read from the file, and you can change them because which levels to draw is a decision about the figure. The codes of a categorical moderator are read from the file and cannot be changed or added to.</li>
+    <li>Read the figure, the table of simple slopes under it, and the Johnson&ndash;Neyman section, which reports the values of the moderator at which the slope of Y on X stops differing from zero.</li>
     <li>Set the labels, the axes, the printed width and the resolution, then download the figure as SVG or as PNG.</li>
   </ol>
-  <p>The page refuses a file that is empty, a file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, a file that ends before MODEL RESULTS because the run was interrupted, a run that did not converge, and an output produced with TYPE = TWOLEVEL, with latent classes, with more than one group or with ESTIMATOR = BAYES, whose MODEL RESULTS sections are laid out differently. It also refuses to report a test when TECH1 and TECH3 are absent, and to draw a categorical moderator whose codes are not in the file. Every number the page computes with is read from the output: there is no field on this page in which a coefficient, a standard error, a mean or a standard deviation can be typed.</p>
+  <p>The page refuses a file that is empty, a file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, a file that ends before MODEL RESULTS because the run was interrupted, a run that did not converge, and an output produced with TYPE = TWOLEVEL, with latent classes, with more than one group or with ESTIMATOR = BAYES, whose MODEL RESULTS sections are laid out differently. It also refuses to draw a categorical moderator whose codes are not in the file, and it reports no test when TECH1 and TECH3 are absent and no other source of the sampling covariances can be verified against the printed standard errors. Every number the page computes with is read from the output: there is no field on this page in which a coefficient, a standard error, a mean or a standard deviation can be typed.</p>
 </section>
 
 <section aria-labelledby="s-load">
@@ -156,8 +157,8 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
 
 <section class="panel" id="p-levels" aria-labelledby="s-levels" hidden>
   <h2 id="s-levels">Levels of the moderator</h2>
-  <div class="gridrow four rowhead" aria-hidden="true">
-    <div>W =</div><div>Label</div><div>Dash pattern</div><div>Marker</div><div></div>
+  <div class="gridrow four rowhead" id="levheadrow" aria-hidden="true">
+    <div id="levhead">W =</div><div>Label</div><div>Dash pattern</div><div>Marker</div><div></div>
   </div>
   <div id="levels"></div>
   <div class="actions"><button type="button" class="secondary" id="addlev">Add a level of the moderator</button></div>
@@ -200,9 +201,9 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
 <div id="results-col" hidden>
   <section class="panel figpanel" aria-labelledby="s-fig">
     <h2 id="s-fig">Interaction plot</h2>
-    <div id="fig" role="region" aria-live="polite" aria-labelledby="s-fig"></div>
+    <div id="fig" role="region" aria-labelledby="s-fig"></div>
     <div class="exportbar" id="figtools" hidden>
-      <div class="field"><label for="wmm">Set the printed width in millimetres</label><input type="number" id="wmm" value="140" min="60" max="250"></div>
+      <div class="field"><label for="wmm">Set the printed width in millimeters</label><input type="number" id="wmm" value="140" min="60" max="250"></div>
       <div class="field"><label for="dpi">Set the resolution of the PNG in dots per inch</label>
         <select id="dpi"><option>300</option><option selected>600</option><option>1200</option></select></div>
       <div class="buttons">
@@ -242,17 +243,18 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   </section>
 </div>
 
-<section class="tracks" aria-labelledby="s-methods">
-  <h2 id="s-methods">Methods and formulas</h2>
+<details class="fold" id="fold-s-methods">
+  <summary><h2 id="s-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
 
   <h3>The simple slope and its standard error</h3>
-  <p>The model behind every figure on this page is the linear regression of Y on a predictor X, a moderator W and their product, written here with the notation of Aiken and West (1991):</p>
+  <p>The model behind every figure on this page is the linear regression of Y on a predictor X, a moderator W and their product, written as in chapter 2 of Aiken and West (1991) with W in place of their Z:</p>
   <div class="eq"><math display="block"><mrow><mi>Y</mi><mo>=</mo><msub><mi>b</mi><mn>0</mn></msub><mo>+</mo><msub><mi>b</mi><mn>1</mn></msub><mi>X</mi><mo>+</mo><msub><mi>b</mi><mn>2</mn></msub><mi>W</mi><mo>+</mo><msub><mi>b</mi><mn>3</mn></msub><mi>X</mi><mi>W</mi><mo>+</mo><mi>e</mi></mrow></math></div>
   <p class="where">Here <var>Y</var> is the dependent variable, <var>b</var><sub>0</sub> its intercept, <var>X</var> the predictor and <var>b</var><sub>1</sub> its coefficient, <var>W</var> the moderator and <var>b</var><sub>2</sub> its coefficient, <var>b</var><sub>3</sub> the coefficient of the product of <var>X</var> and <var>W</var>, and <var>e</var> the residual.</p>
   <p>Collecting the terms in <var>X</var> gives the conditional regression of Y on X at a fixed value <var>w</var> of the moderator, whose slope, the simple slope, is a linear function of <var>w</var>:</p>
   <div class="eq"><math display="block"><mrow><mi>Y</mi><mo>=</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>0</mn></msub><mo>+</mo><msub><mi>b</mi><mn>2</mn></msub><mi>w</mi><mo stretchy="false">)</mo></mrow><mo>+</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>+</mo><msub><mi>b</mi><mn>3</mn></msub><mi>w</mi><mo stretchy="false">)</mo></mrow><mi>X</mi><mo>+</mo><mi>e</mi><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mo>+</mo><msub><mi>b</mi><mn>3</mn></msub><mi>w</mi></mrow></math></div>
-  <p class="where">Here <var>w</var> is the value at which the moderator is held, <var>b</var><sub>0</sub> + <var>b</var><sub>2</sub><var>w</var> is the conditional intercept, and <var>s</var>(<var>w</var>) is the simple slope of <var>X</var> on <var>Y</var> at that value.</p>
-  <p>Because <math><mrow><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></math> is linear in the estimates, its sampling variance follows from the covariance matrix of the estimates without any approximation beyond the one already made in treating that matrix as the asymptotic covariance matrix. This is the delta method applied to a linear function:</p>
+  <p class="where">Here <var>w</var> is the value at which the moderator is held, <var>b</var><sub>0</sub> + <var>b</var><sub>2</sub><var>w</var> is the conditional intercept, and <var>s</var>(<var>w</var>) is the simple slope of <var>Y</var> on <var>X</var> at that value.</p>
+  <p>Because <math><mrow><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></math> is linear in the estimates, its sampling variance follows from the covariance matrix of the estimates without any approximation beyond the one already made in treating that matrix as the asymptotic covariance matrix. This is the delta method applied to a linear function (Aiken &amp; West, 1991, ch. 2; Cohen, Cohen, West, &amp; Aiken, 2003, p. 273; Bauer &amp; Curran, 2005, eq. 13):</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">[</mo><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow><mo>=</mo><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><msup><mi>w</mi><mn>2</mn></msup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><mn>2</mn><mi>w</mi><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>,</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow></math></div>
   <p class="where">Here Var[<var>s</var>(<var>w</var>)] is the sampling variance of the simple slope at <var>w</var>, Var(<var>b</var><sub>1</sub>) and Var(<var>b</var><sub>3</sub>) are the sampling variances of the two coefficients, and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) is their sampling covariance, all three read from TECH3.</p>
   <div class="eq"><math display="block"><mrow><mi>z</mi><mo>=</mo><mfrac><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><msqrt><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">[</mo><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow></msqrt></mfrac></mrow></math></div>
@@ -265,26 +267,30 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   <p class="where">Here <var>g</var><sub><var>i</var></sub> and <var>g</var><sub><var>j</var></sub> are the coefficients of the two product terms, and Cov(<var>g</var><sub><var>i</var></sub>, <var>g</var><sub><var>j</var></sub>) is their sampling covariance. The difference between category <var>j</var> and the reference category is <math><mrow><msub><mi>g</mi><mi>j</mi></msub></mrow></math> itself.</p>
 
   <h3>The Johnson&ndash;Neyman quadratic</h3>
-  <p>Johnson and Neyman (1936) asked for which values of the moderator the conditional effect is distinguishable from zero. Setting the square of the test statistic equal to the square of the critical value <math><mrow><msub><mi>z</mi><mn>.975</mn></msub><mo>=</mo><mn>1.96</mn></mrow></math> and clearing the denominator turns that question into a quadratic equation in <var>w</var> (Bauer &amp; Curran, 2005; Preacher, Curran &amp; Bauer, 2006):</p>
+  <p>Johnson and Neyman (1936) asked for which values of a continuous variable two groups differ, which in the present notation is the question for which values of the moderator the conditional effect is distinguishable from zero. Setting the square of the test statistic equal to the square of the critical value <math><mrow><msub><mi>z</mi><mn>.975</mn></msub><mo>=</mo><mn>1.96</mn></mrow></math> and clearing the denominator turns that question into a quadratic equation in <var>w</var> (Bauer &amp; Curran, 2005, eqs. 17&ndash;21; Preacher, Curran, &amp; Bauer, 2006):</p>
   <div class="eq"><math display="block"><mrow><msup><mrow><mo stretchy="false">[</mo><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow><mn>2</mn></msup><mo>=</mo><msup><mi>z</mi><mn>2</mn></msup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">[</mo><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow><mo>,</mo><mspace width="0.6em"></mspace><mtext>that is</mtext><mspace width="0.6em"></mspace><mrow><mrow><mi>a</mi><msup><mi>w</mi><mn>2</mn></msup><mo>+</mo><mi>b</mi><mi>w</mi><mo>+</mo><mi>c</mi></mrow><mo>=</mo><mn>0</mn></mrow></mrow></math></div>
   <p class="where">Here <var>s</var>(<var>w</var>) is the simple slope at <var>w</var>, <var>z</var> is the critical value 1.96, and <var>a</var>, <var>b</var> and <var>c</var> are the three coefficients of the quadratic given next.</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>a</mi><mo>=</mo><msup><msub><mi>b</mi><mn>3</mn></msub><mn>2</mn></msup><mo>&#x2212;</mo><msup><mi>z</mi><mn>2</mn></msup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false">)</mo></mrow></mrow></mrow><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mrow><mi>b</mi><mo>=</mo><mn>2</mn><mrow><mo stretchy="false">[</mo><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>3</mn></msub><mo>&#x2212;</mo><msup><mi>z</mi><mn>2</mn></msup><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>,</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mrow><mi>c</mi><mo>=</mo><msup><msub><mi>b</mi><mn>1</mn></msub><mn>2</mn></msup><mo>&#x2212;</mo><msup><mi>z</mi><mn>2</mn></msup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow></math></div>
   <p class="where">Here <var>b</var><sub>1</sub> and <var>b</var><sub>3</sub> are the coefficients of X and of the product, Var(<var>b</var><sub>1</sub>), Var(<var>b</var><sub>3</sub>) and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) their sampling variances and covariance, and <var>z</var> the critical value 1.96.</p>
-  <p>The quantity <math><mrow><mrow><mi>q</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>a</mi><msup><mi>w</mi><mn>2</mn></msup><mo>+</mo><mi>b</mi><mi>w</mi><mo>+</mo><mi>c</mi></mrow></mrow></math> is positive exactly where the simple slope differs from zero at the 5% level. When <var>a</var> is positive the region of significance lies outside the two roots, when <var>a</var> is negative it lies between them; this page also evaluates <math><mrow><mi>q</mi></mrow></math> at the midpoint of each interval and reports a warning if the two ways of deciding disagree. Only roots that fall inside the range of the moderator the data actually cover are reported and drawn, because a threshold outside that range describes no observable case. That range is read from the univariate sample statistics when the output contains them, and is otherwise taken as the mean plus or minus three standard deviations, both read from the file; the page states which of the two was used. The procedure does not apply to a categorical moderator, whose intermediate values do not exist.</p>
+  <p>Bauer and Curran (2005, eqs. 18&ndash;20) write the three coefficients with the opposite sign, <math><mrow><mi>a</mi><mo>=</mo><msubsup><mi>t</mi><mtext>crit</mtext><mn>2</mn></msubsup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false">)</mo></mrow></mrow><mo>&#x2212;</mo><msubsup><mi>b</mi><mn>3</mn><mn>2</mn></msubsup></mrow></math> and so on, and with the critical value of a <var>t</var> distribution; multiplying an equation by &minus;1 leaves its roots unchanged, so the thresholds are the same, and with <var>z</var> = 1.96 in place of <var>t</var><sub>crit</sub> the two agree except in small samples. The sign rule below refers to the coefficients as written here. The quantity <math><mrow><mrow><mi>q</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>a</mi><msup><mi>w</mi><mn>2</mn></msup><mo>+</mo><mi>b</mi><mi>w</mi><mo>+</mo><mi>c</mi></mrow></mrow></math> is positive exactly where the simple slope differs from zero at the 5% level. When <var>a</var> is positive the slope is significant outside the two roots, so there are two regions of significance, one below the smaller root and one above the larger; when <var>a</var> is negative there is one region, between the roots. Bauer and Curran (2005, p. 379) speak of &ldquo;regions of significance&rdquo; for the same reason. This page also evaluates <math><mrow><mi>q</mi></mrow></math> at the midpoint of each interval and reports a warning if the two ways of deciding disagree. Only roots that fall inside the range of the moderator the data actually cover are reported and drawn, because a threshold outside that range describes no observable case. For an observed moderator that range is read from the univariate sample statistics when the output contains them, and is otherwise taken as the mean plus or minus three standard deviations, both read from the file; a latent moderator has no observed range, so the second rule is used; the page states which of the two was used. The procedure does not apply to a categorical moderator, whose intermediate values do not exist.</p>
 
   <h3>The standardized solution for a product term</h3>
-  <p>In a standardized solution the coefficient of a product term is not obtained by dividing by the standard deviation of the product. The STDYX section of <span class="mp">M</span><em>plus</em> divides every coefficient by the standard deviation of its own predictor, and for the product that predictor is XW, whose standard deviation is not SD(<var>X</var>)&nbsp;SD(<var>W</var>). Wen, Marsh and Hau (2010) show that the appropriate standardized solution rescales the product coefficient by the standard deviations of the two components instead:</p>
+  <p>The STDYX section of <span class="mp">M</span><em>plus</em> multiplies every coefficient by the standard deviation of its own predictor and divides by the standard deviation of the outcome (Muthén &amp; Muthén, 2017, ch. 18). When the product is a variable of the model, built in DEFINE from two observed variables, that predictor is XW itself, whose standard deviation differs from SD(<var>X</var>)&nbsp;SD(<var>W</var>). A product declared with XWITH is not a variable of the model and has no standard deviation of its own, and <span class="mp">M</span><em>plus</em> standardizes its coefficient by SD(<var>X</var>)&nbsp;SD(<var>W</var>) instead, which is the solution described next (Asparouhov &amp; Muthén, 2019, eqs. 16&ndash;18). Wen, Marsh and Hau (2010) show that the appropriate standardized solution of a latent interaction model is the one in which the product term is the product of the standardized components, so that its coefficient is rescaled by the standard deviations of the two components and the variance of the product itself never enters:</p>
   <div class="eq"><math display="block"><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mfrac><msub><mi>&#x3C3;</mi><mi>X</mi></msub><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><msubsup><mi>b</mi><mn>2</mn><mo>&#x2032;</mo></msubsup><mo>=</mo><msub><mi>b</mi><mn>2</mn></msub><mfrac><msub><mi>&#x3C3;</mi><mi>W</mi></msub><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><msubsup><mi>b</mi><mn>3</mn><mo>&#x2032;</mo></msubsup><mo>=</mo><msub><mi>b</mi><mn>3</mn></msub><mfrac><mrow><msub><mi>&#x3C3;</mi><mi>X</mi></msub><msub><mi>&#x3C3;</mi><mi>W</mi></msub></mrow><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mfrac></mrow></math></div>
   <p class="where">Here <var>b</var><sub>1</sub>′, <var>b</var><sub>2</sub>′ and <var>b</var><sub>3</sub>′ are the standardized coefficients of X, of W and of the product, <var>b</var><sub>1</sub>, <var>b</var><sub>2</sub> and <var>b</var><sub>3</sub> the unstandardized ones, and σ<sub><var>X</var></sub>, σ<sub><var>W</var></sub> and σ<sub><var>Y</var></sub> the standard deviations of X, of W and of Y.</p>
-  <p>Under this rescaling the standardized simple slope of X on Y at a value <var>w</var> of the moderator is <math><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup><mo>+</mo><msubsup><mi>b</mi><mn>3</mn><mo>&#x2032;</mo></msubsup><mi>w</mi><mo>/</mo><msub><mi>&#x3C3;</mi><mi>W</mi></msub></mrow></math>, so the standardized coefficients and the standardized simple slopes describe the same equation, and all three are unchanged when X, W or Y is measured in different units. The value of <math><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup></mrow></math> is the standardized effect of X at <math><mrow><mi>W</mi><mo>=</mo><mn>0</mn></mrow></math>, which is the mean of W only when the moderator is centered; with latent variables, whose means <span class="mp">M</span><em>plus</em> fixes at zero, it always is. The page reports both columns and states which is which: for X and for W the two agree, and for the product they differ by construction.</p>
-  <p>When the interaction is between latent variables defined with XWITH, <span class="mp">M</span><em>plus</em> does not always print a standardized solution, because the product is not a variable of the model and has no estimated variance of its own. The total variance of Y is then reconstructed from the model under joint normality of X and W, using the variance of a product of two normal variables given by Bohrnstedt and Goldberger (1969):</p>
+  <p>Under this rescaling the standardized simple slope of Y on X at a value <var>w</var> of the moderator is <math><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup><mo>+</mo><msubsup><mi>b</mi><mn>3</mn><mo>&#x2032;</mo></msubsup><mi>w</mi><mo>/</mo><msub><mi>&#x3C3;</mi><mi>W</mi></msub></mrow></math>, so the standardized coefficients and the standardized simple slopes describe the same equation, and all three are unchanged when X, W or Y is measured in different units: this is the scale-free property in the title of Wen, Marsh and Hau (2010). The value of <math><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup></mrow></math> is the standardized simple slope at <math><mrow><mi>W</mi><mo>=</mo><mn>0</mn></mrow></math> in the original metric of W. It is the coefficient of standardized X in the regression of standardized Y on standardized X, standardized W and their product only when the mean of W is zero; otherwise that coefficient is (<var>b</var><sub>1</sub> + <var>b</var><sub>3</sub>μ<sub><var>W</var></sub>)σ<sub><var>X</var></sub>/σ<sub><var>Y</var></sub> (Aiken &amp; West, 1991, ch. 3), which is why the moderator is usually centered first. With latent variables, whose means <span class="mp">M</span><em>plus</em> fixes at zero, the two coincide. The table of the standardized solution has one column with the STDYX values of <span class="mp">M</span><em>plus</em> and one with the values rebuilt from the formulas above. For X and for W the two agree. For the product they agree as well when it is declared with XWITH, since both then divide by SD(<var>X</var>)&nbsp;SD(<var>W</var>), and differ by construction when the product is an observed variable, since <span class="mp">M</span><em>plus</em> then divides by its standard deviation; the page states which of the two cases the output is in and prints the difference.</p>
+  <p>When the interaction is between latent variables declared with XWITH, the model is estimated with <code>TYPE = RANDOM</code> and the standard deviations the formulas above need belong to factors, not to observed variables. TECH4 prints them: the estimated means, variances and covariances of the latent variables of the model, including the estimated variance of the dependent variable when that is a factor. The product term itself is not among the rows and columns of TECH4, and the page does not need it there, because the variance of the product follows from the variances and covariance of its two components. The 8th edition of the user's guide records that TECH4 and the STANDARDIZED option are not available for <code>TYPE = RANDOM</code> with maximum likelihood estimation (Muthén &amp; Muthén, 2017, ch. 18), and a version that refuses them answers the request with a warning naming the option; Version 7.4 added the R-square and the standardized coefficients of models with latent variable interactions declared with XWITH (Muthén &amp; Muthén, 2015), which are computed from the same estimated variances, and both sections are printed for such a model from that version on. The page therefore reads TECH4 when the file contains it and states that it did.</p>
+
+  <p>When the file has no TECH4 block, the variances of the factors are read from the <em>Variances</em> block and their covariance from the <em>WITH</em> block of MODEL RESULTS, their means are zero, and the total variance of Y is reconstructed from the model under joint normality of X and W, using the variance of a product of two normal variables given by Bohrnstedt and Goldberger (1969):</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3BC;</mi><mi>X</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3BC;</mi><mi>W</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><mo>+</mo><mn>2</mn><msub><mi>&#x3BC;</mi><mi>X</mi></msub><msub><mi>&#x3BC;</mi><mi>W</mi></msub><msub><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow></msub></mrow></math></div>
   <p class="where">Here Var(<var>XW</var>) is the variance of the product, σ<sup>2</sup><sub><var>X</var></sub> and σ<sup>2</sup><sub><var>W</var></sub> are the variances of X and W, σ<sub><var>XW</var></sub> is their covariance, and μ<sub><var>X</var></sub> and μ<sub><var>W</var></sub> are their means.</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>X</mi><mo>,</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msub><mi>&#x3BC;</mi><mi>W</mi></msub><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><mo>+</mo><msub><mi>&#x3BC;</mi><mi>X</mi></msub><msub><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow></msub><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>W</mi><mo>,</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msub><mi>&#x3BC;</mi><mi>X</mi></msub><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msub><mi>&#x3BC;</mi><mi>W</mi></msub><msub><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow></msub></mrow></math></div>
   <p class="where">The symbols are those of the previous formula: the covariance of each component with the product is built from the mean of the other component, the variance of the component itself and the covariance between the two.</p>
   <div class="eq"><math display="block"><mrow><mtable columnalign="right left"><mtr><mtd><msubsup><mi>&#x3C3;</mi><mi>Y</mi><mn>2</mn></msubsup></mtd><mtd style="text-align:left"><mrow><mo>=</mo><mrow><msup><msub><mi>b</mi><mn>1</mn></msub><mn>2</mn></msup><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><mo>+</mo><msup><msub><mi>b</mi><mn>2</mn></msub><mn>2</mn></msup><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msup><msub><mi>b</mi><mn>3</mn></msub><mn>2</mn></msup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><mn>2</mn><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>2</mn></msub><msub><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow></msub></mrow></mrow></mtd></mtr><mtr><mtd></mtd><mtd style="text-align:left"><mrow><mo form="infix">+</mo><mn>2</mn><msub><mi>b</mi><mn>1</mn></msub><msub><mi>b</mi><mn>3</mn></msub><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>X</mi><mo>,</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><mn>2</mn><msub><mi>b</mi><mn>2</mn></msub><msub><mi>b</mi><mn>3</mn></msub><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>W</mi><mo>,</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>e</mi><mn>2</mn></msubsup></mrow></mtd></mtr></mtable></mrow></math></div>
   <p class="where">Here σ<sup>2</sup><sub><var>Y</var></sub> is the total variance of Y implied by the model, <var>b</var><sub>1</sub>, <var>b</var><sub>2</sub> and <var>b</var><sub>3</sub> are the three coefficients, the variances and covariances are those defined above, and σ<sup>2</sup><sub><var>e</var></sub> is the residual variance of Y.</p>
-  <p>This is the same distributional assumption on which the latent moderated structural equations approach of Klein and Moosbrugger (2000) rests, and the reconstruction is reported as a reconstruction whenever it is used.</p>
+  <p>This is the same distributional assumption on which the latent moderated structural equations approach of Klein and Moosbrugger (2000) rests, and the reconstruction is reported as a reconstruction whenever it is used. With latent means fixed at zero the expression reduces to <math><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow><mn>2</mn></msubsup></mrow></math>, which is the form Asparouhov and Muthén (2019, eqs. 16&ndash;17) give for a latent product.</p>
+
+  <p>The two routes to the total variance of Y are reported together whenever the file supports both. Under the standardized solution the page names the one it used, prints what the other one gives, and prints the difference between them. That difference is compared with the effect of the rounding of the printed values: every quantity the reconstruction reads is printed to three decimals, so each carries an error of up to 0.0005, and the sum of the absolute first derivatives of the expression above with respect to the nine of them, each multiplied by 0.0005, bounds how far the reconstruction can fall from the value <span class="mp">M</span><em>plus</em> computed from its own unrounded estimates. A difference within that bound is rounding; a larger one means the equation read for Y is not the equation the estimated variance belongs to, and the page says so.</p>
 
   <h3>Predicted values and confidence bands</h3>
   <p>Each line in the figure is the predicted value of Y as a function of X at one value of the moderator. When the model contains predictors other than X, W and their product, they are held at their sample means as read from the file, and the product of each coefficient with its mean is added to the intercept; when a mean is not in the output the page says so and holds that predictor at zero. The confidence band around a line is the 95% interval for the conditional mean, computed from the same parameter covariance matrix as a quadratic form:</p>
@@ -295,28 +301,38 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   <p>The band requires the intercept, X, W and the product to be located in TECH1, and every other predictor of Y as well; when one of them cannot be located the band is omitted and the reason is stated under the figure.</p>
 
   <h3>What TECH1 and TECH3 contain</h3>
-  <p>TECH1 prints the parameter specification: each free parameter of the model receives a number, and the numbers are laid out in the matrices of the general model, so that the coefficient of X in the regression of Y appears as an entry of <b>Β</b> or <b>Γ</b> in row Y and column X, and the intercept of Y appears in <b>α</b> or <b>ν</b>. <span class="mp">M</span><em>plus</em> prints these matrices in blocks of five columns, repeating the name of the matrix above each block, so a parser that stops at the first block loses every column from the sixth onwards; this page reads every block and keeps the column headings of each. TECH3 prints the covariance matrix of the parameter estimates, indexed by the same numbers. Reading the two together gives the exact sampling variances and covariance that the delta method needs. When TECH3 is absent, the page falls back on three simple slopes computed in MODEL CONSTRAINT as NEW parameters, from which Var(<var>b</var><sub>1</sub>), Var(<var>b</var><sub>3</sub>) and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) can be recovered by solving a linear system in three unknowns; those values carry the rounding of the three printed decimals, so TECH3 is preferred whenever it is available. A NEW parameter is used only when its name identifies it as a simple slope, so that an indirect or total effect that happens to fall near the same value is never mistaken for one.</p>
+  <p>TECH1 prints the parameter specification: each free parameter of the model receives a number, and the numbers are laid out in the matrices of the general model, so that the coefficient of X in the regression of Y appears as an entry of <b>Β</b> or <b>Γ</b> in row Y and column X, and the intercept of Y appears in <b>α</b> or <b>ν</b>. <span class="mp">M</span><em>plus</em> prints these matrices in blocks of five columns, repeating the name of the matrix above each block, so a parser that stops at the first block loses every column from the sixth onwards; this page reads every block and keeps the column headings of each. TECH3 prints the covariance matrix of the parameter estimates, indexed by the same numbers. Reading the two together gives the exact sampling variances and covariance that the delta method needs. When TECH3 is absent, two other sources are tried in turn, and the table of simple slopes names the one used. The first applies only to a regression among observed variables fitted by maximum likelihood: the covariance matrix of the regression coefficients is then</p>
+  <div class="eq"><math display="block"><mrow><mi mathvariant="bold">V</mi><mo>=</mo><mfrac><msubsup><mi>&#x3C3;</mi><mi>e</mi><mn>2</mn></msubsup><mi>n</mi></mfrac><msup><mi mathvariant="bold">S</mi><mrow><mo>&#x2212;</mo><mn>1</mn></mrow></msup></mrow></math></div>
+  <p class="where">Here <b>V</b> is the covariance matrix of the coefficients of the predictors of Y, σ<sup>2</sup><sub><var>e</var></sub> is the residual variance of Y from MODEL RESULTS, <var>n</var> is the number of observations, and <b>S</b> is the sample covariance matrix of the predictors from SAMPSTAT, which <span class="mp">M</span><em>plus</em> computes with the divisor <var>n</var>.</p>
+  <p>This reconstruction is accepted only when the square roots of its diagonal reproduce the standard errors printed in MODEL RESULTS within 8%; with a robust estimator or with latent variables it is not attempted. The second source is three simple slopes computed in MODEL CONSTRAINT as NEW parameters, from which Var(<var>b</var><sub>1</sub>), Var(<var>b</var><sub>3</sub>) and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) can be recovered by solving a linear system in three unknowns; those values carry the rounding of the three printed decimals, so TECH3 is preferred whenever it is available. A NEW parameter is used only when its name identifies it as a simple slope, so that an indirect or total effect that happens to fall near the same value is never mistaken for one.</p>
 
   <h3>Reading the output file</h3>
-  <p>Files are read as raw bytes and decoded by inspecting the byte-order mark and by testing whether the content is valid UTF-8, falling back on Windows-1252, which is what <span class="mp">M</span><em>plus</em> writes on Windows. Fortran exponents of the form 0.123D-03 are converted before conversion to a number, a row of asterisks in place of a value is reported as unread rather than silently dropped, and the sentinel 999.000 on all four columns is treated as a value <span class="mp">M</span><em>plus</em> could not compute. The page refuses two-level, mixture, multiple-group and Bayesian outputs, whose MODEL RESULTS sections are organized differently; a file that ends before MODEL RESULTS, which comes from a run that was interrupted; a file with none of the headings <span class="mp">M</span><em>plus</em> always writes; an empty file; and a run that did not reach convergence. Each refusal names what was found. The estimator is read from SUMMARY OF ANALYSIS, and from the echoed input only when that section does not state it, in which case the page says so, because the estimator asked for in the input is not always the one the run used. It is never assumed.</p>
-  <p>Every quantity the page computes with is read from that file: the coefficients and their intercept from MODEL RESULTS, the means, variances and observed ranges from the univariate and the sample statistics or from TECH4, the codes of a categorical moderator from the same statistics, and the sampling variances and covariances from TECH1 with TECH3. None of them can be typed in, and none of them can be edited after being read. What remains adjustable is the description of the figure: which levels of a continuous moderator to draw, the labels, the axes, the type size, the printed width and the resolution of the export.</p>
+  <p>Files are read as raw bytes and decoded by inspecting the byte-order mark and by testing whether the content is valid UTF-8, falling back on Windows-1252, which is what <span class="mp">M</span><em>plus</em> writes on Windows. Fortran exponents of the form 0.123D-03 are converted before conversion to a number, a row of asterisks in place of a value is reported as unread, and the sentinel 999.000 on all four columns is treated as a value <span class="mp">M</span><em>plus</em> could not compute. The page refuses two-level, mixture, multiple-group and Bayesian outputs, whose MODEL RESULTS sections are organized differently; a file that ends before MODEL RESULTS, which comes from a run that was interrupted; a file with none of the headings <span class="mp">M</span><em>plus</em> always writes; an empty file; and a run that did not reach convergence. Each refusal names what was found. The estimator is read from SUMMARY OF ANALYSIS, and from the echoed input only when that section does not state it, in which case the page says so, because the estimator asked for in the input is not always the one the run used. It is never assumed.</p>
+  <p>Every quantity the page computes with is read from that file: the coefficients and their intercept from MODEL RESULTS; the means and variances of observed variables from the <em>Means</em> and <em>Covariances</em> blocks of SAMPLE STATISTICS, or from the mean and variance columns of UNIVARIATE SAMPLE STATISTICS when that block is the only one printed, and their observed minimum and maximum from the latter; the means, variances and covariances of latent variables from TECH4 when it is present and otherwise from the <em>Variances</em> and <em>WITH</em> blocks of MODEL RESULTS, with the mean of an exogenous factor taken as the zero <span class="mp">M</span><em>plus</em> fixes it at; the intercept of the equation from the <em>Intercepts</em> block, except for a latent dependent variable that gets no such line, whose intercept <span class="mp">M</span><em>plus</em> has fixed at zero and which the page states as fixed; the codes of a categorical moderator from the same statistics; and the sampling variances and covariances from TECH1 with TECH3. None of them can be typed in, and none of them can be edited after being read. What remains adjustable is the description of the figure: which levels of a continuous moderator to draw, the labels, the axes, the type size, the printed width and the resolution of the export.</p>
 
   <h3>Self-test</h3>
-  <p>Opening this page with <code>?selftest=1</code> appended to its address runs its numerical checks in the browser and prints the outcome and the number of checks at the top, with every check listed under it. They cover the two-sided normal tail against published values from <math><mrow><mi>z</mi><mo>=</mo><mn>1</mn></mrow></math> to <math><mrow><mi>z</mi><mo>=</mo><mn>8</mn></mrow></math>; the simple slope and its delta-method variance over 2400 random problems, against the quadratic form written out separately and against a Monte Carlo of 200000 draws from the sampling distribution of the estimates; the identity on which the Johnson&ndash;Neyman quadratic rests, checked on 401 grid points in each of 2400 problems, together with the requirement that the test statistic change side of the critical value at the reported roots and nowhere else; a quadratic with no real root, with a discriminant of exactly zero, with a vanishing quadratic term and with two real roots; a slope significant over the whole range and one significant nowhere; the standardized transformation of a product term; the variance of a predicted mean, against a double loop and against a Monte Carlo; the simple slopes of a categorical moderator with three and with five categories and every difference between them; the refusal of two-level, mixture, multiple-group and Bayesian outputs; the parsers for TECH1 across twelve columns, for TECH3 with Fortran D exponents, for the univariate sample statistics and for the univariate proportions and counts of a categorical variable; the codes of a moderator dummy coded 0/1 and 1/2 and with three, five and ten categories, and the refusal to draw one whose codes are not in the file; and a moderator with no variance.</p>
-</section>
+  <p>Opening this page with <code>?selftest=1</code> appended to its address runs its numerical checks in the browser and prints the outcome and the number of checks at the top, with every check listed under it. They cover the two-sided normal tail against published values from <math><mrow><mi>z</mi><mo>=</mo><mn>1</mn></mrow></math> to <math><mrow><mi>z</mi><mo>=</mo><mn>8</mn></mrow></math>; the simple slope and its delta-method variance over 2400 random problems, against the quadratic form written out separately and against a Monte Carlo of 200000 draws from the sampling distribution of the estimates; the identity on which the Johnson&ndash;Neyman quadratic rests, checked on 401 grid points in each of 2400 problems, together with the requirement that the test statistic change side of the critical value at the reported roots and nowhere else; a quadratic with no real root, with a discriminant of exactly zero, with a vanishing quadratic term and with two real roots; a slope significant over the whole range and one significant nowhere; the standardized transformation of a product term; the variance of a predicted mean, against a double loop and against a Monte Carlo; the simple slopes of a categorical moderator with three and with five categories and every difference between them; the refusal of two-level, mixture, multiple-group and Bayesian outputs; the parsers for TECH1 across twelve columns, for TECH3 with Fortran D exponents, for the univariate sample statistics and for the univariate proportions and counts of a categorical variable; the codes of a moderator dummy coded 0/1 and 1/2 and with three, five and ten categories, and the refusal to draw one whose codes are not in the file; a moderator with no variance; and one latent interaction model read twice, once with the TECH4 block and once without it, which checks that TECH4 is read past its standard error matrices, that the total variance of the dependent factor falls back on the Bohrnstedt&ndash;Goldberger reconstruction when the block is absent, that the two routes agree to within the rounding of the printed values when both are available, and that the intercept of a latent dependent variable with no <em>Intercepts</em> line is read as the zero <span class="mp">M</span><em>plus</em> fixed it at.</p>
+</div>
+</details>
 
-<section class="tracks" aria-labelledby="s-ref">
-  <h2 id="s-ref">References</h2>
+<details class="fold" id="fold-s-ref">
+  <summary><h2 id="s-ref">References</h2></summary>
+  <div class="fold-body">
   <ul class="refs">
     <li>Aiken, L. S., &amp; West, S. G. (1991). <em>Multiple regression: Testing and interpreting interactions</em>. Sage.</li>
-    <li>Bauer, D. J., &amp; Curran, P. J. (2005). Probing interactions in fixed and multilevel regression: Inferential and graphical techniques. <em>Multivariate Behavioral Research, 40</em>(3), 373&ndash;400. https://doi.org/10.1207/s15327906mbr4003_5</li>
-    <li>Bohrnstedt, G. W., &amp; Goldberger, A. S. (1969). On the exact covariance of products of random variables. <em>Journal of the American Statistical Association, 64</em>(328), 1439&ndash;1442. https://doi.org/10.1080/01621459.1969.10501069</li>
+    <li>Asparouhov, T., &amp; Muthén, B. (2019). <em>Latent variable interactions using maximum-likelihood and Bayesian estimation for single- and two-level models</em> (M<span class="mp">plus</span> Web Note No. 23). Muthén &amp; Muthén. (No digital object identifier.) <a href="https://www.statmodel.com/examples/webnotes/webnote23.pdf">https://www.statmodel.com/examples/webnotes/webnote23.pdf</a></li>
+    <li>Bauer, D. J., &amp; Curran, P. J. (2005). Probing interactions in fixed and multilevel regression: Inferential and graphical techniques. <em>Multivariate Behavioral Research, 40</em>(3), 373&ndash;400. <a href="https://doi.org/10.1207/s15327906mbr4003_5">https://doi.org/10.1207/s15327906mbr4003_5</a></li>
+    <li>Bohrnstedt, G. W., &amp; Goldberger, A. S. (1969). On the exact covariance of products of random variables. <em>Journal of the American Statistical Association, 64</em>(328), 1439&ndash;1442. <a href="https://doi.org/10.1080/01621459.1969.10501069">https://doi.org/10.1080/01621459.1969.10501069</a></li>
+    <li>Cohen, J., Cohen, P., West, S. G., &amp; Aiken, L. S. (2003). <em>Applied multiple regression/correlation analysis for the behavioral sciences</em> (3rd ed.). Erlbaum.</li>
     <li>Johnson, P. O., &amp; Neyman, J. (1936). Tests of certain linear hypotheses and their application to some educational problems. <em>Statistical Research Memoirs, 1</em>, 57&ndash;93. (No digital object identifier: the series predates them.)</li>
-    <li>Klein, A., &amp; Moosbrugger, H. (2000). Maximum likelihood estimation of latent interaction effects with the LMS method. <em>Psychometrika, 65</em>(4), 457&ndash;474. https://doi.org/10.1007/BF02296338</li>
-    <li>Preacher, K. J., Curran, P. J., &amp; Bauer, D. J. (2006). Computational tools for probing interactions in multiple linear regression, multilevel modeling, and latent curve analysis. <em>Journal of Educational and Behavioral Statistics, 31</em>(4), 437&ndash;448. https://doi.org/10.3102/10769986031004437</li>
-    <li>Wen, Z., Marsh, H. W., &amp; Hau, K.-T. (2010). Structural equation models of latent interactions: An appropriate standardized solution and its scale-free properties. <em>Structural Equation Modeling, 17</em>(1), 1&ndash;22. https://doi.org/10.1080/10705510903438872</li>
+    <li>Klein, A., &amp; Moosbrugger, H. (2000). Maximum likelihood estimation of latent interaction effects with the LMS method. <em>Psychometrika, 65</em>(4), 457&ndash;474. <a href="https://doi.org/10.1007/BF02296338">https://doi.org/10.1007/BF02296338</a></li>
+    <li>Muthén, L. K., &amp; Muthén, B. O. (2015). <em>Version 7.4 M<span class="mp">plus</span> language addendum</em>. Muthén &amp; Muthén. (No digital object identifier.) <a href="https://www.statmodel.com/download/Version7.4LanguageAddendum.pdf">https://www.statmodel.com/download/Version7.4LanguageAddendum.pdf</a></li>
+    <li>Muthén, L. K., &amp; Muthén, B. O. (2017). <em>M<span class="mp">plus</span> user&rsquo;s guide</em> (8th ed.). Muthén &amp; Muthén.</li>
+    <li>Preacher, K. J., Curran, P. J., &amp; Bauer, D. J. (2006). Computational tools for probing interactions in multiple linear regression, multilevel modeling, and latent curve analysis. <em>Journal of Educational and Behavioral Statistics, 31</em>(4), 437&ndash;448. <a href="https://doi.org/10.3102/10769986031004437">https://doi.org/10.3102/10769986031004437</a></li>
+    <li>Wen, Z., Marsh, H. W., &amp; Hau, K.-T. (2010). Structural equation models of latent interactions: An appropriate standardized solution and its scale-free properties. <em>Structural Equation Modeling, 17</em>(1), 1&ndash;22. <a href="https://doi.org/10.1080/10705510903438872">https://doi.org/10.1080/10705510903438872</a></li>
   </ul>
-</section>
+</div>
+</details>
 
 </main>
 <footer class="site">
@@ -339,7 +355,7 @@ const MP = '<span class="mp">M</span><em>plus</em>';
 
 /* Okabe-Ito palette. The first entry is black, so a figure with two lines is
    already readable in grayscale before the dash patterns are taken into
-   account. Colour is never the only difference between two lines. */
+   account. Color is never the only difference between two lines. */
 const OKABE = ["#000000", "#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9"];
 const DASH = { "solid": "", "dashed": "10,6", "dotted": "2,5", "dash-dot": "11,5,2,5", "long dash": "20,8" };
 const DASH_ORDER = ["solid", "dashed", "dotted", "dash-dot", "long dash"];
@@ -351,7 +367,7 @@ const S = {
   regStd: {}, regStdInfo: {}, interStd: {}, residualsStd: {},
   newPar: [], latent: [], truncated: [],
   sampMeans: {}, sampVars: {}, sampCov: {}, uni: {}, uniProp: {},
-  latentMeans: {}, latentVars: {},
+  latentMeans: {}, latentVars: {}, latentCov: {}, tech4Names: [],
   n: NaN, estimator: "", tech1: {}, tech3: {}, xwith: [], defined: [],
   levels: [], dummies: [],
   autoProduct: null
@@ -541,7 +557,16 @@ function parseUnivariate(t) {
     const second = (lines[i + 1].match(rxNum) || []).map(numD);
     if (second.length < 4 || !(second[0] > 0)) continue;
     const min = numD(m[4]), max = second[3];
-    if (Number.isFinite(min) && Number.isFinite(max) && max > min) out[m[1].toUpperCase()] = { min, max };
+    /* The mean and the variance of the same block are kept as well: when the
+       output carries this block and not the Means and Covariances blocks of
+       SAMPLE STATISTICS, they are the only source of the mean and the standard
+       deviation of the variable. */
+    const mean = numD(m[2]), variance = second[1];
+    if (Number.isFinite(min) && Number.isFinite(max) && max > min) {
+      out[m[1].toUpperCase()] = { min, max,
+        mean: Number.isFinite(mean) ? mean : NaN,
+        variance: Number.isFinite(variance) && variance > 0 ? variance : NaN };
+    }
   }
   return out;
 }
@@ -577,12 +602,20 @@ function parseUnivariateProportions(t) {
 }
 
 /* ---------------------------------------------------------------------------
-   TECH4: estimated means and covariance matrix of the latent variables
+   TECH4: estimated means, variances and covariances of the latent variables.
+   For a model with a latent interaction the block carries the estimated
+   variance of the dependent factor and the variances and covariance of the
+   factors that form the product; the product term itself is not among the rows
+   and columns, and its variance follows from those of its two components.
+   Since Version 7.1 each matrix is followed by its standard errors, its
+   estimate over standard error and its p-value, printed as three further
+   matrices with the same layout; every one of them has to be cut off, or the
+   standard errors would be read as estimates.
 --------------------------------------------------------------------------- */
 function parseTech4(t) {
-  const means = {}, vars = {};
+  const means = {}, vars = {}, covs = {}, names = [];
   const sec = section(t, "TECHNICAL 4 OUTPUT", ["TECHNICAL 5 OUTPUT", "DIAGRAM INFORMATION", "SAVEDATA", "MUTHEN & MUTHEN"]);
-  if (!sec) return { means, vars };
+  if (!sec) return { means, vars, covs, names };
   /* The block of means has to be closed even when the output contains no block
      of standard errors, or the first row of the covariance matrix that follows
      would be read as a vector of means. */
@@ -609,14 +642,32 @@ function parseTech4(t) {
     const ls = cs.split("\n"); let cols = [];
     for (let i = 0; i < ls.length; i++) {
       const r = ls[i];
-      if (/^\s+[A-Z][A-Z0-9_]*(?:\s+[A-Z][A-Z0-9_]*)*\s*$/i.test(r) && (ls[i + 1] || "").includes("____")) { cols = r.trim().toUpperCase().split(/\s+/); continue; }
+      if (/^\s+[A-Z][A-Z0-9_]*(?:\s+[A-Z][A-Z0-9_]*)*\s*$/i.test(r) && (ls[i + 1] || "").includes("____")) {
+        cols = r.trim().toUpperCase().split(/\s+/);
+        for (const c of cols) if (!names.includes(c)) names.push(c);
+        continue;
+      }
       const toks = r.trim().split(/\s+/); if (toks.length < 2) continue;
       const rn = toks[0].toUpperCase(); if (!/^[A-Z][A-Z0-9_]*$/.test(rn)) continue;
-      const vals = toks.slice(1).map(numD), j = cols.indexOf(rn);
-      if (j >= 0 && Number.isFinite(vals[j])) vars[rn] = vals[j];
+      const vals = toks.slice(1).map(numD);
+      /* A lower triangle printed in blocks of columns gives each row only the
+         entries up to its own diagonal, and a row of a later block carries no
+         diagonal at all; every entry is stored under the pair it belongs to,
+         so nothing depends on the diagonal being present in the same block.
+         A row is a row of the matrix only when it carries at least one number
+         under a column heading: the words of the heading of the section itself
+         would otherwise be recorded as the name of a variable. */
+      let any = false;
+      cols.forEach((cn, k) => {
+        if (!Number.isFinite(vals[k])) return;
+        any = true;
+        if (cn === rn) vars[rn] = vals[k];
+        else { covs[rn + "|" + cn] = vals[k]; covs[cn + "|" + rn] = vals[k]; }
+      });
+      if (any && !names.includes(rn)) names.push(rn);
     }
   }
-  return { means, vars };
+  return { means, vars, covs, names };
 }
 
 /* ---------------------------------------------------------------------------
@@ -765,7 +816,7 @@ function parseOutput(text) {
     regStd: ps.reg, regStdInfo: ps.regInfo, interStd: ps.inter, residualsStd: ps.residuals,
     sampMeans: ss.means, sampVars: ss.vars, sampCov: ss.covs, uni: parseUnivariate(t),
     uniProp: parseUnivariateProportions(t),
-    latentMeans: t4.means, latentVars: t4.vars,
+    latentMeans: t4.means, latentVars: t4.vars, latentCov: t4.covs, tech4Names: t4.names,
     n: mn ? +mn[1] : NaN, estimator: me ? me[1].toUpperCase() : "", estimatorFromInput: meFromInput,
     tech1: parseTech1(t), tech3: parseTech3(t), xwith: defs.xwith, defined: defs.defined
   };
@@ -780,23 +831,61 @@ function meanOf(v) {
   if (v in S.latentMeans) return S.latentMeans[v];
   if (v in S.sampMeans) return S.sampMeans[v];
   if (v in S.means) return S.means[v];
+  if (S.uni && v in S.uni && Number.isFinite(S.uni[v].mean)) return S.uni[v].mean;
+  /* An exogenous factor has its mean fixed at zero, and no Means block is
+     printed for it. When TECH4 was not requested, or the version that ran the
+     model refused it, the value Mplus fixed is the value used. A factor that is
+     itself regressed on something, and the product of two factors, are
+     excluded: their means follow from the model and are not zero in general. */
+  if (isExogenousLatent(v)) return 0;
   return NaN;
+}
+/* The intercept of the equation. Mplus prints it under Intercepts. A latent
+   dependent variable whose intercept was not freed has it fixed at zero and
+   gets no Intercepts line, in the same way as the mean of an exogenous factor;
+   the value Mplus fixed is the value used. An observed dependent variable
+   without a printed intercept was fitted without one, and stays unread. */
+function interceptOf(y) {
+  y = up(y);
+  if (Number.isFinite(S.inter[y])) return S.inter[y];
+  if (isLatent(y) && S.reg && y in S.reg) return 0;
+  return NaN;
+}
+function interceptIsFixedZero(y) {
+  y = up(y);
+  return !Number.isFinite(S.inter[y]) && isLatent(y) && !!(S.reg && y in S.reg);
 }
 /* Order of the sources for a total variance: TECH4 for latent variables,
    SAMPSTAT for observed ones, and the Variances block of MODEL RESULTS, which
-   with XWITH is often the only place where the variance of an exogenous factor
+   without TECH4 is the only place where the variance of an exogenous factor
    appears. */
 function varOf(v) {
   v = up(v);
   if (v in S.latentVars) return S.latentVars[v];
   if (v in S.sampVars) return S.sampVars[v];
   if (S.vars && v in S.vars) return S.vars[v];
+  if (S.uni && v in S.uni && Number.isFinite(S.uni[v].variance)) return S.uni[v].variance;
   return NaN;
 }
+/* A variable is latent when MODEL RESULTS declares it with BY or when TECH4
+   lists it; a latent variable has no sample statistics and no observed range. */
+function isLatent(v) { v = up(v); return S.latent.includes(v) || v in S.latentVars; }
+/* A latent variable that predicts and is not predicted, and is not a product of
+   two factors: the one case in which Mplus fixes the mean at zero. */
+function isExogenousLatent(v) {
+  v = up(v);
+  if (!isLatent(v)) return false;
+  if (S.reg && v in S.reg) return false;
+  return !S.xwith.some(d => d.prod === v);
+}
 function sdOf(v) { const q = varOf(v); return Number.isFinite(q) && q > 0 ? Math.sqrt(q) : NaN; }
+/* TECH4 comes first here as well: it prints the estimated covariance of every
+   pair of latent variables, including pairs the WITH block never carries, such
+   as an exogenous factor with the factor regressed on it. */
 function covOf(a, b) {
   a = up(a); b = up(b);
   if (a === b) return varOf(a);
+  if (Number.isFinite(S.latentCov[a + "|" + b])) return S.latentCov[a + "|" + b];
   if (Number.isFinite(S.withCov[a + "|" + b])) return S.withCov[a + "|" + b];
   if (Number.isFinite(S.sampCov[a + "|" + b])) return S.sampCov[a + "|" + b];
   return NaN;
@@ -1091,7 +1180,7 @@ function jnRoots(b1, b3, cv, z) {
   if (Math.abs(b) > 1e-12 * scale) return [-c / b];
   return [];
 }
-/* Slope of X on Y in category j of a categorical moderator, with the variance
+/* Slope of Y on X in category j of a categorical moderator, with the variance
    from the relevant block of TECH3: Var(b1 + gj) = V11 + Vjj + 2*V1j. */
 function categorySlope(b1, gj, V, i1, ij) {
   const est = b1 + gj;
@@ -1133,10 +1222,22 @@ function rangeFrom(v, k) {
     return {
       min: m - k * sd, max: m + k * sd,
       src: "the mean of " + v + " plus or minus " + (k === 2 ? "two" : "three") + " standard deviations" +
-        (u ? ", because the observed range covers more than eight standard deviations" : ", because the output has no univariate sample statistics")
+        (u ? ", because the observed range covers more than eight standard deviations"
+           : (isLatent(v) ? ", because " + v + " is a latent variable and has no observed range"
+                          : ", because the output has no univariate sample statistics"))
     };
   }
   return null;
+}
+/* The OUTPUT option that would put a missing mean or standard deviation into
+   the file: SAMPSTAT for an observed variable, TECH4 for a latent one, which
+   prints the estimated means, variances and covariances of the factors. Without
+   TECH4 the mean of an exogenous factor is the zero Mplus fixes it at and its
+   variance is read from the Variances block of MODEL RESULTS. */
+function sourceOfMoments(v) {
+  return isLatent(v)
+    ? "request <code>OUTPUT: TECH4;</code> for the estimated mean and variance of a latent variable; without it the mean of an exogenous factor is zero and its variance is read from the <em>Variances</em> block of MODEL RESULTS, which must contain it"
+    : "request <code>OUTPUT: SAMPSTAT;</code>";
 }
 function xRange() { return rangeFrom($("selX").value, 2); }
 function wRange() { return rangeFrom($("selW").value, 3); }
@@ -1148,7 +1249,7 @@ function wRange() { return rangeFrom($("selW").value, 3); }
    z scores.
 --------------------------------------------------------------------------- */
 /* Every line gets a dash pattern, and a marker as well once the patterns run
-   out, so that no two lines of a figure are told apart by colour alone. */
+   out, so that no two lines of a figure are told apart by color alone. */
 /* The dash pattern turns over fastest and the marker changes only when the
    patterns have all been used, so that no two lines share both. Five patterns
    and six markers give thirty-five distinct combinations before any repeats. */
@@ -1213,9 +1314,15 @@ function defaultLevels() {
   if (kind === "cat") {
     const found = categoryCodes(Wraw);
     if (!found) {
-      levelNote("The codes of " + W + " are not in this output, and this page does not let them be typed: a line drawn at a code nobody read from the file would not describe the sample. " +
-        "Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>, which prints the observed minimum and maximum of every variable and, for a variable declared <code>CATEGORICAL</code>, the proportion of the sample in each category. " +
-        "If " + W + " is not categorical after all, set the menu above to a continuous moderator.");
+      /* A latent variable has no codes to read in any section of the output, so
+         SAMPSTAT is not the answer for it. */
+      levelNote(isLatent(Wraw)
+        ? W + " is a latent variable, and a latent variable takes no codes: " + MP +
+          " prints its categories nowhere, and this page does not let codes be typed. Set the menu above to a continuous moderator, where the levels are placed at the mean of " +
+          W + " plus or minus one standard deviation."
+        : "The codes of " + W + " are not in this output, and this page does not let them be typed: a line drawn at a code nobody read from the file would not describe the sample. " +
+          "Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>, which prints the observed minimum and maximum of every variable and, for a variable declared <code>CATEGORICAL</code>, the proportion of the sample in each category. " +
+          "If " + W + " is not categorical after all, set the menu above to a continuous moderator.");
       return [];
     }
     let codes = found.codes, tooMany = false;
@@ -1224,7 +1331,7 @@ function defaultLevels() {
       levelNote("The codes of " + W + " were read from " + found.src + ", and there are more than " + MAX_CATEGORIES +
         " of them. The first " + MAX_CATEGORIES + " are drawn, because a figure with more lines than that cannot be read; remove the ones you do not need. The codes themselves come from the file and cannot be changed here.");
     } else {
-      levelNote("One line per category, at the codes " + codes.join(", ") + ", read from " + found.src + ". The codes come from the file and cannot be changed here; you can leave a category out of the figure by removing its line.");
+      levelNote("One line per category, at the codes " + codes.join(", ") + ", read from " + found.src + ". The model treats these codes as a numeric variable with one product term, so the slope changes by the same amount from one code to the next; the lines are drawn at the codes only. The codes come from the file and cannot be changed here; you can leave a category out of the figure by removing its line.");
     }
     return codes.map((v, i) => Object.assign({ w: v, label: Wraw + " = " + v }, styleFor(i)));
   }
@@ -1238,13 +1345,19 @@ function defaultLevels() {
     ];
   }
   levelNote("The mean and the standard deviation of " + W + " are not in this output, so there is no level to place a line at: the default levels are one standard deviation below the mean, the mean, and one standard deviation above it, and all three are read from the file. " +
-    "Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for an observed moderator and <code>TECH4</code> for a latent one. You can still press <em>Add a level of the moderator</em> and set the values at which you want the slope drawn, since which levels to draw is a decision about the figure rather than a datum.");
+    (isLatent(Wraw)
+      ? "The variance of a latent moderator is read from the <em>Variances</em> block of MODEL RESULTS, and its mean is zero; this output has no variance for " + W + "."
+      : "Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>.") +
+    " You can still press <em>Add a level of the moderator</em> and set the values at which you want the slope drawn, since which levels to draw is a decision about the figure.");
   return [];
 }
 function renderLevels() {
   const box = $("levels");
   box.innerHTML = "";
   const fixed = moderatorKind() === "cat";
+  /* The row of column headings belongs to the list of levels: with no level to
+     head it says nothing. */
+  $("levheadrow").hidden = !S.levels.length;
   S.levels.forEach((l, k) => {
     const d = document.createElement("div");
     d.className = "gridrow four";
@@ -1340,10 +1453,10 @@ function gather() {
   const b0 = RD.b0, b1 = RD.b1, b2 = RD.b2, b3 = RD.b3;
   const mx = RD.mx, sx = RD.sx, my = RD.my, sy = RD.sy;
   if (!X) return { error: "No predictor is selected. Choose the variable whose slope on " + esc(Y) + " is to be drawn; it is the one the moderator is supposed to change the effect of." };
-  if (!Number.isFinite(b0)) return { error: "This output prints no intercept for " + esc(Y) + " in MODEL RESULTS, so the lines have nowhere to start. That happens when the model was fitted without an intercept for " + esc(Y) + ", or when " + esc(Y) + " is a latent variable whose mean is fixed at zero and no <em>Intercepts</em> block was printed for it. Choose another dependent variable, or rerun the model with the intercept free." };
+  if (!Number.isFinite(b0)) return { error: "This output prints no intercept for " + esc(Y) + " in MODEL RESULTS, so the lines have nowhere to start. " + esc(Y) + " is an observed variable, so its intercept is a free parameter whenever the model has one, and the model that produced this file was fitted without it. Choose another dependent variable, or rerun the model with the intercept free." };
   if (!Number.isFinite(b1)) return { error: "This output gives no coefficient for " + esc(X) + " in the regression of " + esc(Y) + ", so the slope that the moderator is supposed to change is not in the file. Choose a predictor that appears in the <code>ON</code> statement of " + esc(Y) + "." };
   if (std && !(Number.isFinite(sx) && sx > 0 && Number.isFinite(sy) && sy > 0 && Number.isFinite(mx) && Number.isFinite(my)))
-    return { error: "The standardized figure needs the mean and the standard deviation of " + esc(X) + " and of " + esc(Y) + ", and this output does not contain all four. Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for observed variables and <code>TECH4</code> for latent ones, or draw the figure in the original metric of the variables." };
+    return { error: "The standardized figure needs the mean and the standard deviation of " + esc(X) + " and of " + esc(Y) + ", and this output does not contain all four. For an observed variable, rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>; for a latent variable, with <code>OUTPUT: TECH4;</code>, which prints its estimated mean and variance. Or draw the figure in the original metric of the variables." };
 
   const reg = S.reg[up(Y)] || {};
   const extra = extraShift();
@@ -1387,7 +1500,12 @@ function gather() {
     const swNow = RD.sw;
     if (Number.isFinite(swNow) && swNow === 0)
       return { error: "The standard deviation of " + esc(W) + " is zero, so the moderator does not vary in this sample. Every level of the moderator would give the same line and the simple slope would not be a function of anything. Check that the variable chosen as the moderator is the right one." };
-    if (!S.levels.length) return { error: "No level of the moderator is set, so there is no value of " + esc(W) + " at which to draw the slope of " + esc(X) + ". The message under the list of levels says why the default levels could not be built from this output. Press <em>Add a level of the moderator</em> to set the values yourself." };
+    if (!S.levels.length) return { error: "No level of the moderator is set, so there is no value of " + esc(W) + " at which to draw the slope of " + esc(X) + ". The message under the list of levels says why the default levels could not be built from this output." +
+      (kind === "cat"
+        ? (isLatent(W)
+            ? " " + esc(W) + " is a latent variable and takes no codes; set the menu above to a continuous moderator."
+            : " The codes of a categorical moderator are read from the file and cannot be typed; rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>, or set the menu above to a continuous moderator.")
+        : " Press <em>Add a level of the moderator</em> to set the values yourself.") };
     S.levels.filter(l => Number.isFinite(l.w)).forEach((l, i) => {
       g.lines.push(line(b0 + b2 * l.w + extra.value, b1 + b3 * l.w, l.label, l.dash, l.marker, i, l.w, null));
     });
@@ -1458,13 +1576,13 @@ function bandSE(g, li, xd) {
 }
 
 /* ---------------------------------------------------------------------------
-   Drawing. All figures are laid out in units of a quarter of a millimetre at
+   Drawing. All figures are laid out in units of a quarter of a millimeter at
    the chosen export width, so that a type size given in points is the size the
    text will have when the figure is printed at that width.
 --------------------------------------------------------------------------- */
 const UNITS_PER_MM = 4;
 /* 0.62 em is the width of the widest characters of the faces offered here, so a
-   label estimated at that rate never runs past the edge or over its neighbour. */
+   label estimated at that rate never runs past the edge or over its neighbor. */
 const CHW = 0.62;
 function exportWidthMm() { const v = num("wmm"); return Number.isFinite(v) && v >= 40 ? v : 140; }
 function ptToUnits(pt) { return pt * 0.352778 * UNITS_PER_MM; }
@@ -1549,9 +1667,29 @@ function interactionSVG(g) {
     if (wantBands) { const se = bandSE(g, li, xd); if (Number.isFinite(se)) { ys.push(y - Z95 * se); ys.push(y + Z95 * se); } }
   }
   let y0 = num("ymin"), y1 = num("ymax");
+  /* A bound that leaves the lines outside the panel, or that inverts the axis,
+     is set aside and reported: a figure whose ordinate carries no tick and no
+     number is not a figure anyone can read. */
+  const dataMin = Math.min(...ys), dataMax = Math.max(...ys);
+  const axisNotes = [];
+  if (Number.isFinite(y0) && y0 > dataMin) {
+    axisNotes.push("The start of the vertical axis was set at " + fmt3(y0) + ", above the lowest value the lines reach (" +
+      fmt3(dataMin) + "), so the axis was fitted to the lines instead.");
+    y0 = NaN;
+  }
+  if (Number.isFinite(y1) && y1 < dataMax) {
+    axisNotes.push("The end of the vertical axis was set at " + fmt3(y1) + ", below the highest value the lines reach (" +
+      fmt3(dataMax) + "), so the axis was fitted to the lines instead.");
+    y1 = NaN;
+  }
+  if (Number.isFinite(y0) && Number.isFinite(y1) && y0 >= y1) {
+    axisNotes.push("The two bounds of the vertical axis do not increase, so both were set aside and the axis was fitted to the lines.");
+    y0 = NaN; y1 = NaN;
+  }
+  window.IP_AXIS_NOTES = axisNotes;
   const autoMin = !Number.isFinite(y0), autoMax = !Number.isFinite(y1);
-  if (autoMin) y0 = Math.min(...ys);
-  if (autoMax) y1 = Math.max(...ys);
+  if (autoMin) y0 = dataMin;
+  if (autoMax) y1 = dataMax;
   if (y1 === y0) { y0 -= 1; y1 += 1; }
   const pad = (y1 - y0) * 0.07;
   if (autoMin) y0 -= pad;
@@ -1652,7 +1790,7 @@ function jnReport(g) {
     "the sampling variances of <math><mrow><msub><mi>b</mi><mn>1</mn></msub></mrow></math> and <math><mrow><msub><mi>b</mi><mn>3</mn></msub></mrow></math> read from this output are both zero, so the simple slope has no sampling variability and no threshold exists. Check that TECH3 belongs to the model whose coefficients are shown" };
   const rng = wRange();
   if (!rng) return { applies: true, ok: false, why: "the range of " + esc(g.W) +
-    " cannot be established: this output has neither its observed minimum and maximum, which the univariate sample statistics give, nor a usable mean and standard deviation for it, and a threshold outside the range the data cover describes no observable case. Rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code> for an observed moderator and <code>TECH4</code> for a latent one" };
+    " cannot be established: this output has neither its observed minimum and maximum, which the univariate sample statistics give, nor a usable mean and standard deviation for it, and a threshold outside the range the data cover describes no observable case. For an observed moderator, rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>; for a latent moderator the variance is read from the <em>Variances</em> block of MODEL RESULTS, which this output does not give" };
   const co = jnQuadratic(g.b1, g.b3, g.cv, Z95);
   const q = w => co.a * w * w + co.b * w + co.c;
   const roots = jnRoots(g.b1, g.b3, g.cv, Z95);
@@ -1675,24 +1813,24 @@ function jnReport(g) {
   let text;
   if (inside.length === 1) {
     const r = inside[0];
-    if (regions[1].sig && !regions[0].sig) text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " above " + f(r) + sd(r) + ", and does not differ from zero below that value.";
-    else if (regions[0].sig && !regions[1].sig) text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " below " + f(r) + sd(r) + ", and does not differ from zero above that value.";
+    if (regions[1].sig && !regions[0].sig) text = "The slope of " + esc(g.Y) + " on " + esc(g.X) + " differs from zero for " + W + " above " + f(r) + sd(r) + ", and does not differ from zero below that value.";
+    else if (regions[0].sig && !regions[1].sig) text = "The slope of " + esc(g.Y) + " on " + esc(g.X) + " differs from zero for " + W + " below " + f(r) + sd(r) + ", and does not differ from zero above that value.";
     else if (repeated) text = "The quadratic has one repeated root, at " + W + " = " + f(r) + sd(r) +
-      ": the test statistic reaches the critical value there and turns back without crossing it, so the slope of " + esc(g.X) + " on " + esc(g.Y) +
+      ": the test statistic reaches the critical value there and turns back without crossing it, so the slope of " + esc(g.Y) + " on " + esc(g.X) +
       " has the same status on both sides and " + (regions[0].sig ? "differs from zero everywhere in the range except at that single value" : "differs from zero nowhere in the range, touching significance only at that single value") + ". No region of significance is bounded by it.";
     else text = "The threshold falls at " + W + " = " + f(r) + sd(r) + ", but the test statistic has the same sign on both sides of it, so no region of significance can be reported.";
   } else if (inside.length === 2) {
     const r1 = inside[0], r2 = inside[1];
     if (regions[0].sig && regions[2].sig)
-      text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " below " + f(r1) + sd(r1) + " and for " + W + " above " + f(r2) + sd(r2) + ", and does not differ from zero between the two values.";
+      text = "The slope of " + esc(g.Y) + " on " + esc(g.X) + " differs from zero for " + W + " below " + f(r1) + sd(r1) + " and for " + W + " above " + f(r2) + sd(r2) + ", and does not differ from zero between the two values.";
     else if (regions[1].sig)
-      text = "The slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero for " + W + " between " + f(r1) + sd(r1) + " and " + f(r2) + sd(r2) + ", and does not differ from zero outside that interval.";
+      text = "The slope of " + esc(g.Y) + " on " + esc(g.X) + " differs from zero for " + W + " between " + f(r1) + sd(r1) + " and " + f(r2) + sd(r2) + ", and does not differ from zero outside that interval.";
     else
       text = "Two thresholds fall inside the range, at " + W + " = " + f(r1) + " and " + f(r2) + ", but the pattern of the test statistic across the three intervals cannot be summarized in one region.";
   } else {
     text = regions[0].sig
-      ? "No threshold falls inside the range of " + W + " used here (" + f(rng.min) + " to " + f(rng.max) + "): the slope of " + esc(g.X) + " on " + esc(g.Y) + " differs from zero throughout that range."
-      : "No threshold falls inside the range of " + W + " used here (" + f(rng.min) + " to " + f(rng.max) + "): the slope of " + esc(g.X) + " on " + esc(g.Y) + " does not differ from zero anywhere in that range.";
+      ? "No threshold falls inside the range of " + W + " used here (" + f(rng.min) + " to " + f(rng.max) + "): the slope of " + esc(g.Y) + " on " + esc(g.X) + " differs from zero throughout that range."
+      : "No threshold falls inside the range of " + W + " used here (" + f(rng.min) + " to " + f(rng.max) + "): the slope of " + esc(g.Y) + " on " + esc(g.X) + " does not differ from zero anywhere in that range.";
   }
   let extra = "";
   const word = inside.length ? "other " : "";
@@ -1738,7 +1876,7 @@ function jnSVG(g, jn) {
   const px = x => mL + (x - x0) / (x1 - x0) * (W - mL - mR);
   const py = y => H - mB - (y - y0) / (y1 - y0) * (H - mT - mB);
   let s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + mm.toFixed(2) + 'mm" role="img" ' +
-    'aria-label="Simple slope of ' + esc(g.X) + ' on ' + esc(g.Y) + ' as a function of ' + esc(g.W) + ', with its 95 percent confidence band and the Johnson-Neyman thresholds" ' +
+    'aria-label="Simple slope of ' + esc(g.Y) + ' on ' + esc(g.X) + ' as a function of ' + esc(g.W) + ', with its 95 percent confidence band and the Johnson-Neyman thresholds" ' +
     'font-family="' + esc(font) + '" font-size="' + fs.toFixed(2) + '">';
   s += '<rect width="' + W + '" height="' + H + '" fill="#ffffff"/>';
   for (const r of jn.regions) {
@@ -1750,7 +1888,7 @@ function jnSVG(g, jn) {
   s += '<path d="' + band + '" fill="#767676" fill-opacity="0.28" stroke="none"/>';
   /* The labels of the regions are written after the band, so that the band
      cannot wash them out. One wording is chosen for the whole figure: the long
-     words when every labelled region can hold them, the short ones otherwise,
+     words when every labeled region can hold them, the short ones otherwise,
      so that two regions of the same kind are never described differently. */
   {
     const widths = jn.regions.map(r => px(r.to) - px(r.from));
@@ -1789,7 +1927,7 @@ function jnSVG(g, jn) {
     const wNeed = lab.length * fs * 0.9 * 0.62;
     const clash = i > 0 && Math.abs(px(r) - px(jn.inside[i - 1])) < wNeed;
     const row = clash ? 1 : 0;
-    /* A label centred on a threshold near an edge would run outside the figure;
+    /* A label centered on a threshold near an edge would run outside the figure;
        it is pulled back just far enough to stay inside. */
     const cx = Math.min(Math.max(px(r), mL + wNeed / 2), W - mR - wNeed / 2);
     s += '<line x1="' + px(r).toFixed(2) + '" y1="' + mT.toFixed(2) + '" x2="' + px(r).toFixed(2) + '" y2="' + (H - mB).toFixed(2) + '" stroke="#000000" stroke-width="' + (lw * 0.7).toFixed(2) + '" stroke-dasharray="6,4"/>';
@@ -1809,7 +1947,7 @@ function jnSVG(g, jn) {
   }
   s += '<text x="' + ((mL + W - mR) / 2).toFixed(2) + '" y="' + (H - fs * 0.6).toFixed(2) + '" text-anchor="middle" fill="#000000">' + esc(g.W) + '</text>';
   const ymid = mT + (H - mT - mB) / 2;
-  s += '<text x="' + (fs * 1.0).toFixed(2) + '" y="' + ymid.toFixed(2) + '" text-anchor="middle" fill="#000000" transform="rotate(-90 ' + (fs * 1.0).toFixed(2) + ' ' + ymid.toFixed(2) + ')">Simple slope of ' + esc(g.X) + ' on ' + esc(g.Y) + (g.std ? " (standardized)" : "") + '</text>';
+  s += '<text x="' + (fs * 1.0).toFixed(2) + '" y="' + ymid.toFixed(2) + '" text-anchor="middle" fill="#000000" transform="rotate(-90 ' + (fs * 1.0).toFixed(2) + ' ' + ymid.toFixed(2) + ')">Simple slope of ' + esc(g.Y) + ' on ' + esc(g.X) + (g.std ? " (standardized)" : "") + '</text>';
   s += "</svg>";
   return s;
 }
@@ -1828,23 +1966,23 @@ function matchNew(rawSlope) {
 function slopeRow(label, atValue, est, se, scale) {
   const z = se > 0 ? est / se : NaN, p = Number.isFinite(z) ? pnorm2(z) : NaN;
   const e = est * scale, s = se * scale;
-  let h = "<tr><td>" + label + "</td><td class=\"num\">" + atValue + "</td><td class=\"num\">" + fmt3(e) + "</td>";
+  let h = "<tr><th scope=\"row\">" + label + "</th><td class=\"num\">" + atValue + "</td><td class=\"num\">" + fmt3(e) + "</td>";
   if (Number.isFinite(s) && s > 0) h += '<td class="num">' + fmt3(s) + '</td><td class="num">' + fmt2(z) + '</td><td class="num">p ' + fmtP(p) + '</td><td class="num">[' + fmt3(e - Z95 * s) + ", " + fmt3(e + Z95 * s) + "]</td>";
   else h += '<td colspan="4">no test</td>';
   return h + "</tr>";
 }
 function slopesTable(g) {
   const scale = g.std ? g.sx / g.sy : 1;
-  let h = '<div class="table-wrap"><table><caption>Simple slope of ' + esc(g.X) + " on " + esc(g.Y) +
-    (g.std ? ", both standardized" : "") + '</caption><thead><tr><th>Level</th><th class="num">' + esc(g.modName) +
-    '</th><th class="num">Slope</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th><th class="num">95% CI</th></tr></thead><tbody>';
+  let h = '<div class="table-wrap"><table><caption>Simple slope of ' + esc(g.Y) + " on " + esc(g.X) +
+    (g.std ? ", both standardized" : "") + '</caption><thead><tr><th scope="col">Level</th><th class="num">' + esc(g.modName) +
+    (g.std && g.kind === "cont" ? " (original metric)" : "") + '</th><th class="num">Slope</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th><th class="num">95% CI</th></tr></thead><tbody>';
   const checks = [];
   if (g.kind === "dum") {
     if (!g.V) {
       h += "</tbody></table></div>" + statusBox("warn", "No tests.",
         "The parameter covariance matrix of <math><mrow><msub><mi>b</mi><mn>1</mn></msub></mrow></math> and of the products with the dummy variables could not be read from TECH1 and TECH3, so the slopes below are point estimates only. Request <code>OUTPUT: TECH1 TECH3;</code> in " + MP + ".");
       let rows = "";
-      g.lines.forEach(li => { rows += "<tr><td>" + esc(li.label) + '</td><td class="num">—</td><td class="num">' + fmt3(li.rawSlope * scale) + '</td><td colspan="4">no test</td></tr>'; });
+      g.lines.forEach(li => { rows += "<tr><th scope=\"row\">" + esc(li.label) + '</th><td class="num">—</td><td class="num">' + fmt3(li.rawSlope * scale) + '</td><td colspan="4">no test</td></tr>'; });
       return h.replace("</tbody></table></div>", rows + "</tbody></table></div>");
     }
     g.lines.forEach((li, i) => {
@@ -1861,7 +1999,7 @@ function slopesTable(g) {
         const n = matchNew(li.rawSlope);
         if (n && g.cv.source === "TECH1 and TECH3" && v >= 0) checks.push({ label: li.label, mine: Math.sqrt(v), theirs: n.se, name: n.name });
       } else {
-        h += "<tr><td>" + esc(li.label) + '</td><td class="num">' + fmt3(li.w) + '</td><td class="num">' + fmt3(li.rawSlope * scale) + '</td><td colspan="4">no test</td></tr>';
+        h += "<tr><th scope=\"row\">" + esc(li.label) + '</th><td class="num">' + fmt3(li.w) + '</td><td class="num">' + fmt3(li.rawSlope * scale) + '</td><td colspan="4">no test</td></tr>';
       }
     }
   }
@@ -1905,7 +2043,7 @@ function differencesTable(g) {
     if (vi === null) v = g.V[vj][vj];
     else v = g.V[vi][vi] + g.V[vj][vj] - 2 * g.V[vi][vj];
     const se = v > 0 ? Math.sqrt(v) : NaN, z = se > 0 ? d / se : NaN;
-    h += "<tr><td>" + esc(labs[j]) + " minus " + esc(labs[i]) + '</td><td class="num">' + fmt3(d * scale) + '</td><td class="num">' + fmt3(se * scale) + '</td><td class="num">' + fmt2(z) + '</td><td class="num">p ' + fmtP(Number.isFinite(z) ? pnorm2(z) : NaN) + "</td></tr>";
+    h += "<tr><th scope=\"row\">" + esc(labs[j]) + " minus " + esc(labs[i]) + '</th><td class="num">' + fmt3(d * scale) + '</td><td class="num">' + fmt3(se * scale) + '</td><td class="num">' + fmt2(z) + '</td><td class="num">p ' + fmtP(Number.isFinite(z) ? pnorm2(z) : NaN) + "</td></tr>";
   }
   h += "</tbody></table></div>";
   h += '<p class="hint">The difference between the slope in a category and the slope in the reference category is the coefficient of the corresponding product term; the difference between two non-reference categories is the difference of those coefficients, with the variance below read from TECH3.</p>' +
@@ -1926,28 +2064,115 @@ function differencesTable(g) {
    standardized with SD(X)·SD(W), not with the standard deviation of the
    product: the appropriate standardized solution of Wen, Marsh and Hau (2010).
 --------------------------------------------------------------------------- */
-function impliedVarianceY(g) {
+/* The variance the model implies, as a function of the nine quantities it is
+   built from, so that the same expression can be differentiated numerically to
+   bound the effect of the three decimals Mplus prints them to. */
+function impliedVarianceFrom(b1, b2, b3, vx, vw, cxw, kx, kw, vz) {
+  const vxw = vx * vw + cxw * cxw + kx * kx * vw + kw * kw * vx + 2 * kx * kw * cxw;
+  const cxxw = kw * vx + kx * cxw, cwxw = kx * vw + kw * cxw;
+  return b1 * b1 * vx + b2 * b2 * vw + b3 * b3 * vxw +
+    2 * b1 * b2 * cxw + 2 * b1 * b3 * cxxw + 2 * b2 * b3 * cwxw + vz;
+}
+/* The nine quantities themselves, or null when the equation is not the one the
+   formula covers or one of them is not in the file. */
+function impliedVarianceInputs(g) {
   const preds = predictorsOf(g.Y).map(up);
   const wanted = [up(g.X), up(g.W), up(g.XW)];
   /* The formula holds for the equation with these three terms only. With more
      predictors the implied variance would be too small and the standardized
      solution too large, so nothing is reconstructed. */
-  if (preds.length !== 3 || !wanted.every(v => preds.includes(v))) return NaN;
-  const vz = S.residuals[up(g.Y)];
-  const vx = varOf(g.X), vw = varOf(g.W), cxw = covOf(g.X, g.W);
-  const kx = meanOf(g.X), kw = meanOf(g.W);
-  if (![g.b1, g.b2, g.b3, vz, vx, vw, cxw, kx, kw].every(Number.isFinite)) return NaN;
-  const vxw = vx * vw + cxw * cxw + kx * kx * vw + kw * kw * vx + 2 * kx * kw * cxw;
-  const cxxw = kw * vx + kx * cxw, cwxw = kx * vw + kw * cxw;
-  const v = g.b1 * g.b1 * vx + g.b2 * g.b2 * vw + g.b3 * g.b3 * vxw +
-    2 * g.b1 * g.b2 * cxw + 2 * g.b1 * g.b3 * cxxw + 2 * g.b2 * g.b3 * cwxw + vz;
+  if (preds.length !== 3 || !wanted.every(v => preds.includes(v))) return null;
+  const a = [g.b1, g.b2, g.b3, varOf(g.X), varOf(g.W), covOf(g.X, g.W), meanOf(g.X), meanOf(g.W), S.residuals[up(g.Y)]];
+  return a.every(Number.isFinite) ? a : null;
+}
+function impliedVarianceY(g) {
+  const a = impliedVarianceInputs(g);
+  if (!a) return NaN;
+  const v = impliedVarianceFrom(...a);
   return v > 0 ? v : NaN;
 }
+/* How far the implied variance can move when each of the nine quantities is
+   changed by half a unit of the last decimal Mplus printed. The sum of the
+   absolute first derivatives times 0.0005 is the first-order bound on the
+   difference between a reconstruction from printed values and the value the
+   program computed from its own unrounded estimates. */
+function impliedVarianceRounding(g) {
+  const a = impliedVarianceInputs(g);
+  if (!a) return NaN;
+  const h = 1e-6;
+  let s = 0;
+  for (let i = 0; i < a.length; i++) {
+    const up1 = a.slice(), dn = a.slice();
+    up1[i] += h; dn[i] -= h;
+    s += Math.abs((impliedVarianceFrom(...up1) - impliedVarianceFrom(...dn)) / (2 * h)) * 0.0005;
+  }
+  return s;
+}
+/* The total variance of the dependent variable, by whichever of the two routes
+   the file supports, together with the other one when both can be computed.
+   The first route reads the value Mplus estimated: TECH4 for a latent
+   dependent variable, the sample statistics for an observed one. The second
+   computes the variance the model implies from the coefficients, the moments of
+   X and W and the residual variance, with the variance of the product taken
+   from Bohrnstedt and Goldberger (1969). The read value is preferred, because
+   it is an estimate of the model and not a reconstruction of it, and the two
+   are reported side by side whenever both exist. */
 function varianceOfY(g) {
-  const printed = varOf(g.Y);
-  if (Number.isFinite(printed) && printed > 0) return { v: printed, src: up(g.Y) in S.latentVars ? "TECH4" : "SAMPSTAT" };
+  const YU = up(g.Y);
+  const pick = (v, src) => Number.isFinite(v) && v > 0 ? { v, src } : null;
+  const read =
+    pick(S.latentVars[YU], "TECH4") ||
+    pick(S.sampVars[YU], "SAMPSTAT") ||
+    pick(S.vars[YU], "the <em>Variances</em> block of MODEL RESULTS") ||
+    pick(S.uni[YU] ? S.uni[YU].variance : NaN, "UNIVARIATE SAMPLE STATISTICS");
   const im = impliedVarianceY(g);
-  return Number.isFinite(im) ? { v: im, src: "the model" } : { v: NaN, src: null };
+  if (read) return { v: read.v, src: read.src, alt: im, altSrc: Number.isFinite(im) ? "the model" : null, diff: Number.isFinite(im) ? Math.abs(im - read.v) : NaN };
+  if (Number.isFinite(im)) return { v: im, src: "the model", alt: NaN, altSrc: null, diff: NaN };
+  return { v: NaN, src: null, alt: NaN, altSrc: null, diff: NaN };
+}
+/* Which of the two routes to the total variance of Y was used, and what the
+   other one gives. The page states this under every standardized solution,
+   because the whole table is proportional to 1/SD(Y) and the reader has to know
+   whether that number was estimated by Mplus or reconstructed here. */
+function varianceRouteNote(g, vy) {
+  const Yn = esc(g.Y), np = predictorsOf(g.Y).length;
+  const latentY = isLatent(g.Y);
+  if (!Number.isFinite(vy.v)) return "";
+  if (vy.src === "the model") {
+    return '<p class="hint"><strong>Where Var(' + Yn + ') comes from.</strong> This output states no estimated variance for ' + Yn +
+      (latentY ? ': ' + Yn + ' is a latent variable and is not on the diagonal of TECH4.' : ': ' + Yn + ' is an observed variable and its variance is not in the sample statistics.') +
+      ' The value used above, ' + vy.v.toFixed(3) +
+      ', is the variance the model implies, computed from the coefficients, the variances and covariance of ' + esc(g.X) + ' and ' + esc(g.W) +
+      ' and the residual variance of ' + Yn + ', with the variance of the product taken from Bohrnstedt and Goldberger (1969). ' +
+      (latentY
+        ? 'Add <code>TECH4</code> to the OUTPUT command and run the model again: ' + MP +
+          ' prints the estimated variance of a latent dependent variable there, and the page then reports that value instead of this one.'
+        : 'Add <code>SAMPSTAT</code> to the OUTPUT command and run the model again: the sample variance of ' + Yn +
+          ' is printed there, and the page then reports that value instead of this one.') +
+      "</p>";
+  }
+  const readName = vy.src === "TECH4"
+    ? "the diagonal of TECH4, where " + MP + " prints the estimated variance of a latent variable"
+    : (vy.src === "SAMPSTAT" ? "the sample statistics" : vy.src);
+  let h = '<p class="hint"><strong>Where Var(' + Yn + ') comes from.</strong> The value used above, ' + vy.v.toFixed(3) +
+    ', is read from ' + readName + '. ';
+  if (!Number.isFinite(vy.alt)) {
+    h += 'The variance implied by the model is not computed alongside it here, because ' + Yn + ' has ' + np +
+      ' predictors and that formula covers the equation with ' + esc(g.X) + ', ' + esc(g.W) + ' and their product alone.';
+    return h + "</p>";
+  }
+  const bound = impliedVarianceRounding(g);
+  h += 'The variance the same model implies, computed from the coefficients and the moments of ' + esc(g.X) + ' and ' + esc(g.W) +
+    ' by the Bohrnstedt&ndash;Goldberger (1969) formula, is ' + vy.alt.toFixed(3) + '. The two differ by ' + vy.diff.toFixed(4) + '. ';
+  if (Number.isFinite(bound)) {
+    h += 'Every quantity that reconstruction reads is printed to three decimals, and that rounding alone moves it by up to ' + bound.toFixed(4) + ', so the two ' +
+      (vy.diff <= bound
+        ? 'agree: nothing separates them but the decimals ' + MP + ' printed.'
+        : 'do not agree. A difference larger than the printed rounding means the equation read for ' + Yn +
+          ' is not the equation the estimated variance belongs to; check that ' + Yn + ' has no predictor besides ' +
+          esc(g.X) + ', ' + esc(g.W) + ' and their product, and that the moments used are those of the analysis sample.');
+  }
+  return h + "</p>";
 }
 function stdTable(g) {
   if (g.kind === "dum") return '<p class="hint">With a categorical moderator entered as dummy variables the standardized solution of the product terms has no single scale factor: the dummy variables are not measured in standard deviations. The slopes are reported above in the original metric of ' + esc(g.X) + ' and ' + esc(g.Y) + ', and in the standardized display as the slope of standardized ' + esc(g.Y) + ' on standardized ' + esc(g.X) + ' within each category, that is <math><mrow><mi>b</mi><msub><mi>&#x3C3;</mi><mi>X</mi></msub><mo>/</mo><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mrow></math>, with σ<sub>X</sub> and σ<sub>Y</sub> the standard deviations of ' + esc(g.X) + ' and ' + esc(g.Y) + '.</p>';
@@ -1959,7 +2184,11 @@ function stdTable(g) {
   const names = [g.X, g.W, g.XW].map(up);
   const printed = !!std && names.some(n => Number.isFinite(std[n]));
   const canRebuild = sx > 0 && sw > 0 && sy > 0;
-  const latent = (S.latent || []).includes(up(g.XW)) || !(up(g.XW) in (S.sampVars || {}));
+  /* The heading says "latent interaction" only when the two components really
+     are latent variables. An output that carries the univariate sample
+     statistics without the Means and Covariances blocks of SAMPLE STATISTICS is
+     not an output with latent variables in it. */
+  const latent = isLatent(g.X) && isLatent(g.W);
   const title = latent ? "Standardized solution of the latent interaction" : "Standardized solution";
   const k = [sx / sy, sw / sy, sx * sw / sy];
 
@@ -1969,8 +2198,8 @@ function stdTable(g) {
     if (!(sw > 0)) missing.push("the SD of " + esc(g.W));
     if (!(sy > 0)) missing.push("the variance of " + esc(g.Y));
     const np = predictorsOf(g.Y).length;
-    return statusBox("warn", "Not available.", "This output has no STDYX section for " + esc(g.Y) + " and the solution cannot be reconstructed: " + missing.join(", ") + " " + (missing.length === 1 ? "is" : "are") + " missing. The reconstruction needs the variances of the factors (the <em>Variances</em> block of MODEL RESULTS or TECH4), their covariance (<em>WITH</em>) and the residual variance of the dependent variable." +
-      (np > 3 ? " " + esc(g.Y) + " has " + np + " predictors, and the implied variance can be reconstructed only for the equation with X, W and their product alone; add TECH4 to the OUTPUT command." : ""));
+    return statusBox("warn", "Not available.", "This output has no STDYX section for " + esc(g.Y) + " and the solution cannot be reconstructed: " + missing.join(", ") + " " + (missing.length === 1 ? "is" : "are") + " missing. The reconstruction needs the variances of the factors and their covariance, which TECH4 prints and which are otherwise read from the <em>Variances</em> and <em>WITH</em> blocks of MODEL RESULTS, and the residual variance of the dependent variable." +
+      (np > 3 ? " " + esc(g.Y) + " has " + np + " predictors, and the implied variance can be reconstructed only for the equation with X, W and their product alone." : ""));
   }
   const rows = [g.X, g.W, g.XW].map((n, i) => {
     const NU = up(n), b = [g.b1, g.b2, g.b3][i];
@@ -1982,7 +2211,7 @@ function stdTable(g) {
   h += "</tr></thead><tbody>";
   let dmax = 0, ncomp = 0, dprod = NaN, nprod = 0;
   for (const r of rows) {
-    h += "<tr><td>" + esc(r.name) + '</td><td class="num">' + fmt3(r.b) + "</td>";
+    h += "<tr><th scope=\"row\">" + esc(r.name) + '</th><td class="num">' + fmt3(r.b) + "</td>";
     if (printed) {
       h += '<td class="num">' + fmt3(r.mp) + '</td><td class="num">' + fmt3(r.mpi.se) + '</td><td class="num">' +
         (Number.isFinite(r.mpi.z) && r.mpi.z < 999 ? fmt2(r.mpi.z) : "—") + '</td><td class="num">' +
@@ -2025,18 +2254,31 @@ function stdTable(g) {
       (Math.abs(back - vy.v) / vy.v < 0.01 ? ", which agrees with the value used here." : ", which differs from the value used here, so the standardized figure is not in the metric of the STDYX section.");
   }
   h += "</p>";
+  h += varianceRouteNote(g, vy);
   if (printed) {
     const sdProd = sdOf(g.XW);
     h += '<p class="hint">This output contains a STDYX section for ' + esc(g.Y) + '. For ' + esc(g.X) + ' and ' + esc(g.W) +
       ' the two columns answer the same question and the ' + MP + ' values are the ones to report' +
       (canRebuild && ncomp ? ", and they agree with the rebuilt column to " + dmax.toFixed(3) +
         (dmax <= 0.005 ? ", which is the rounding of the printed values." :
-         ". A difference of that size means the standard deviations used here are not the ones " + MP + " standardized on; check the sample statistics and TECH4.") : ".") + "</p>";
-    if (canRebuild && nprod) {
-      /* The two columns disagree for the product on purpose: Mplus divides by
-         the standard deviation of the product variable, Wen, Marsh and Hau
-         divide by the product of the two standard deviations. Reporting that
-         disagreement as a defect would be wrong. */
+         ". A difference of that size means the standard deviations used here are not the ones " + MP + " standardized on; check the sample statistics.") : ".") + "</p>";
+    if (canRebuild && nprod && S.xwith.some(d => d.prod === up(g.XW))) {
+      /* A product declared with XWITH is not a variable of the model and has no
+         standard deviation of its own, and since Version 7.4 Mplus standardizes
+         it exactly as the rebuilt column does. The two are then a check on each
+         other, not two conventions. */
+      h += '<p class="hint"><strong>The product term.</strong> ' + esc(g.XW) + ' is declared with <code>XWITH</code>, so ' + MP +
+        ' multiplies its coefficient by the standard deviations of both components and divides by that of ' + esc(g.Y) +
+        ', which is the standardized solution of Wen, Marsh and Hau (2010) and the rule stated for XWITH terms by Asparouhov and Muthén (2019, eqs. 16&ndash;18). ' + MP +
+        ' gives β = ' + fmt3(rows[2].mp) + ' and the rebuilt column ' + fmt3(rows[2].rebuilt) + ', a difference of ' + dprod.toFixed(3) +
+        (dprod <= 0.005
+          ? ', which is the rounding of the printed values. Report the ' + MP + ' value.'
+          : '. A difference of that size means the standard deviations used here are not the ones ' + MP +
+            ' standardized on; check the variances read for ' + esc(g.X) + ', ' + esc(g.W) + ' and ' + esc(g.Y) + '.') + "</p>";
+    } else if (canRebuild && nprod) {
+      /* An observed product is a variable of the model with a variance of its
+         own, and Mplus divides by its standard deviation. The two columns
+         disagree on purpose. Reporting that as a defect would be wrong. */
       h += '<p class="hint"><strong>The product term is the exception.</strong> ' + MP +
         ' standardizes ' + esc(g.XW) + ' by its own standard deviation' +
         (Number.isFinite(sdProd) ? ', <math><mrow><msub><mi>σ</mi><mtext>' + esc(g.XW) + '</mtext></msub><mo>=</mo><mn>' + sdProd.toFixed(3) + '</mn></mrow></math>' : "") +
@@ -2048,8 +2290,17 @@ function stdTable(g) {
     }
   } else {
     const cxw = covOf(g.X, g.W);
-    h += '<p class="hint">This output has no STDYX section for ' + esc(g.Y) + ', so the solution above is <strong>reconstructed</strong> from the unstandardized parameters. This happens with <code>' + esc(g.XW) + " | " + esc(g.X) + " XWITH " + esc(g.W) + '</code>, because the product is not a variable of the model and has no estimated variance of its own. ' +
-      (vy.src === "the model" ? "The total variance of " + esc(g.Y) + " is missing as well and is derived from the model under joint normality of the factors, with the variance of the product taken from Bohrnstedt and Goldberger (1969)" + (Number.isFinite(cxw) ? ", using Cov(" + esc(g.X) + ", " + esc(g.W) + ") = " + cxw.toFixed(3) : "") + ". " : "") +
+    /* The reason the section is missing is stated only when the output says
+       what it is: a product built with XWITH is estimated with TYPE = RANDOM,
+       for which versions before 7.4 refused the STANDARDIZED option. Any other
+       output simply did not carry the section. */
+    const byXwith = S.xwith.some(d => d.prod === up(g.XW));
+    h += '<p class="hint">This output has no STDYX section for ' + esc(g.Y) + ', so the solution above is <strong>reconstructed</strong> from the unstandardized parameters. ' +
+      (byXwith
+        ? 'With <code>' + esc(g.XW) + " | " + esc(g.X) + " XWITH " + esc(g.W) + '</code> the model is estimated with TYPE = RANDOM. ' + MP +
+          ' prints the standardized solution and the R-square of such a model from Version 7.4 on (Muthén &amp; Muthén, 2015); earlier versions refuse the STANDARDIZED option for that analysis type (Muthén &amp; Muthén, 2017, ch. 18) and write a warning naming it. Add <code>STDYX</code> to the OUTPUT command and run the model again, and this table will carry the values ' + MP + ' computed. '
+        : 'Either the STANDARDIZED option was not requested for this run, or it is not available for the analysis type it used (Muthén &amp; Muthén, 2017, ch. 18). ') +
+      (vy.src === "the model" ? "The total variance of " + esc(g.Y) + " is derived from the model under joint normality of the factors, with the variance of the product taken from Bohrnstedt and Goldberger (1969)" + (Number.isFinite(cxw) ? ", using Cov(" + esc(g.X) + ", " + esc(g.W) + ") = " + cxw.toFixed(3) : "") + ". " : "") +
       "The standard errors are the unstandardized ones rescaled by the same factor treated as a constant, so z and p remain those of the raw solution, which is the correct test of the parameter. Exact standard errors for the standardized solution require " + MP + " to print it.</p>";
   }
   return h;
@@ -2057,10 +2308,10 @@ function stdTable(g) {
 
 function newParametersTable() {
   const np = S.newPar.filter(n => n.se > 0 && n.p < 999);
-  if (!np.length) return '<p class="hint">This output has no NEW parameters from MODEL CONSTRAINT.</p>';
+  if (!np.length) return "";
   let h = '<div class="table-wrap"><table><caption>NEW parameters reported by ' + MP + '</caption><thead><tr><th>Name</th><th class="num">Estimate</th><th class="num">SE</th><th class="num">z</th><th class="num">p</th><th>Used as a simple slope</th></tr></thead><tbody>';
   for (const n of np)
-    h += "<tr><td>" + esc(n.name) + '</td><td class="num">' + fmt3(n.est) + '</td><td class="num">' + fmt3(n.se) + '</td><td class="num">' + fmt2(n.z) + '</td><td class="num">p ' + fmtP(n.p) + "</td><td>" +
+    h += "<tr><th scope=\"row\">" + esc(n.name) + '</th><td class="num">' + fmt3(n.est) + '</td><td class="num">' + fmt3(n.se) + '</td><td class="num">' + fmt2(n.z) + '</td><td class="num">p ' + fmtP(n.p) + "</td><td>" +
       (looksLikeSimpleSlope(n.name) ? '<span aria-hidden="true">✓</span> yes' : '<span aria-hidden="true">✗</span> no, the name does not identify a simple slope') + "</td></tr>";
   h += "</tbody></table></div>";
   h += '<p class="hint">A NEW parameter is used as a simple slope only when its name says so. Names that identify an indirect, direct or total effect are excluded, so that an effect which happens to fall near the value of a simple slope is never reported as one. When TECH3 is available it is preferred, because ' + MP + ' prints NEW parameters to three decimals.</p>';
@@ -2073,6 +2324,9 @@ function newParametersTable() {
 function clearResults() {
   for (const id of ["fig", "slopes", "diffs", "jntext", "jnfig", "stdsol", "newpars"]) $(id).innerHTML = "";
   $("figtools").hidden = true; $("jntools").hidden = true;
+  /* A panel whose body is empty is hidden with it, so that no heading stands
+     over an empty box while nothing can be drawn. */
+  for (const id of ["p-slopes", "p-jn", "p-std", "p-new"]) $(id).hidden = true;
 }
 function draw() {
   if (!S.loaded) return;
@@ -2099,13 +2353,20 @@ function draw() {
   const ptSize = Number.isFinite(num("fsize")) ? num("fsize") : 10;
   if (drawn && ptSize < 9) caption += "The type is set at " + fmt3(ptSize).replace(/\.?0+$/, "") +
     " pt at an export width of " + exportWidthMm() + " mm, below the 9 pt most journals ask for; raise the type size or the width. ";
+  if (drawn && window.IP_AXIS_NOTES && window.IP_AXIS_NOTES.length) caption += window.IP_AXIS_NOTES.join(" ") + " ";
   $("fig").innerHTML = '<figure class="plot">' + fig + "<figcaption>" + caption + "</figcaption></figure>";
   $("figtools").hidden = !drawn;
 
   $("slopes").innerHTML = slopesTable(g);
   $("diffs").innerHTML = differencesTable(g);
   $("stdsol").innerHTML = stdTable(g);
-  $("newpars").innerHTML = newParametersTable();
+  /* These three always have a body once a figure has been drawn: a table, or a
+     message saying what is missing. */
+  $("p-slopes").hidden = false; $("p-jn").hidden = false; $("p-std").hidden = false;
+  /* The panel exists only when the output has NEW parameters to show. */
+  const npHtml = newParametersTable();
+  $("newpars").innerHTML = npHtml;
+  $("p-new").hidden = !npHtml;
 
   const jn = jnReport(g);
   if (!jn.applies) {
@@ -2122,7 +2383,7 @@ function draw() {
       '<p class="where">Here <var>w</var> is a value of ' + esc(g.W) + ', <var>b</var><sub>1</sub> and <var>b</var><sub>3</sub> are the coefficients of ' + esc(g.X) + ' and of the product, Var and Cov are their sampling variances and covariance from TECH3, and <var>z</var> is the critical value 1.96.</p>' +
       '<p class="hint">Only roots inside the range of ' + esc(g.W) + ' used here are reported: ' + esc(jn.rng.src) + ', from ' + fmt3(jn.rng.min) + " to " + fmt3(jn.rng.max) + ". The quadratic coefficient <var>a</var> = " + fmt3(jn.co.a) + " is " + (jn.co.a > 0 ? "positive, so significance holds outside the roots" : "negative, so significance holds between the roots") + ", and the test statistic evaluated at the midpoint of each interval agrees with that.</p>";
     const svg = jnSVG(g, jn);
-    $("jnfig").innerHTML = svg ? '<figure class="plot">' + svg + "<figcaption>Simple slope of " + esc(g.X) + " on " + esc(g.Y) + " as a function of " + esc(g.W) + ", with its 95% confidence band. The horizontal dashed line marks a slope of zero and the vertical dashed lines mark the thresholds. " + jn.plain + "</figcaption></figure>" : "";
+    $("jnfig").innerHTML = svg ? '<figure class="plot">' + svg + "<figcaption>Simple slope of " + esc(g.Y) + " on " + esc(g.X) + " as a function of " + esc(g.W) + ", with its 95% confidence band" + (g.std ? ", " + esc(g.Y) + " and " + esc(g.X) + " both standardized" : "") + ". The horizontal dashed line marks a slope of zero" + (jn.inside.length === 1 ? " and the vertical dashed line marks the threshold" : (jn.inside.length > 1 ? " and the vertical dashed lines mark the thresholds" : "")) + ". " + jn.plain + "</figcaption></figure>" : "";
     $("jntools").hidden = !svg;
   }
 }
@@ -2135,17 +2396,27 @@ function updateStdAvailability() {
   const ok = sx > 0 && sy > 0;
   $("m-std").disabled = !ok;
   if (!ok && $("m-std").checked) $("m-raw").checked = true;
+  const Xn = esc($("selX").value || "X"), Yn = esc($("selY").value || "Y");
+  const lack = [!(sx > 0) ? "of " + Xn : "", !(sy > 0) ? "of " + Yn : ""].filter(Boolean).join(" and ");
+  const haveT4 = Object.keys(S.latentVars).length > 0;
   $("stdnote").innerHTML = !ok
-    ? "The standardized display needs the standard deviation of X and of Y, which are not available here."
+    ? "The standardized figure needs the standard deviation " + lack + ", which this output does not contain, so the figure stays in the original metric." +
+      (!(sy > 0) && isLatent($("selY").value)
+        ? " " + MP + " prints the estimated variance of a latent variable on the diagonal of TECH4; " +
+          (haveT4 ? "the TECH4 block in this file does not list " + Yn + "." : "this file has no TECH4 block.") +
+          " Add <code>TECH4</code> to the OUTPUT command and run the model again."
+        : "") +
+      (!(sy > 0) && (isLatent($("selX").value) || isLatent($("selW").value)) ? " The panel <em>Standardized solution</em> below reconstructs the variance of " + Yn + " from the model, under joint normality of the factors, and reports the coefficients that follow from it." : "")
     : (S.haveStd
       ? "This output contains a STDYX section, so the standardized coefficients reported below are those of " + MP + "; the figure applies the same transformation to X and Y."
-      : "This output has no STDYX section, so the standardized figure and coefficients are reconstructed from the variances available (TECH4, the Variances block, WITH).");
+      : "This output has no STDYX section, so the standardized figure and coefficients are reconstructed from the variances read here: TECH4 for latent variables, SAMPSTAT for observed ones, and the <em>Variances</em> and <em>WITH</em> blocks of MODEL RESULTS when TECH4 is absent.");
 }
 function applySelection() {
   const Y = $("selY").value, X = $("selX").value, W = $("selW").value, XW = $("selXW").value;
   const reg = S.reg[up(Y)] || {};
   readValues(Y, X, W, XW, reg);
   showReadValues(Y, X, W, XW);
+  refreshModeratorUI();
   $("labx").value = X || "X";
   $("laby").value = Y || "Y";
   updateStdAvailability();
@@ -2190,6 +2461,11 @@ function refreshModeratorUI() {
   $("wsingle").hidden = k === "dum";
   $("wdummy").hidden = k !== "dum";
   $("p-levels").hidden = k === "dum";
+  /* The codes of a categorical moderator are read from the file: there is no
+     level to add, so the button that adds one is shown only for a continuous
+     moderator. */
+  $("addlev").hidden = k !== "cont";
+  $("levhead").textContent = ($("selW").value || "W") + " =";
 }
 
 /* ---------------------------------------------------------------------------
@@ -2252,7 +2528,7 @@ function loadText(raw) {
   bits.push("Read " + deps.map(d => esc(d) + " ON " + Object.keys(S.reg[d]).map(esc).join(" ")).join("; ") + ".");
   bits.push(S.estimator
     ? (S.estimatorFromInput
-        ? "Estimator " + esc(S.estimator) + ", read from the echoed input rather than from SUMMARY OF ANALYSIS: that is the estimator the run asked for, and " + MP + " changes it in some analyses, so check the summary in the output."
+        ? "Estimator " + esc(S.estimator) + ", read from the echoed input, because SUMMARY OF ANALYSIS does not state it in this file: that is the estimator the run asked for, and " + MP + " changes it in some analyses, so check the summary in the output."
         : "Estimator " + esc(S.estimator) + ".")
     : "The estimator is not stated in this output, so nothing that depends on it is used; in particular no covariance matrix of the coefficients is reconstructed.");
   const haveT1 = Object.keys(S.tech1).length > 0, haveT3 = Object.keys(S.tech3).length > 0;
@@ -2267,7 +2543,9 @@ function loadText(raw) {
   if (Object.keys(S.uni).length) bits.push("The observed minimum and maximum of the variables were read from the univariate sample statistics.");
   if (S.newPar.length) bits.push("NEW parameters found: " + S.newPar.map(n => esc(n.name)).join(", ") + ".");
   if (S.truncated.length) bits.push("Warning: " + S.truncated.length + " row(s) of MODEL RESULTS could not be read because " + MP + " printed asterisks or the 999.000 sentinel in place of the value (" + [...new Set(S.truncated)].map(esc).join(", ") + ").");
-  $("loadmsg").innerHTML = statusBox(S.truncated.length ? "warn" : "ok", "Output read.", bits.join(" "));
+  const warningCount = (t.match(/^\s*\*\*\* WARNING/gm) || []).length;
+  if (warningCount) bits.push(MP + " printed " + warningCount + " warning" + (warningCount === 1 ? "" : "s") + "; read " + (warningCount === 1 ? "it" : "them") + " in the file before interpreting the plot.");
+  $("loadmsg").innerHTML = statusBox(S.truncated.length || warningCount ? "warn" : "ok", warningCount ? "Output read, with warnings." : "Output read.", bits.join(" "));
 }
 
 /* ---------------------------------------------------------------------------
@@ -2276,7 +2554,7 @@ function loadText(raw) {
    RD but this reader: a value read from the output is the value used.
 --------------------------------------------------------------------------- */
 function readValues(Y, X, W, XW, reg) {
-  RD.b0 = S.inter[up(Y)];
+  RD.b0 = interceptOf(Y);
   RD.b1 = reg[up(X)];
   RD.b2 = reg[up(W)];
   RD.b3 = reg[up(XW)];
@@ -2288,34 +2566,39 @@ function readValues(Y, X, W, XW, reg) {
 }
 /* A value that is not in the file is named as missing together with the OUTPUT
    option that would put it there, rather than shown as a blank field. */
-function readRow(label, value, cure) {
+function readRow(label, value, cure, note) {
   return "<dt>" + label + "</dt><dd>" +
-    (Number.isFinite(value) ? fmt3(value) : '<em>not in this output</em>' + (cure ? " — " + cure : "")) + "</dd>";
+    (Number.isFinite(value) ? fmt3(value) + (note ? " — " + note : "") : '<em>not in this output</em>' + (cure ? " — " + cure : "")) + "</dd>";
 }
 function showReadValues(Y, X, W, XW) {
   const dum = moderatorKind() === "dum";
-  const samp = "request <code>OUTPUT: SAMPSTAT;</code>, or <code>TECH4</code> for a latent variable";
   let h = '<dl class="kv">';
-  h += readRow("Intercept of " + esc(Y), RD.b0, "the model was fitted without one");
+  h += readRow("Intercept of " + esc(Y), RD.b0, "the model was fitted without one",
+    interceptIsFixedZero(Y) ? "fixed at zero by " + MP + ", which prints no <em>Intercepts</em> line for a latent dependent variable whose intercept was not freed" : "");
   h += readRow("Coefficient of " + esc(X), RD.b1, "it is not in the <code>ON</code> statement of " + esc(Y));
   if (!dum) {
     h += readRow("Coefficient of " + esc(W || "the moderator"), RD.b2, "it is not in the <code>ON</code> statement of " + esc(Y));
     h += readRow("Coefficient of " + esc(XW || "the product"), RD.b3, "it is not in the <code>ON</code> statement of " + esc(Y));
   }
-  h += readRow("Mean of " + esc(X), RD.mx, samp);
-  h += readRow("SD of " + esc(X), RD.sx, samp);
+  h += readRow("Mean of " + esc(X), RD.mx, sourceOfMoments(X));
+  h += readRow("SD of " + esc(X), RD.sx, sourceOfMoments(X));
   if (!dum) {
-    h += readRow("Mean of " + esc(W || "the moderator"), RD.mw, samp);
-    h += readRow("SD of " + esc(W || "the moderator"), RD.sw, samp);
+    h += readRow("Mean of " + esc(W || "the moderator"), RD.mw, sourceOfMoments(W));
+    h += readRow("SD of " + esc(W || "the moderator"), RD.sw, sourceOfMoments(W));
   }
-  h += readRow("Mean of " + esc(Y), RD.my, samp);
-  h += readRow("SD of " + esc(Y), RD.sy, samp);
+  h += readRow("Mean of " + esc(Y), RD.my, sourceOfMoments(Y));
+  h += readRow("SD of " + esc(Y), RD.sy, sourceOfMoments(Y));
   h += "</dl>";
   const haveT1 = Object.keys(S.tech1).length > 0, haveT3 = Object.keys(S.tech3).length > 0;
   h += '<p class="hint">These are the values the figure and the tests are computed from. They are read from the output and cannot be edited here: a value read from an output is the value used. ' +
     (haveT1 && haveT3
       ? "The sampling variances and covariances behind every standard error below come from TECH1 with TECH3 in the same file."
-      : "The sampling variances and covariances the tests need are not in this file; request <code>OUTPUT: TECH1 TECH3;</code> and load the output again.") + "</p>";
+      : "The sampling variances and covariances the tests need are not in this file; request <code>OUTPUT: TECH1 TECH3;</code> and load the output again.") +
+    (S.xwith.length
+      ? " " + (Object.keys(S.latentVars).length
+        ? "The estimated means, variances and covariances of the factors come from the TECH4 block of this file: " + S.tech4Names.map(esc).join(", ") + "."
+        : "This file has no TECH4 block, so the variances of the factors are read from the <em>Variances</em> block of MODEL RESULTS and their covariance from the <em>WITH</em> block; request <code>OUTPUT: TECH4;</code> for the values " + MP + " estimates, including the variance of a latent dependent variable.")
+      : "") + "</p>";
   $("readvals").innerHTML = h;
 }
 
@@ -2346,7 +2629,7 @@ function exportPNG(hostId, base) {
   if (wpx * hpx > MAX_CANVAS_PIXELS) {
     const k = Math.sqrt(MAX_CANVAS_PIXELS / (wpx * hpx)), reduced = Math.max(72, Math.floor(dpi * k));
     wpx = Math.round(mm / 25.4 * reduced); hpx = Math.round(wpx * ratio);
-    window.alert("At " + dpi + " dpi the image would exceed the canvas memory limit of this browser and would be saved blank. The resolution has been reduced to " + reduced + " dpi (" + wpx + " by " + hpx + " pixels). For the full resolution use the SVG export, which is vectorial.");
+    window.alert("At " + dpi + " dpi the image would exceed the canvas memory limit of this browser and would be saved blank. The resolution has been reduced to " + reduced + " dpi (" + wpx + " by " + hpx + " pixels). For the full resolution use the SVG export, which is a vector format.");
     dpi = reduced;
   }
   const xml = new XMLSerializer().serializeToString(el), img = new Image();
@@ -2863,6 +3146,94 @@ function runSelfTests() {
     zeroLevels.length === 0 && says(zeroNote, "does not vary"),
     "the page refuses to draw identical lines at a single value of the moderator");
 
+  /* 22 to 24. A latent interaction whose dependent variable is a factor. The
+     same model is read twice, once with the TECH4 block Mplus prints for it and
+     once without, so that the route through TECH4, the fallback through the
+     Bohrnstedt-Goldberger reconstruction and the agreement of the two are each
+     exercised on values that are known in advance. */
+  const t4Model = [
+    "Mplus VERSION 8.11", "MUTHEN & MUTHEN", "", "INPUT INSTRUCTIONS", "",
+    "  ANALYSIS: TYPE = RANDOM; ESTIMATOR = ML; ALGORITHM = INTEGRATION;",
+    "  MODEL:", "      f1 BY x1-x3;", "      f2 BY w1-w3;", "      f3 BY y1-y3;",
+    "      int | f1 XWITH f2;", "      f3 ON f1 f2 int;",
+    "  OUTPUT: TECH4;", "", "INPUT READING TERMINATED NORMALLY", "",
+    "SUMMARY OF ANALYSIS", "", "Number of observations                                         600",
+    "Estimator                                                       ML", "",
+    "THE MODEL ESTIMATION TERMINATED NORMALLY", "", "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " F1       BY", "    X1               1.000      0.000    999.000    999.000", "",
+    " F2       BY", "    W1               1.000      0.000    999.000    999.000", "",
+    " F3       BY", "    Y1               1.000      0.000    999.000    999.000", "",
+    " F3       ON",
+    "    F1               0.346      0.105      3.295      0.001",
+    "    F2               0.313      0.063      4.968      0.000",
+    "    INT              0.299      0.075      3.987      0.000", "",
+    " F1       WITH", "    F2               0.121      0.038      3.184      0.001", "",
+    " Variances",
+    "    F1               0.493      0.052      9.481      0.000",
+    "    F2               1.000      0.061     16.393      0.000", "",
+    " Residual Variances",
+    "    F3               0.171      0.031      5.516      0.000", ""
+  ].join("\n");
+  const t4Block = [
+    "TECHNICAL 4 OUTPUT", "", "     ESTIMATED MEANS FOR THE LATENT VARIABLES", "",
+    "              F1            F2            F3", "              ________      ________      ________",
+    "                0.000         0.000         0.036", "",
+    "     S.E. FOR ESTIMATED MEANS FOR THE LATENT VARIABLES", "",
+    "              F1            F2            F3", "              ________      ________      ________",
+    "                0.000         0.000         0.013", "",
+    "     ESTIMATED COVARIANCE MATRIX FOR THE LATENT VARIABLES", "",
+    "              F1            F2            F3", "              ________      ________      ________",
+    " F1             0.493", " F2             0.121         1.000", " F3             0.208         0.355         0.400", "",
+    "     S.E. FOR ESTIMATED COVARIANCE MATRIX FOR THE LATENT VARIABLES", "",
+    "              F1            F2            F3", "              ________      ________      ________",
+    " F1             0.052", " F2             0.038         0.061", " F3             0.036         0.047         0.049", "",
+    "     ESTIMATED CORRELATION MATRIX FOR THE LATENT VARIABLES", "",
+    "              F1            F2            F3", "              ________      ________      ________",
+    " F1             1.000", " F2             0.172         1.000", " F3             0.469         0.561         1.000", "",
+    "MUTHEN & MUTHEN", ""
+  ].join("\n");
+  const t4Read = parseTech4(t4Model + "\n" + t4Block);
+  const t4Ok = t4Read.vars.F1 === 0.493 && t4Read.vars.F2 === 1 && t4Read.vars.F3 === 0.4 &&
+    t4Read.covs["F1|F2"] === 0.121 && t4Read.covs["F2|F1"] === 0.121 &&
+    t4Read.covs["F1|F3"] === 0.208 && t4Read.covs["F3|F2"] === 0.355 &&
+    t4Read.means.F3 === 0.036 && t4Read.names.join(",") === "F1,F2,F3";
+  add("TECH4 read: the estimated variance of the dependent factor, the covariances and the means, with the standard error matrices cut off",
+    t4Ok, t4Ok ? "Var(F3) = 0.400, Cov(F1,F3) = 0.208, E(F3) = 0.036" :
+      "read Var(F3) = " + t4Read.vars.F3 + ", Cov(F1,F3) = " + t4Read.covs["F1|F3"] + ", E(F3) = " + t4Read.means.F3);
+
+  /* The two routes are compared through the page's own lookups, so the state of
+     the parsed output is replaced and put back exactly as it was. */
+  const keepS = {};
+  for (const k of Object.keys(S)) keepS[k] = S[k];
+  const gT4 = { Y: "F3", X: "F1", W: "F2", XW: "INT", b1: 0.346, b2: 0.313, b3: 0.299 };
+  let withT4 = null, noT4 = null, bandT4 = NaN, b0T4 = NaN, b0Print = NaN;
+  try {
+    Object.assign(S, parseOutput(t4Model + "\n" + t4Block));
+    withT4 = varianceOfY(gT4);
+    bandT4 = impliedVarianceRounding(gT4);
+    b0T4 = interceptOf("F3");
+    Object.assign(S, parseOutput(t4Model + "\nMUTHEN & MUTHEN\n"));
+    noT4 = varianceOfY(gT4);
+    b0Print = interceptOf("F3");
+  } finally {
+    for (const k of Object.keys(S)) delete S[k];
+    Object.assign(S, keepS);
+  }
+  const fallbackOk = !!noT4 && noT4.src === "the model" && Math.abs(noT4.v - 0.399580717) < 5e-9 && !Number.isFinite(noT4.alt);
+  add("Without TECH4 the total variance of the dependent factor falls back on the Bohrnstedt-Goldberger reconstruction",
+    fallbackOk, fallbackOk ? "Var(F3) = " + noT4.v.toFixed(6) + " from the model" :
+      "source " + (noT4 && noT4.src) + ", value " + (noT4 && noT4.v));
+  const agreeOk = !!withT4 && withT4.src === "TECH4" && withT4.v === 0.4 &&
+    Math.abs(withT4.alt - 0.399580717) < 5e-9 && Number.isFinite(bandT4) && withT4.diff <= bandT4;
+  add("With TECH4 the two routes agree to within the rounding of the values printed to three decimals",
+    agreeOk, agreeOk ? "0.400 from TECH4 against " + withT4.alt.toFixed(6) + " from the model, difference " +
+      withT4.diff.toFixed(6) + " against a rounding bound of " + bandT4.toFixed(6) :
+      "TECH4 " + (withT4 && withT4.v) + ", model " + (withT4 && withT4.alt) + ", difference " + (withT4 && withT4.diff) + ", bound " + bandT4);
+  add("The intercept of a latent dependent variable with no Intercepts line is read as the fixed zero",
+    b0T4 === 0 && b0Print === 0, "read as " + b0T4 + " with TECH4 and " + b0Print + " without it");
+
   return { ok: checks.every(c => c.ok), checks };
 }
 function showSelfTest() {
@@ -2914,6 +3285,7 @@ function wireEvents() {
   });
   $("adddum").addEventListener("click", () => { S.dummies.push({ d: "", p: "", label: "Category " + (S.dummies.length + 2) }); renderDummyRows(); draw(); });
   $("addlev").addEventListener("click", () => {
+    if (moderatorKind() !== "cont") return;
     S.levels.push(Object.assign({ w: 0, label: "Level " + (S.levels.length + 1) }, styleFor(S.levels.length)));
     renderLevels(); draw();
   });
@@ -2954,8 +3326,10 @@ if (new URLSearchParams(location.search).get("selftest") === "1") {
      outside the browser can compare them with an implementation of its own. */
   window.__api = {
     pnorm2, chi2Tail, jnQuadratic, jnRoots, slopeVariance, categorySlope, quadForm,
-    parseTech1, parseTech3, parseUnivariate, parseUnivariateProportions, parseSampleStatistics, parseOutput,
-    unsupportedReason, detectProduct, solveVarianceFromThree, invertMatrix, categoryCodes
+    parseTech1, parseTech3, parseTech4, parseUnivariate, parseUnivariateProportions, parseSampleStatistics, parseOutput,
+    unsupportedReason, detectProduct, solveVarianceFromThree, invertMatrix, categoryCodes,
+    impliedVarianceFrom, impliedVarianceY, impliedVarianceRounding, varianceOfY,
+    varOf, covOf, meanOf, interceptOf
   };
   showSelfTest();
 }
@@ -2963,7 +3337,7 @@ if (new URLSearchParams(location.search).get("selftest") === "1") {
 </script>
 <script>
 /* A table wider than the box that holds it scrolls inside that box. The shadow
-   at the edge of the box is a colour cue on its own, so the same thing is said
+   at the edge of the box is a color cue on its own, so the same thing is said
    in a line under the box, and the box is made focusable and given the name of
    the table, so that it can also be scrolled from the keyboard. */
 (function(){
@@ -3000,6 +3374,136 @@ if (new URLSearchParams(location.search).get("selftest") === "1") {
     new MutationObserver(later).observe(document.getElementById("main") || document.body,
       { childList: true, subtree: true });
   }
+})();
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
 })();
 </script>
 </body>
