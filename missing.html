@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Missing data in an Mplus analysis: patterns and their frequencies, covariance coverage, missingness per variable and per wave, monotone and intermittent attrition, and the fraction of missing information with the relative efficiency of the imputations.">
+<meta name="description" content="Missing data in an Mplus analysis: patterns and their frequencies, covariance coverage, missingness per variable and per wave, monotone and intermittent attrition, and the fraction of missing information of every parameter, from the rate of missing of an imputed analysis or from a second run of a FIML analysis.">
 <title>Missing Data · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
@@ -25,9 +25,9 @@ td.diag { background: var(--panel); }
     <a href="index.html#tools">All the tools</a>
   </nav>
   <h1>Missing Data</h1>
-  <p class="lede">This page reads what M<em>plus</em> prints about the missing data of an analysis and turns it into what has to be reported: how much is missing on each variable, how the missing values are patterned, how many cases each pair of variables shares, whether the attrition of a longitudinal design is monotone, and, for an analysis of imputed data, the fraction of information that the missing data cost each parameter together with the efficiency the number of imputations achieves.</p>
+  <p class="lede">This page reads what M<em>plus</em> prints about the missing data of an analysis and turns it into what has to be reported: how much is missing on each variable, how the missing values are patterned, how many cases each pair of variables shares, whether the attrition of a longitudinal design is monotone, and how much information the missing data cost each parameter: read from the output for an analysis of imputed data, together with the efficiency the number of imputations achieves, and obtained from a second run of the model for an analysis fitted by full information maximum likelihood.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: PATTERNS SAMPSTAT;</code> &#8212; <code>PATTERNS</code> prints the missing data patterns and their frequencies, and M<em>plus</em> prints the covariance coverage of a run with missing data on its own. For the fraction of missing information the analysis has to be one of imputed data, <code>DATA IMPUTATION:</code> or <code>TYPE = IMPUTATION</code>, in which the results table carries the column M<em>plus</em> heads <em>Rate of Missing</em>. A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
+    <strong>What to request from M<em>plus</em>.</strong> <code>OUTPUT: PATTERNS SAMPSTAT;</code> &#8212; <code>PATTERNS</code> prints the missing data patterns and their frequencies, and M<em>plus</em> prints the covariance coverage of a run with missing data on its own. For the fraction of missing information of an analysis of imputed data, <code>DATA IMPUTATION:</code> or <code>TYPE = IMPUTATION</code>, whose results table carries the column M<em>plus</em> heads <em>Rate of Missing</em>. For the fraction of missing information of an analysis fitted by full information maximum likelihood, add <code>RESIDUAL</code> to the OUTPUT command as well: the page then writes the second run that the procedure of Savalei and Rhemtulla (2012) needs. A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
   </div>
 </header>
 
@@ -37,10 +37,11 @@ td.diag { background: var(--panel); }
 <section aria-labelledby="h-steps">
   <h2 id="h-steps">What to do</h2>
   <ol class="steps">
-    <li>Add <code>PATTERNS</code> to the OUTPUT command of the analysis and run it.</li>
+    <li>Add <code>PATTERNS</code> to the OUTPUT command of the analysis, and <code>RESIDUAL</code> as well if the analysis is fitted by full information maximum likelihood; then run it.</li>
     <li>Drop the <code>.out</code> file on the box below.</li>
     <li>If the variables are the waves of a longitudinal design, tick the box under the file: the page then reads the order in which they are printed as the order in time and reports the attrition.</li>
     <li>Read the tables. What is missing from the file is named rather than assumed.</li>
+    <li>For a FIML analysis, save the data file and the input the page writes at the end, run that input, and drop its output on the second box: the fraction of missing information of every parameter follows.</li>
   </ol>
   <div class="drop" id="drop">
     <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
@@ -64,6 +65,25 @@ td.diag { background: var(--panel); }
   <div id="results"><p class="hint">The tables appear here once an output file has been read.</p></div>
 </section>
 
+<section aria-labelledby="h-fiml">
+  <h2 id="h-fiml">The fraction of missing information of a FIML analysis</h2>
+  <p>An analysis of imputed data carries the rate of missing in its results table, and the section above reports it. An analysis fitted by full information maximum likelihood carries no such column, and the fraction of missing information of each parameter is then obtained from two runs of the same model rather than one: Savalei and Rhemtulla (2012) define it as one minus the ratio of the squared standard error the estimate would have carried with complete data to the squared standard error it carries here, and obtain the first of the two by refitting the model to the means and covariances the first run implies. The page writes that second run from the file already loaded, and computes the fractions once its output is loaded in turn.</p>
+  <div id="fiml-state"><p class="hint">The second run appears here once an output fitted by full information maximum likelihood has been read above.</p></div>
+  <div class="row">
+    <div class="field"><label class="check"><input type="checkbox" id="fiml-adjust" checked> Scale the implied covariances by <var>n</var>/(<var>n</var>&#8722;1)</label>
+      <span class="hint">M<em>plus</em> reads a covariance matrix given to it as scaled by <var>n</var>&#8722;1. The correction matters with a small sample and is the one the authors apply.</span></div>
+  </div>
+  <div id="fiml-syntax"></div>
+  <div class="drop" id="drop2" hidden>
+    <strong>Drop the output of the complete data run here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file2">Output file of the complete data run</label>
+    <input type="file" id="file2" accept=".out,.txt,text/plain" aria-describedby="drop2-hint">
+    <span class="file-name" id="file2-name"></span>
+  </div>
+  <p id="drop2-hint" class="hint" hidden>This file is read in your browser as well, and is not sent anywhere.</p>
+  <div id="fiml-out" aria-live="polite"></div>
+</section>
+
 <details class="fold" id="fold-h-methods">
   <summary><h2 id="h-methods">Methods and formulas</h2></summary>
   <div class="fold-body">
@@ -84,10 +104,16 @@ td.diag { background: var(--panel); }
   <p>The efficiency of an estimate based on <var>m</var> imputations, relative to an infinite number of them, is</p>
   <div class="eq"><math display="block"><mrow><mi>RE</mi><mo>=</mo><msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><mfrac><mi>FMI</mi><mi>m</mi></mfrac><mo>)</mo></mrow><mrow><mo>&#x2212;</mo><mn>1</mn></mrow></msup></mrow></math></div>
   <p class="where">Here <var>m</var> is the number of imputations and FMI the fraction of missing information of that parameter (Rubin, 1987). The page reports it for the number of imputations set above, and the number of imputations that would be needed to reach an efficiency of 99 percent for the parameter with the largest fraction, which is the one that governs the choice.</p>
-  <p>Under full information maximum likelihood no imputations are drawn and M<em>plus</em> prints no such column. The fraction of missing information is defined there as well, as one minus the ratio of the observed information to the information a complete data set would have carried, and it can be estimated from the fitted model: Savalei and Rhemtulla (2012) give the estimator and Chen and Savalei (2021) compare three ways of computing it, the third of which they recommend. Neither is available from what M<em>plus</em> prints, so this page reports the fraction of missing information only for an analysis of imputed data, and says so rather than substituting the proportion of missing values for it, which is a different quantity: a variable with much missing data costs little information when the variables observed alongside it predict it well, and a variable with little missing data costs a great deal when nothing else in the model is related to it.</p>
+  <p>Under full information maximum likelihood no imputations are drawn and M<em>plus</em> prints no such column, but the quantity is defined there as well. Savalei and Rhemtulla (2012, Equation 4) write it for the <var>j</var>th parameter as</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>&#x3BB;</mi><mi>j</mi></msub><mo>=</mo><mn>1</mn><mo>&#8722;</mo><mfrac><msubsup><mi>SE</mi><mrow><mi>j</mi><mo>,</mo><mi>C</mi></mrow><mn>2</mn></msubsup><msubsup><mi>SE</mi><mrow><mi>j</mi><mo>,</mo><mi>O</mi></mrow><mn>2</mn></msubsup></mfrac></mrow></math></div>
+  <p class="where">Here <math><msub><mi>SE</mi><mrow><mi>j</mi><mo>,</mo><mi>O</mi></mrow></msub></math> is the standard error the estimate carries on the observed data and <math><msub><mi>SE</mi><mrow><mi>j</mi><mo>,</mo><mi>C</mi></mrow></msub></math> the one it would have carried had the data been complete. The second is not printed anywhere, and the authors obtain it from a second run rather than from a formula: the model is fitted again to the means and covariances the first run implies, treated as complete data on the same number of cases. Their four steps are the ones this page follows. The first run is the analysis itself, fitted with observed information, which is what M<em>plus</em> uses by default when FIML is requested and what gives consistent standard errors under MAR (Kenward &amp; Molenberghs, 1998); from it come <math><msub><mi>SE</mi><mrow><mi>j</mi><mo>,</mo><mi>O</mi></mrow></msub></math>, the implied means and covariances that <code>OUTPUT: RESIDUAL;</code> prints, and the number of observations. The page writes the second run from those, copying the MODEL command out of the input M<em>plus</em> echoes at the head of the output; the implied covariances are scaled by <var>n</var>/(<var>n</var>&#8722;1), as the authors do, because M<em>plus</em> reads a covariance matrix given to it as scaled by <var>n</var>&#8722;1. From the output of that run come the <math><msub><mi>SE</mi><mrow><mi>j</mi><mo>,</mo><mi>C</mi></mrow></msub></math>, matched to the first by the name of the parameter and the heading it is printed under.</p>
+  <p>A standard error is printed to three decimals, which on a value near .05 would leave the fraction good to about a hundredth. The same row prints the estimate and its ratio to the standard error, to three decimals as well, and their quotient recovers the standard error to several more digits whenever the estimate is the larger of the two; the page uses whichever of the two carries the smaller relative error, taking half a unit in the last printed place as the error of each, and ignores the quotient when it disagrees with the printed value by more than the printing allows.</p>
+  <p>Beside each fraction the page reports the three readings the authors give (2012, p. 488): the effective sample size <math><mrow><msubsup><mi>n</mi><mi>j</mi><mo>*</mo></msubsup><mo>=</mo><mi>n</mi><mo>(</mo><mn>1</mn><mo>&#8722;</mo><msub><mi>&#x3BB;</mi><mi>j</mi></msub><mo>)</mo></mrow></math>, which is the number of complete cases that would have estimated the parameter as precisely; the sample size <math><mrow><mi>n</mi><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#8722;</mo><msub><mi>&#x3BB;</mi><mi>j</mi></msub><mo>)</mo></mrow></math> that would have been needed to reach with these data the precision complete data would have given; and the width inflation factor <math><mrow><mn>1</mn><mo>/</mo><msqrt><mrow><mn>1</mn><mo>&#8722;</mo><msub><mi>&#x3BB;</mi><mi>j</mi></msub></mrow></msqrt></mrow></math>, the factor by which the confidence interval is wider than it would have been.</p>
+  <p>The procedure holds for a single-level model of continuous variables estimated by ML, and the page refuses the rest rather than printing a number that does not mean what it says: the standard errors of MLR and of the weighted least squares estimators cannot be reproduced from a covariance matrix, and a two-level, complex survey or mixture model is not fitted from moments in this form. Chen and Savalei (2021) compare three ways of computing the same quantity from the information matrices directly, recommending the third; those are implemented in <code>lavaan</code>, which reports the fraction with <code>parameterEstimates(fit, fmi = TRUE)</code>.</p>
+  <p>What the page never does is put the proportion of missing values in the place of the fraction of missing information, which is a different quantity: a variable with much missing data costs little information when the variables observed alongside it predict it well, and a variable with little missing data costs a great deal when nothing else in the model is related to it.</p>
 
   <h3>Self-test</h3>
-  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of the pattern table, of the frequencies and of the coverage matrix from synthetic outputs written for the purpose, the classification of monotone and intermittent patterns, the relative efficiency against its definition, the number of imputations that reaches a given efficiency, and the cases the page has to refuse.</p>
+  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of the pattern table, of the frequencies and of the coverage matrix from synthetic outputs written for the purpose, the classification of monotone and intermittent patterns, the relative efficiency against its definition, the number of imputations that reaches a given efficiency, the reading of the implied moments and of the echoed input, the writing of the complete data run, the recovery of a standard error from the ratio printed beside it, the fractions of missing information against the four values of Table 1 of Savalei and Rhemtulla (2012), the three readings of their page 488, and the cases the page has to refuse.</p>
   </div>
 </details>
 
@@ -98,6 +124,7 @@ td.diag { background: var(--panel); }
     <li>Chen, L., &amp; Savalei, V. (2021). Three sample estimates of fraction of missing information from full information maximum likelihood. <em>Frontiers in Psychology, 12</em>, 667802. <a href="https://doi.org/10.3389/fpsyg.2021.667802">https://doi.org/10.3389/fpsyg.2021.667802</a></li>
     <li>Enders, C. K. (2010). <em>Applied missing data analysis</em>. Guilford Press.</li>
     <li>Graham, J. W. (2009). Missing data analysis: Making it work in the real world. <em>Annual Review of Psychology, 60</em>, 549–576. <a href="https://doi.org/10.1146/annurev.psych.58.110405.085530">https://doi.org/10.1146/annurev.psych.58.110405.085530</a></li>
+    <li>Kenward, M. G., &amp; Molenberghs, G. (1998). Likelihood based frequentist inference when data are missing at random. <em>Statistical Science, 13</em>(3), 236&#8211;247. <a href="https://doi.org/10.1214/ss/1028905886">https://doi.org/10.1214/ss/1028905886</a></li>
     <li>Muthén, B. (n.d.). <em>Rate of missing in M<span class="mp">plus</span></em> [Technical note]. Muthén &amp; Muthén. <a href="https://www.statmodel.com/download/Missingness%20fraction.pdf">https://www.statmodel.com/download/Missingness fraction.pdf</a></li>
     <li>Rubin, D. B. (1987). <em>Multiple imputation for nonresponse in surveys</em>. Wiley. <a href="https://doi.org/10.1002/9780470316696">https://doi.org/10.1002/9780470316696</a></li>
     <li>Savalei, V., &amp; Rhemtulla, M. (2012). On obtaining estimates of the fraction of missing information from full information maximum likelihood. <em>Structural Equation Modeling, 19</em>(3), 477–494. <a href="https://doi.org/10.1080/10705511.2012.687669">https://doi.org/10.1080/10705511.2012.687669</a></li>
@@ -344,9 +371,272 @@ var MISS = (function () {
     return out;
   }
 
+
+  /* ---- The fraction of missing information under FIML ---------------
+     Savalei and Rhemtulla (2012) define it for a single parameter as
+     one minus the ratio of the squared standard error the same estimate
+     would have carried with complete data to the squared standard error
+     it carries here, and obtain the first of the two from a second run
+     of the same model on the means and covariances the first run
+     implies. What follows reads the pieces that second run needs, and
+     writes it. */
+
+  /* A matrix Mplus prints in blocks of columns, lower triangle only.
+     The heading is matched by the caller. */
+  function readTriangle(lines, at) {
+    var columns = null, m = {}, names = [], i;
+    for (i = at + 1; i < lines.length; i++) {
+      var l = lines[i], t = l.trim();
+      if (t === "") continue;
+      if (/^_{4,}/.test(t)) continue;
+      /* A heading ends the block; a row of variable names, which a rule of
+         underscores always follows, does not. */
+      if (/^[A-Z][A-Z /]{3,}$/.test(t) && !/_{4,}/.test(lines[i + 1] || "")) break;
+      var toks = t.split(/\s+/);
+      if (toks.every(function (x) { return /^[A-Za-z][A-Za-z0-9_$#.]*$/.test(x); }) && /_{4,}/.test(lines[i + 1] || "")) {
+        columns = toks.map(function (x) { return x.toUpperCase(); });
+        continue;
+      }
+      var row = l.match(/^\s*([A-Za-z][A-Za-z0-9_$#.]*)\s+((?:-?\d+\.\d+\s*)+)$/);
+      if (row && columns) {
+        var rn = row[1].toUpperCase(), vals = row[2].trim().split(/\s+/).map(Number), c;
+        if (names.indexOf(rn) < 0) names.push(rn);
+        if (!m[rn]) m[rn] = {};
+        for (c = 0; c < vals.length; c++) {
+          var cn = columns[c];
+          if (!cn) continue;
+          if (!m[cn]) m[cn] = {};
+          m[rn][cn] = vals[c]; m[cn][rn] = vals[c];
+          if (names.indexOf(cn) < 0) names.push(cn);
+        }
+        continue;
+      }
+      if (!row && !columns) continue;
+      if (!row) break;
+    }
+    return names.length ? { names: names, m: m } : null;
+  }
+
+  /* A row of values printed under a row of names, which is how Mplus
+     prints the estimated means. */
+  function readMeanRow(lines, at) {
+    var columns = null, out = {}, names = [], i;
+    for (i = at + 1; i < lines.length; i++) {
+      var l = lines[i], t = l.trim();
+      if (t === "") continue;
+      if (/^_{4,}/.test(t)) continue;
+      /* A heading ends the block; a row of variable names, which a rule of
+         underscores always follows, does not. */
+      if (/^[A-Z][A-Z /]{3,}$/.test(t) && !/_{4,}/.test(lines[i + 1] || "")) break;
+      var toks = t.split(/\s+/);
+      if (toks.every(function (x) { return /^[A-Za-z][A-Za-z0-9_$#.]*$/.test(x); }) && /_{4,}/.test(lines[i + 1] || "")) {
+        columns = toks.map(function (x) { return x.toUpperCase(); });
+        continue;
+      }
+      var row = t.match(/^(\d+)\s+((?:-?\d+\.\d+\s*)+)$/);
+      if (row && columns) {
+        var vals = row[2].trim().split(/\s+/).map(Number), c;
+        for (c = 0; c < vals.length; c++) {
+          if (!columns[c]) continue;
+          out[columns[c]] = vals[c];
+          if (names.indexOf(columns[c]) < 0) names.push(columns[c]);
+        }
+        continue;
+      }
+      if (!row && !columns) continue;
+      if (!row) break;
+    }
+    return names.length ? { names: names, m: out } : null;
+  }
+
+  /* The model-implied moments, which OUTPUT: RESIDUAL prints. */
+  function readMoments(text) {
+    var lines = text.split(/\r?\n/), i, cAt = -1, mAt = -1;
+    for (i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (cAt < 0 && /^Model Estimated Covariances?\/Correlations\/Residual Correlations$/i.test(t)) cAt = i;
+      if (mAt < 0 && /^Model Estimated Means\/Intercepts\/Thresholds$/i.test(t)) mAt = i;
+    }
+    if (cAt < 0 || mAt < 0) return null;
+    var cov = readTriangle(lines, cAt), means = readMeanRow(lines, mAt);
+    if (!cov || !means) return null;
+    var names = cov.names.filter(function (n) { return means.m[n] !== undefined; });
+    if (names.length < 2) return null;
+    return { names: names, cov: cov.m, means: means.m };
+  }
+
+  /* The number of observations the analysis used, which is the sample
+     size the second run has to be given. */
+  function readObservations(text) {
+    var m = text.match(/Number of observations\s+(\d+)/i);
+    return m ? parseInt(m[1], 10) : null;
+  }
+
+  /* Mplus echoes the input at the head of the output, which is where
+     the MODEL command of the second run comes from. */
+  function readInputEcho(text) {
+    var a = text.indexOf("INPUT INSTRUCTIONS");
+    if (a < 0) return null;
+    var rest = text.slice(a + "INPUT INSTRUCTIONS".length);
+    var b = rest.search(/^\s*(INPUT READING TERMINATED|\*\*\* WARNING|SUMMARY OF ANALYSIS)/m);
+    var echo = (b < 0 ? rest : rest.slice(0, b));
+    return echo.replace(/^\s*\n/, "").replace(/\s+$/, "") || null;
+  }
+
+  /* One command of an Mplus input, from the echo. */
+  function commandOf(echo, name) {
+    if (!echo) return null;
+    var re = new RegExp("^[ \\t]*" + name + "\\s*:", "im");
+    var m = echo.match(re);
+    if (!m) return null;
+    var from = m.index + m[0].length;
+    var rest = echo.slice(from);
+    var stop = rest.search(/^[ \t]*(TITLE|DATA|VARIABLE|DEFINE|ANALYSIS|MODEL|OUTPUT|SAVEDATA|PLOT|MONTECARLO)\s*:/im);
+    return (stop < 0 ? rest : rest.slice(0, stop)).replace(/^\s*\n/, "").replace(/\s+$/, "");
+  }
+
+  /* The procedure holds for a single-level model of continuous
+     variables estimated by ML. Everything else is refused rather than
+     answered with a number that does not mean what it says. */
+  function fimlEligibility(text, echo) {
+    var why = [];
+    var analysis = commandOf(echo, "ANALYSIS") || "";
+    var variable = commandOf(echo, "VARIABLE") || "";
+    if (/TYPE\s*(?:IS|=)\s*(TWOLEVEL|THREELEVEL|COMPLEX|MIXTURE|EFA|RANDOM)/i.test(analysis) ||
+        /TYPE\s*(?:IS|=)\s*[^;]*\b(TWOLEVEL|THREELEVEL|COMPLEX|MIXTURE|RANDOM)\b/i.test(analysis))
+      why.push("the analysis is not a single-level model");
+    if (/^\s*CATEGORICAL\s*(?:ARE|IS|=)/im.test(variable) || /^\s*NOMINAL\s*(?:ARE|IS|=)/im.test(variable) ||
+        /^\s*COUNT\s*(?:ARE|IS|=)/im.test(variable) || /^\s*CENSORED\s*(?:ARE|IS|=)/im.test(variable))
+      why.push("the model has variables that are not continuous");
+    var est = analysis.match(/ESTIMATOR\s*(?:IS|=)\s*([A-Z]+)/i);
+    var estName = est ? est[1].toUpperCase() : (/Estimator\s+([A-Z]+)/.test(text) ? text.match(/Estimator\s+([A-Z]+)/)[1].toUpperCase() : "");
+    if (estName && estName !== "ML")
+      why.push("the estimator is " + estName + " and its standard errors cannot be reproduced from a covariance matrix");
+    if (/DATA IMPUTATION|TYPE\s*(?:IS|=)\s*IMPUTATION/i.test(echo || ""))
+      why.push("the analysis is one of imputed data, for which the rate of missing is printed already");
+    return why.length ? why : null;
+  }
+
+  /* Step 2: the file the second run reads, in the form of Figure 2 of
+     Savalei and Rhemtulla (2012): the means on the first line and the
+     lower triangle of the model-implied covariance matrix under them.
+     Mplus takes a covariance matrix given to it as scaled by n - 1
+     rather than n, and the authors correct for it. */
+  function momentFile(moments, n, adjust) {
+    if (!moments || !(n > 1)) return null;
+    var k = adjust ? n / (n - 1) : 1, names = moments.names, out = [], i, j, row;
+    out.push(names.map(function (v) { return fixed(moments.means[v]); }).join("  "));
+    out.push("");
+    for (i = 0; i < names.length; i++) {
+      row = [];
+      for (j = 0; j <= i; j++) row.push(fixed(moments.cov[names[i]][names[j]] * k));
+      out.push(row.join("  "));
+    }
+    return out.join("\n") + "\n";
+  }
+  function fixed(x) { return (Math.round(x * 1e7) / 1e7).toFixed(7); }
+
+  /* Step 3: the input of the complete data run. Everything in it comes
+     from the output of the first run: its variables, its sample size
+     and its MODEL command. */
+  function step3Input(moments, n, echo, dataName) {
+    if (!moments || !(n > 0)) return null;
+    var model = commandOf(echo, "MODEL");
+    if (!model) return null;
+    var title = "Complete data run for the fraction of missing information";
+    var lines = [];
+    lines.push("TITLE: " + title + ";");
+    lines.push("DATA: FILE IS " + (dataName || "implied.dat") + ";");
+    lines.push("      TYPE IS COVARIANCE MEANS;");
+    lines.push("      NOBSERVATIONS = " + n + ";");
+    lines.push("VARIABLE: NAMES ARE " + moments.names.join(" ") + ";");
+    lines.push("ANALYSIS: ESTIMATOR = ML;");
+    lines.push("MODEL:");
+    lines.push(model.replace(/\s+$/, ""));
+    lines.push("OUTPUT: ;");
+    return lines.join("\n") + "\n";
+  }
+
+  /* The four-column results table of an ordinary analysis: the standard
+     error of every parameter that was estimated, under the heading it
+     is printed below, which is what the two runs are matched on. */
+  function readEstimates(text) {
+    var lines = text.split(/\r?\n/), out = [], head = "", started = false, i;
+    for (i = 0; i < lines.length; i++) {
+      var l = lines[i], t = l.trim();
+      if (/^MODEL RESULTS\s*$/.test(t)) { started = true; head = ""; continue; }
+      if (!started) continue;
+      if (/^(STANDARDIZED MODEL RESULTS|R-SQUARE|QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|MUTHEN & MUTHEN|Beginning Time)/.test(t)) break;
+      var mh = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+(BY|WITH|ON)\s*$/i);
+      if (mh) { head = mh[1] + " " + mh[2].toUpperCase(); continue; }
+      if (/^\s*(Intercepts|Means|Thresholds|Variances|Residual Variances|New\/Additional Parameters)\s*$/i.test(t)) { head = t; continue; }
+      var mv = l.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s*$/);
+      if (!mv) continue;
+      if (parseFloat(mv[3]) === 0) continue;
+      var est = parseFloat(mv[2]), se = parseFloat(mv[3]);
+      var ratio = /^\*/.test(mv[4]) ? NaN : parseFloat(mv[4]);
+      out.push({ head: head, name: mv[1].toUpperCase(), key: head.toUpperCase() + " | " + mv[1].toUpperCase(),
+        est: est, se: se, ratio: ratio, sePrecise: refineSE(est, se, ratio) });
+    }
+    return out.length ? out : null;
+  }
+
+  /* Mplus prints a standard error to three decimals, which on a value
+     near .05 leaves two digits and a fraction of missing information
+     good to about a hundredth. The same table prints the estimate and
+     its ratio to the standard error, also to three decimals, and the
+     quotient of the two recovers the standard error to far more
+     digits whenever the estimate is the larger number. The rule below
+     takes whichever of the two carries the smaller relative error,
+     since half a unit in the last printed place is the error of each. */
+  function refineSE(est, se, ratio) {
+    if (!(se > 0)) return se;
+    var direct = 0.0005 / se;
+    if (!isFinite(ratio) || ratio === 0 || !isFinite(est) || est === 0) return se;
+    var viaRatio = 0.0005 / Math.abs(est) + 0.0005 / Math.abs(ratio);
+    if (viaRatio >= direct) return se;
+    var v = Math.abs(est / ratio);
+    /* A quotient that disagrees with the printed value by more than the
+       printing itself allows is not the same quantity, and is left. */
+    return (Math.abs(v - se) <= 0.001) ? v : se;
+  }
+
+  /* Equation 4 of Savalei and Rhemtulla (2012). */
+  function fmiFromSEs(seO, seC) {
+    if (!(seO > 0) || !(seC >= 0)) return NaN;
+    return 1 - (seC * seC) / (seO * seO);
+  }
+  /* The three readings the same authors give on page 488. */
+  function effectiveN(n, lambda) { return n * (1 - lambda); }
+  function targetN(n, lambda) { return (lambda < 1) ? n / (1 - lambda) : Infinity; }
+  function widthInflation(lambda) { return (lambda < 1) ? 1 / Math.sqrt(1 - lambda) : Infinity; }
+
+  /* The two runs side by side. */
+  function fimlTable(observed, complete) {
+    if (!observed || !complete) return null;
+    var byKey = {}, i, rows = [];
+    for (i = 0; i < complete.length; i++) byKey[complete[i].key] = complete[i];
+    for (i = 0; i < observed.length; i++) {
+      var o = observed[i], c = byKey[o.key];
+      if (!c) continue;
+      var sO = (o.sePrecise > 0) ? o.sePrecise : o.se, sC = (c.sePrecise > 0) ? c.sePrecise : c.se;
+      var lam = fmiFromSEs(sO, sC);
+      rows.push({ head: o.head, name: o.name, est: o.est, seO: sO, seC: sC, fmi: lam });
+    }
+    if (!rows.length) return null;
+    var matched = rows.length, unmatched = observed.length - rows.length;
+    var worst = rows.reduce(function (a, r) { return (r.fmi > a.fmi) ? r : a; }, rows[0]);
+    return { rows: rows, matched: matched, unmatched: unmatched, worst: worst,
+      mean: rows.reduce(function (a, r) { return a + r.fmi; }, 0) / rows.length };
+  }
+
   return { readPatterns: readPatterns, readFrequencies: readFrequencies, readCoverage: readCoverage,
     readRates: readRates, isMonotone: isMonotone, relativeEfficiency: relativeEfficiency,
-    imputationsFor: imputationsFor, summarize: summarize };
+    imputationsFor: imputationsFor, summarize: summarize,
+    readMoments: readMoments, readObservations: readObservations, readInputEcho: readInputEcho,
+    commandOf: commandOf, fimlEligibility: fimlEligibility, momentFile: momentFile,
+    step3Input: step3Input, readEstimates: readEstimates, fmiFromSEs: fmiFromSEs, refineSE: refineSE,
+    effectiveN: effectiveN, targetN: targetN, widthInflation: widthInflation, fimlTable: fimlTable };
 })();
 
 /* ==================================================================
@@ -355,6 +645,7 @@ var MISS = (function () {
 (function () {
   function $(id) { return document.getElementById(id); }
   function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
+  function p4(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(4).replace(/^(-?)0\./, "$1."); }
   function pct(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : (100 * x).toFixed(1) + "%"; }
   function statusBlock(kind, tag, text) {
     var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
@@ -488,6 +779,141 @@ var MISS = (function () {
     return s;
   }
 
+
+  /* ---- the fraction of missing information of a FIML analysis ------- */
+  var FIML = { moments: null, n: null, echo: null, observed: null, complete: null, why: null };
+
+  function fimlDataName() { return "implied.dat"; }
+
+  function renderFimlSetup(text) {
+    FIML.moments = null; FIML.n = null; FIML.echo = null; FIML.observed = null;
+    FIML.complete = null; FIML.why = null;
+    $("fiml-out").innerHTML = "";
+    $("file2-name").textContent = "";
+    $("drop2").hidden = true;
+    $("drop2-hint").hidden = true;
+    $("fiml-syntax").innerHTML = "";
+    if (!text) { $("fiml-state").innerHTML = EMPTY_HTML["fiml-state"] || ""; return; }
+    var echo = MISS.readInputEcho(text);
+    FIML.echo = echo;
+    var why = MISS.fimlEligibility(text, echo);
+    if (why) {
+      FIML.why = why;
+      $("fiml-state").innerHTML = statusBlock("info", "Not this analysis.",
+        "The procedure of Savalei and Rhemtulla (2012) holds for a single-level model of continuous variables estimated by ML, and here " +
+        (why.length > 1 ? why.slice(0, -1).join(", ") + " and " + why[why.length - 1] : why[0]) + ".");
+      return;
+    }
+    var moments = MISS.readMoments(text), n = MISS.readObservations(text);
+    var model = MISS.commandOf(echo, "MODEL");
+    var missing = [];
+    if (!moments) missing.push("the model-implied means and covariances, which <code>OUTPUT: RESIDUAL;</code> prints");
+    if (!n) missing.push("the number of observations");
+    if (!model) missing.push("the MODEL command, which " + MP + " echoes at the head of the output");
+    if (missing.length) {
+      $("fiml-state").innerHTML = statusBlock("warn", "The second run cannot be written yet.",
+        "The file carries none of " + (missing.length > 1 ? missing.slice(0, -1).join(", ") + " and " + missing[missing.length - 1] : missing[0]) +
+        ". Add what is missing to the run and load the output again.");
+      return;
+    }
+    FIML.moments = moments; FIML.n = n;
+    FIML.observed = MISS.readEstimates(text);
+    if (!FIML.observed) {
+      $("fiml-state").innerHTML = statusBlock("warn", "The second run cannot be used yet.",
+        "The file carries no results table with standard errors, so there is nothing to compare the second run with.");
+      return;
+    }
+    $("fiml-state").innerHTML = statusBlock("ok", "Ready.",
+      "The file carries the model-implied means and covariances of " + moments.names.length + " variables, " + n +
+      " observations and " + FIML.observed.length + " estimated parameters. Save the two blocks below, run the input, and drop its output underneath.");
+    renderFimlSyntax();
+  }
+
+  function renderFimlSyntax() {
+    if (!FIML.moments) return;
+    var adjust = $("fiml-adjust").checked;
+    var dat = MISS.momentFile(FIML.moments, FIML.n, adjust);
+    var inp = MISS.step3Input(FIML.moments, FIML.n, FIML.echo, fimlDataName());
+    if (!dat || !inp) { $("fiml-syntax").innerHTML = ""; return; }
+    var html = '<div class="panel"><h3>Save this as <code>' + fimlDataName() + '</code></h3><pre class="syntax"><code>' + esc(dat) + "</code></pre></div>";
+    html += '<div class="panel"><h3>Run this input</h3><pre class="syntax"><code>' + esc(inp) + "</code></pre></div>";
+    html += '<p class="hint">The first line of the data file holds the model-implied means and the lines under it the lower triangle of the model-implied covariance matrix, which is the form of Figure 2 of Savalei and Rhemtulla (2012). The MODEL command is the one this output echoes, and the sample size is the number of observations the first run analysed.</p>';
+    $("fiml-syntax").innerHTML = html;
+    $("drop2").hidden = false;
+    $("drop2-hint").hidden = false;
+  }
+
+  function renderFimlResult() {
+    if (!FIML.observed || !FIML.complete) { $("fiml-out").innerHTML = ""; return; }
+    var t = MISS.fimlTable(FIML.observed, FIML.complete);
+    if (!t) {
+      $("fiml-out").innerHTML = statusBlock("bad", "Nothing was computed.",
+        "No parameter of the second run carries the same name and the same heading as a parameter of the first, so the two runs are not the same model.");
+      return;
+    }
+    var bad = t.rows.filter(function (r) { return !(r.fmi >= -0.001); });
+    var out = "<h3>Fraction of missing information</h3>";
+    out += "<p>Every value is one minus the ratio of the squared standard error of the complete data run to the squared standard error of the run on the observed data, which is Equation 4 of Savalei and Rhemtulla (2012). " +
+      t.matched + " parameter" + (t.matched === 1 ? "" : "s") + " appear in both runs" +
+      (t.unmatched > 0 ? ", and " + t.unmatched + " of the first run " + (t.unmatched === 1 ? "does" : "do") + " not appear in the second" : "") + ".</p>";
+    out += '<div class="table-wrap"><table><caption class="visually-hidden">Fraction of missing information of each parameter under FIML</caption><tr>' +
+      "<th>Parameter</th><th>Estimate</th><th>SE, observed</th><th>SE, complete</th><th>FMI</th><th>Effective n</th><th>Width inflation</th></tr>";
+    var rows = t.rows.slice().sort(function (a, b) { return b.fmi - a.fmi; }), i;
+    for (i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      out += "<tr><td>" + esc(r.head ? r.head + " " + r.name : r.name) + "</td>" +
+        '<td class="num">' + p3(r.est) + "</td>" +
+        '<td class="num">' + p4(r.seO) + "</td>" +
+        '<td class="num">' + p4(r.seC) + "</td>" +
+        '<td class="num">' + p3(r.fmi) + "</td>" +
+        '<td class="num">' + (isFinite(r.fmi) ? Math.round(MISS.effectiveN(FIML.n, r.fmi)) : "—") + "</td>" +
+        '<td class="num">' + p3(MISS.widthInflation(r.fmi)) + "</td></tr>";
+    }
+    out += "</table></div>";
+    var w = t.worst;
+    out += "<p>The largest fraction is " + p3(w.fmi) + ", on " + esc(w.head ? w.head + " " + w.name : w.name) +
+      ". Its estimate is as variable as it would have been with " + Math.round(MISS.effectiveN(FIML.n, w.fmi)) +
+      " complete cases instead of " + FIML.n + ", and reaching the precision complete data would have given would have taken " +
+      Math.round(MISS.targetN(FIML.n, w.fmi)) + " cases; its confidence interval is " + p3(MISS.widthInflation(w.fmi)) +
+      " times as wide as it would have been. The three readings are those of Savalei and Rhemtulla (2012, p. 488).</p>";
+    if (bad.length)
+      out += statusBlock("warn", "Some values are below zero.",
+        "A fraction of missing information cannot be negative, and a negative value means the two runs are not the same model, or that the first was not fitted with observed information. " +
+        bad.length + " parameter" + (bad.length === 1 ? " is" : "s are") + " affected.");
+    $("fiml-out").innerHTML = out;
+  }
+
+  function handleSecondFile(file) {
+    readTextFile(file, function (text) {
+      FIML.complete = null;
+      if (!String(text).replace(/\s/g, "").length) {
+        $("fiml-out").innerHTML = statusBlock("bad", "Nothing to read.", "The file is empty.");
+        return;
+      }
+      if (!MPLUS_SIGNATURE.test(text)) {
+        $("fiml-out").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file carries none of the headings an " + MP + " output has, so it is not an output file.");
+        return;
+      }
+      if (/SUMMARY OF MISSING DATA PATTERNS|Covariance Coverage/i.test(text)) {
+        $("fiml-out").innerHTML = statusBlock("bad", "This is the first run again.",
+          "The file reports missing data, so it is the analysis of the observed data rather than the complete data run. Drop the output of the input written above.");
+        return;
+      }
+      var est = MISS.readEstimates(text);
+      if (!est) {
+        $("fiml-out").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file carries no results table with standard errors.");
+        return;
+      }
+      FIML.complete = est;
+      $("file2-name").textContent = file.name || "";
+      renderFimlResult();
+    }, function () {
+      $("fiml-out").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
+    });
+  }
+
   var HIDE_ON_FAILURE = [];
   /* Anything a refused file must not leave behind. */
   var EMPTY_HTML = {};
@@ -499,6 +925,9 @@ var MISS = (function () {
     for (id in EMPTY_HTML) if (Object.prototype.hasOwnProperty.call(EMPTY_HTML, id) && $(id)) $(id).innerHTML = EMPTY_HTML[id];
     HIDE_ON_FAILURE.forEach(function (h) { if ($(h)) $(h).hidden = true; });
     if ($("file-name")) $("file-name").textContent = "";
+    if ($("file2-name")) $("file2-name").textContent = "";
+    if ($("drop2")) $("drop2").hidden = true;
+    if ($("drop2-hint")) $("drop2-hint").hidden = true;
   }
 
   function handleFile(file) {
@@ -542,12 +971,13 @@ var MISS = (function () {
       if (warningCount) msg += " " + MP + " printed " + warningCount + " warning" + (warningCount === 1 ? "" : "s") + "; read " + (warningCount === 1 ? "it" : "them") + " in the file before interpreting the tables.";
       $("report").innerHTML = statusBlock(miss.length || warningCount ? "warn" : "ok", warningCount ? "File read, with warnings." : "File read.", msg);
       render();
+      renderFimlSetup(text);
     }, function () {
       $("report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
     });
   }
 
-  rememberEmpty(["results"]);
+  rememberEmpty(["results", "fiml-state", "fiml-syntax", "fiml-out"]);
   var drop = $("drop"), input = $("file");
   drop.addEventListener("click", function () { input.click(); });
   drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
@@ -559,6 +989,17 @@ var MISS = (function () {
   });
   input.addEventListener("change", function () { if (input.files[0]) handleFile(input.files[0]); });
   ["longitudinal", "cov-min", "n-imp"].forEach(function (id) { $(id).addEventListener("change", render); });
+  var drop2 = $("drop2"), input2 = $("file2");
+  drop2.addEventListener("click", function () { input2.click(); });
+  drop2.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input2.click(); } });
+  drop2.addEventListener("dragover", function (e) { e.preventDefault(); drop2.classList.add("over"); });
+  drop2.addEventListener("dragleave", function () { drop2.classList.remove("over"); });
+  drop2.addEventListener("drop", function (e) {
+    e.preventDefault(); drop2.classList.remove("over");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleSecondFile(e.dataTransfer.files[0]);
+  });
+  input2.addEventListener("change", function () { if (input2.files[0]) handleSecondFile(input2.files[0]); });
+  $("fiml-adjust").addEventListener("change", renderFimlSyntax);
 })();
 
 /* ==================================================================
@@ -683,6 +1124,145 @@ function selfTest() {
   var s4 = MISS.summarize({ patterns: null, frequencies: null, coverage: null, rates: rates }, { covMin: 0.10 });
   ok("the largest fraction is found", s4.worstFmi.fmi, 0.34);
   ok("the average fraction", s4.meanFmi, (0.12 + 0.34 + 0.05) / 3, 1e-12);
+
+
+  /* ---- the fraction of missing information under FIML ---------------
+     The numbers are those of Table 1 of Savalei and Rhemtulla (2012,
+     p. 487), the M<i>plus</i> column, for the example they analyse. */
+  var fimlOut = [
+    "Mplus VERSION 8.11", "MUTHEN & MUTHEN", "",
+    "INPUT INSTRUCTIONS", "",
+    "  TITLE: math example, 1-factor, FIML;",
+    "  DATA: FILE IS \"mplus.math.dat\";",
+    "  VARIABLE: NAMES ARE MATH1 MATH2 MATH3 MATH4;",
+    "  MISSING ARE ALL (-9999);",
+    "  ANALYSIS: ESTIMATOR = ML;",
+    "  MODEL:",
+    "  F1 BY MATH1* MATH2 MATH3 MATH4;",
+    "  F1@1;",
+    "  OUTPUT: RESIDUAL PATTERNS;", "",
+    "INPUT READING TERMINATED NORMALLY", "",
+    "SUMMARY OF ANALYSIS", "",
+    "Number of observations                                         494", "",
+    "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " F1       BY",
+    "    MATH1              0.820      0.050     16.315      0.000",
+    "    MATH4              0.827      0.066     12.580      0.000", "",
+    " Intercepts",
+    "    MATH1              2.301      0.051     44.915      0.000",
+    "    MATH4              2.111      0.066     32.043      0.000", "",
+    "     Model Estimated Covariances/Correlations/Residual Correlations",
+    "              MATH1         MATH4",
+    "              ________      ________",
+    " MATH1          1.280",
+    " MATH4          0.685         1.468", "",
+    "     Model Estimated Means/Intercepts/Thresholds",
+    "              MATH1         MATH4",
+    "              ________      ________",
+    "      1        2.301         2.111", "",
+    "QUALITY OF NUMERICAL RESULTS"
+  ].join("\n");
+
+  var completeOut = [
+    "Mplus VERSION 8.11", "", "INPUT INSTRUCTIONS", "",
+    "  TITLE: complete data run;",
+    "  DATA: FILE IS implied.dat;",
+    "  ANALYSIS: ESTIMATOR = ML;",
+    "  MODEL:",
+    "  F1 BY MATH1* MATH4;", "",
+    "INPUT READING TERMINATED NORMALLY", "",
+    "SUMMARY OF ANALYSIS", "",
+    "Number of observations                                         494", "",
+    "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " F1       BY",
+    "    MATH1              0.820      0.048     17.037      0.000",
+    "    MATH4              0.827      0.053     15.719      0.000", "",
+    " Intercepts",
+    "    MATH1              2.301      0.051     45.197      0.000",
+    "    MATH4              2.111      0.055     38.721      0.000", "",
+    "QUALITY OF NUMERICAL RESULTS"
+  ].join("\n");
+
+  var mom = MISS.readMoments(fimlOut);
+  okTrue("the model-implied moments are found", !!mom);
+  ok("both variables are read", mom.names.join(" "), "MATH1 MATH4");
+  ok("a variance of the implied matrix", mom.cov.MATH1.MATH1, 1.280);
+  ok("a covariance of the implied matrix", mom.cov.MATH4.MATH1, 0.685);
+  ok("the implied matrix is symmetric", mom.cov.MATH1.MATH4, mom.cov.MATH4.MATH1);
+  ok("an implied mean", mom.means.MATH4, 2.111);
+  ok("an ordinary output carries no implied moments", MISS.readMoments(out), null);
+
+  ok("the number of observations is read", MISS.readObservations(fimlOut), 494);
+  var echo = MISS.readInputEcho(fimlOut);
+  okTrue("the echo of the input is found", !!echo);
+  okTrue("the echo stops before the run", echo.indexOf("SUMMARY OF ANALYSIS") < 0);
+  ok("the MODEL command is taken from it", MISS.commandOf(echo, "MODEL").replace(/\s+/g, " ").trim(),
+     "F1 BY MATH1* MATH2 MATH3 MATH4; F1@1;");
+  ok("the ANALYSIS command is taken from it", MISS.commandOf(echo, "ANALYSIS").replace(/\s+/g, " ").trim(),
+     "ESTIMATOR = ML;");
+
+  ok("this analysis is one the procedure covers", MISS.fimlEligibility(fimlOut, echo), null);
+  okTrue("a two-level analysis is refused",
+    !!MISS.fimlEligibility("", "ANALYSIS: TYPE = TWOLEVEL; ESTIMATOR = ML;\nMODEL: f BY y1;"));
+  okTrue("a robust estimator is refused",
+    !!MISS.fimlEligibility("", "ANALYSIS: ESTIMATOR = MLR;\nMODEL: f BY y1;"));
+  okTrue("categorical indicators are refused",
+    !!MISS.fimlEligibility("", "VARIABLE: NAMES ARE y1 y2;\nCATEGORICAL ARE y1 y2;\nANALYSIS: ESTIMATOR = ML;"));
+  okTrue("an analysis of imputed data is refused",
+    !!MISS.fimlEligibility("", "DATA IMPUTATION: NDATASETS = 20;\nANALYSIS: ESTIMATOR = ML;"));
+
+  var dat = MISS.momentFile(mom, 494, false), datAdj = MISS.momentFile(mom, 494, true);
+  ok("the data file opens with the means", dat.split("\n")[0].trim(), "2.3010000  2.1110000");
+  ok("its last line is the last row of the triangle", dat.trim().split("\n").pop().trim(), "0.6850000  1.4680000");
+  ok("the correction scales by n/(n-1)",
+     parseFloat(datAdj.trim().split("\n").pop().trim().split(/\s+/)[1]), 1.468 * 494 / 493, 1e-7);
+
+  var inp = MISS.step3Input(mom, 494, echo, "implied.dat");
+  okTrue("the input reads the file as moments", /TYPE IS COVARIANCE MEANS;/.test(inp));
+  okTrue("it carries the sample size of the first run", /NOBSERVATIONS = 494;/.test(inp));
+  okTrue("it names the variables of the implied matrix", /NAMES ARE MATH1 MATH4;/.test(inp));
+  okTrue("it carries the MODEL command of the first run", /F1 BY MATH1\* MATH2 MATH3 MATH4;/.test(inp));
+  okTrue("it asks for maximum likelihood", /ESTIMATOR = ML;/.test(inp));
+
+  /* A standard error printed to three decimals is recovered from the
+     estimate and its ratio, which are printed to three decimals as well. */
+  ok("the standard error is recovered from the ratio", MISS.refineSE(2.301, 0.051, 44.915), 2.301 / 44.915, 1e-12);
+  ok("a ratio that disagrees with the printed value is not used", MISS.refineSE(2.301, 0.051, 10.0), 0.051);
+  ok("a missing ratio leaves the printed value", MISS.refineSE(2.301, 0.051, NaN), 0.051);
+
+  var obs = MISS.readEstimates(fimlOut), com = MISS.readEstimates(completeOut);
+  okTrue("the estimates of the first run are read", !!obs);
+  ok("four parameters are read", obs.length, 4);
+  ok("the heading of a loading", obs[0].head, "F1 BY");
+  ok("the heading of an intercept", obs[2].head, "Intercepts");
+  ok("the observed standard error of the first intercept", obs[2].sePrecise, 2.301 / 44.915, 1e-12);
+  ok("the complete standard error of the first intercept", com[2].sePrecise, 2.301 / 45.197, 1e-12);
+
+  var tab = MISS.fimlTable(obs, com);
+  okTrue("the two runs are matched", !!tab);
+  ok("every parameter is matched", tab.matched, 4);
+  ok("none is left over", tab.unmatched, 0);
+  function fmiOf(t, key) {
+    var i; for (i = 0; i < t.rows.length; i++) if (t.rows[i].head + " " + t.rows[i].name === key) return t.rows[i].fmi;
+    return NaN;
+  }
+  /* Table 1 of Savalei and Rhemtulla (2012, p. 487). */
+  ok("the fraction for the intercept of math1", fmiOf(tab, "Intercepts MATH1"), 0.01241, 3e-4);
+  ok("the fraction for the intercept of math4", fmiOf(tab, "Intercepts MATH4"), 0.31506, 3e-4);
+  ok("the fraction for the loading of math1", fmiOf(tab, "F1 BY MATH1"), 0.08321, 3e-4);
+  ok("the fraction for the loading of math4", fmiOf(tab, "F1 BY MATH4"), 0.35948, 3e-4);
+
+  /* Equation 4 and the three readings of page 488. */
+  ok("the definition with equal standard errors gives zero", MISS.fmiFromSEs(0.05, 0.05), 0);
+  ok("a complete data error half the size gives three quarters", MISS.fmiFromSEs(0.08, 0.04), 0.75, 1e-15);
+  ok("the effective sample size of the example", Math.round(MISS.effectiveN(494, 0.31506)), 338);
+  ok("the sample size that would have been needed", Math.round(MISS.targetN(494, 0.31506)), 721);
+  ok("the width inflation factor at .56", MISS.widthInflation(0.56), 1 / Math.sqrt(1 - 0.56), 1e-15);
+  ok("the width inflation factor at .75 is two", MISS.widthInflation(0.75), 2, 1e-15);
 
   return { checks: checks, failed: failed };
 }
