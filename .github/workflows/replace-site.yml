@@ -62,6 +62,7 @@ jobs:
           open('/tmp/semstudio-final.tar.xz', 'wb').write(archive)
           print(f'Reconstructed {len(archive)} bytes from {expected} chunks')
           PY
+          echo '8787048a0f7b6faeaa5cc6553b904aff3a25232af9050fe3f70a3e678e198635  /tmp/semstudio-final.tar.xz' | sha256sum -c -
 
       - name: Replace repository tree
         run: |
@@ -73,6 +74,7 @@ jobs:
           test -f LICENSE
           test -f assets/style.css
           test -f assets/favicon.svg
+          test "$(find . -type f | wc -l)" -eq 27
           test "$(find . -maxdepth 1 -type f -name '*.html' | wc -l)" -eq 22
           grep -q 'INFORMATION = OBSERVED' missing.html
           ! grep -q 'Omega, alpha and the average variance extracted are computed from the unstandardized solution' reliability.html
