@@ -123,8 +123,8 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
   <p>Ryu and West (2009) obtain the fit of one level by saturating the other. Fitting the model with the within level saturated gives a chi-square that reflects the between-level model alone, and the reverse gives one that reflects the within-level model. Their fit indices use those statistics with a baseline that is itself partially saturated, so that the saturated half of the model does not inflate the index:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>CFI</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><mi>max</mi><mo>(</mo><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow><mrow><mi>max</mi><mo>(</mo><msubsup><mi>&#x3C7;</mi><mrow><mi>I</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>I</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow></mfrac></mrow></math></div>
   <p class="where">Here χ²<sub>PS−B</sub> and <var>df</var><sub>PS−B</sub> are those of the model with the between level hypothesized and the within level saturated, and χ²<sub>I−B</sub> and <var>df</var><sub>I−B</sub> those of the model with the between level an independence model and the within level saturated. The within-level index is the mirror image of this one.</p>
-  <div class="eq"><math display="block"><mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mi>J</mi></mrow></mfrac></msqrt><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mi>N</mi></mrow></mfrac></msqrt></mrow></math></div>
-  <p class="where">Here <var>J</var> is the number of clusters and <var>N</var> the total number of observations: the between-level index is divided by the number of clusters and the within-level index by the total number of observations, which are the divisors of Equations 17 and 19 of Ryu and West (2009). Both are set to zero when the quantity under the root is negative.</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mi>J</mi></mrow></mfrac></msqrt><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mrow><mo>(</mo><mi>N</mi><mo>&#x2212;</mo><mi>J</mi><mo>)</mo></mrow></mrow></mfrac></msqrt></mrow></math></div>
+  <p class="where">Here <var>J</var> is the number of clusters and <var>N</var> the total number of observations: the between-level index is divided by <var>J</var> and the within-level index by <var>N</var> − <var>J</var>, the effective sample-size terms in the level-specific decomposition of Ryu and West (2009). Both are set to zero when the quantity under the root is negative.</p>
 
   <h3>Self-test</h3>
   <p>Append <code>?selftest=1</code> to check two-level parsing, cluster summaries, ICCs, harmonic mean, level-specific reliability coefficients, fit indices, and unsupported inputs.</p>
@@ -664,7 +664,7 @@ function mpwNote(text) {
   var w = MPWARN.classify(text), bits = w.serious, i, s;
   if (bits.length) {
     s = "";
-    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].text));
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
     return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
       " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
   }
@@ -684,7 +684,7 @@ function mpwarnReport(text) {
   function list(a) {
     var s = "", i;
     for (i = 0; i < a.length; i++)
-      s += "<li>" + (a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].text)) + ".</li>";
+      s += "<li>" + (a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].txt || "")) + ".</li>";
     return "<ul>" + s + "</ul>";
   }
   if (w.blocking.length) {
@@ -1031,7 +1031,7 @@ var PSFIT = (function () {
     if (byKey["PS-W"] && byKey["IND-W"] && N && J && N > J) {
       rows.push({ level: "Within", chi2: byKey["PS-W"].chi2, df: byKey["PS-W"].df, p: byKey["PS-W"].p,
         cfi: ML.cfiPS(byKey["PS-W"].chi2, byKey["PS-W"].df, byKey["IND-W"].chi2, byKey["IND-W"].df),
-        rmsea: ML.rmseaPS(byKey["PS-W"].chi2, byKey["PS-W"].df, N), size: N, sizeName: "observations" });
+        rmsea: ML.rmseaPS(byKey["PS-W"].chi2, byKey["PS-W"].df, N - J), size: N - J, sizeName: "N − J" });
     } else if (byKey["PS-W"])
       notes.push("The within level has its chi-square but not its baseline and valid N/J values, so its fit indices are not computed.");
     return { rows: rows, notes: notes, have: Object.keys(byKey) };
@@ -1309,7 +1309,8 @@ function selfTest() {
   ]);
   ok("both levels are reported when the four files are there", tbl.rows.length, 2);
   ok("the between row uses the number of clusters", tbl.rows[0].size, 30);
-  ok("the within row uses the total number of observations, as in Equation 19 of Ryu and West (2009)", tbl.rows[1].size, 250);
+  ok("the within row uses N minus J", tbl.rows[1].size, 220);
+  ok("the within row RMSEA uses N minus J", tbl.rows[1].rmsea, ML.rmseaPS(60, 25, 220), 1e-12);
   ok("the between CFI", tbl.rows[0].cfi, 0.9729729729729730, 1e-12);
   var partial = PSFIT.table([{ key: "PS-B", chi2: 30, df: 20, clusters: 30, n: 250 }]);
   ok("one file alone gives no row", partial.rows.length, 0);
