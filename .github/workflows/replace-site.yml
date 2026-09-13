@@ -20,65 +20,57 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Reconstruct reviewed build from payload comments
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          ISSUE_NUMBER: ${{ github.event.issue.number }}
+      - name: Download reviewed final build
         run: |
-          python - <<'PY'
-          import base64, json, os, re, urllib.request
+          curl -L --fail --silent --show-error -o /tmp/semstudio-final.zip 'https://drive.google.com/uc?export=download&id=1yVmp_gZ58TlQB94hDuliEkH1Vtt-MeRP'
+          unzip -t /tmp/semstudio-final.zip
+          rm -rf /tmp/semstudio-final
+          mkdir -p /tmp/semstudio-final
+          unzip -q /tmp/semstudio-final.zip -d /tmp/semstudio-final
 
-          repo = os.environ['REPOSITORY']
-          issue = os.environ['ISSUE_NUMBER']
-          token = os.environ['GH_TOKEN']
-          chunks = {}
-          expected = None
-          page = 1
-          while True:
-              req = urllib.request.Request(
-                  f'https://api.github.com/repos/{repo}/issues/{issue}/comments?per_page=100&page={page}',
-                  headers={'Authorization': f'Bearer {token}', 'Accept': 'application/vnd.github+json'}
-              )
-              with urllib.request.urlopen(req) as r:
-                  rows = json.load(r)
-              if not rows:
-                  break
-              for row in rows:
-                  body = row.get('body') or ''
-                  m = re.match(r'^SEMSTUDIO_PAYLOAD4_(\d{3})_(\d{3})\n([\s\S]+)$', body)
-                  if not m:
-                      continue
-                  i, total, data = int(m.group(1)), int(m.group(2)), m.group(3).strip()
-                  expected = total if expected is None else expected
-                  if total != expected:
-                      raise SystemExit('Payload chunk counts disagree')
-                  chunks[i] = data
-              page += 1
-          if expected is None or len(chunks) != expected or set(chunks) != set(range(1, expected + 1)):
-              raise SystemExit(f'Incomplete payload: found {len(chunks)}, expected {expected}')
-          payload = ''.join(chunks[i] for i in range(1, expected + 1))
-          archive = base64.b85decode(payload.encode('ascii'))
-          open('/tmp/semstudio-final.tar.xz', 'wb').write(archive)
-          print(f'Reconstructed {len(archive)} bytes from {expected} chunks')
-          PY
-
-      - name: Replace repository tree
+      - name: Verify final build byte-for-byte
         run: |
-          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
-          tar -xJf /tmp/semstudio-final.tar.xz -C .
-          test -f index.html
-          test -f CNAME
-          test -f .nojekyll
-          test -f LICENSE
-          test -f assets/style.css
-          test -f assets/favicon.svg
+          cd /tmp/semstudio-final
+          cat > /tmp/expected.sha256 <<'EOF'
+          e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./.nojekyll
+          823d1af1d6607dfe92b3a026c5ad4b70a1474575342f8fefaf7bf523c0355304  ./CNAME
+          36d26007c090b054bb17abd492b4a1b97fb9414ce84fc37cb16df8329a3c509f  ./LICENSE
+          f169847d44a250b21c4bafacaee354ca6e49dfb04b5065d3f734de4413317186  ./assets/favicon.svg
+          f9c82001bd439d1b2c2203ca4a9bf6999b60d5b909b341e4b0ae02c060cfc0fc  ./assets/style.css
+          e884f1209e5082697b9752da2250d6894cbb5b2a825789d42f78a90da270d356  ./bifactor.html
+          eb3f0fb3bf89852d6a4e4f00dfc9ff8c9c06beeba91ebcb6e153507bd86cfb8f  ./chi-square-difference.html
+          e9510cfa578e832c7c7ff32716548e5fafcea3c310d630ec1e90d0db61ade72c  ./composite-weights.html
+          be4a33d4323eeb4b8b1bd5606e260f4b4418eb70b46285331c1c663d2ae96fc4  ./dsem.html
+          6ca5c45d617fd7b92c50556bdf89c31ec6e52e36079f09d8ff4d23eece887180  ./esem.html
+          ef378eeaaae652482263c88663bacc062206e039ac29af03292d76446ef16bce  ./fit.html
+          43368055404bbd9790a421dd6656097cfc46a603374cb27ff8cecdcd738f68e3  ./growth.html
+          0615023766c4e00857a51ad50a42271fd81ce8e093ccba87eb81d8ca9d21f752  ./index.html
+          699c5a8974af71a3322c6236d61b4410a80f720cbf5ba345d5283db60ad80a23  ./interaction-plots.html
+          cc1cd286a764b7ed6296e271cd10536020b8069ddbb1d08c29f023194db39592  ./invariance-syntax.html
+          58ade88a498ea58ab5ad68596f9aab26919da7b9e8ce45bd7d8efe6d5c5f3a03  ./invariance.html
+          e366e8464a3c1664e3b0ce31bdbf272e1b060fffbfbc8ff6d6a427d2655a6d6e  ./irt.html
+          ad71cb67fb92ef41aea74a4e224cdc8df71ea5b69c0573b4935f9f66ba4f69bd  ./latent-class.html
+          2ee6fb1c4e481dad3a79913fb4216cfc4ef8bd3b3d9d2e6e1c8113a6e4341b6c  ./lst.html
+          ee963639aa8e86f4215544a73e1b4df3ade7657eb2c2cf02990b3351b2959156  ./mediation.html
+          b4f2c56c7ef8bd7efa0434cdbcaba65237984cba1dbd6e6c3adf4bcc5b50115e  ./missing.html
+          e890b5f0d1ddd11fd2a57fdc899d52794c4813b323e81e93094c6e2399844d50  ./multilevel-r2.html
+          a585eeba46fef94f5cef1f84e88ea5126da452e342a0a4bd178d78594b058ba6  ./multilevel.html
+          0b56316d8d02d1d582eaf99df03d40716a7007e99721063173475d0d4c673045  ./parceling.html
+          221c5900a52b606112437bfb93237bdd547e670f27440e69f5b2dad898a5ca51  ./power.html
+          cd25fce5455801178dc993b47edffbf060c8f559f4227cba5001f88783e1ed85  ./privacy.html
+          4961b55faf04279d4890b71686c7484c556cd332624ce0c3517818ea9e9ed81c  ./reliability.html
+          EOF
+          sed -i 's/^          //' /tmp/expected.sha256
+          sha256sum -c /tmp/expected.sha256
+          test "$(find . -type f | wc -l)" -eq 27
           test "$(find . -maxdepth 1 -type f -name '*.html' | wc -l)" -eq 22
           grep -q 'INFORMATION = OBSERVED' missing.html
           ! grep -q 'Omega, alpha and the average variance extracted are computed from the unstandardized solution' reliability.html
 
-      - name: Commit final site
+      - name: Replace repository tree and commit
         run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a /tmp/semstudio-final/. .
           git config user.name 'semstudio deployment'
           git config user.email 'actions@users.noreply.github.com'
           git add -A
