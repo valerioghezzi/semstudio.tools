@@ -4,10 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Free browser-based tools that compute from Mplus output what Mplus does not print: reliability and bifactor indices, ESEM coefficients, invariance tables and syntax, nested-model tests, fit and local fit, interaction plots, composite weights, item parcels, multilevel reliability and variance explained, intensive longitudinal reliability, latent class enumeration, power and missing data.">
+<meta name="description" content="Free browser-based tools that carry an Mplus output through to the quantities a report needs: reliability and bifactor indices, ESEM coefficients, invariance tables and syntax, nested-model tests, fit and local fit, interaction plots, composite weights, item parcels, multilevel reliability and variance explained, intensive longitudinal reliability, growth trajectories, item and test information, trait and occasion variance, indirect effects, latent class enumeration, power and missing data.">
 <title>semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
+<style>
+.tool-finder { margin: 0 auto 2.2rem; max-width: 58rem; }
+.tool-finder .field { max-width: 42rem; }
+.tool-finder input { max-width: 42rem; }
+.tool-finder .finder-status { margin: 0.35rem 0 0; color: var(--ink-soft); font-size: 0.92rem; }
+.group[hidden], .tiles li[hidden] { display: none !important; }
+</style>
 </head>
 <body class="home">
 <a class="skip" href="#tools">Skip to the tools</a>
@@ -33,6 +40,16 @@
 
 <main id="tools" tabindex="-1">
 
+  <section class="note tool-finder" aria-labelledby="find-tool">
+    <h2 id="find-tool">Find a tool</h2>
+    <div class="field">
+      <label for="tool-search">What do you want to do?</label>
+      <input type="text" id="tool-search" autocomplete="off" placeholder="e.g., reliability, invariance, classes, missing data">
+      <span class="hint">Type a task, method or output. The list below is filtered as you type.</span>
+      <p class="finder-status" id="finder-status" aria-live="polite"></p>
+    </div>
+  </section>
+
   <nav class="group" style="--accent:#009E73" aria-labelledby="g-measurement">
     <h2 id="g-measurement">Measurement</h2>
     <ul class="tiles">
@@ -40,6 +57,7 @@
       <li><a class="tile" href="bifactor.html"><span class="t">Bifactor Indices</span><span class="s">ECV, PUC, omega hierarchical</span></a></li>
       <li><a class="tile" href="parceling.html"><span class="t">Item Parceling</span><span class="s">parcel-building strategies</span></a></li>
       <li><a class="tile" href="esem.html"><span class="t">ESEM Models</span><span class="s">indices and bifactor-ESEM syntax</span></a></li>
+      <li><a class="tile" href="irt.html"><span class="t">Item and Test Information</span><span class="s">discriminations, difficulties, information curves</span></a></li>
     </ul>
   </nav>
 
@@ -56,6 +74,7 @@
     <ul class="tiles">
       <li><a class="tile" href="interaction-plots.html"><span class="t">Interaction Plots</span><span class="s">simple slopes, Johnson–Neyman</span></a></li>
       <li><a class="tile" href="composite-weights.html"><span class="t">Composite Weights</span><span class="s">formative constructs</span></a></li>
+      <li><a class="tile" href="mediation.html"><span class="t">Indirect Effects</span><span class="s">intervals for mediated effects</span></a></li>
     </ul>
   </nav>
 
@@ -76,10 +95,18 @@
     </ul>
   </nav>
 
+  <nav class="group" style="--accent:#009E73" aria-labelledby="g-growth">
+    <h2 id="g-growth">Growth</h2>
+    <ul class="tiles">
+      <li><a class="tile" href="growth.html"><span class="t">Growth Trajectories</span><span class="s">implied means, variance by occasion, origin of the trajectory</span></a></li>
+      <li><a class="tile" href="lst.html"><span class="t">Trait, Occasion and Error</span><span class="s">consistency, occasion specificity, reliability</span></a></li>
+    </ul>
+  </nav>
+
   <nav class="group" style="--accent:#56B4E9" aria-labelledby="g-mixture">
     <h2 id="g-mixture">Mixtures</h2>
     <ul class="tiles">
-      <li><a class="tile" href="latent-class.html"><span class="t">Latent Class Enumeration</span><span class="s">criteria, Bayes factors, class separation</span></a></li>
+      <li><a class="tile" href="latent-class.html"><span class="t">Latent Class and Latent Profile Analysis</span><span class="s">enumeration criteria, Bayes factors, class separation</span></a></li>
     </ul>
   </nav>
 
@@ -93,13 +120,13 @@
 
   <section class="note" aria-labelledby="how">
     <h2 id="how">How these tools work</h2>
-    <p>Every tool is a single page that runs inside your browser. Output files stay on your computer: nothing is uploaded, no cookies are set, no usage is recorded. Each result comes with the formula behind it and the reference it comes from, and every interpretive cutoff is reported as guidance rather than as a rule.</p>
+    <p>Every tool is a single page that runs inside your browser. Output files stay on your computer: nothing is uploaded, no cookies are set, and semstudio.tools itself uses no analytics or tracking scripts. Each result comes with the formula behind it and the reference it comes from, and every interpretive cutoff is reported as guidance rather than as a rule.</p>
   </section>
 
   <section class="note" aria-labelledby="cite">
     <h2 id="cite">How to cite this page</h2>
     <p class="citation">Ghezzi, V. (2026). <em>semstudio.tools: A workbench for structural equation modeling with M</em><em>plus</em> [Computer software]. https://semstudio.tools</p>
-    <p>The code is released under the MIT License and may be inspected, copied and modified freely.</p>
+    <p>The code is released under the <a href="LICENSE">MIT License</a> and may be inspected, copied and modified freely.</p>
   </section>
 
 </main>
@@ -108,5 +135,31 @@
   <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome.</p>
   <p>Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a> · <a href="privacy.html">Privacy</a></p>
 </footer>
+<script>
+(function () {
+  var input = document.getElementById("tool-search");
+  var status = document.getElementById("finder-status");
+  if (!input) return;
+  var groups = Array.prototype.slice.call(document.querySelectorAll("nav.group"));
+  function normalize(s) { return (s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim(); }
+  function apply() {
+    var q = normalize(input.value);
+    var visible = 0, total = 0;
+    groups.forEach(function (group) {
+      var any = false;
+      Array.prototype.slice.call(group.querySelectorAll(".tiles li")).forEach(function (li) {
+        total++;
+        var hay = normalize(li.textContent + " " + group.querySelector("h2").textContent);
+        var show = !q || q.split(/\s+/).every(function (term) { return hay.indexOf(term) !== -1; });
+        li.hidden = !show;
+        if (show) { any = true; visible++; }
+      });
+      group.hidden = !any;
+    });
+    status.textContent = q ? (visible ? visible + " of " + total + " tools shown." : "No tool matches that search. Try a broader term.") : "";
+  }
+  input.addEventListener("input", apply);
+})();
+</script>
 </body>
 </html>

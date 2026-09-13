@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="Confidence intervals for the indirect effects of an Mplus run, built from the joint distribution of the coefficients that make them, with the share of the total effect and the comparison between two specific indirect effects.">
+<title>Indirect Effects &#183; semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+table.enum td.num, table.enum th.num { font-variant-numeric: tabular-nums; text-align: right; }
+svg.chart { max-width: 100%; height: auto; display: block; }
+.src { color: var(--muted); font-size: 0.92em; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Indirect Effects</h1>
+  <p class="lede">An indirect effect is a product of coefficients, and the product of two normal estimates is not itself normal: it is skewed, and the interval that follows from its standard error is placed symmetrically about a value whose sampling distribution is not symmetric. This page reads the effects a run reports and builds the interval from the joint distribution of the coefficients that make them, in the way Preacher and Selig (2012) set out, beside the interval that follows from the standard error, with the share of the total effect and the comparison between two paths.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> <code>MODEL INDIRECT:</code> naming the effects, and <code>OUTPUT: STDYX TECH1 TECH3;</code>. The effects and their standard errors come from the block MODEL INDIRECT produces, the coefficient of every link of a chain from MODEL RESULTS, the completely standardized effects from STDYX, and the covariances between the coefficients from TECH1 and TECH3. Without TECH1 and TECH3 the coefficients are drawn as independent, which is the simplification Preacher and Selig describe for the three-variable model, and the page says which of the two it used. Nothing on this page can be typed in.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Add <code>MODEL INDIRECT:</code> to the run, naming the effects you want, and <code>OUTPUT: STDYX TECH1 TECH3;</code>.</li>
+    <li>Drop the <code>.out</code> file on the box below.</li>
+    <li>Read the interval built from the joint distribution of the coefficients beside the one built from the standard error.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file">M<em>plus</em> output file</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere.</p>
+  <div id="report" aria-live="polite"></div>
+  <div class="row">
+    <div class="field w2"><label for="draws">Draws</label>
+      <select id="draws">
+        <option value="5000">5&#8201;000</option>
+        <option value="20000" selected>20&#8201;000</option>
+        <option value="100000">100&#8201;000</option>
+      </select>
+      <span class="hint">Preacher and Selig (2012) use 20&#8201;000.</span></div>
+    <div class="field w2"><label for="conf">Confidence</label>
+      <select id="conf">
+        <option value="0.90">90 percent</option>
+        <option value="0.95" selected>95 percent</option>
+        <option value="0.99">99 percent</option>
+      </select></div>
+    <div class="field w3"><label class="check"><input type="checkbox" id="usecov" checked> Use the covariances between the coefficients when TECH3 is in the file</label>
+      <span class="hint">Without them the coefficients are drawn as independent, which is the simplification the authors describe for the three-variable model.</span></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-effects">
+  <h2 id="h-effects">The effects the file reports</h2>
+  <div id="effects"><p class="hint">The effects appear here once an output has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-intervals">
+  <h2 id="h-intervals">Intervals for the indirect effects</h2>
+  <div id="intervals"><p class="hint">The intervals appear here once an output has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-compare">
+  <h2 id="h-compare">Two indirect effects against each other</h2>
+  <div id="compare"><p class="hint">A comparison appears here once a file with two or more specific indirect effects has been read.</p></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>What the page reads</h3>
+  <p>Three parts of the output. The block headed <code>TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS</code>, which <code>MODEL INDIRECT</code> produces, gives every effect the run was asked for, and for a specific indirect effect it also gives the chain of variables it runs through, printed from the outcome back to the predictor. <code>MODEL RESULTS</code> gives the coefficient of every link of that chain with its standard error. <code>TECHNICAL 1 OUTPUT</code> numbers the free parameters and <code>TECHNICAL 3 OUTPUT</code> gives their covariance matrix, from which the covariance between two links of the same chain is taken.</p>
+
+  <h3>Why the interval is built again</h3>
+  <p>An indirect effect is a product of coefficients. The standard error beside it in the output is the delta-method standard error (Sobel, 1982), and the interval that follows from it is symmetric about the estimate. The sampling distribution of a product of two normal variables is not normal: it is typically skewed, especially when the component coefficients are small relative to their standard errors. A symmetric interval can therefore be poorly positioned and have coverage that differs from its nominal level (MacKinnon, Lockwood, Hoffman, West, &amp; Sheets, 2002). The bootstrap is one answer and M<em>plus</em> provides it with <code>BOOTSTRAP</code> and <code>CINTERVAL(BOOTSTRAP)</code>. The interval below is the other: it is built from the joint distribution of the coefficients that make the product, which is what the run already estimated.</p>
+
+  <h3>The interval from the joint distribution of the coefficients</h3>
+  <p>Preacher and Selig (2012) obtain it as follows. For an indirect effect that runs through two links with coefficients <var>a</var> and <var>b</var>, values are drawn repeatedly from</p>
+  <div class="eq"><math display="block"><mrow><mfenced open="(" close=")"><mtable><mtr><mtd><msup><mi>a</mi><mo>*</mo></msup></mtd></mtr><mtr><mtd><msup><mi>b</mi><mo>*</mo></msup></mtd></mtr></mtable></mfenced><mo>&#8764;</mo><mi>MVN</mi><mfenced open="(" close=")" separators=","><mfenced open="(" close=")"><mtable><mtr><mtd><mover><mi>a</mi><mo>^</mo></mover></mtd></mtr><mtr><mtd><mover><mi>b</mi><mo>^</mo></mover></mtd></mtr></mtable></mfenced><mfenced open="(" close=")"><mtable><mtr><mtd><msubsup><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mi>a</mi><mn>2</mn></msubsup></mtd><mtd><msub><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mrow><mi>a</mi><mi>b</mi></mrow></msub></mtd></mtr><mtr><mtd><msub><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mrow><mi>a</mi><mi>b</mi></mrow></msub></mtd><mtd><msubsup><mover><mi>&#x3C3;</mi><mo>^</mo></mover><mi>b</mi><mn>2</mn></msubsup></mtd></mtr></mtable></mfenced></mfenced></mrow></math></div>
+  <p class="where">Here the means are the estimates the output gives, the variances are the squares of their standard errors, and the covariance is the one <code>TECH3</code> gives for those two parameters. The product <math><mrow><msup><mi>a</mi><mo>*</mo></msup><msup><mi>b</mi><mo>*</mo></msup></mrow></math> is formed at every draw, and the confidence limits are the percentiles of the values so obtained. The authors note that in the three-variable model the covariance is often replaced by zero; the page uses the value from the file when it is there and says which of the two it used. A chain of more than two links is treated the same way, with as many coefficients as the chain has and the product of all of them at every draw.</p>
+  <p>The draws are made with a generator whose seed is fixed, so the same file gives the same interval every time it is read. With 20&#8201;000 draws the limits are stable to about the third decimal of a coefficient of ordinary size; the number of draws can be raised above.</p>
+
+  <h3>The interval from the standard error</h3>
+  <p>Beside it the page reports the symmetric interval, which is the estimate plus and minus the standard error times the normal quantile. It is the interval that follows from what the output prints, and it is shown so that the two can be compared: when they agree the product is close enough to normal for either to serve, and when they do not it is the asymmetric one that describes the sampling distribution of the product.</p>
+  <div class="eq"><math display="block"><mrow><mover><mi>a</mi><mo>^</mo></mover><mover><mi>b</mi><mo>^</mo></mover><mo>&#177;</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>&#8722;</mo><mi>&#x3B1;</mi><mo>/</mo><mn>2</mn></mrow></msub><mi>SE</mi><mo>(</mo><mover><mi>a</mi><mo>^</mo></mover><mover><mi>b</mi><mo>^</mo></mover><mo>)</mo></mrow></math></div>
+  <p class="where">The standard error is the one the output gives, which for a two-link chain is the delta-method standard error of Sobel (1982), <math><mrow><mi>SE</mi><mo>=</mo><msqrt><mrow><msup><mover><mi>b</mi><mo>^</mo></mover><mn>2</mn></msup><msubsup><mi>SE</mi><mi>a</mi><mn>2</mn></msubsup><mo>+</mo><msup><mover><mi>a</mi><mo>^</mo></mover><mn>2</mn></msup><msubsup><mi>SE</mi><mi>b</mi><mn>2</mn></msubsup></mrow></msqrt></mrow></math>. The page recomputes that quantity from the two coefficients and compares it with the one in the file, and reports the comparison: they agree when the two coefficients are uncorrelated, and differ by the term in their covariance when they are not.</p>
+
+  <h3>The share of the total effect</h3>
+  <p>Where the file reports the total effect as well, the page gives the ratio of the indirect effect to it. The ratio is worth reading only when the two have the same sign and the total is not near zero: a ratio formed on a total that is small, or on effects of opposite sign, takes values outside the unit interval and changes wildly from sample to sample, and it is reported with that warning attached (MacKinnon, 2008). No value of the ratio is taken as a threshold.</p>
+
+  <h3>Two indirect effects against each other</h3>
+  <p>Two specific indirect effects of the same model are compared by their difference, and the interval for the difference is built in the same way as the interval for each of them: at every draw the two products are formed from the same draw of the coefficients they share, the difference is taken, and the limits are the percentiles of the differences. Drawing them together is what makes the comparison right when the two chains have a link in common, since the two products are then not independent.</p>
+
+  <h3>The completely standardized effect</h3>
+  <p>When the run contains the <code>STDYX</code> block, the same effects appear there in the completely standardized metric, and the page reports those estimates beside the unstandardized ones. Its symmetric interval can be formed from the STDYX standard error printed by M<em>plus</em>. The page does <em>not</em> construct a Monte Carlo interval by drawing the standardized path coefficients independently: <code>TECH3</code> is the covariance matrix of the free, unstandardized model parameters, not the covariance matrix of the derived STDYX coefficients. A correct Monte Carlo interval on the standardized metric would require propagating each draw of the unstandardized parameter vector through the standardization transformation, including the variances that enter that transformation.</p>
+
+  <h3>Unsupported inputs</h3>
+  <p>A file with no <code>MODEL INDIRECT</code> block, since there is then no effect to work on. A chain whose links cannot all be found in MODEL RESULTS, which happens when a link is a fixed parameter or belongs to a part of the model printed under a heading the page does not read; the effect is then listed with the interval from the standard error alone and the reason is given. A run whose messages put it among those whose results are not to be interpreted.</p>
+
+  <h3>Self-test</h3>
+  <p>Append <code>?selftest=1</code> to check output parsing, delta-method standard errors, Monte Carlo intervals, percentile calculations, chain reconstruction, and unsupported inputs.</p>
+  </div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>MacKinnon, D. P. (2008). <em>Introduction to statistical mediation analysis</em>. Lawrence Erlbaum. <a href="https://doi.org/10.4324/9780203809556">https://doi.org/10.4324/9780203809556</a></li>
+    <li>MacKinnon, D. P., Lockwood, C. M., Hoffman, J. M., West, S. G., &amp; Sheets, V. (2002). A comparison of methods to test mediation and other intervening variable effects. <em>Psychological Methods, 7</em>(1), 83&#8211;104. <a href="https://doi.org/10.1037/1082-989X.7.1.83">https://doi.org/10.1037/1082-989X.7.1.83</a></li>
+    <li>MacKinnon, D. P., Lockwood, C. M., &amp; Williams, J. (2004). Confidence limits for the indirect effect: Distribution of the product and resampling methods. <em>Multivariate Behavioral Research, 39</em>(1), 99&#8211;128. <a href="https://doi.org/10.1207/s15327906mbr3901_4">https://doi.org/10.1207/s15327906mbr3901_4</a></li>
+    <li>Preacher, K. J., &amp; Selig, J. P. (2012). Advantages of Monte Carlo confidence intervals for indirect effects. <em>Communication Methods and Measures, 6</em>(2), 77&#8211;98. <a href="https://doi.org/10.1080/19312458.2012.679848">https://doi.org/10.1080/19312458.2012.679848</a></li>
+    <li>Sobel, M. E. (1982). Asymptotic confidence intervals for indirect effects in structural equation models. <em>Sociological Methodology, 13</em>, 290&#8211;312. <a href="https://doi.org/10.2307/270723">https://doi.org/10.2307/270723</a></li>
+    <li>Muthén, L. K., &amp; Muthén, B. O. (1998&#8211;2017). <em>M<span class="mp">plus</span> user's guide</em> (8th ed.). Muthén &amp; Muthén. <a href="https://www.statmodel.com/ugexcerpts.shtml">https://www.statmodel.com/ugexcerpts.shtml</a></li>
+  </ul>
+  </div>
+</details>
+
+</main>
+
+
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+var MP = "M<em>plus</em>";
+
+/* ==================================================================
+   Reading the file
+   ================================================================== */
+function decodeBuffer(ab) {
+  var bytes = new Uint8Array(ab), i, s;
+  if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8)); return s;
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]); return s;
+  }
+  var start = (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+  try {
+    if (typeof TextDecoder !== "undefined")
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(start));
+  } catch (e) { /* not valid UTF-8: read as Windows-1252 */ }
+  s = ""; for (i = start; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return s;
+}
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
+function readTextFile(file, then, fail) {
+  var mpwName = (file && file.name) ? file.name : "";
+  var mpwOuter = then;
+  then = function (t) { try { mpwRender(mpwName, String(t)); } catch (e) {} mpwOuter(t); };
+  var r = new FileReader();
+  r.onerror = function () { if (fail) fail(); };
+  r.onload = function (e) {
+    var res = (e && e.target) ? e.target.result : r.result, text;
+    try { text = decodeBuffer(res); } catch (err) { if (fail) fail(err); return; }
+    then(text);
+  };
+  r.readAsArrayBuffer(file);
+}
+/* ==================================================================
+   Reading the effects, the coefficients and their covariances
+   ================================================================== */
+var MPLUS_SIGNATURE = /(^|\n)[ \t]*(Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION)/;
+var MP = "M<em>plus</em>";
+
+var MED = (function () {
+  "use strict";
+
+  function lines(t) { return String(t).replace(/\r\n?/g, "\n").split("\n"); }
+
+  /* The block MODEL INDIRECT produces. Every effect is reported under a
+     heading that names the predictor and the outcome; a specific indirect
+     effect is written as the chain of variables it runs through, printed
+     from the outcome back to the predictor, with the numbers on the last
+     line of the chain. */
+  function readEffects(text, standardized) {
+    var L = lines(text), i, at = -1, stop = -1;
+    var head = standardized ? /^STDYX Standardization\s*$/ : null;
+    /* the unstandardized block comes first; the standardized one is inside
+       the STDYX section, which repeats the same headings */
+    var from = 0;
+    if (standardized) {
+      for (i = 0; i < L.length; i++) if (/^STDYX Standardization\s*$/.test(L[i].trim())) { from = i; break; }
+      if (from === 0) return null;
+    }
+    for (i = from; i < L.length; i++)
+      if (/^TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS\s*$/.test(L[i].trim())) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at + 1; i < L.length; i++)
+      if (/^(CONFIDENCE INTERVALS|QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|STANDARDIZED TOTAL|STDYX Standardization|STDY Standardization|STD Standardization|MUTHEN & MUTHEN|Beginning Time|SAVEDATA|PLOT|DIAGRAM|R-SQUARE)/.test(L[i].trim())) { stop = i; break; }
+    if (stop < 0) stop = L.length;
+
+    var out = [], pair = null, pending = null, chain = [];
+    var numRe = /^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s*$/;
+    for (i = at + 1; i < stop; i++) {
+      var raw = L[i], t = raw.trim();
+      if (!t) continue;
+      var mh = t.match(/^Effects from (\S+) to (\S+)$/i);
+      if (mh) { pair = { from: mh[1].toUpperCase(), to: mh[2].toUpperCase() }; pending = null; chain = []; continue; }
+      if (!pair) continue;
+      var mv = raw.match(/^\s{2,}(Total|Total indirect|Sum of indirect|Direct)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s*$/);
+      if (mv) {
+        out.push({ kind: mv[1].toLowerCase(), from: pair.from, to: pair.to, chain: null,
+          est: parseFloat(mv[2]), se: /^\*/.test(mv[3]) ? NaN : parseFloat(mv[3]) });
+        continue;
+      }
+      var ms = t.match(/^Specific indirect(?:\s+(\d+))?$/i);
+      if (ms) { pending = { n: ms[1] ? parseInt(ms[1], 10) : out.length + 1, kind: "specific" }; chain = []; continue; }
+      if (/^Direct$/i.test(t)) { pending = { n: null, kind: "direct" }; chain = []; continue; }
+      if (pending) {
+        var mn = raw.match(numRe);
+        if (mn) {
+          chain.push(mn[1].toUpperCase());
+          out.push({ kind: pending.kind, from: pair.from, to: pair.to, chain: chain.slice(),
+            est: parseFloat(mn[2]), se: /^\*/.test(mn[3]) ? NaN : parseFloat(mn[3]), label: pending.n });
+          pending = null; chain = [];
+          continue;
+        }
+        if (/^[A-Za-z][A-Za-z0-9_$#.]*$/.test(t)) { chain.push(t.toUpperCase()); continue; }
+      }
+    }
+    return out.length ? out : null;
+  }
+
+  /* The intervals Mplus prints when CINTERVAL is asked for. With
+     CINTERVAL(BOOTSTRAP) they are the bootstrap intervals, which are not
+     symmetric either, and the page shows them beside its own. */
+  function readIntervals(text) {
+    var L = lines(text), i, at = -1, stop = -1;
+    for (i = 0; i < L.length; i++)
+      if (/^CONFIDENCE INTERVALS OF TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS\s*$/.test(L[i].trim())) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at + 1; i < L.length; i++)
+      if (/^(CONFIDENCE INTERVALS OF|QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|MUTHEN & MUTHEN|Beginning Time|SAVEDATA|PLOT)/.test(L[i].trim())) { stop = i; break; }
+    if (stop < 0) stop = L.length;
+    var out = [], pair = null, pending = null, chain = [];
+    for (i = at + 1; i < stop; i++) {
+      var raw = L[i], t = raw.trim();
+      if (!t) continue;
+      var mh = t.match(/^Effects from (\S+) to (\S+)$/i);
+      if (mh) { pair = { from: mh[1].toUpperCase(), to: mh[2].toUpperCase() }; pending = null; chain = []; continue; }
+      if (!pair) continue;
+      var seven = /((?:-?\d+\.\d+\s+){6}-?\d+\.\d+)\s*$/;
+      var mv = raw.match(/^\s{2,}(Total|Total indirect|Sum of indirect|Direct)\s+/);
+      if (mv) {
+        var nums = (raw.match(seven) || [null, ""])[1].trim().split(/\s+/).map(Number);
+        if (nums.length === 7) out.push({ kind: mv[1].toLowerCase(), from: pair.from, to: pair.to, chain: null, v: nums });
+        continue;
+      }
+      var ms = t.match(/^Specific indirect(?:\s+(\d+))?$/i);
+      if (ms) { pending = true; chain = []; continue; }
+      if (/^Direct$/i.test(t)) { pending = true; chain = []; continue; }
+      if (pending) {
+        var mn = raw.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+((?:-?\d+\.\d+\s+){6}-?\d+\.\d+)\s*$/);
+        if (mn) {
+          chain.push(mn[1].toUpperCase());
+          out.push({ kind: "specific", from: pair.from, to: pair.to, chain: chain.slice(),
+            v: mn[2].trim().split(/\s+/).map(Number) });
+          pending = null; chain = [];
+          continue;
+        }
+        if (/^[A-Za-z][A-Za-z0-9_$#.]*$/.test(t)) { chain.push(t.toUpperCase()); continue; }
+      }
+    }
+    return out.length ? out : null;
+  }
+
+  /* Whether those intervals are the bootstrap ones. */
+  function intervalsAreBootstrap(text) {
+    var a = String(text).indexOf("INPUT INSTRUCTIONS");
+    var b = String(text).search(/^\s*(INPUT READING TERMINATED|\*\*\* |\d+ WARNING\(S\) FOUND|SUMMARY OF ANALYSIS)/m);
+    var echo = (a >= 0 && b > a) ? String(text).slice(a, b) : "";
+    return /CINTERVAL\s*\(\s*BOOTSTRAP\s*\)/i.test(echo);
+  }
+
+  /* Every coefficient of MODEL RESULTS, under the heading it is printed
+     below, so that a link of a chain can be found by the pair of names. */
+  function readCoefficients(text, standardized) {
+    var L = lines(text), i, start = 0, out = {};
+    if (standardized) {
+      for (i = 0; i < L.length; i++) if (/^STDYX Standardization\s*$/.test(L[i].trim())) { start = i; break; }
+      if (start === 0) return null;
+    } else {
+      for (i = 0; i < L.length; i++) if (/^MODEL RESULTS\s*$/.test(L[i].trim())) { start = i; break; }
+    }
+    var head = "", rel = "";
+    for (i = start + 1; i < L.length; i++) {
+      var raw = L[i], t = raw.trim();
+      if (/^(STDYX Standardization|STDY Standardization|STD Standardization|R-SQUARE|QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|TOTAL, TOTAL INDIRECT|CONFIDENCE INTERVALS|MUTHEN & MUTHEN|Beginning Time)/.test(t) && i > start + 2) break;
+      var mh = raw.match(/^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s+(BY|WITH|ON)\s*$/i);
+      if (mh) { head = mh[1].toUpperCase(); rel = mh[2].toUpperCase(); continue; }
+      if (/^\s*(Intercepts|Means|Thresholds|Variances|Residual Variances|New\/Additional Parameters)\s*$/i.test(t)) { head = ""; rel = ""; continue; }
+      var mv = raw.match(/^\s{2,}([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s*$/);
+      if (!mv || !head || rel !== "ON") continue;
+      out[head + " ON " + mv[1].toUpperCase()] = { dep: head, pred: mv[1].toUpperCase(),
+        est: parseFloat(mv[2]), se: parseFloat(mv[3]) };
+    }
+    var k, n = 0;
+    for (k in out) if (Object.prototype.hasOwnProperty.call(out, k)) n++;
+    return n ? out : null;
+  }
+
+  /* TECH1 numbers the free parameters. A regression coefficient of a
+     dependent variable on another variable sits in BETA when the predictor
+     is itself dependent and in GAMMA when it is exogenous; both matrices
+     are read the same way, the row being the dependent variable. */
+  function readTech1(text) {
+    var L = lines(text), i, at = -1;
+    for (i = 0; i < L.length; i++) if (/^TECHNICAL 1 OUTPUT\s*$/.test(L[i].trim())) { at = i; break; }
+    if (at < 0) return null;
+    var num = {}, matrix = null, cols = null;
+    for (i = at + 1; i < L.length; i++) {
+      var raw = L[i], t = raw.trim();
+      if (/^(TECHNICAL \d+ OUTPUT|STARTING VALUES|MUTHEN & MUTHEN|Beginning Time|QUALITY OF NUMERICAL)/.test(t)) break;
+      if (/^(NU|LAMBDA|THETA|ALPHA|BETA|GAMMA|PSI|TAU|DELTA|KAPPA|SIGMA)$/.test(t)) { matrix = t; cols = null; continue; }
+      if (/^PARAMETER SPECIFICATION/.test(t)) { matrix = null; continue; }
+      if (!matrix) continue;
+      var toks = t.split(/\s+/);
+      if (toks.length && toks.every(function (x) { return /^[A-Za-z][A-Za-z0-9_$#.]*$/.test(x); }) && /_{4,}/.test((L[i + 1] || ""))) {
+        cols = toks.map(function (x) { return x.toUpperCase(); }); continue;
+      }
+      if (/^_{4,}/.test(t)) continue;
+      var mr = raw.match(/^\s(\S.*?)\s{2,}((?:\d+\s*)+)$/);
+      if (mr && cols && (matrix === "BETA" || matrix === "GAMMA" || matrix === "PSI" || matrix === "LAMBDA" || matrix === "THETA")) {
+        var rowName = mr[1].trim().toUpperCase(), vals = mr[2].trim().split(/\s+/).map(Number), c;
+        for (c = 0; c < vals.length && c < cols.length; c++)
+          if (vals[c] > 0) num[matrix + "|" + rowName + "|" + cols[c]] = vals[c];
+      }
+    }
+    var k, n = 0;
+    for (k in num) if (Object.prototype.hasOwnProperty.call(num, k)) n++;
+    return n ? num : null;
+  }
+
+  /* TECH3 gives the covariance matrix of the parameter estimates, in the
+     numbering of TECH1, as a lower triangle printed in blocks of columns. */
+  function readTech3(text) {
+    var L = lines(text), i, at = -1;
+    for (i = 0; i < L.length; i++) if (/^TECHNICAL 3 OUTPUT\s*$/.test(L[i].trim())) { at = i; break; }
+    if (at < 0) return null;
+    var m = {}, cols = null, started = false;
+    for (i = at + 1; i < L.length; i++) {
+      var raw = L[i], t = raw.trim();
+      if (/^(TECHNICAL \d+ OUTPUT|MUTHEN & MUTHEN|Beginning Time|QUALITY OF NUMERICAL)/.test(t)) break;
+      if (/^ESTIMATED CORRELATION MATRIX/.test(t)) break;
+      if (/^ESTIMATED COVARIANCE MATRIX/.test(t)) { started = true; continue; }
+      if (!started) continue;
+      if (/^_{4,}/.test(t)) continue;
+      var toks = t.split(/\s+/);
+      if (toks.length && toks.every(function (x) { return /^\d+$/.test(x); }) && /_{4,}/.test((L[i + 1] || ""))) {
+        cols = toks.map(Number); continue;
+      }
+      var mr = raw.match(/^\s*(\d+)\s+((?:-?\d+\.\d+(?:[DE][+-]\d+)?\s*)+)$/);
+      if (mr && cols) {
+        var r = parseInt(mr[1], 10);
+        var vals = mr[2].trim().split(/\s+/).map(function (x) { return parseFloat(x.replace(/D/i, "e")); }), c;
+        for (c = 0; c < vals.length && c < cols.length; c++) {
+          m[r + "|" + cols[c]] = vals[c];
+          m[cols[c] + "|" + r] = vals[c];
+        }
+      }
+    }
+    var k, n = 0;
+    for (k in m) if (Object.prototype.hasOwnProperty.call(m, k)) n++;
+    return n ? m : null;
+  }
+
+  /* The parameter number of a coefficient of dep on pred. */
+  function paramNumber(t1, dep, pred) {
+    if (!t1) return null;
+    var keys = ["BETA|" + dep + "|" + pred, "GAMMA|" + dep + "|" + pred];
+    var i;
+    for (i = 0; i < keys.length; i++) if (t1[keys[i]]) return t1[keys[i]];
+    return null;
+  }
+
+  /* ---- the draws ------------------------------------------------- */
+
+  /* A generator with a fixed seed, so that the same file gives the same
+     interval every time it is read. */
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s = (s + 0x6D2B79F5) >>> 0;
+      var t = s;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  /* Two standard normal values from two uniform ones (Box and Muller). */
+  function normalPair(u) {
+    var u1 = u(), u2 = u();
+    if (u1 < 1e-12) u1 = 1e-12;
+    var r = Math.sqrt(-2 * Math.log(u1));
+    return [r * Math.cos(2 * Math.PI * u2), r * Math.sin(2 * Math.PI * u2)];
+  }
+  /* The lower triangular factor of a covariance matrix; a matrix that is
+     not positive definite is refused rather than repaired. */
+  function cholesky(S) {
+    var n = S.length, Lm = [], i, j, k;
+    for (i = 0; i < n; i++) { Lm.push([]); for (j = 0; j < n; j++) Lm[i].push(0); }
+    for (i = 0; i < n; i++) {
+      for (j = 0; j <= i; j++) {
+        var sum = S[i][j];
+        for (k = 0; k < j; k++) sum -= Lm[i][k] * Lm[j][k];
+        if (i === j) {
+          if (!(sum > 0)) return null;
+          Lm[i][j] = Math.sqrt(sum);
+        } else Lm[i][j] = sum / Lm[j][j];
+      }
+    }
+    return Lm;
+  }
+  function quantile(sorted, p) {
+    var n = sorted.length;
+    if (!n) return NaN;
+    var h = (n - 1) * p, lo = Math.floor(h), hi = Math.ceil(h);
+    if (lo === hi) return sorted[lo];
+    return sorted[lo] + (h - lo) * (sorted[hi] - sorted[lo]);
+  }
+  function zFor(conf) {
+    /* the quantile of the standard normal for a two-sided interval */
+    var p = 1 - (1 - conf) / 2, lo = 0, hi = 8, mid, i;
+    for (i = 0; i < 200; i++) { mid = (lo + hi) / 2; if (normCdf(mid) < p) lo = mid; else hi = mid; }
+    return (lo + hi) / 2;
+  }
+  function normCdf(x) {
+    /* Abramowitz and Stegun 26.2.17 */
+    var t = 1 / (1 + 0.2316419 * Math.abs(x));
+    var d = 0.3989422804014327 * Math.exp(-x * x / 2);
+    var p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    return x >= 0 ? 1 - p : p;
+  }
+
+  /* The interval for a product of coefficients, and for the difference
+     between two such products drawn together. */
+  function productInterval(spec, opts) {
+    var k = spec.est.length, i, j, d;
+    var S = [];
+    for (i = 0; i < k; i++) { S.push([]); for (j = 0; j < k; j++) S[i].push(i === j ? spec.se[i] * spec.se[i] : (spec.cov && isFinite(spec.cov[i][j]) ? spec.cov[i][j] : 0)); }
+    var Lm = cholesky(S);
+    if (!Lm) return { error: "the covariance matrix of the coefficients is not positive definite" };
+    var draws = opts.draws, vals = [], u = rng(opts.seed || 20120401);
+    var z = [], pool = [];
+    for (d = 0; d < draws; d++) {
+      while (pool.length < k) { var pr = normalPair(u); pool.push(pr[0]); pool.push(pr[1]); }
+      z = pool.splice(0, k);
+      var prod = 1;
+      for (i = 0; i < k; i++) {
+        var v = spec.est[i];
+        for (j = 0; j <= i; j++) v += Lm[i][j] * z[j];
+        prod *= v;
+      }
+      vals.push(prod);
+    }
+    vals.sort(function (a, b) { return a - b; });
+    var lo = (1 - opts.conf) / 2, hi = 1 - lo;
+    return { lower: quantile(vals, lo), upper: quantile(vals, hi),
+      median: quantile(vals, 0.5), values: vals };
+  }
+
+  /* The delta-method standard error of a product of two coefficients
+     (Sobel, 1982), with the term in their covariance when it is known. */
+  function sobelSE(a, sa, b, sb, cov) {
+    var v = b * b * sa * sa + a * a * sb * sb + (isFinite(cov) ? 2 * a * b * cov : 0);
+    return v > 0 ? Math.sqrt(v) : NaN;
+  }
+
+  return { readEffects: readEffects, readIntervals: readIntervals, intervalsAreBootstrap: intervalsAreBootstrap, readCoefficients: readCoefficients,
+    readTech1: readTech1, readTech3: readTech3, paramNumber: paramNumber,
+    rng: rng, normalPair: normalPair, cholesky: cholesky, quantile: quantile,
+    zFor: zFor, normCdf: normCdf, productInterval: productInterval, sobelSE: sobelSE };
+})();
+/* ==================================================================
+   Page
+   ================================================================== */
+function mpwFailedText(text) {
+  var w = MPWARN.classify(text), i, s = "";
+  for (i = 0; i < w.blocking.length; i++) {
+    var b = w.blocking[i];
+    s += "<li>" + (b.txt ? "<q>" + esc(b.txt) + "</q> &#8212; " : "") + b.say + ".</li>";
+  }
+  return "M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run.<ul>" + s + "</ul>" +
+    "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
+}
+
+function diagnoseFile(text) {
+  if (!text || !text.replace(/\s/g, "").length) return "empty";
+  if (!MPLUS_SIGNATURE.test(text)) return "foreign";
+  if (MPWARN.classify(text).blocking.length) return "failed";
+  return "mplus";
+}
+
+(function () {
+  function $(id) { return document.getElementById(id); }
+  function f3(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : Number(x).toFixed(3); }
+  function statusBlock(kind, tag, text) {
+    var mark = kind === "ok" ? "&#10003;" : (kind === "bad" ? "&#10007;" : "!");
+    return '<div class="status ' + kind + '" role="status"><p><span class="tag">' + mark + " " + esc(tag) +
+      "</span> " + text + "</p></div>";
+  }
+
+  var STATE = { text: null, effects: null, std: null, coef: null, coefStd: null, t1: null, t3: null, ci: null, ciBoot: false, name: "" };
+
+  function options() {
+    return { draws: parseInt($("draws").value, 10), conf: parseFloat($("conf").value),
+      useCov: $("usecov").checked, seed: 20120401 };
+  }
+
+  /* The links of a chain, from the outcome back to the predictor as the
+     output prints it: Y3, Y1, X1 means Y3 ON Y1 and Y1 ON X1. */
+  function linksOf(chain) {
+    var out = [], i;
+    for (i = 0; i + 1 < chain.length; i++) out.push({ dep: chain[i], pred: chain[i + 1] });
+    return out;
+  }
+
+  function assemble(effect, coef, standardized) {
+    var links = linksOf(effect.chain || []), i, est = [], se = [], names = [], missing = [];
+    for (i = 0; i < links.length; i++) {
+      var key = links[i].dep + " ON " + links[i].pred;
+      var c = coef ? coef[key] : null;
+      names.push(key);
+      if (!c) { missing.push(key); est.push(NaN); se.push(NaN); continue; }
+      est.push(c.est); se.push(c.se);
+    }
+    var cov = null, covFrom = "taken as zero";
+    if (!missing.length && !standardized && STATE.t1 && STATE.t3 && options().useCov) {
+      var nums = [], ok = true;
+      for (i = 0; i < links.length; i++) {
+        var n = MED.paramNumber(STATE.t1, links[i].dep, links[i].pred);
+        if (!n) { ok = false; break; }
+        nums.push(n);
+      }
+      if (ok) {
+        cov = [];
+        var j, good = true;
+        for (i = 0; i < nums.length; i++) {
+          cov.push([]);
+          for (j = 0; j < nums.length; j++) {
+            var v = STATE.t3[nums[i] + "|" + nums[j]];
+            if (v === undefined) { good = false; v = 0; }
+            cov[i].push(v);
+          }
+        }
+        if (good) covFrom = "read from TECH3"; else cov = null;
+      }
+    }
+    return { links: names, est: est, se: se, cov: cov, covFrom: covFrom, missing: missing };
+  }
+
+  function renderEffects() {
+    if (!STATE.effects) { $("effects").innerHTML = EMPTY.effects; return; }
+    var e = STATE.effects, i, html = "";
+    html += '<div class="table-wrap"><table><caption>Every effect the run reports, in the order the file gives them. A specific indirect effect is shown with the chain it runs through, written from the predictor to the outcome.</caption>' +
+      "<thead><tr><th>From</th><th>To</th><th>Effect</th><th>Through</th><th class=\"num\">Estimate</th><th class=\"num\">S.E.</th></tr></thead><tbody>";
+    for (i = 0; i < e.length; i++) {
+      var x = e[i];
+      var through = x.chain ? x.chain.slice().reverse().join(" &#8594; ") : "&#8212;";
+      html += "<tr><td>" + esc(x.from) + "</td><td>" + esc(x.to) + "</td><td>" +
+        esc(x.kind === "sum of indirect" ? "sum of indirect" : x.kind) + "</td><td>" + through + "</td>" +
+        '<td class="num">' + f3(x.est) + '</td><td class="num">' + f3(x.se) + "</td></tr>";
+    }
+    html += "</tbody></table></div>";
+    if (STATE.std) html += '<p class="hint">The file also carries the completely standardized effects, which are reported beside the unstandardized ones below.</p>';
+    $("effects").innerHTML = html;
+  }
+
+  /* The interval the file itself carries for the same effect, at the level
+     chosen above: the columns are the .5, 2.5 and 5 per cent points and
+     their upper counterparts. */
+  function fileInterval(effect, conf) {
+    if (!STATE.ci) return "&#8212;";
+    var i, col = conf === 0.99 ? [0, 6] : (conf === 0.90 ? [2, 4] : [1, 5]);
+    for (i = 0; i < STATE.ci.length; i++) {
+      var c = STATE.ci[i];
+      if (c.from !== effect.from || c.to !== effect.to) continue;
+      if (!!c.chain !== !!effect.chain) continue;
+      if (c.chain && c.chain.join(",") !== effect.chain.join(",")) continue;
+      if (!c.chain && c.kind !== effect.kind) continue;
+      return f3(c.v[col[0]]) + " to " + f3(c.v[col[1]]);
+    }
+    return "&#8212;";
+  }
+
+  function renderIntervals() {
+    if (!STATE.effects) { $("intervals").innerHTML = EMPTY.intervals; return; }
+    var opt = options(), z = MED.zFor(opt.conf), i;
+    var specific = STATE.effects.filter(function (x) { return x.kind === "specific" || x.kind === "total indirect" || x.kind === "sum of indirect"; });
+    if (!specific.length) { $("intervals").innerHTML = statusBlock("warn", "No indirect effect.", "The file reports no indirect effect, so there is nothing to build an interval for."); return; }
+    var html = '<div class="table-wrap"><table><caption>For every indirect effect, the interval built from the joint distribution of the coefficients that make it and the symmetric interval built from the standard error the file gives.</caption>' +
+      "<thead><tr><th>Effect</th><th class=\"num\">Estimate</th><th class=\"num\">From the coefficients</th><th class=\"num\">From the standard error</th>" +
+      (STATE.ci ? "<th class=\"num\">" + (STATE.ciBoot ? "Bootstrap, from the file" : "From the file") + "</th>" : "") +
+      "<th>Covariances</th></tr></thead><tbody>";
+    var notes = [], assumedIndependent = false;
+    for (i = 0; i < specific.length; i++) {
+      var x = specific[i], label = esc(x.from) + " &#8594; " + esc(x.to) +
+        (x.chain ? " (" + x.chain.slice().reverse().join(" &#8594; ") + ")" : " (all indirect paths)");
+      var mc = null, spec = null;
+      if (x.chain && x.chain.length > 1) {
+        spec = assemble(x, STATE.coef, false);
+        if (!spec.missing.length) {
+          mc = MED.productInterval(spec, opt);
+          if (!spec.cov) assumedIndependent = true;
+        }
+        else notes.push("The chain of " + label + " has a link that is not in MODEL RESULTS (" + esc(spec.missing.join(", ")) + "), so only the symmetric interval is given for it.");
+      } else {
+        notes.push("The effect " + label + " is a sum over paths rather than one product, so only the symmetric interval is given for it.");
+      }
+      var sym = isFinite(x.se) ? [x.est - z * x.se, x.est + z * x.se] : null;
+      html += "<tr><td>" + label + '</td><td class="num">' + f3(x.est) + "</td>" +
+        '<td class="num">' + (mc && !mc.error ? f3(mc.lower) + " to " + f3(mc.upper) : "&#8212;") + "</td>" +
+        '<td class="num">' + (sym ? f3(sym[0]) + " to " + f3(sym[1]) : "&#8212;") + "</td>" +
+        (STATE.ci ? '<td class="num">' + fileInterval(x, opt.conf) + "</td>" : "") +
+        "<td>" + (spec && !spec.missing.length ? esc(spec.covFrom) : "&#8212;") + "</td></tr>";
+      if (spec && !spec.missing.length && spec.est.length === 2) {
+        var covAB = spec.cov ? spec.cov[0][1] : NaN;
+        var se2 = MED.sobelSE(spec.est[0], spec.se[0], spec.est[1], spec.se[1], spec.cov ? covAB : undefined);
+        if (isFinite(se2) && isFinite(x.se) && Math.abs(se2 - x.se) > 0.0015)
+          notes.push("For " + label + " the delta-method standard error recomputed from the two coefficients is " + f3(se2) +
+            " against the " + f3(x.se) + " in the file; the difference is the term in their covariance.");
+      }
+    }
+    html += "</tbody></table></div>";
+    if (assumedIndependent) html += statusBlock("warn", "Covariances were not available.", "At least one Monte Carlo interval above was computed with the off-diagonal covariances of the component coefficients set to zero because a complete TECH1/TECH3 covariance matrix could not be read. The table labels those rows as <strong>taken as zero</strong>. Treat that interval as an independence approximation; rerun Mplus with <code>OUTPUT: TECH1 TECH3;</code> to use the estimated joint covariance structure.");
+    html += '<p class="hint">The interval from the coefficients is the one of Preacher and Selig (2012), built from ' +
+      opt.draws.toLocaleString("en") + " draws with a fixed seed. Where the two intervals disagree, the Monte Carlo interval is the one that reflects the nonnormal product distribution under the asymptotic multivariate-normal approximation for the component estimates.</p>";
+
+    /* the share of the total effect */
+    var totals = {};
+    STATE.effects.forEach(function (x) { if (x.kind === "total") totals[x.from + "|" + x.to] = x.est; });
+    var shares = [];
+    specific.forEach(function (x) {
+      var tot = totals[x.from + "|" + x.to];
+      if (!isFinite(tot) || tot === 0) return;
+      var r = x.est / tot;
+      var warn = (x.est * tot < 0) || Math.abs(tot) < 2 * Math.abs(x.se || 0);
+      shares.push("<li>" + esc(x.from) + " &#8594; " + esc(x.to) +
+        (x.chain ? " (" + x.chain.slice().reverse().join(" &#8594; ") + ")" : "") + ": " + f3(r) +
+        (warn ? " <span class=\"hint\">&#8212; the total effect is small or of the opposite sign, and the ratio is then unstable</span>" : "") + "</li>");
+    });
+    if (shares.length) html += "<h3>Share of the total effect</h3><ul>" + shares.join("") + "</ul>";
+    if (notes.length) html += statusBlock("info", "Notes.", "<ul><li>" + notes.join("</li><li>") + "</li></ul>");
+
+    /* The STDYX coefficients are derived quantities. TECH3 does not contain
+       their covariance matrix, so drawing the printed STDYX coefficients as
+       independent normals would impose an unjustified covariance structure. */
+    if (STATE.std) {
+      var h2 = '<h3>In the completely standardized metric</h3><div class="table-wrap"><table><caption>The same specific indirect effects in the STDYX metric. The interval shown follows from the STDYX standard error printed by Mplus; no Monte Carlo interval is reconstructed for a derived standardized effect.</caption>' +
+        "<thead><tr><th>Effect</th><th class=\"num\">Estimate</th><th class=\"num\">From the standard error</th></tr></thead><tbody>";
+      var any = false;
+      STATE.std.forEach(function (x) {
+        if (x.kind !== "specific") return;
+        any = true;
+        var sym2 = isFinite(x.se) ? [x.est - z * x.se, x.est + z * x.se] : null;
+        h2 += "<tr><td>" + esc(x.from) + " &#8594; " + esc(x.to) + " (" + x.chain.slice().reverse().join(" &#8594; ") + ")</td>" +
+          '<td class="num">' + f3(x.est) + "</td>" +
+          '<td class="num">' + (sym2 ? f3(sym2[0]) + " to " + f3(sym2[1]) : "&#8212;") + "</td></tr>";
+      });
+      h2 += "</tbody></table></div><p class=\"hint\">A Monte Carlo interval is intentionally not shown here: TECH3 contains covariances of the free unstandardized parameters, not of the derived STDYX coefficients.</p>";
+      if (any) html += h2;
+    }
+    $("intervals").innerHTML = html;
+  }
+
+  function renderCompare() {
+    if (!STATE.effects) { $("compare").innerHTML = EMPTY.compare; return; }
+    var opt = options();
+    var spec = STATE.effects.filter(function (x) { return x.kind === "specific" && x.chain && x.chain.length > 1; });
+    if (spec.length < 2) { $("compare").innerHTML = statusBlock("info", "Nothing to compare.", "A comparison needs two specific indirect effects of the same model; this file reports " + spec.length + "."); return; }
+    var html = '<div class="table-wrap"><table><caption>The difference between two specific indirect effects, with the interval built by drawing the coefficients of both chains together.</caption>' +
+      "<thead><tr><th>First</th><th>Second</th><th class=\"num\">Difference</th><th class=\"num\">Interval</th><th>Covariances</th></tr></thead><tbody>";
+    var i, j, refused = 0;
+    for (i = 0; i < spec.length; i++) for (j = i + 1; j < spec.length; j++) {
+      var A = assemble(spec[i], STATE.coef, false), B = assemble(spec[j], STATE.coef, false);
+      var lab1 = spec[i].chain.slice().reverse().join(" &#8594; "), lab2 = spec[j].chain.slice().reverse().join(" &#8594; ");
+      if (A.missing.length || B.missing.length) { refused++; continue; }
+      /* the two chains are drawn together, so that a link they share is the
+         same value in both products at every draw */
+      var names = [], est = [], se = [], idxA = [], idxB = [], k;
+      function put(spc, idx) {
+        for (k = 0; k < spc.links.length; k++) {
+          var at = names.indexOf(spc.links[k]);
+          if (at < 0) { names.push(spc.links[k]); est.push(spc.est[k]); se.push(spc.se[k]); at = names.length - 1; }
+          idx.push(at);
+        }
+      }
+      put(A, idxA); put(B, idxB);
+      var cov = [], a, b, compareCov = "off-diagonal covariances taken as zero";
+      for (a = 0; a < names.length; a++) { cov.push([]); for (b = 0; b < names.length; b++) cov[a].push(a === b ? se[a] * se[a] : 0); }
+      if (STATE.t1 && STATE.t3 && opt.useCov) {
+        var nums = names.map(function (nm) { var p = nm.split(" ON "); return MED.paramNumber(STATE.t1, p[0], p[1]); });
+        if (nums.every(function (x) { return !!x; })) {
+          var candidate = [], complete = true;
+          for (a = 0; a < names.length; a++) {
+            candidate.push([]);
+            for (b = 0; b < names.length; b++) {
+              var cv = STATE.t3[nums[a] + "|" + nums[b]];
+              if (cv === undefined || !isFinite(cv)) { complete = false; cv = (a === b ? se[a] * se[a] : 0); }
+              candidate[a].push(cv);
+            }
+          }
+          if (complete) { cov = candidate; compareCov = "full covariance matrix read from TECH3"; }
+        }
+      }
+      var Lm = MED.cholesky(cov);
+      var diffs = [], u = MED.rng(opt.seed + 7), pool = [], d;
+      if (Lm) {
+        for (d = 0; d < opt.draws; d++) {
+          while (pool.length < names.length) { var pr = MED.normalPair(u); pool.push(pr[0]); pool.push(pr[1]); }
+          var z = pool.splice(0, names.length), val = [];
+          for (a = 0; a < names.length; a++) {
+            var v2 = est[a];
+            for (b = 0; b <= a; b++) v2 += Lm[a][b] * z[b];
+            val.push(v2);
+          }
+          var p1 = 1, p2 = 1;
+          for (a = 0; a < idxA.length; a++) p1 *= val[idxA[a]];
+          for (a = 0; a < idxB.length; a++) p2 *= val[idxB[a]];
+          diffs.push(p1 - p2);
+        }
+        diffs.sort(function (x, y) { return x - y; });
+      }
+      var lo = (1 - opt.conf) / 2;
+      html += "<tr><td>" + esc(lab1) + "</td><td>" + esc(lab2) + "</td>" +
+        '<td class="num">' + f3(spec[i].est - spec[j].est) + "</td>" +
+        '<td class="num">' + (Lm ? f3(MED.quantile(diffs, lo)) + " to " + f3(MED.quantile(diffs, 1 - lo)) : "&#8212;") + "</td><td>" + esc(compareCov) + "</td></tr>";
+    }
+    html += "</tbody></table></div>";
+    html += '<p class="hint">An interval that does not contain zero says that the two paths carry different amounts of the effect. The coefficients of the two chains are drawn together, so a link they have in common takes the same value in both products at every draw.</p>';
+    if (refused) html += statusBlock("info", "Some pairs were left out.", refused + " pair" + (refused === 1 ? " was" : "s were") + " left out because a link of one of the chains is not in MODEL RESULTS.");
+    $("compare").innerHTML = html;
+  }
+
+  function renderAll() { renderEffects(); renderIntervals(); renderCompare(); }
+
+  var EMPTY = {};
+  function remember() { ["effects", "intervals", "compare"].forEach(function (id) { EMPTY[id] = $(id).innerHTML; }); }
+
+  function handleFile(file) {
+    readTextFile(file, function (text) {
+      STATE = { text: null, effects: null, std: null, coef: null, coefStd: null, t1: null, t3: null, ci: null, ciBoot: false, name: file.name || "" };
+      renderAll();
+      var d = diagnoseFile(text);
+      if (d === "empty") { $("report").innerHTML = statusBlock("bad", "Nothing to read.", "The file is empty."); return; }
+      if (d === "foreign") {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file carries none of the headings an " + MP + " output has, so it is not an output file.");
+        return;
+      }
+      if (d === "failed") { $("report").innerHTML = statusBlock("bad", "The results of this run are not to be interpreted.", mpwFailedText(text)); return; }
+      var eff = MED.readEffects(text, false);
+      if (!eff) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file has no <code>TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS</code> section, which is what <code>MODEL INDIRECT</code> produces. Add the effects you want to the MODEL INDIRECT command and run the model again.");
+        return;
+      }
+      STATE.text = text; STATE.effects = eff;
+      STATE.std = MED.readEffects(text, true);
+      STATE.coef = MED.readCoefficients(text, false);
+      STATE.coefStd = MED.readCoefficients(text, true);
+      STATE.t1 = MED.readTech1(text);
+      STATE.t3 = MED.readTech3(text);
+      STATE.ci = MED.readIntervals(text);
+      STATE.ciBoot = MED.intervalsAreBootstrap(text);
+      $("file-name").textContent = file.name || "";
+      var have = [], miss = [];
+      var opts = [];
+      (STATE.coef ? have : miss).push("the coefficients of MODEL RESULTS");
+      if (!STATE.std) opts.push("STDYX");
+      (STATE.std ? have : miss).push("the completely standardized effects");
+      if (!(STATE.t3 && STATE.t1)) opts.push("TECH1 TECH3");
+      (STATE.t3 && STATE.t1 ? have : miss).push("the covariances of the parameter estimates");
+      if (STATE.ci) have.push(STATE.ciBoot ? "the bootstrap intervals" : "the intervals of the CINTERVAL option");
+      function andList(a) { return a.length > 1 ? a.slice(0, -1).join(", ") + " and " + a[a.length - 1] : a[0]; }
+      var msg = "Read " + eff.length + " effect" + (eff.length === 1 ? "" : "s") + ", with " + andList(have) + ".";
+      if (miss.length) {
+        msg += (miss.length === 1
+          ? " The file does not carry " + miss[0] + "."
+          : " The file carries neither " + andList(miss).replace(/ and /, " nor ") + ".");
+        if (opts.length) msg += " Add <code>" + opts.join(" ") + "</code> to the OUTPUT command of the run to have " +
+          (miss.length === 1 ? "it." : "them.");
+      }
+      $("report").innerHTML = statusBlock(miss.length ? "warn" : "ok", "File read.", msg);
+      renderAll();
+    }, function () {
+      $("report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
+    });
+  }
+
+  remember();
+  var drop = $("drop"), input = $("file");
+  drop.addEventListener("click", function () { input.click(); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener("change", function () { if (input.files[0]) handleFile(input.files[0]); });
+  ["draws", "conf", "usecov"].forEach(function (id) { $(id).addEventListener("change", renderAll); });
+})();
+/* ==================================================================
+   Self-test
+   ================================================================== */
+function selfTest() {
+  var checks = [], failed = 0;
+  function ok(name, got, want, tol) {
+    var t = tol === undefined ? 1e-12 : tol;
+    var good = (typeof want === "number") ? (isFinite(got) && Math.abs(got - want) <= t) : (got === want);
+    if (!good) failed++;
+    checks.push({ name: name, got: got, want: want, ok: good });
+  }
+  function okTrue(name, cond) { ok(name, !!cond, true); }
+
+  /* ---- the generator and the normal draw ---- */
+  var u = MED.rng(12345), i, s = 0, s2 = 0, n = 200000, x;
+  for (i = 0; i < n; i++) { x = u(); s += x; s2 += x * x; }
+  ok("the generator has mean one half", s / n, 0.5, 3e-3);
+  ok("and variance one twelfth", s2 / n - (s / n) * (s / n), 1 / 12, 3e-3);
+  var u2 = MED.rng(999), m = 0, v = 0, k = 0, pair;
+  for (i = 0; i < 100000; i++) { pair = MED.normalPair(u2); m += pair[0] + pair[1]; v += pair[0] * pair[0] + pair[1] * pair[1]; k += 2; }
+  ok("the normal draw has mean zero", m / k, 0, 1e-2);
+  ok("and variance one", v / k, 1, 2e-2);
+
+  /* ---- the percentile ---- */
+  var sorted = [];
+  for (i = 0; i <= 1000; i++) sorted.push(i / 1000);
+  ok("the median of a uniform grid", MED.quantile(sorted, 0.5), 0.5, 1e-12);
+  ok("its lower 2.5 per cent", MED.quantile(sorted, 0.025), 0.025, 1e-12);
+  ok("its upper 2.5 per cent", MED.quantile(sorted, 0.975), 0.975, 1e-12);
+
+  /* ---- the normal distribution ---- */
+  ok("the normal distribution function at zero", MED.normCdf(0), 0.5, 1e-9);
+  ok("at 1.959963985, which is the 97.5 per cent point", MED.normCdf(1.959963985), 0.975, 1e-6);
+  ok("the quantile for a 95 per cent interval", MED.zFor(0.95), 1.959963985, 1e-5);
+  ok("the quantile for a 99 per cent interval", MED.zFor(0.99), 2.575829304, 1e-5);
+
+  /* ---- the factor of a covariance matrix ---- */
+  var L = MED.cholesky([[4, 2], [2, 5]]);
+  ok("the first element of the factor", L[0][0], 2, 1e-12);
+  ok("the element below it", L[1][0], 1, 1e-12);
+  ok("and the second diagonal element", L[1][1], 2, 1e-12);
+  ok("a matrix that is not positive definite is refused", MED.cholesky([[1, 2], [2, 1]]), null);
+
+  /* ---- the delta-method standard error (Sobel, 1982) ---- */
+  ok("the standard error of a product of two coefficients",
+     MED.sobelSE(0.5, 0.1, 0.4, 0.08), Math.sqrt(0.4 * 0.4 * 0.01 + 0.5 * 0.5 * 0.0064), 1e-12);
+  ok("with the term in their covariance",
+     MED.sobelSE(0.5, 0.1, 0.4, 0.08, 0.002),
+     Math.sqrt(0.4 * 0.4 * 0.01 + 0.5 * 0.5 * 0.0064 + 2 * 0.5 * 0.4 * 0.002), 1e-12);
+
+  /* ---- the interval from the joint distribution ----
+     The limits below were obtained separately by numerical integration of
+     the distribution of the product of two independent normal variables,
+     for a = 0.4 (SE 0.1) and b = 0.5 (SE 0.12): the 2.5, 50 and 97.5 per
+     cent points of that distribution are 0.079696, 0.194139 and 0.353587. */
+  var iv = MED.productInterval({ est: [0.4, 0.5], se: [0.1, 0.12], cov: null },
+    { draws: 200000, conf: 0.95, seed: 20120401 });
+  ok("the lower limit from the coefficients", iv.lower, 0.079696, 8e-3);
+  ok("the upper limit from the coefficients", iv.upper, 0.353587, 8e-3);
+  ok("and the middle of the distribution", iv.median, 0.194139, 6e-3);
+  var iv2 = MED.productInterval({ est: [0.4, 0.5], se: [0.1, 0.12], cov: null },
+    { draws: 200000, conf: 0.95, seed: 777 });
+  ok("another seed gives the same limits within the error of the draws", iv2.lower, iv.lower, 1.2e-2);
+  okTrue("the interval is not symmetric about the estimate",
+    Math.abs((0.2 - iv.lower) - (iv.upper - 0.2)) > 0.01);
+  var ivN = MED.productInterval({ est: [2.0, 3.0], se: [0.05, 0.05], cov: null },
+    { draws: 100000, conf: 0.95, seed: 4 });
+  ok("with coefficients far from zero it agrees with the symmetric interval",
+     ivN.lower, 6 - 1.959963985 * MED.sobelSE(2, 0.05, 3, 0.05), 0.01);
+
+  /* ---- the covariance is used when it is given ---- */
+  var ivC = MED.productInterval({ est: [0.4, 0.5], se: [0.1, 0.12], cov: [[0.01, 0.006], [0.006, 0.0144]] },
+    { draws: 100000, conf: 0.95, seed: 5 });
+  okTrue("a positive covariance widens the interval", (ivC.upper - ivC.lower) > (iv.upper - iv.lower));
+
+  /* ---- reading a real output ---- */
+  var real = [
+    "Mplus VERSION 8.8", "", "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " Y1       ON",
+    "    X1                 0.697      0.037     18.727      0.000", "",
+    " Y2       ON",
+    "    X1                 2.966      0.041     72.341      0.000", "",
+    " Y3       ON",
+    "    Y1                 0.722      0.036     20.056      0.000",
+    "    Y2                 0.738      0.033     22.364      0.000",
+    "    X1                 0.323      0.116      2.784      0.005", "",
+    "TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    "Effects from X1 to Y3", "",
+    "  Sum of indirect      2.691      0.063     42.390      0.000", "",
+    "  Specific indirect 1",
+    "    Y3",
+    "    Y1",
+    "    X1                 0.503      0.030     17.000      0.000", "",
+    "  Specific indirect 2",
+    "    Y3",
+    "    Y2",
+    "    X1                 2.188      0.065     33.852      0.000", "",
+    "QUALITY OF NUMERICAL RESULTS"
+  ].join("\n");
+  var eff = MED.readEffects(real, false);
+  okTrue("the effects block is found", !!eff);
+  ok("three effects are read", eff.length, 3);
+  ok("the sum of the indirect effects", eff[0].kind, "sum of indirect");
+  ok("its estimate", eff[0].est, 2.691, 1e-12);
+  ok("the first specific indirect effect", eff[1].est, 0.503, 1e-12);
+  ok("its chain is read from the outcome back to the predictor", eff[1].chain.join(","), "Y3,Y1,X1");
+  ok("the second specific indirect effect", eff[2].est, 2.188, 1e-12);
+  /* the same block with a total, a total indirect and a direct effect on
+     lines of their own */
+  var withTotal = real.replace("  Sum of indirect      2.691      0.063     42.390      0.000",
+    "  Total                3.014      0.098     30.755      0.000\n\n  Total indirect       2.691      0.063     42.390      0.000\n\n  Direct               0.323      0.116      2.784      0.005");
+  var eff2 = MED.readEffects(withTotal, false);
+  ok("a total, a total indirect and a direct effect are read too", eff2.length, 5);
+  ok("the total effect", eff2[0].kind + " " + eff2[0].est, "total 3.014");
+  ok("the direct effect", eff2[2].kind + " " + eff2[2].est, "direct 0.323");
+  ok("its chain", eff[2].chain.join(","), "Y3,Y2,X1");
+  ok("the predictor and the outcome of the pair", eff[1].from + "->" + eff[1].to, "X1->Y3");
+  var coef = MED.readCoefficients(real, false);
+  okTrue("the coefficients are read", !!coef);
+  ok("the first link of the first chain", coef["Y3 ON Y1"].est, 0.722, 1e-12);
+  ok("its standard error", coef["Y3 ON Y1"].se, 0.036, 1e-12);
+  ok("the second link", coef["Y1 ON X1"].est, 0.697, 1e-12);
+  ok("the product of the two links is the effect the file reports",
+     coef["Y3 ON Y1"].est * coef["Y1 ON X1"].est, 0.503, 6e-4);
+  ok("a file with no effects block is refused", MED.readEffects("Mplus VERSION 8\nMODEL RESULTS\n", false), null);
+
+  /* ---- the intervals the file itself gives, and the agreement of the
+     interval from the coefficients with a bootstrap interval ----
+     The results below are those of the sixteenth example of chapter 3 of
+     the Mplus User's Guide, run with BOOTSTRAP = 1000 and
+     CINTERVAL (BOOTSTRAP). */
+  var boot = [
+    "INPUT INSTRUCTIONS", "",
+    "  ANALYSIS: BOOTSTRAP = 1000;",
+    "  MODEL INDIRECT: y3 IND x1;",
+    "  OUTPUT: CINTERVAL (BOOTSTRAP);", "",
+    "INPUT READING TERMINATED NORMALLY", "",
+    "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " Y1       ON",
+    "    X1                 0.992      0.044     22.604      0.000", "",
+    " Y2       ON",
+    "    X1                 2.935      0.049     59.386      0.000", "",
+    " Y3       ON",
+    "    Y1                 0.507      0.020     25.724      0.000",
+    "    Y2                 0.746      0.019     39.779      0.000", "",
+    "TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    "Effects from X1 to Y3", "",
+    "  Sum of indirect      2.691      0.063     42.390      0.000", "",
+    "  Specific indirect 1",
+    "    Y3",
+    "    Y1",
+    "    X1                 0.503      0.030     17.000      0.000", "",
+    "  Specific indirect 2",
+    "    Y3",
+    "    Y2",
+    "    X1                 2.188      0.065     33.852      0.000", "",
+    "CONFIDENCE INTERVALS OF TOTAL, TOTAL INDIRECT, SPECIFIC INDIRECT, AND DIRECT EFFECTS", "",
+    "                  Lower .5%  Lower 2.5%    Lower 5%    Estimate    Upper 5%  Upper 2.5%   Upper .5%", "",
+    "Effects from X1 to Y3", "",
+    "  Sum of indirect    2.524       2.567       2.587       2.691       2.795       2.813       2.838", "",
+    "  Specific indirect 1",
+    "    Y3",
+    "    Y1",
+    "    X1               0.430       0.445       0.452       0.503       0.550       0.558       0.579", "",
+    "  Specific indirect 2",
+    "    Y3",
+    "    Y2",
+    "    X1               2.024       2.054       2.075       2.188       2.287       2.310       2.360", "",
+    "MUTHEN & MUTHEN"
+  ].join("\n");
+  var ci = MED.readIntervals(boot);
+  okTrue("the intervals the file gives are read", !!ci);
+  ok("three of them", ci.length, 3);
+  okTrue("they are recognised as bootstrap intervals", MED.intervalsAreBootstrap(boot));
+  ok("the lower 2.5 per cent point of the first specific indirect effect", ci[1].v[1], 0.445, 1e-12);
+  ok("its upper 2.5 per cent point", ci[1].v[5], 0.558, 1e-12);
+  ok("the lower .5 per cent point of the second", ci[2].v[0], 2.024, 1e-12);
+  var bootCoef = MED.readCoefficients(boot, false);
+  var mc1 = MED.productInterval(
+    { est: [bootCoef["Y3 ON Y1"].est, bootCoef["Y1 ON X1"].est],
+      se: [bootCoef["Y3 ON Y1"].se, bootCoef["Y1 ON X1"].se], cov: null },
+    { draws: 20000, conf: 0.95, seed: 20120401 });
+  ok("the lower limit from the coefficients meets the bootstrap one of the file", mc1.lower, ci[1].v[1], 0.01);
+  ok("and the upper limit meets it too", mc1.upper, ci[1].v[5], 0.01);
+  var mc2 = MED.productInterval(
+    { est: [bootCoef["Y3 ON Y2"].est, bootCoef["Y2 ON X1"].est],
+      se: [bootCoef["Y3 ON Y2"].se, bootCoef["Y2 ON X1"].se], cov: null },
+    { draws: 20000, conf: 0.95, seed: 20120401 });
+  ok("the same for the second indirect effect, lower limit", mc2.lower, ci[2].v[1], 0.02);
+  ok("and its upper limit", mc2.upper, ci[2].v[5], 0.02);
+
+  /* ---- TECH1 and TECH3 ---- */
+  var tech = [
+    "TECHNICAL 1 OUTPUT", "", "     PARAMETER SPECIFICATION", "",
+    "           BETA",
+    "              Y1            Y2            Y3",
+    "              ________      ________      ________",
+    " Y1                 0             0             0",
+    " Y2                 0             0             0",
+    " Y3                 4             5             0", "",
+    "           GAMMA",
+    "              X1",
+    "              ________",
+    " Y1                 1",
+    " Y2                 2",
+    " Y3                 3", "",
+    "TECHNICAL 3 OUTPUT", "",
+    "     ESTIMATED COVARIANCE MATRIX FOR PARAMETER ESTIMATES", "",
+    "                  1             2             3             4             5",
+    "              ________      ________      ________      ________      ________",
+    "      1           0.001369",
+    "      2           0.000100      0.001681",
+    "      3          -0.000200      0.000050      0.013456",
+    "      4           0.000030     -0.000040     -0.000900      0.001296",
+    "      5          -0.000010      0.000020     -0.000800      0.000060      0.001089", "",
+    "MUTHEN & MUTHEN"
+  ].join("\n");
+  var t1 = MED.readTech1(tech);
+  okTrue("TECH1 is read", !!t1);
+  ok("the parameter number of Y3 on Y1", MED.paramNumber(t1, "Y3", "Y1"), 4);
+  ok("the parameter number of Y1 on X1", MED.paramNumber(t1, "Y1", "X1"), 1);
+  ok("a parameter that is fixed has no number", MED.paramNumber(t1, "Y1", "Y2"), null);
+  var t3 = MED.readTech3(tech);
+  okTrue("TECH3 is read", !!t3);
+  ok("a variance on the diagonal", t3["4|4"], 0.001296, 1e-12);
+  ok("a covariance off it", t3["4|1"], 0.000030, 1e-12);
+  ok("the matrix is symmetric", t3["1|4"], t3["4|1"], 1e-15);
+  ok("the square root of the diagonal is the standard error", Math.sqrt(t3["1|1"]), 0.037, 1e-4);
+
+  return { checks: checks, failed: failed };
+}
+
+(function () {
+  if (!/[?&]selftest=1\b/.test(location.search)) return;
+  var out = selfTest(), banner = document.getElementById("selftest-banner");
+  var lines = out.checks.map(function (c) {
+    return (c.ok ? "OK   " : "FAIL ") + c.name + "  got " + c.got + ", wanted " + c.want;
+  });
+  if (banner) {
+    banner.hidden = false;
+    banner.innerHTML = '<div class="status ' + (out.failed ? "bad" : "ok") + '" role="status"><p><span class="tag">' +
+      (out.failed ? "&#10007; Self-test failed." : "&#10003; Self-test passed.") + "</span> " + out.checks.length +
+      " checks, " + out.failed + " failed. They cover the generator and the normal draw against their moments, the percentile function, the normal distribution and its quantiles, the factor of a covariance matrix, the delta-method standard error, the interval from the joint distribution against limits obtained by numerical integration, the reading of the effects, of the chains, of the coefficients, of TECH1 and of TECH3, the agreement of that interval with the bootstrap interval of a real output, and unsupported cases.</p></div>";
+  }
+  if (out.failed) console.error(lines.join("\n")); else console.log(lines.join("\n"));
+})();
+
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>

@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Latent class and latent profile enumeration from several Mplus output files: the consistent Akaike information criterion, the approximate weight of evidence, Bayes factors and correct model probabilities, the classification diagnostics, and the homogeneity and separation of the classes.">
-<title>Latent Class Enumeration &#183; semstudio.tools</title>
+<meta name="description" content="Latent class and latent profile enumeration from several Mplus output files: the consistent Akaike information criterion, the approximate weight of evidence, Bayes factors and relative BIC model probabilities, the classification diagnostics, and the homogeneity and separation of the classes.">
+<title>Latent Class and Latent Profile Analysis &#183; semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
@@ -23,6 +23,12 @@ table.enum td.best { font-weight: 700; }
 .flag.hi { color: #005AB5; }
 .flag.lo { color: #A24A00; }
 svg.chart { max-width: 100%; height: auto; display: block; }
+/* The criteria, one panel each: a grid that becomes a column on a narrow
+   screen, so that no panel is ever drawn smaller than it can be read. */
+.panel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.1rem 1.4rem; margin: 1rem 0; }
+.panel-chart { margin: 0; }
+.panel-chart figcaption { margin: 0 0 0.15rem; font-size: 0.95rem; }
+.panel-chart figcaption .hint { font-size: 0.92em; }
 </style>
 </head>
 <body>
@@ -32,8 +38,8 @@ svg.chart { max-width: 100%; height: auto; display: block; }
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All the tools</a>
   </nav>
-  <h1>Latent Class Enumeration</h1>
-  <p class="lede">Deciding how many classes a mixture model needs is done by comparing a series of fitted models, and the comparison rests in part on quantities M<em>plus</em> does not print. This page reads the output files of the whole series at once and assembles the enumeration table: the criteria M<em>plus</em> prints, the two it does not, the Bayes factor between adjacent models and the probability that each model in the set is the correct one, the classification diagnostics, and the homogeneity and separation of the classes of the model that is being considered.</p>
+  <h1>Latent Class and Latent Profile Analysis</h1>
+  <p class="lede">Deciding how many classes a latent class or latent profile model needs is done by comparing a series of fitted models, and the comparison rests in part on quantities built from the fit of the whole series. This page reads the output files of the whole series at once and assembles the enumeration table: the information criteria of every model in the series, the Bayes factor between adjacent models and the BIC-based relative probability of each model within the fitted candidate set, the classification diagnostics, and the homogeneity and separation of the classes of the model that is being considered.</p>
   <div class="callout" role="note">
     <strong>What to request from M<em>plus</em>.</strong> Fit the models from one class upward, each in its own run, and add <code>OUTPUT: TECH11 TECH14;</code> so that the two likelihood ratio tests are printed. For a latent class analysis of categorical indicators the item probabilities are printed on their own; for a latent profile analysis of continuous indicators the class means are in <code>MODEL RESULTS</code>. Nothing else is needed: every number this page uses is in the files. A warning printed by M<em>plus</em> is counted and reported; it does not remove a model from the table. What does remove it is a loglikelihood that was not replicated or a run that did not terminate normally.
   </div>
@@ -60,22 +66,27 @@ svg.chart { max-width: 100%; height: auto; display: block; }
   <div id="report" aria-live="polite"></div>
 </section>
 
-<section aria-labelledby="h-table">
-  <h2 id="h-table">The enumeration table</h2>
+<details class="fold" id="fold-h-table" data-autoopen>
+  <summary><h2 id="h-table">The enumeration table</h2></summary>
+  <div class="fold-body">
   <div class="row">
     <div class="field"><label class="check"><input type="checkbox" id="awe-alt"> Compute the approximate weight of evidence without the factor of two</label>
       <span class="hint">The two forms in circulation are set out under Methods. The page uses the one Masyn (2013, Eq. 17) gives unless this is ticked.</span></div>
   </div>
   <div id="results"><p class="hint">The table appears here once the output files have been read.</p></div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-plot">
-  <h2 id="h-plot">The criteria against the number of classes</h2>
+<details class="fold" id="fold-h-plot" data-autoopen>
+  <summary><h2 id="h-plot">The criteria against the number of classes</h2></summary>
+  <div class="fold-body">
   <div id="plot"><p class="hint">The plot appears here once at least two models have been read.</p></div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-one">
-  <h2 id="h-one">One model in detail</h2>
+<details class="fold" id="fold-h-one" data-autoopen>
+  <summary><h2 id="h-one">One model in detail</h2></summary>
+  <div class="fold-body">
   <div class="row">
     <div class="field w2"><label for="pick">Model</label><select id="pick"><option value="">&#8212;</option></select>
       <span class="hint">Class sizes, classification, homogeneity and separation are reported for the model chosen here.</span></div>
@@ -83,43 +94,46 @@ svg.chart { max-width: 100%; height: auto; display: block; }
       <span class="hint">Read only for a latent class analysis of categorical indicators.</span></div>
   </div>
   <div id="detail"><p class="hint">Choose a model above.</p></div>
-</section>
+  </div>
+</details>
 
 <details class="fold" id="fold-h-methods">
   <summary><h2 id="h-methods">Methods and formulas</h2></summary>
   <div class="fold-body">
 
   <h3>What the page reads</h3>
-  <p>From each file: the number of free parameters, the number of observations, the loglikelihood and the message that says whether its best value was replicated, the information criteria M<em>plus</em> prints, the entropy, the three tables of class counts and proportions, the table of average latent class probabilities, the two likelihood ratio tests of <code>TECH11</code> and <code>TECH14</code>, and either the results in the probability scale or the class means, whichever the model carries. The number of classes is read from the class counts table, and from the echoed <code>CLASSES</code> statement when that table is absent. What is missing from a file is named rather than assumed.</p>
+  <p>For each file, the page reads the free-parameter count, sample size, loglikelihood and replication message, information criteria, entropy, class counts and proportions, average posterior probabilities, <code>TECH11</code>/<code>TECH14</code> tests, and either response probabilities or class means. The number of classes is taken from the class-count table or, if needed, from the echoed <code>CLASSES</code> statement. Missing quantities are reported rather than imputed.</p>
 
-  <h3>The two criteria M<em>plus</em> does not print</h3>
+  <h3>Two further criteria</h3>
   <p>M<em>plus</em> prints the Akaike information criterion, the Bayesian information criterion and the sample-size adjusted Bayesian information criterion. Two further criteria are used in the enumeration literature and have to be computed by hand from the loglikelihood, the number of free parameters and the sample size, all of which are in the output. The consistent Akaike information criterion (Bozdogan, 1987) is</p>
   <div class="eq"><math display="block"><mrow><mi>CAIC</mi><mo>=</mo><mo>&#x2212;</mo><mn>2</mn><mo>(</mo><mi>LL</mi><mo>)</mo><mo>+</mo><mi>d</mi><mo>[</mo><mi>log</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>+</mo><mn>1</mn><mo>]</mo></mrow></math></div>
   <p>and the approximate weight of evidence criterion (Banfield &amp; Raftery, 1993) is</p>
   <div class="eq"><math display="block"><mrow><mi>AWE</mi><mo>=</mo><mo>&#x2212;</mo><mn>2</mn><mo>(</mo><mi>LL</mi><mo>)</mo><mo>+</mo><mn>2</mn><mi>d</mi><mo>[</mo><mi>log</mi><mo>(</mo><mi>n</mi><mo>)</mo><mo>+</mo><mn>1.5</mn><mo>]</mo></mrow></math></div>
   <p>The two sources give the criterion in different forms. Masyn (2013, Eq. 17) writes it as above, with the factor of two, attributing it to Banfield and Raftery (1993); Nylund-Gibson and Choi (2018, Table 1) write the same expression without that factor. The factor of two doubles the weight of the penalty, so the two forms can be smallest at different numbers of classes. The page computes the first and the box above the table switches it to the second, so that a table can be built in whichever form the work it is being compared with used.</p>
-  <p class="where">Here <var>LL</var> is the loglikelihood, <var>d</var> the number of free parameters and <var>n</var> the sample size; the logarithm is natural. Both are given in this form by Masyn (2013, Eqs. 16 and 17), and both are read the way the Bayesian criterion is read: the smaller value is preferred, and a series of values is worth looking at as a whole, for the number of classes after which the decrement becomes small.</p>
+  <p>Here <em>LL</em> is the loglikelihood, <em>d</em> the number of free parameters, and <em>n</em> the sample size. For CAIC and AWE, smaller values indicate relatively greater support within the fitted sequence; the pattern across class counts is more informative than a single isolated difference (Masyn, 2013, Eqs. 16–17).</p>
   <p>The page recomputes the Bayesian criterion from the same three numbers and compares it with the printed one. They agree to the rounding of the output unless the file has been edited or the sample size has been read wrongly, which is why the check is made and reported.</p>
 
-  <h3>The Bayes factor and the correct model probability</h3>
+  <h3>The Bayes factor and the relative model probability (cmP)</h3>
   <p>Both are functions of the Bayesian information criterion alone. Writing the Schwarz information criterion as <math><mrow><mi>SIC</mi><mo>=</mo><mo>&#x2212;</mo><mn>0.5</mn><mo>(</mo><mi>BIC</mi><mo>)</mo></mrow></math>, the Bayes factor comparing a model <var>A</var> with a model <var>B</var> is</p>
   <div class="eq"><math display="block"><mrow><msub><mi>BF</mi><mrow><mi>A</mi><mo>,</mo><mi>B</mi></mrow></msub><mo>=</mo><mi>exp</mi><mo>[</mo><msub><mi>SIC</mi><mi>A</mi></msub><mo>&#x2212;</mo><msub><mi>SIC</mi><mi>B</mi></msub><mo>]</mo></mrow></math></div>
-  <p class="where">The table gives it for each model against the one with a class more. Masyn (2013, Eq. 18) prints the exponent with a plus sign and Nylund-Gibson and Choi (2018, Table 1) with a minus; the page uses the difference, which is what both texts describe in words and what the correct model probability below reduces to. Read on Jeffreys' scale as both sources give it, a value between 1 and 3 is weak evidence for the model with fewer classes, between 3 and 10 moderate, above 10 strong. A value below 1 points the other way, to the model with a class more, and its reciprocal measures that evidence on the same scale.</p>
-  <p>The correct model probability of a model is its share of the evidence within the set of models that were fitted, on the assumption that the correct model is one of them:</p>
+  <p class="where">The table gives it for each model against the one with a class more. Masyn (2013, Eq. 18) prints the exponent with a plus sign and Nylund-Gibson and Choi (2018, Table 1) with a minus; the page uses the difference, which is what both texts describe in words and what the relative BIC model probability below reduces to. Read on Jeffreys' scale as both sources give it, a value between 1 and 3 is weak evidence for the model with fewer classes, between 3 and 10 moderate, above 10 strong. A value below 1 points the other way, to the model with a class more, and its reciprocal measures that evidence on the same scale.</p>
+  <p>The quantity termed <em>correct model probability</em> (cmP) in the cited literature is reported here as a <em>relative BIC model probability</em>: a BIC-based evidence share within the fitted candidate set, conditional on the assumption that the target model is represented in that set.</p>
   <div class="eq"><math display="block"><mrow><msub><mi>cmP</mi><mi>A</mi></msub><mo>=</mo><mfrac><mrow><mi>exp</mi><mo>[</mo><msub><mi>SIC</mi><mi>A</mi></msub><mo>&#x2212;</mo><msub><mi>SIC</mi><mi>max</mi></msub><mo>]</mo></mrow><mrow><munderover><mo>&#x2211;</mo><mrow><mi>j</mi><mo>=</mo><mn>1</mn></mrow><mi>J</mi></munderover><mi>exp</mi><mo>[</mo><msub><mi>SIC</mi><mi>j</mi></msub><mo>&#x2212;</mo><msub><mi>SIC</mi><mi>max</mi></msub><mo>]</mo></mrow></mfrac></mrow></math></div>
-  <p class="where">Here <math><msub><mi>SIC</mi><mi>max</mi></msub></math> is the largest of the <var>J</var> values in the set. This is Masyn (2013, Eq. 20); the same formula in Nylund-Gibson and Choi (2018, Table 1) carries a transcription slip in the summation, whose index is the one written here and the one that makes the values sum to one, which is the property both texts state in words. Subtracting the largest value before taking the exponential changes nothing in the ratio and keeps it computable when the differences are large. Because the probabilities are shares within the set, adding or removing a model changes them all. They say which of the models fitted is best supported, and they say nothing about whether the set contains the right one.</p>
+  <p>Here <span class="nowrap"><em>SIC</em><sub>max</sub></span> is the largest value in the candidate set. Subtracting it before exponentiation improves numerical stability without changing the ratios. The resulting probabilities sum to one across the models loaded, so adding or removing a candidate changes every value. They describe relative support within that set and do not assess whether the set contains an adequate model.</p>
 
   <h3>The entropy of the classification, and the integrated completed likelihood</h3>
   <p>M<em>plus</em> prints one classification summary, the relative entropy of the solution, which Masyn (2013, Eq. 23) defines as</p>
   <div class="eq"><math display="block"><mrow><msub><mi>E</mi><mi>K</mi></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><munderover><mo>&#x2211;</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><mo>[</mo><mo>&#x2212;</mo><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub><mi>ln</mi><mo>(</mo><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo>)</mo><mo>]</mo></mrow><mrow><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></mfrac></mrow></math></div>
-  <p class="where">Here <math><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub></math> is the posterior probability that case <var>i</var> belongs to class <var>k</var>. The double sum in the numerator is the entropy of the classification itself, in the units of the loglikelihood; the division by <math><mrow><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math> turns it into the proportion between 0 and 1 that is printed. The page reverses that division: the entropy of the classification is <math><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>E</mi><mi>K</mi></msub><mo>)</mo><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math>, and with one class it is zero, since there is nothing to be uncertain about.</p>
-  <p>That quantity is what separates the Bayesian criterion from the integrated completed likelihood of Biernacki, Celeux and Govaert (2000). Their criterion (Eq. 3.11) is the completed loglikelihood, that is the loglikelihood of the data together with the class memberships, penalized as the Bayesian criterion penalizes the loglikelihood of the data alone; and the completed loglikelihood is the ordinary one less the entropy of the classification (Eq. 2.4). Written on the scale the table uses, where the smaller value is preferred,</p>
-  <div class="eq"><math display="block"><mrow><mi>ICL</mi><mo>-</mo><mi>BIC</mi><mo>=</mo><mi>BIC</mi><mo>+</mo><mn>2</mn><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>E</mi><mi>K</mi></msub><mo>)</mo><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math></div>
-  <p class="where">which is the description its authors give of it in the first of their comments on that equation: the ordinary Bayesian criterion penalized by the estimated mean entropy. A solution whose classes overlap is penalized twice, once for the parameters it spends and once for the cases it cannot place, which is why this criterion tends to fewer classes than the Bayesian one and is the criterion to use when the classes are meant to be used as groups rather than as a description of the distribution.</p>
-  <p>One qualification. The equation the authors write uses the entropy of the classification each case is actually assigned to, which is a sum over the individual posterior probabilities and is in the file only when it has been saved with <code>SAVEDATA</code>. What the printed relative entropy gives back is the entropy of the whole posterior distribution, which is what the same authors call the estimated mean entropy and equate the penalty with. The two coincide when the classification is sharp and differ when it is not, in the direction of the sharper solution.</p>
+  <p class="where">Here <math><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mi>k</mi></mrow></msub></math> is the posterior probability that case <var>i</var> belongs to class <var>k</var>. The double sum in the numerator is the <em>soft posterior entropy</em> <var>H</var>, in the units of the loglikelihood. The page can therefore recover it exactly from the printed relative entropy as <math><mrow><mi>H</mi><mo>=</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>E</mi><mi>K</mi></msub><mo>)</mo><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math>. With one class it is zero, since there is nothing to classify.</p>
+  <p>Biernacki, Celeux and Govaert (2000, Eq. 3.11) define ICL-BIC from the <em>completed</em> likelihood: the observed data are supplemented by a class allocation and the resulting likelihood is penalized in the same BIC fashion. With the MAP allocation <math><msub><mover><mi>z</mi><mo>^</mo></mover><mi>i</mi></msub></math>, the same criterion on the smaller-is-better scale used by M<em>plus</em> can be written as</p>
+  <div class="eq"><math display="block"><mrow><mi>ICL</mi><mo>-</mo><msub><mi>BIC</mi><mi>MAP</mi></msub><mo>=</mo><mi>BIC</mi><mo>&#x2212;</mo><mn>2</mn><munderover><mo>&#x2211;</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><mi>log</mi><mo>(</mo><msub><mover><mi>p</mi><mo>^</mo></mover><mrow><mi>i</mi><mo>,</mo><msub><mover><mi>z</mi><mo>^</mo></mover><mi>i</mi></msub></mrow></msub><mo>)</mo></mrow></math></div>
+  <p class="where">This exact MAP form needs the case-level posterior probabilities. They are not contained in the ordinary printed summary, so it cannot in general be reconstructed from an <code>.out</code> file alone.</p>
+  <p>A widely used entropy approximation replaces that casewise MAP term by the soft posterior entropy <var>H</var>. This is the sense in which ICL-BIC is often described as BIC penalized by estimated classification entropy. Because M<em>plus</em> does print relative entropy, this is the version the page can compute without requiring a separate <code>SAVEDATA</code> file:</p>
+  <div class="eq"><math display="block"><mrow><mi>ICL</mi><mo>-</mo><msub><mi>BIC</mi><mrow><mi>entropy</mi></mrow></msub><mo>=</mo><mi>BIC</mi><mo>+</mo><mn>2</mn><mi>H</mi><mo>=</mo><mi>BIC</mi><mo>+</mo><mn>2</mn><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>E</mi><mi>K</mi></msub><mo>)</mo><mi>n</mi><mi>log</mi><mo>(</mo><mi>K</mi><mo>)</mo></mrow></math></div>
+  <p class="where">The table labels this value explicitly as an entropy approximation so that it is not confused with a reconstruction of the original casewise MAP completed likelihood. Both reward solutions with well separated classes; the entropy approximation is fully determined by the relative entropy printed by M<em>plus</em>.</p>
 
   <h3>Classification</h3>
-  <p>Relative entropy summarizes in one number how sharply the cases are assigned; values above .80 indicate good classification of individual cases (Clark &amp; Muthén, 2009, as reported by Nylund-Gibson &amp; Choi, 2018). It is a summary of the model as fitted, and Masyn (2013) is explicit that it was never intended as a criterion for choosing the number of classes, since classification uncertainty can grow with the number of classes for reasons that have nothing to do with the model being right. Three further diagnostics are class-specific, and all three are computable from what M<em>plus</em> prints.</p>
+  <p>Relative entropy summarizes classification separation. Values above .80 have been used as a guideline for relatively clear individual classification (Clark &amp; Muthén, 2009, as reported by Nylund-Gibson &amp; Choi, 2018). Entropy is not used here to select the number of classes, because it can change with class count for reasons unrelated to comparative model support (Masyn, 2013). Class-specific diagnostics are reported separately.</p>
   <p>The <em>average posterior class probability</em> of a class is the mean posterior probability of that class among the cases assigned to it (Masyn, 2013, Eq. 24). It is the diagonal of the table of average latent class probabilities for most likely class membership, which M<em>plus</em> prints in full. Nagin (2005, §5.5.1) sets the working minimum at .70 for every class. The page reports the diagonal, its smallest value, and for each class the class into which its cases are most often confused, which the off-diagonal of the same table gives directly.</p>
   <p>The <em>odds of correct classification</em> put that probability against what assigning at random would achieve (Nagin, 2005, Eq. 5.2; Masyn, 2013, Eq. 25):</p>
   <div class="eq"><math display="block"><mrow><msub><mi>OCC</mi><mi>k</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>AvePP</mi><mi>k</mi></msub><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mi>AvePP</mi><mi>k</mi></msub><mo>)</mo></mrow><mrow><msub><mover><mi>&#x3C0;</mi><mo>^</mo></mover><mi>k</mi></msub><mo>/</mo><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msub><mover><mi>&#x3C0;</mi><mo>^</mo></mover><mi>k</mi></msub><mo>)</mo></mrow></mfrac></mrow></math></div>
@@ -136,13 +150,13 @@ svg.chart { max-width: 100%; height: auto; display: block; }
 
   <h3>The likelihood ratio tests, and the replication of the loglikelihood</h3>
   <p>The two tests are read from the file rather than computed: the Vuong-Lo-Mendell-Rubin test and its adjusted form from <code>TECH11</code>, the parametric bootstrapped test from <code>TECH14</code>. Both compare a model with <var>K</var> classes against one with <var>K</var>&#8201;&#8722;&#8201;1, and a p value that is not significant supports the model with fewer classes (Lo, Mendell &amp; Rubin, 2001; McLachlan &amp; Peel, 2000; Nylund, Asparouhov &amp; Muthén, 2007). The page places each p value on the row of the model that requested it and states plainly when the section is missing from a file, since a series in which <code>TECH11</code> and <code>TECH14</code> were not requested is a series in which those columns are empty rather than one in which the tests were passed.</p>
-  <p>The page also reads the message about the replication of the best loglikelihood. A model whose best loglikelihood was not replicated has not been shown to have reached its maximum, and its criteria are the criteria of whatever local maximum the run stopped at; the row is marked and the marking is not removed by anything else in the table. The remedy is the one M<em>plus</em> states: more random starts.</p>
+  <p>The page records whether the best loglikelihood was replicated across random starts. If it was not replicated, the solution may represent a local maximum; information criteria and classification diagnostics are therefore flagged. Increasing the number of random starts is the standard follow-up check.</p>
 
   <h3>What this page does not compute, and why</h3>
-  <p>Two things are left out. The first is the bootstrap confidence interval for the estimated class proportions that Masyn (2013) puts next to the modal proportions: it comes from a resampling run and not from the output of a single fit. The second is the exact integrated completed likelihood, which needs the posterior probabilities of the individual cases; the version in the table uses the quantity the printed relative entropy gives back, as the section above sets out. The rule this site follows is that a formula is taken from the work that states it and from nowhere else, and that a quantity which cannot be computed from the file is named rather than approximated in silence.</p>
+  <p>Two quantities are not reconstructed from a single <code>.out</code> file: bootstrap confidence intervals for class proportions, which require resampling, and the exact integrated completed likelihood, which requires case-level posterior probabilities. The table therefore reports only quantities supported by the loaded output and labels the entropy-based ICL approximation explicitly.</p>
 
   <h3>Self-test</h3>
-  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of every section from synthetic outputs written for the purpose, the two criteria against their formulas written out a second way, the Bayes factor and the correct model probabilities against their definitions and against the requirement that they sum to one, the homogeneity and separation flags at their cutoffs, the standardized difference against its formula, and the cases the page has to refuse.</p>
+  <p>Append <code>?selftest=1</code> to check output parsing, enumeration criteria, Bayes factors, relative BIC model probabilities, class diagnostics, standardized differences, and unsupported inputs.</p>
   </div>
 </details>
 
@@ -175,6 +189,225 @@ svg.chart { max-width: 100%; height: auto; display: block; }
   <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
 </footer>
 <script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -199,10 +432,105 @@ function niceTicks(lo, hi, wanted) {
    Reading a file
    ================================================================== */
 
+/* The reasons a run is refused, in the words of what M<em>plus</em> printed. */
+function mpwFailedText(text) {
+  var w = MPWARN.classify(text), i, s = "";
+  for (i = 0; i < w.blocking.length; i++) {
+    var b = w.blocking[i];
+    s += "<li>" + (b.txt ? "<q>" + esc(b.txt) + "</q> &#8212; " : "") + b.say + ".</li>";
+  }
+  return "M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run." +
+    "<ul>" + s + "</ul>" +
+    "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
+}
+
+/* What the run contains besides its estimates: a serious message is named
+   and put in front of the result, a note is named and left as a note. */
+function mpwNote(text) {
+  var w = MPWARN.classify(text), bits = w.serious, i, s;
+  if (bits.length) {
+    s = "";
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].text));
+    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+  }
+  if (w.info.length || w.ignored.length) {
+    s = "";
+    var notes = w.info.concat(w.ignored);
+    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
+    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + s + "." };
+  }
+  return null;
+}
+
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
 function diagnoseFile(text) {
   if (!text || !text.replace(/\s/g, "").length) return "empty";
   if (/Mplus VERSION/i.test(text) || /MODEL FIT INFORMATION/.test(text) ||
-      /INPUT INSTRUCTIONS/.test(text) || /TESTS OF MODEL FIT/.test(text)) return "mplus";
+      /INPUT INSTRUCTIONS/.test(text) || /TESTS OF MODEL FIT/.test(text)) {
+  /* A run whose estimation failed prints numbers all the same; they are
+     the last values the algorithm held, not estimates of anything. */
+  if (MPWARN.classify(text).blocking.length) return "failed";
+    return "mplus";
+  }
   return "foreign";
 }
 
@@ -393,14 +721,14 @@ function caic(ll, d, n) { return -2 * ll + d * (Math.log(n) + 1); }
 function awe(ll, d, n, halved) { return -2 * ll + (halved ? 1 : 2) * d * (Math.log(n) + 1.5); }
 function aweHalved() { var el = $("awe-alt"); return !!(el && el.checked); }
 
-/* The entropy of the fuzzy classification, recovered from the relative entropy
-   Mplus prints, by inverting Masyn (2013, Eq. 23). */
+/* Soft posterior entropy, recovered from the relative entropy Mplus prints
+   by inverting Masyn (2013, Eq. 23). */
 function classificationEntropy(relative, n, k) {
   if (!(k > 1)) return 0;
   if (!isFinite(relative) || !isFinite(n)) return NaN;
   return (1 - relative) * n * Math.log(k);
 }
-function iclBic(bic, relative, n, k) {
+function iclBicEntropyApprox(bic, relative, n, k) {
   var e = classificationEntropy(relative, n, k);
   return isFinite(e) ? bic + 2 * e : NaN;
 }
@@ -475,6 +803,7 @@ function addFile(text, name) {
   var d = diagnoseFile(text);
   if (d === "empty") return { error: "The file " + esc(name) + " is empty." };
   if (d === "foreign") return { error: "The file " + esc(name) + " is not an " + MP + " output file. Nothing was read from it." };
+  if (d === "failed") return { error: esc(name) + ": " + mpwFailedText(text) };
   var f;
   try { f = readOut(text, name); }
   catch (err) { return { error: "The file " + esc(name) + " could not be read: " + esc(err.message) + "." }; }
@@ -506,7 +835,7 @@ function crossChecks() {
   }
   var ks = FILES.map(function (f) { return f.k; }), gap = [];
   for (i = 1; i < ks.length; i++) if (ks[i] !== ks[i - 1] + 1) gap.push(ks[i - 1] + " and " + ks[i]);
-  if (gap.length) msgs.push({ kind: "warn", text: "The series has a gap between " + esc(gap.join(", and between ")) + ". The Bayes factor of a row compares it with the next row present, not with the model with one class more, and the correct model probabilities are shares within the set that was loaded." });
+  if (gap.length) msgs.push({ kind: "warn", text: "The series has a gap between " + esc(gap.join(", and between ")) + ". The Bayes factor of a row compares it with the next row present, not with the model with one class more, and the relative BIC model probabilities are shares within the set that was loaded." });
   var badLL = FILES.filter(function (f) { return f.replicated === false; });
   if (badLL.length) msgs.push({ kind: "bad", text: "The best loglikelihood was not replicated for " + esc(badLL.map(function (f) { return f.k + " classes"; }).join(", ")) + ". Those solutions have not been shown to be maxima; rerun them with more random starts before reading anything else in the table." });
   var noRep = FILES.filter(function (f) { return f.replicated === null && f.k > 1; });
@@ -544,15 +873,15 @@ function enumerationTable() {
     f = FILES[i];
     var v = { bic: bics[i], sabic: f.sabic, caic: caic(f.ll, f.npar, f.n),
               awe: awe(f.ll, f.npar, f.n, aweHalved()), aic: f.aic,
-              icl: iclBic(bics[i], f.entropy, f.n, f.k) };
+              icl: iclBicEntropyApprox(bics[i], f.entropy, f.n, f.k) };
     vals.push(v);
     for (j = 0; j < cols.length; j++) if (isFinite(v[cols[j]]) && v[cols[j]] < best[cols[j]].v) best[cols[j]] = { v: v[cols[j]], i: i };
   }
-  var html = "<div class=\"table-wrap\"><table class=\"enum\"><caption>Every model that was loaded. The smallest value of each criterion is in bold. The Bayes factor of a row compares that model with the next row of the table; the correct model probabilities sum to one over the models loaded.</caption><thead><tr>" +
+  var html = "<div class=\"table-wrap\"><table class=\"enum\"><caption>Every model that was loaded. The smallest value of each criterion is in bold. The Bayes factor of a row compares that model with the next row of the table; the relative BIC model probabilities sum to one over the models loaded.</caption><thead><tr>" +
     "<th scope=\"col\">Classes</th><th scope=\"col\" class=\"num\">Parameters</th><th scope=\"col\" class=\"num\">Loglikelihood</th>" +
     "<th scope=\"col\" class=\"num\">AIC</th><th scope=\"col\" class=\"num\">BIC</th><th scope=\"col\" class=\"num\">SABIC</th>" +
     "<th scope=\"col\" class=\"num\">CAIC</th><th scope=\"col\" class=\"num\">AWE</th>" +
-    "<th scope=\"col\" class=\"num\">ICL-BIC</th>" +
+    "<th scope=\"col\" class=\"num\">ICL-BIC <span class=\"hint\">(entropy approx.)</span></th>" +
     "<th scope=\"col\" class=\"num\">VLMR p</th><th scope=\"col\" class=\"num\">LMR p</th><th scope=\"col\" class=\"num\">BLRT p</th>" +
     "<th scope=\"col\" class=\"num\">BF</th><th scope=\"col\" class=\"num\">cmP</th>" +
     "<th scope=\"col\" class=\"num\">Entropy</th><th scope=\"col\" class=\"num\">Smallest class</th></tr></thead><tbody>";
@@ -612,9 +941,9 @@ function criteriaPlot() {
     { key: "sabic", label: "SABIC" },
     { key: "caic", label: "CAIC" },
     { key: "awe", label: "AWE" },
-    { key: "icl", label: "ICL-BIC" }
+    { key: "icl", label: "ICL-BIC (entropy)" }
   ];
-  var i, s, data = {}, lo = Infinity, hi = -Infinity;
+  var i, s, data = {}, any = false;
   for (s = 0; s < series.length; s++) {
     data[series[s].key] = [];
     for (i = 0; i < FILES.length; i++) {
@@ -624,65 +953,66 @@ function criteriaPlot() {
       else if (series[s].key === "sabic") v = f.sabic;
       else if (series[s].key === "caic") v = caic(f.ll, f.npar, f.n);
       else if (series[s].key === "awe") v = awe(f.ll, f.npar, f.n, aweHalved());
-      else v = iclBic(isFinite(f.bic) ? f.bic : bicFrom(f.ll, f.npar, f.n), f.entropy, f.n, f.k);
+      else v = iclBicEntropyApprox(isFinite(f.bic) ? f.bic : bicFrom(f.ll, f.npar, f.n), f.entropy, f.n, f.k);
       data[series[s].key].push(v);
-      if (isFinite(v)) { if (v < lo) lo = v; if (v > hi) hi = v; }
+      if (isFinite(v)) any = true;
     }
   }
-  if (!isFinite(lo) || !isFinite(hi)) return "<p class=\"hint\">No criterion could be computed for these files.</p>";
-  if (hi === lo) { hi = lo + 1; lo = lo - 1; }
-  var pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
-  var W = 720, H = 420, L = 92, R = 132, T = 24, B = 56;
+  if (!any) return "<p class=\"hint\">No criterion could be computed for these files.</p>";
+
   var ks = FILES.map(function (f) { return f.k; });
   var kmin = ks[0], kmax = ks[ks.length - 1];
-  function X(k) { return kmax === kmin ? L + (W - L - R) / 2 : L + (k - kmin) / (kmax - kmin) * (W - L - R); }
-  function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
-  var svg = "<svg class=\"chart\" viewBox=\"0 0 " + W + " " + H + "\" role=\"img\" aria-label=\"The information criteria against the number of classes\">";
-  svg += "<rect x=\"0\" y=\"0\" width=\"" + W + "\" height=\"" + H + "\" fill=\"none\"></rect>";
-  var t, tickVals = niceTicks(lo, hi, 5);
-  for (t = 0; t < tickVals.length; t++) {
-    var vv = tickVals[t], yy = Y(vv);
-    svg += "<line x1=\"" + L + "\" y1=\"" + yy.toFixed(1) + "\" x2=\"" + (W - R) + "\" y2=\"" + yy.toFixed(1) + "\" stroke=\"#D8D8D8\" stroke-width=\"1\"></line>";
-    svg += "<text x=\"" + (L - 8) + "\" y=\"" + (yy + 5).toFixed(1) + "\" text-anchor=\"end\" fill=\"#444\">" + Math.round(vv) + "</text>";
-  }
-  svg += "<text transform=\"translate(20," + ((T + H - B) / 2).toFixed(1) + ") rotate(-90)\" text-anchor=\"middle\" fill=\"#333\">criterion value</text>";
-  for (i = 0; i < ks.length; i++) {
-    var xx = X(ks[i]);
-    svg += "<text x=\"" + xx.toFixed(1) + "\" y=\"" + (H - B + 22) + "\" text-anchor=\"middle\" fill=\"#444\">" + ks[i] + "</text>";
-  }
-  svg += "<line x1=\"" + L + "\" y1=\"" + (H - B) + "\" x2=\"" + (W - R) + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
-  svg += "<line x1=\"" + L + "\" y1=\"" + T + "\" x2=\"" + L + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.4\"></line>";
-  svg += "<text x=\"" + ((L + W - R) / 2) + "\" y=\"" + (H - 8) + "\" text-anchor=\"middle\" fill=\"#333\">Number of classes</text>";
-  var labelY = [];
-  for (s = 0; s < series.length; s++) {
-    var lastIdx = ks.length - 1;
-    while (lastIdx >= 0 && !isFinite(data[series[s].key][lastIdx])) lastIdx--;
-    labelY.push({ s: s, y: lastIdx >= 0 ? Y(data[series[s].key][lastIdx]) : NaN });
-  }
-  var placed = labelY.filter(function (o) { return isFinite(o.y); }).sort(function (a, b) { return a.y - b.y; });
-  for (i = 1; i < placed.length; i++) if (placed[i].y - placed[i - 1].y < 17) placed[i].y = placed[i - 1].y + 17;
-  var shift = placed.length ? Math.max(0, placed[placed.length - 1].y - (H - B)) : 0;
-  for (i = 0; i < placed.length; i++) placed[i].y -= shift;
-  var labelFor = {};
-  for (i = 0; i < placed.length; i++) labelFor[placed[i].s] = placed[i].y;
-  for (s = 0; s < series.length; s++) {
-    var pts = [], col = PALETTE[s % PALETTE.length];
-    for (i = 0; i < ks.length; i++) {
-      var val = data[series[s].key][i];
-      if (!isFinite(val)) continue;
-      pts.push(X(ks[i]).toFixed(1) + "," + Y(val).toFixed(1));
+
+  /* One panel per criterion, each on its own scale. What is read off these
+     is the shape of a criterion as classes are added, and where it turns;
+     the levels of two criteria are not comparable, so they do not share an
+     axis and do not lie on top of one another. */
+  function panel(idx) {
+    var key = series[idx].key, vals = data[key], col = PALETTE[idx % PALETTE.length];
+    var lo = Infinity, hi = -Infinity, j;
+    for (j = 0; j < vals.length; j++) if (isFinite(vals[j])) { if (vals[j] < lo) lo = vals[j]; if (vals[j] > hi) hi = vals[j]; }
+    if (!isFinite(lo)) return "<figure class=\"panel-chart\"><figcaption><strong>" + series[idx].label +
+      "</strong> <span class=\"hint\">not available for these files</span></figcaption></figure>";
+    if (hi === lo) { hi = lo + 1; lo = lo - 1; }
+    var pad = (hi - lo) * 0.14; lo -= pad; hi += pad;
+    var W = 300, H = 182, L = 56, R = 12, T = 12, B = 44;
+    function X(k) { return kmax === kmin ? L + (W - L - R) / 2 : L + (k - kmin) / (kmax - kmin) * (W - L - R); }
+    function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
+    var best = -1;
+    for (j = 0; j < vals.length; j++) if (isFinite(vals[j]) && (best < 0 || vals[j] < vals[best])) best = j;
+    var g = "<svg class=\"chart\" viewBox=\"0 0 " + W + " " + H + "\" role=\"img\" aria-label=\"" +
+      esc(series[idx].label) + " against the number of classes; the lowest value is at " +
+      (best >= 0 ? ks[best] + " classes" : "no model") + "\">";
+    var ticks = niceTicks(lo, hi, 3), t;
+    for (t = 0; t < ticks.length; t++) {
+      var yy = Y(ticks[t]);
+      if (yy < T - 1 || yy > H - B + 1) continue;
+      g += "<line x1=\"" + L + "\" y1=\"" + yy.toFixed(1) + "\" x2=\"" + (W - R) + "\" y2=\"" + yy.toFixed(1) + "\" stroke=\"#E2E2E2\" stroke-width=\"1\"></line>";
+      g += "<text x=\"" + (L - 6) + "\" y=\"" + (yy + 4).toFixed(1) + "\" text-anchor=\"end\" fill=\"#444\">" + Math.round(ticks[t]) + "</text>";
     }
-    if (pts.length < 1) continue;
-    svg += "<polyline points=\"" + pts.join(" ") + "\" fill=\"none\" stroke=\"" + col + "\" stroke-width=\"2.2\"></polyline>";
-    for (i = 0; i < ks.length; i++) {
-      var v2 = data[series[s].key][i];
-      if (!isFinite(v2)) continue;
-      svg += "<circle cx=\"" + X(ks[i]).toFixed(1) + "\" cy=\"" + Y(v2).toFixed(1) + "\" r=\"3.4\" fill=\"" + col + "\"></circle>";
+    g += "<line x1=\"" + L + "\" y1=\"" + (H - B) + "\" x2=\"" + (W - R) + "\" y2=\"" + (H - B) + "\" stroke=\"#333\" stroke-width=\"1.2\"></line>";
+    for (j = 0; j < ks.length; j++)
+      g += "<text x=\"" + X(ks[j]).toFixed(1) + "\" y=\"" + (H - B + 22) + "\" text-anchor=\"middle\" fill=\"#444\">" + ks[j] + "</text>";
+    var pts = [];
+    for (j = 0; j < ks.length; j++) if (isFinite(vals[j])) pts.push(X(ks[j]).toFixed(1) + "," + Y(vals[j]).toFixed(1));
+    if (pts.length > 1) g += "<polyline points=\"" + pts.join(" ") + "\" fill=\"none\" stroke=\"" + col + "\" stroke-width=\"2\"></polyline>";
+    for (j = 0; j < ks.length; j++) {
+      if (!isFinite(vals[j])) continue;
+      var r = (j === best) ? 5.5 : 3.2;
+      g += "<circle cx=\"" + X(ks[j]).toFixed(1) + "\" cy=\"" + Y(vals[j]).toFixed(1) + "\" r=\"" + r +
+        "\" fill=\"" + (j === best ? "#FFFFFF" : col) + "\" stroke=\"" + col + "\" stroke-width=\"" + (j === best ? 2.4 : 1) + "\"></circle>";
     }
-    if (isFinite(labelFor[s])) svg += "<text x=\"" + (W - R + 10) + "\" y=\"" + (labelFor[s] + 5).toFixed(1) + "\" fill=\"" + PALETTE_TEXT[s % PALETTE_TEXT.length] + "\">" + series[s].label + "</text>";
+    g += "</svg>";
+    var note = best >= 0 ? "lowest at " + ks[best] + (ks[best] === 1 ? " class" : " classes") : "";
+    return "<figure class=\"panel-chart\"><figcaption><strong>" + series[idx].label + "</strong> " +
+      "<span class=\"hint\">" + note + "</span></figcaption>" + g + "</figure>";
   }
-  svg += "</svg>";
-  return svg + "<p class=\"hint\">The criteria are on one scale, so the lines can be read against each other as well as along themselves. What is being looked for is the number of classes after which a line flattens: a criterion that keeps falling to the last model fitted says that the series has not gone far enough, not that the last model is right.</p>";
+
+  var html = "<div class=\"panel-grid\">";
+  for (i = 0; i < series.length; i++) html += panel(i);
+  html += "</div>";
+  html += "<p class=\"hint\">The horizontal axis of every panel is the number of classes. Each criterion is drawn on its own scale, because the level of one says nothing about the level of another; what is read here is the shape. The open circle marks the lowest value of that criterion in the series. A criterion still falling at the last model fitted says that the series has not gone far enough, not that the last model is the right one; a criterion that flattens marks the point after which classes are bought at no gain. The values themselves are in the table above.</p>";
+  return html;
 }
 
 /* ==================================================================
@@ -736,7 +1066,7 @@ function classSizeTable(f) {
     if (gaps.length) notes.push("The largest discrepancy between the proportion the model estimates and the proportion the most likely class membership assigns is " + fdec(Math.max.apply(null, gaps), 3) + ".");
   }
   if (isFinite(f.entropy) && f.k > 1 && isFinite(f.n))
-    notes.push("The entropy of the classification recovered from it is " + classificationEntropy(f.entropy, f.n, f.k).toFixed(2) + "; twice that is what the integrated completed likelihood in the table adds to the Bayesian criterion.");
+    notes.push("The soft posterior entropy recovered from it is " + classificationEntropy(f.entropy, f.n, f.k).toFixed(2) + "; twice that value is the penalty added to BIC by the entropy approximation reported in the table.");
   if (notes.length) html += "<p class=\"hint\">" + notes.join(" ") + "</p>";
   return html;
 }
@@ -959,6 +1289,7 @@ function handleFiles(list) {
     (function (file) {
       var reader = new FileReader();
       reader.onload = function () {
+        try { mpwRender(file.name, String(reader.result)); } catch (e) {}
         var r = addFile(String(reader.result), file.name);
         if (r.error) errors.push(r.error);
         done();
@@ -1268,10 +1599,10 @@ function selfTest() {
   check("a perfect classification has no entropy", near(classificationEntropy(1, 300, 3), 0, 1e-12));
   check("one class has no entropy whatever is printed", near(classificationEntropy(0.5, 300, 1), 0, 0));
   check("the entropy grows with the sample size", classificationEntropy(0.7, 600, 3) > classificationEntropy(0.7, 300, 3));
-  check("the integrated completed likelihood is the Bayesian criterion plus twice the entropy", near(iclBic(2000, 0.8, 300, 3), 2000 + 2 * 0.2 * 300 * Math.log(3), 1e-12), String(iclBic(2000, 0.8, 300, 3)));
-  check("a sharp classification leaves the Bayesian criterion unchanged", near(iclBic(2000, 1, 300, 3), 2000, 1e-12));
-  check("the integrated completed likelihood never falls below the Bayesian criterion", iclBic(2000, 0.4, 300, 4) > 2000);
-  check("the integrated completed likelihood equals the Bayesian criterion for one class", near(iclBic(2000, NaN, 300, 1), 2000, 0));
+  check("the entropy approximation is the Bayesian criterion plus twice the soft posterior entropy", near(iclBicEntropyApprox(2000, 0.8, 300, 3), 2000 + 2 * 0.2 * 300 * Math.log(3), 1e-12), String(iclBicEntropyApprox(2000, 0.8, 300, 3)));
+  check("a sharp classification leaves BIC unchanged in the entropy approximation", near(iclBicEntropyApprox(2000, 1, 300, 3), 2000, 1e-12));
+  check("the entropy approximation never falls below BIC on the smaller-is-better scale", iclBicEntropyApprox(2000, 0.4, 300, 4) > 2000);
+  check("the entropy approximation equals BIC for one class", near(iclBicEntropyApprox(2000, NaN, 300, 1), 2000, 0));
 
   /* --- the odds of correct classification --- */
   check("the odds of correct classification match their formula", near(occ(0.9, 0.25), (0.9 / 0.1) / (0.25 / 0.75), 1e-12), String(occ(0.9, 0.25)));
@@ -1287,7 +1618,7 @@ function selfTest() {
   check("the form without the factor of two is half the penalty", near(awe(ll, d, n, true) + ll * 2, (awe(ll, d, n, false) + ll * 2) / 2, 1e-9));
   check("the two forms coincide when there are no parameters", near(awe(ll, 0, n, true), awe(ll, 0, n, false), 1e-12));
 
-  /* --- Bayes factor and correct model probability --- */
+  /* --- Bayes factor and relative BIC model probability --- */
   var bicA = 2456.0, bicB = 2460.0;
   check("the Bayes factor matches its definition", near(bayesFactor(bicA, bicB), Math.exp(-0.5 * bicA + 0.5 * bicB), 1e-12), String(bayesFactor(bicA, bicB)));
   check("the Bayes factor favours the smaller criterion", bayesFactor(bicA, bicB) > 1);
@@ -1295,15 +1626,15 @@ function selfTest() {
   check("the Bayes factor is the reciprocal of the reversed comparison", near(bayesFactor(bicA, bicB) * bayesFactor(bicB, bicA), 1, 1e-12));
   var cm = correctModelProbabilities([2456.0, 2460.0, 2470.0]);
   var tot = cm[0] + cm[1] + cm[2];
-  check("the correct model probabilities sum to one", near(tot, 1, 1e-12), String(tot));
-  check("the smallest criterion takes the largest correct model probability", cm[0] > cm[1] && cm[1] > cm[2], cm.join(","));
-  check("the ratio of two correct model probabilities is their Bayes factor", near(cm[0] / cm[1], bayesFactor(2456.0, 2460.0), 1e-9), String(cm[0] / cm[1]));
+  check("the relative BIC model probabilities sum to one", near(tot, 1, 1e-12), String(tot));
+  check("the smallest criterion takes the largest relative BIC model probability", cm[0] > cm[1] && cm[1] > cm[2], cm.join(","));
+  check("the ratio of two relative BIC model probabilities is their Bayes factor", near(cm[0] / cm[1], bayesFactor(2456.0, 2460.0), 1e-9), String(cm[0] / cm[1]));
   var cmShift = correctModelProbabilities([2456.0 + 1000, 2460.0 + 1000, 2470.0 + 1000]);
-  check("the correct model probabilities do not change when every criterion is shifted", near(cm[0], cmShift[0], 1e-12) && near(cm[2], cmShift[2], 1e-12));
+  check("the relative BIC model probabilities do not change when every criterion is shifted", near(cm[0], cmShift[0], 1e-12) && near(cm[2], cmShift[2], 1e-12));
   var cmEqual = correctModelProbabilities([100, 100, 100, 100]);
   check("four models with the same criterion take a quarter each", near(cmEqual[0], 0.25, 1e-12) && near(cmEqual[3], 0.25, 1e-12));
   var cmFar = correctModelProbabilities([0, 4000]);
-  check("the correct model probabilities are computable when the criteria are far apart", isFinite(cmFar[0]) && near(cmFar[0], 1, 1e-12), cmFar.join(","));
+  check("the relative BIC model probabilities are computable when the criteria are far apart", isFinite(cmFar[0]) && near(cmFar[0], 1, 1e-12), cmFar.join(","));
 
   /* --- homogeneity and separation --- */
   check("a probability of .71 is homogeneous", homogeneous(0.71));
@@ -1347,10 +1678,13 @@ function selfTest() {
 
   var table = enumerationTable();
   check("the table names every model loaded", /1 classes|<th scope="row">1/.test(table) && /<th scope="row">3/.test(table));
-  check("the table carries the correct model probabilities", table.indexOf("cmP") > -1);
+  check("the table carries the relative BIC model probabilities", table.indexOf("cmP") > -1);
   var plot = criteriaPlot();
-  check("the plot is drawn for three models", plot.indexOf("<svg") === 0, plot.slice(0, 40));
-  check("the plot names all five criteria", ["AIC", "BIC", "SABIC", "CAIC", "AWE"].every(function (s) { return plot.indexOf(">" + s + "<") > -1; }));
+  check("the plot is drawn for three models", plot.indexOf("panel-grid") > -1, plot.slice(0, 60));
+  check("one panel per criterion", (plot.match(/class="panel-chart"/g) || []).length, 6);
+  check("the plot names all six criteria", ["AIC", "BIC", "SABIC", "CAIC", "AWE", "ICL-BIC (entropy)"].every(function (s) { return plot.indexOf("<strong>" + s + "</strong>") > -1; }));
+  check("each panel carries its own axis", (plot.match(/<svg /g) || []).length >= 5, String((plot.match(/<svg /g) || []).length));
+  check("the lowest value of a criterion is named", /lowest at \d+ class/.test(plot), plot.slice(plot.indexOf("lowest"), plot.indexOf("lowest") + 40));
 
   var msgs = crossChecks();
   check("no cross-check fires on a consistent series", msgs.length === 0, msgs.map(function (m) { return m.text; }).join(" | "));
@@ -1399,7 +1733,7 @@ function showSelfTest() {
   } else {
     b.innerHTML = "<p><span class=\"glyph\" aria-hidden=\"true\">&#10003;</span> <span class=\"tag\">Self-test passed.</span> " +
       out.performed + " checks, 0 failed. They cover the reading of every section of a mixture output from files written for the purpose, " +
-      "the two criteria and the Bayes factor against their formulas written out a second way, the correct model probabilities against " +
+      "the two criteria and the Bayes factor against their formulas written out a second way, the relative BIC model probabilities against " +
       "their definition and against the requirement that they sum to one, the homogeneity and separation flags at their cutoffs, the " +
       "standardized difference, the odds of correct classification and the entropy of the classification against their " +
       "formulas, the integrated completed likelihood against the Bayesian criterion it is built on, and the files and " +
@@ -1418,7 +1752,7 @@ if (/[?&]selftest=1(&|$)/.test(window.location.search)) showSelfTest();
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {
@@ -1532,8 +1866,26 @@ if (/[?&]selftest=1(&|$)/.test(window.location.search)) showSelfTest();
       }
     }
   }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
   var timer = null;
-  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
   else schedule();
   window.addEventListener("resize", schedule);

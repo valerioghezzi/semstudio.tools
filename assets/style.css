@@ -55,11 +55,11 @@ img, svg, video, canvas { max-width: 100%; height: auto; }
 
 /* Header and footer */
 header.site, footer.site, main {
-  width: min(100% - 4rem, 62rem);
+  width: min(100% - 4rem, 76rem);
   margin-inline: auto;
 }
-@media (max-width: 48rem) { header.site, footer.site, main { width: min(100% - 2rem, 62rem); } }
-@media (max-width: 30rem) { header.site, footer.site, main { width: min(100% - 2rem, 62rem); } }
+@media (max-width: 48rem) { header.site, footer.site, main { width: min(100% - 2rem, 76rem); } }
+@media (max-width: 30rem) { header.site, footer.site, main { width: min(100% - 2rem, 76rem); } }
 header.site {
   padding-top: 1rem;
   display: grid; align-items: start;
@@ -582,6 +582,13 @@ math mi[mathvariant="bold"] { font-weight: 700; text-transform: none; font-style
    the formula is wider than the box, so the left end stays reachable by
    scrolling. */
 .eq > math[display="block"] { flex: none; margin-left: auto; margin-right: auto; }
+/* A formula set inside a sentence is one unit and cannot be broken across
+   lines. On a narrow screen it is given a box of its own that scrolls,
+   rather than pushing the page sideways. */
+p math, li math, dd math, dt math, figcaption math, .where math, .hint math, td math, th math, caption math {
+  display: inline-block; max-width: 100%; overflow-x: auto; overflow-y: hidden;
+}
+
 .where { max-width: var(--measure); color: var(--ink-soft); margin-top: -0.4rem; }
 
 /* Numbered instructions */

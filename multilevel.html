@@ -55,14 +55,16 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
   </fieldset>
 </section>
 
-<section aria-labelledby="h-results">
-  <h2 id="h-results">What the file gives</h2>
+<details class="fold" id="fold-h-results" data-autoopen>
+  <summary><h2 id="h-results">What the file gives</h2></summary>
+  <div class="fold-body">
   <div id="results"><p class="hint">The tables appear here once an output file has been read.</p></div>
-</section>
+  </div>
+</details>
 
 <section aria-labelledby="h-fit">
   <h2 id="h-fit">Level-specific fit</h2>
-  <p>A two-level model is tested by one chi-square that mixes the two levels, and the within-level part, resting on many more observations, dominates it: a between-level model that fits badly can pass unnoticed. Ryu and West (2009) separate the two by fitting the model with one level saturated at a time. This page writes the four inputs that method needs and assembles the table from the four outputs.</p>
+  <p>A two-level model is tested by one chi-square that combines misfit from both levels. Because the within level is based on many more effective observations, it can dominate the statistic, allowing substantial between-level misfit to go unnoticed. Ryu and West (2009) separate the two by fitting the model with one level saturated at a time. This page writes the four inputs that method needs and assembles the table from the four outputs.</p>
   <ol class="steps">
     <li>Press <em>Write the four inputs</em>. The page writes them from the model of the file already loaded, or from the description you type below when no file is loaded.</li>
     <li>Run all four in M<em>plus</em>.</li>
@@ -102,11 +104,11 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
   <h3>Reliability at each level</h3>
   <p>Geldhof, Preacher and Zyphur (2014) apply the ordinary coefficients to the parameters of each level of the model:</p>
   <div class="eq"><math display="block"><mrow><msup><mi>&#x3C9;</mi><mi>w</mi></msup><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mi>w</mi></msubsup><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>w</mi></msup></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3BB;</mi><mi>i</mi><mi>w</mi></msubsup><mo>)</mo></mrow><mn>2</mn></msup><msup><mi>&#x3C8;</mi><mi>w</mi></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>w</mi></msubsup></mrow></mfrac></mrow></math></div>
-  <p class="where">Here λ<sup><var>w</var></sup><sub><var>i</var></sub> is the within-level loading of item <var>i</var>, ψ<sup><var>w</var></sup> the within-level factor variance, which the model usually fixes at one, and θ<sup><var>w</var></sup><sub><var>i</var></sub> its within-level residual variance. The between-level coefficient has the same form with the between-level parameters. Their maximal reliability uses the standardized loadings of the level in question, <math><mrow><mi>H</mi><mo>=</mo><msup><mrow><mo>[</mo><mn>1</mn><mo>+</mo><mn>1</mn><mo>/</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mfrac><msubsup><mi>&#x3BB;</mi><mi>i</mi><mn>2</mn></msubsup><mrow><mn>1</mn><mo>&#x2212;</mo><msubsup><mi>&#x3BB;</mi><mi>i</mi><mn>2</mn></msubsup></mrow></mfrac><mo>]</mo></mrow><mrow><mo>&#x2212;</mo><mn>1</mn></mrow></msup></mrow></math>. The same authors report that the between-level maximal reliability is badly biased upward when the between-level reliability and the intraclass correlations are low and the clusters are small, and write that they cannot recommend its use in applied multilevel research; the page prints it with that warning attached.</p>
+  <p>Here <span class="nowrap"><em>λ</em><sub>wi</sub></span>, <span class="nowrap"><em>ψ</em><sub>w</sub></span> and <span class="nowrap"><em>θ</em><sub>wi</sub></span> are the within-level loading, factor variance and residual variance; the between-level coefficient uses the corresponding between-level parameters. Maximal reliability <em>H</em> is computed from level-specific standardized loadings. Lai (2021) notes that between-level <em>H</em> can be upwardly biased when between-level reliability and ICCs are low and cluster sizes are small, so the page reports it with that limitation.</p>
 
   <h3>Which coefficient goes with which construct</h3>
   <p>Lai (2021) shows that the coefficients above are the reliability of no score anyone computes, and derives the reliability of the scores that are actually used, one for each meaning the construct can have. The formulas below are the ones his supplementary syntax computes.</p>
-  <p>For a <b>within-cluster</b> construct the score of interest is the individual's, and its reliability is ω<sup><var>w</var></sup> above, estimated in a model whose between level is left saturated so that the within-level structure is not distorted by a between-level model that may be wrong.</p>
+  <p>For a within-cluster construct, the target score varies across individuals within clusters. Its reliability is estimated from the within-level measurement model while the between level is saturated, reducing dependence on a potentially misspecified between-level structure.</p>
   <p>For a <b>configural</b> construct the raw score of an individual carries both levels, and its reliability is</p>
   <div class="eq"><math display="block"><mrow><msup><mi>&#x3C9;</mi><mrow><mn>2</mn><mi>L</mi></mrow></msup><mo>=</mo><mfrac><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>&#x3C8;</mi><mi>b</mi></msup><mo>)</mo></mrow></mrow><mrow><msup><mrow><mo>(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>)</mo></mrow><mn>2</mn></msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>&#x3C8;</mi><mi>b</mi></msup><mo>)</mo></mrow><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>b</mi></msubsup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msubsup><mi>&#x3B8;</mi><mi>i</mi><mi>w</mi></msubsup></mrow></mfrac></mrow></math></div>
   <p class="where">Here λ<sub><var>i</var></sub> is the loading of item <var>i</var>, held equal across the two levels as a configural construct requires, ψ<sup><var>b</var></sup> is the between-level factor variance with the within-level one fixed at one, and θ<sup><var>b</var></sup><sub><var>i</var></sub> and θ<sup><var>w</var></sup><sub><var>i</var></sub> are the residual variances at the two levels.</p>
@@ -122,10 +124,10 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
   <div class="eq"><math display="block"><mrow><msub><mi>CFI</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><mn>1</mn><mo>&#x2212;</mo><mfrac><mrow><mi>max</mi><mo>(</mo><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow><mrow><mi>max</mi><mo>(</mo><msubsup><mi>&#x3C7;</mi><mrow><mi>I</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>I</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>,</mo><mn>0</mn><mo>)</mo></mrow></mfrac></mrow></math></div>
   <p class="where">Here χ²<sub>PS−B</sub> and <var>df</var><sub>PS−B</sub> are those of the model with the between level hypothesized and the within level saturated, and χ²<sub>I−B</sub> and <var>df</var><sub>I−B</sub> those of the model with the between level an independence model and the within level saturated. The within-level index is the mirror image of this one.</p>
   <div class="eq"><math display="block"><mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>B</mi></mrow></msub><mi>J</mi></mrow></mfrac></msqrt><mrow><mo>&#x2c;</mo><mspace width="1.5em"></mspace></mrow><msub><mi>RMSEA</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mo>=</mo><msqrt><mfrac><mrow><msubsup><mi>&#x3C7;</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow><mn>2</mn></msubsup><mo>&#x2212;</mo><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub></mrow><mrow><msub><mi>df</mi><mrow><mi>PS</mi><mo>&#x2212;</mo><mi>W</mi></mrow></msub><mi>N</mi></mrow></mfrac></msqrt></mrow></math></div>
-  <p class="where">Here <var>J</var> is the number of clusters and <var>N</var> the total number of observations: the between-level index is scaled by the number of clusters, which is the sample size that level rests on, and the within-level one by the number of observations. Both are set to zero when the quantity under the root is negative.</p>
+  <p class="where">Here <var>J</var> is the number of clusters and <var>N</var> the total number of observations: the between-level index is divided by the number of clusters and the within-level index by the total number of observations, which are the divisors of Equations 17 and 19 of Ryu and West (2009). Both are set to zero when the quantity under the root is negative.</p>
 
   <h3>Self-test</h3>
-  <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome at the top. They cover the reading of a two-level output, of the cluster sizes and of the intraclass correlations, the harmonic mean, every coefficient against the values the published syntax of Lai (2021) returns for the same parameters, the level-specific fit indices against their definitions, and the cases the page has to refuse.</p>
+  <p>Append <code>?selftest=1</code> to check two-level parsing, cluster summaries, ICCs, harmonic mean, level-specific reliability coefficients, fit indices, and unsupported inputs.</p>
   </div>
 </details>
 
@@ -148,6 +150,225 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
   <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
 </footer>
 <script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
 function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
@@ -169,7 +390,68 @@ function decodeBuffer(ab) {
   s = ""; for (i = start; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
   return s;
 }
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
 function readTextFile(file, then, fail) {
+  var mpwName = (file && file.name) ? file.name : "";
+  var mpwOuter = then;
+  then = function (t) { try { mpwRender(mpwName, String(t)); } catch (e) {} mpwOuter(t); };
   var r = new FileReader();
   r.onerror = function () { if (fail) fail(); };
   r.onload = function (e) {
@@ -372,6 +654,60 @@ var ML = (function () {
 /* ==================================================================
    Page
    ================================================================== */
+/* The messages Mplus printed about the run, sorted by what they cost.
+   A run whose estimation failed is refused: what follows the failure in
+   the file is not an estimate of anything. A run that carries a serious
+   message is computed and marked, and a note is reported as a note. */
+/* What the run contains besides its estimates: a serious message is named
+   and put in front of the result, a note is named and left as a note. */
+function mpwNote(text) {
+  var w = MPWARN.classify(text), bits = w.serious, i, s;
+  if (bits.length) {
+    s = "";
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].text));
+    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+  }
+  if (w.info.length || w.ignored.length) {
+    s = "";
+    var notes = w.info.concat(w.ignored);
+    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
+    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + s + "." };
+  }
+  return null;
+}
+
+function mpwarnReport(text) {
+  var w = MPWARN.classify(text), i, bits;
+  var out = { verdict: w, blockHtml: "", noteHtml: "", noteKind: "ok" };
+  function list(a) {
+    var s = "", i;
+    for (i = 0; i < a.length; i++)
+      s += "<li>" + (a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].text)) + ".</li>";
+    return "<ul>" + s + "</ul>";
+  }
+  if (w.blocking.length) {
+    out.blockHtml = "Nothing was computed from this file. M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run." +
+      list(w.blocking) +
+      "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
+    return out;
+  }
+  bits = w.serious;
+  if (bits.length) {
+    out.noteKind = "warn";
+    out.noteHtml = "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + list(bits) +
+      "Supported quantities are still computed, with the same limitations as the affected estimates.";
+  } else if (w.info.length || w.ignored.length) {
+    out.noteKind = "info";
+    var notes = w.info.concat(w.ignored);
+    out.noteHtml = MP + " printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + list(notes);
+  }
+  return out;
+}
+
 (function () {
   function $(id) { return document.getElementById(id); }
   function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
@@ -493,7 +829,7 @@ var ML = (function () {
     }
     out += "</table></div>";
     out += '<p class="hint">' + (loaded.icc ? "The intraclass correlations are the ones " + MP + " prints." :
-      "The intraclass correlations are computed from the variance components of the model, since the file does not print them.") +
+      "The intraclass correlations are computed from the variance components of the model.") +
       " The design effect uses the average cluster size.</p>";
 
     out += "<h3>Reliability</h3>";
@@ -563,6 +899,11 @@ var ML = (function () {
       if (!MPLUS_SIGNATURE.test(text)) {
         $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
           "The file carries none of the headings an " + MP + " output has, so it is not an output file.");
+        return;
+      }
+      var MPW = mpwarnReport(text);
+      if (MPW.blockHtml) {
+        $("report").innerHTML = statusBlock("bad", "The results of this run are not to be interpreted.", MPW.blockHtml);
         return;
       }
       var raw = ML.readModel(text, "raw");
@@ -687,12 +1028,12 @@ var PSFIT = (function () {
         rmsea: ML.rmseaPS(byKey["PS-B"].chi2, byKey["PS-B"].df, J), size: J, sizeName: "clusters" });
     else if (byKey["PS-B"])
       notes.push("The between level has its chi-square but not its baseline or the number of clusters, so its fit indices are not computed.");
-    if (byKey["PS-W"] && byKey["IND-W"] && N)
+    if (byKey["PS-W"] && byKey["IND-W"] && N && J && N > J) {
       rows.push({ level: "Within", chi2: byKey["PS-W"].chi2, df: byKey["PS-W"].df, p: byKey["PS-W"].p,
         cfi: ML.cfiPS(byKey["PS-W"].chi2, byKey["PS-W"].df, byKey["IND-W"].chi2, byKey["IND-W"].df),
         rmsea: ML.rmseaPS(byKey["PS-W"].chi2, byKey["PS-W"].df, N), size: N, sizeName: "observations" });
-    else if (byKey["PS-W"])
-      notes.push("The within level has its chi-square but not its baseline or the number of observations, so its fit indices are not computed.");
+    } else if (byKey["PS-W"])
+      notes.push("The within level has its chi-square but not its baseline and valid N/J values, so its fit indices are not computed.");
     return { rows: rows, notes: notes, have: Object.keys(byKey) };
   }
   return { inputs: inputs, identify: identify, table: table, saturated: saturated, wrap: wrap };
@@ -781,7 +1122,7 @@ var PSFIT = (function () {
         '<td class="num">' + r.size + " " + r.sizeName + "</td></tr>";
     }
     out += "</table></div>";
-    out += '<p class="hint">The chi-square of each row is that of the model with the other level saturated, which is the level-specific test of Ryu and West (2009). The CFI compares it with the partially saturated independence model of the same level, and the RMSEA divides by the number of clusters at the between level and by the number of observations at the within level.</p>';
+    out += '<p class="hint">The chi-square of each row is that of the model with the other level saturated, which is the level-specific test of Ryu and West (2009). The CFI compares it with the partially saturated independence model of the same level. For RMSEA, Ryu and West (2009) use the number of clusters <i>J</i> at the between level and the effective level-1 sample size <i>N</i> − <i>J</i> at the within level.</p>';
     if (t.notes.length) out += statusBlock("info", "Also.", t.notes.join(" "));
     $("fit-out").innerHTML = out;
     return t;
@@ -958,7 +1299,7 @@ function selfTest() {
   ok("the level-specific CFI", ML.cfiPS(30, 20, 400, 30), 0.9729729729729730, 1e-12);
   ok("a perfect fit gives one", ML.cfiPS(20, 20, 400, 30), 1, 1e-12);
   ok("the between-level RMSEA is scaled by the number of clusters", ML.rmseaPS(30, 20, 30), 0.1290994448735805, 1e-12);
-  ok("the within-level RMSEA is scaled by the observations", ML.rmseaPS(60, 25, 250), 0.0748331477354788, 1e-12);
+  ok("the within-level RMSEA is scaled by N minus J", ML.rmseaPS(60, 25, 220), 0.07977240352174657, 1e-12);
   ok("a chi-square below its degrees of freedom gives zero", ML.rmseaPS(15, 20, 30), 0);
   var tbl = PSFIT.table([
     { key: "PS-B", chi2: 30, df: 20, p: 0.07, clusters: 30, n: 250 },
@@ -968,7 +1309,7 @@ function selfTest() {
   ]);
   ok("both levels are reported when the four files are there", tbl.rows.length, 2);
   ok("the between row uses the number of clusters", tbl.rows[0].size, 30);
-  ok("the within row uses the number of observations", tbl.rows[1].size, 250);
+  ok("the within row uses the total number of observations, as in Equation 19 of Ryu and West (2009)", tbl.rows[1].size, 250);
   ok("the between CFI", tbl.rows[0].cfi, 0.9729729729729730, 1e-12);
   var partial = PSFIT.table([{ key: "PS-B", chi2: 30, df: 20, clusters: 30, n: 250 }]);
   ok("one file alone gives no row", partial.rows.length, 0);
@@ -1021,7 +1362,7 @@ function selfTest() {
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {
@@ -1135,8 +1476,26 @@ function selfTest() {
       }
     }
   }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
   var timer = null;
-  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
   else schedule();
   window.addEventListener("resize", schedule);
