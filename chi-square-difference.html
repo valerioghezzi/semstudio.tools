@@ -455,7 +455,7 @@ function mpwNote(text) {
   var w = MPWARN.classify(text), bits = w.serious, i, s;
   if (bits.length) {
     s = "";
-    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].text));
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
     return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
       " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
   }
@@ -3041,7 +3041,7 @@ if(/[?&]selftest=1\b/.test(window.location.search)){
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math, th math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {

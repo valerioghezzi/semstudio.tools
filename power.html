@@ -819,7 +819,7 @@ function mpwNote(text) {
   var w = MPWARN.classify(text), bits = w.serious, i, s;
   if (bits.length) {
     s = "";
-    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].text));
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
     return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
       " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
   }
@@ -839,7 +839,7 @@ function mpwarnReport(text) {
   function list(a) {
     var s = "", i;
     for (i = 0; i < a.length; i++)
-      s += "<li>" + (a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].text)) + ".</li>";
+      s += "<li>" + (a[i].say && a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].txt || "")) + ".</li>";
     return "<ul>" + s + "</ul>";
   }
   if (w.blocking.length) {
