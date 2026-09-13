@@ -1,2 +1,2 @@
 # semstudio.tools
-Calculator of Psychometric Indices from Mplus Outputs
+Calculating Psychometric Coefficients from Mplus Outputs
