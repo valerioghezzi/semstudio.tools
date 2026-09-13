@@ -1,0 +1,53 @@
+name: Update main tagline and create none branch
+
+on:
+  push:
+    branches:
+      - tmp-ignore
+    paths:
+      - .github/workflows/update-main-and-none.yml
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+
+      - name: Update main and create offline branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin main
+          git checkout -B main origin/main
+
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = 'A workbench for structural equation modeling with M<em>plus</em>'
+          new = 'A Workbench for Structural Equation Modeling with M<em>plus</em>'
+          n = s.count(old)
+          if n != 1:
+              raise SystemExit(f'Expected exactly one homepage tagline occurrence, found {n}')
+          p.write_text(s.replace(old, new), encoding='utf-8')
+          PY
+
+          git add index.html
+          git commit -m "Update homepage tagline"
+          git push origin main
+
+          git checkout --orphan none
+          git rm -rf .
+          printf '%s\n' 'Offline branch for GitHub Pages.' > OFFLINE.txt
+          git add OFFLINE.txt
+          git commit -m "Create offline Pages branch"
+          git push --force origin none
