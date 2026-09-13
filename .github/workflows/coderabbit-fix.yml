@@ -1,0 +1,36 @@
+name: Apply reviewed CodeRabbit fixes
+
+on:
+  push:
+    branches:
+      - coderabbit-review-current-main
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fixes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone review branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git clone --depth 1 --branch coderabbit-review-current-main "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+      - name: Apply fixes and clean temporary deployment files
+        run: |
+          cd repo
+          python coderabbit_apply.py
+          rm -f .github/workflows/replace-site.yml
+          rm -f .github/workflows/test-drive-download.yml
+          rm -f .github/workflows/coderabbit-fix.yml
+          rm -f coderabbit_apply.py
+          rm -f DEPLOY_SEMSTUDIO_NEW_BUILD
+          rm -f DEPLOY_TRIGGER_NOTE.md
+          rm -f README.md
+          git config user.name "semstudio review fix"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix: address CodeRabbit review findings"
+          git push origin HEAD:coderabbit-review-current-main
