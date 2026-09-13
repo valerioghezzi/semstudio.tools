@@ -538,7 +538,7 @@ function mpwarnReport(text) {
   function list(a) {
     var s = "", i;
     for (i = 0; i < a.length; i++)
-      s += "<li>" + (a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].txt || "")) + ".</li>";
+      s += "<li>" + (a[i].say && a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].txt || "")) + ".</li>";
     return "<ul>" + s + "</ul>";
   }
   if (w.blocking.length) {
