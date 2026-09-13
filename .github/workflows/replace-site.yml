@@ -46,7 +46,7 @@ jobs:
                   break
               for row in rows:
                   body = row.get('body') or ''
-                  m = re.match(r'^SEMSTUDIO_PAYLOAD2_(\d{3})_(\d{3})\n([\s\S]+)$', body)
+                  m = re.match(r'^SEMSTUDIO_PAYLOAD3_(\d{3})_(\d{3})\n([\s\S]+)$', body)
                   if not m:
                       continue
                   i, total, data = int(m.group(1)), int(m.group(2)), m.group(3).strip()
