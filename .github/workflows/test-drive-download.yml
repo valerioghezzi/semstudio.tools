@@ -1,0 +1,19 @@
+name: Test build download
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  issues: read
+jobs:
+  test:
+    if: github.event.comment.body == 'TEST_SEMSTUDIO_DRIVE_DOWNLOAD'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test download
+        run: |
+          set -x
+          curl -L --fail --silent --show-error -o /tmp/build.zip 'https://drive.google.com/uc?export=download&id=1yVmp_gZ58TlQB94hDuliEkH1Vtt-MeRP' || exit 2
+          file /tmp/build.zip
+          stat -c '%s' /tmp/build.zip
+          unzip -t /tmp/build.zip | tail -n 5
