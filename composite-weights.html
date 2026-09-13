@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Computes the weights that make two or more composites of formative indicators maximally correlated, by canonical correlation analysis and by generalized canonical correlation analysis, and writes the second-step syntax for the common factor those composites define.">
+<meta name="description" content="Computes optimal weights for two or more composites of formative indicators: canonical-correlation weights for two blocks and MAXVAR generalized-canonical weights for three or more blocks, then writes the second-step syntax for the common factor those composites define.">
 <title>Composite Weights · semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
@@ -33,9 +33,9 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <a href="index.html#tools">All tools</a>
   </nav>
   <h1>Composite Weights</h1>
-  <p class="lede">This page carries out the first step of the two-step approach of Treiblmaier, Bentler and Mair (2011): it divides a set of formative indicators into two or more composites and computes the weights that make those composites as highly correlated as possible, by canonical correlation analysis with two blocks and by generalized canonical correlation analysis with three or more. It then writes the M<em>plus</em> input for the common factor that the composites define in the second step. It reads the raw data file of the analysis together with the <code>TYPE = BASIC</code> output that describes it.</p>
+  <p class="lede">This page carries out the first step of the two-step approach of Treiblmaier, Bentler and Mair (2011): it divides a set of formative indicators into two or more composites and computes canonical-correlation weights with two blocks or MAXVAR generalized-canonical weights with three or more blocks. It then writes the M<em>plus</em> input for the common factor that the composites define in the second step. It reads the raw data file of the analysis together with the <code>TYPE = BASIC</code> output that describes it.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> <code>ANALYSIS: TYPE = BASIC;</code> together with <code>OUTPUT: SAMPSTAT;</code>. The output is read for the variable names, for <code>USEVARIABLES</code>, <code>CATEGORICAL</code> and the missing value codes, and the sample means it prints are compared with the means recomputed from the data file, which is how a data file read with the wrong number of columns or with an undeclared missing value code is detected.
+    <strong>What to request from M<em>plus</em>.</strong> <code>ANALYSIS: TYPE = BASIC;</code> together with <code>OUTPUT: SAMPSTAT;</code>. The output is read for the variable names, for <code>USEVARIABLES</code>, <code>CATEGORICAL</code> and the missing value codes, and the sample means it prints are compared with the means recomputed from the data file, which is how a data file read with an inconsistent number of columns or with an undeclared missing value code is detected.
   </div>
 </header>
 
@@ -43,22 +43,24 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
 
 <div id="selftest-banner" hidden></div>
 
-<section aria-labelledby="h-steps">
-  <h2 id="h-steps">What to do</h2>
+<details class="fold" id="fold-h-steps" data-autoopen>
+  <summary><h2 id="h-steps">What to do</h2></summary>
+  <div class="fold-body">
   <ol class="steps">
     <li>Write an M<em>plus</em> input that reads the data file holding your formative indicators, name the columns in <code>NAMES</code>, and declare on <code>USEVARIABLES</code> the variables you want offered as indicators.</li>
     <li>Add this analysis command to it, exactly as it is written here: <code>ANALYSIS: TYPE = BASIC;</code></li>
     <li>Add this output command to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT;</code> — the sample means it prints are what the page compares its own reading of the data file against.</li>
     <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the folder the input is in, and computes nothing beyond the descriptive statistics.</li>
-    <li>Drop the raw data file on the first box below and the <code>.out</code> file on the second, in either order. Both are read inside your browser and neither leaves your computer.</li>
+    <li>Drop the raw data file on the first box below and the <code>.out</code> file on the second, in either order. Both are read inside your browser and semstudio.tools does not transmit either file; processing occurs in the browser.</li>
     <li>Read the paragraphs headed <em>Output read</em>, <em>Data read</em> and <em>Means agree</em>. The last one is the check that the data file and the output belong together: it compares the mean of every variable recomputed here with the mean M<em>plus</em> printed.</li>
     <li>Choose how many composites to divide the indicators into, and assign each indicator to one of them, or leave it out, in the <em>Composite</em> column of the indicator table. Which indicators form which block is your decision, and the page offers only the variables it read from the output.</li>
-    <li>Choose how the weights within each block are set: for maximal correlation between the composites, equal, or replicated as the first principal component of each block.</li>
+    <li>Choose how the weights within each block are set: canonical/MAXVAR, equal, or replicated as the first principal component of each block.</li>
     <li>Press <em>Compute the weights</em>. Read the canonical correlations, the weights, the standardized weights and the structure coefficients, and the checks under them.</li>
     <li>Copy the second-step M<em>plus</em> input printed at the end, which builds the composites with <code>DEFINE</code> and fits the common factor on them, and run it.</li>
   </ol>
-  <p>The page refuses to compute anything until both files are loaded, because the data file alone gives no variable names, no missing value codes and no <code>CATEGORICAL</code> declaration, and the output alone gives no cases. It refuses a data file that produced no usable row, and it reports a disagreement between the means it recomputed and the means M<em>plus</em> printed, which is what a data file read with the wrong number of columns or with an undeclared missing value code looks like. Nothing on this page can be typed in: the sample size, the variable names, the values and the summary statistics all come from those two files, and the only decisions left to you are how many composites to form, which indicator goes into which of them, and how the weights within a block are set.</p>
-</section>
+  <p>Both the raw-data file and the corresponding M<em>plus</em> output are required. The output supplies variable names, missing-value codes and categorical declarations; the data file supplies the cases. A mismatch between recomputed and printed means is reported because it may indicate an incorrect column count or missing-value specification. The remaining user choices are the number of composites, indicator assignment, scale level, and weighting method.</p>
+  </div>
+</details>
 
 <section aria-labelledby="h-input">
   <h2 id="h-input">Load the data file and the <code>TYPE = BASIC</code> output</h2>
@@ -81,12 +83,13 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
       </div>
     </div>
   </div>
-  <p id="drop-hint" class="hint">Both files are read in your browser and neither leaves your computer. Windows-1252, UTF-8 and UTF-16 files are decoded from their bytes, because M<em>plus</em> on Windows writes output in Windows-1252 and reading it as UTF-8 corrupts every accented character. The data file may separate values by spaces, tabs, commas or semicolons, and a case may run over several lines.</p>
+  <p id="drop-hint" class="hint">Both files are read in your browser and semstudio.tools does not transmit either file; processing occurs in the browser. Windows-1252, UTF-8 and UTF-16 files are decoded from their bytes, because M<em>plus</em> on Windows writes output in Windows-1252 and reading it as UTF-8 corrupts every accented character. The data file may separate values by spaces, tabs, commas or semicolons, and a case may run over several lines.</p>
   <div id="load-report" aria-live="polite"></div>
 </section>
 
-<section aria-labelledby="h-blocks">
-  <h2 id="h-blocks">Indicators and composites</h2>
+<details class="fold" id="fold-h-blocks" data-autoopen>
+  <summary><h2 id="h-blocks">Indicators and composites</h2></summary>
+  <div class="fold-body">
   <p>Every indicator the output declares is listed below. Assign each of them to one composite, or leave it out. Which indicators form which block is a decision about the construct, not a datum, so it is yours to make; the names, the values and the summary statistics beside them are read from the two files and cannot be changed here.</p>
   <div class="row">
     <div class="field w3">
@@ -101,7 +104,7 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <div class="field w4">
       <label for="wmethod">Choose how the weights inside each composite are set</label>
       <select id="wmethod">
-        <option value="canonical" selected>So that the composites correlate as highly as they can</option>
+        <option value="canonical" selected>Canonical (2 blocks) / MAXVAR (3+ blocks)</option>
         <option value="equal">Equally, every indicator weighted one</option>
         <option value="replicated">As the first principal component of each composite separately</option>
       </select>
@@ -131,17 +134,22 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
     <button type="button" id="btn-run" disabled>Compute the weights</button>
     <span id="run-msg" aria-live="polite"></span>
   </div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-results">
-  <h2 id="h-results">Results</h2>
+<details class="fold" id="fold-h-results" data-autoopen>
+  <summary><h2 id="h-results">Results</h2></summary>
+  <div class="fold-body">
   <div id="results"><div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop the raw data file and the <code>TYPE = BASIC</code> output on the two boxes above, assign the indicators to composites, then press <em>Compute the weights</em>.</div></div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-syntax">
-  <h2 id="h-syntax">Second-step syntax</h2>
+<details class="fold" id="fold-h-syntax" data-autoopen>
+  <summary><h2 id="h-syntax">Second-step syntax</h2></summary>
+  <div class="fold-body">
   <div id="syntax"><p class="hint">The M<em>plus</em> input for the second step appears here once the weights have been computed.</p></div>
-</section>
+  </div>
+</details>
 
 <details class="fold" id="fold-h-methods">
   <summary><h2 id="h-methods">Methods and formulas</h2></summary>
@@ -209,7 +217,7 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <p>It is a simple correlation, so what the other indicators do does not affect it.</p>
   <p>The article is explicit about which of the three to read: “In CCA, the canonical coefficients are typically not used; the correlations between the variables and the new canonical variates are interpreted instead. These are commonly referred to as loadings and can be interpreted as ordinary factor or component loadings” (Treiblmaier, Bentler, &amp; Mair, 2011, p. 11). The reason is the usual one for regression coefficients: when the indicators are correlated, a weight can be small, or negative, merely because another indicator in the same block already carries that part of the variance, and the weight then says nothing about whether the indicator is related to the composite. The structure coefficient answers that question directly. A weight is a statement about a linear combination, not a measure of the importance of an indicator; the two coincide only when the indicators within a block are uncorrelated. The page prints all three and marks any block whose weights are of both signs, because such a composite is a contrast between groups of indicators rather than a weighted sum of them.</p>
   <p>The sign of a whole canonical pair is arbitrary: replacing <b>a</b> by <math><mrow><mo>&#x2212;</mo><mi mathvariant="bold">a</mi></mrow></math> and <b>b</b> by <math><mrow><mo>&#x2212;</mo><mi mathvariant="bold">b</mi></mrow></math> leaves the correlation unchanged, and nothing in the data chooses between them. With two composites the page fixes the sign by making the sum of the structure coefficients of the first block positive, so that the composite runs in the same direction as the majority of its indicators; with three or more it makes the sum of all the weights positive. The relative signs within a block are not arbitrary and carry the meaning described above.</p>
-  <p>The published raw coefficients of an example are not always recoverable from a published matrix. The privacy example of the article reports raw canonical coefficients of .0197 and .0220 in the first block and .0292 and .0176 in the second, obtained from variables measured on a slider from 1 to 100. The canonical correlations and the structure coefficients are scale free: multiplying an indicator by a constant leaves them unchanged, so they can be reproduced from a correlation matrix. The raw coefficients are not: they carry the factor <math><mrow><mn>1</mn><mo>/</mo><msub><mi>&#x3C3;</mi><msub><mi>V</mi><mi>i</mi></msub></msub></mrow></math>, and the standard deviations are not published. That example, and the six-variable illustration, are checked in the self-test of this page rather than offered as an input route, because a matrix copied out of an article is a number typed by hand.</p>
+  <p>Raw canonical coefficients cannot always be recovered from a published correlation matrix because they depend on the variables’ standard deviations. Canonical correlations and structure coefficients are scale-free and can be reproduced from a correlation matrix. The published examples are therefore used as self-test benchmarks rather than as an input route.</p>
 
   <h3>How many dimensions, and how much is explained</h3>
   <p>With two blocks there are as many canonical correlations as there are indicators in the smaller block. Only the first pair of composites is used in the second step, but the others say whether the relation between the blocks is one-dimensional. Wilks's lambda for the dimensions from <math><mrow><mi>k</mi><mo>+</mo><mn>1</mn></mrow></math> onwards, with <var>k</var> the number of canonical correlations already extracted, is</p>
@@ -225,28 +233,28 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
   <p>The two expressions are equal because the correlation of an indicator with the other set's variate is the canonical correlation times its correlation with its own, so the index is also the mean squared structure coefficient of the set multiplied by the squared canonical correlation. The redundancy index of Stewart and Love is the sum of these terms over the pairs; the page reports the terms, one per dimension, because the second step keeps only the first pair. The page computes each term the first way and checks it against the second; a difference above 10<sup>−6</sup> would mean a numerical failure and is reported as one. Across two thousand randomly generated problems, including deliberately near-singular ones, the largest difference observed was 1.6 × 10<sup>−9</sup>. The index is asymmetric: the redundancy of the first set is generally not the redundancy of the second. A high canonical correlation with a low redundancy means that the composites are strongly related to each other and weakly related to the indicators they are built from, which is the situation in which the second-step factor represents very little of the material the formative construct was supposed to summarize.</p>
 
   <h3>Categorical indicators and optimal scaling</h3>
-  <p>When the M<em>plus</em> output declares indicators as <code>CATEGORICAL</code>, the numbers in the data file are category labels rather than measurements, and treating them as measurements assumes that the distance between category 1 and category 2 equals the distance between category 3 and category 4. The page replaces the labels by optimal quantifications: each category receives a numerical value, and those values are estimated jointly with the weights so as to maximize the fit between the composites, under a monotonicity constraint that keeps the quantifications in the order of the original categories when the level is ordinal and no constraint at all when it is nominal. This is the nonlinear canonical correlation analysis of Gifi (1990) as implemented in the OVERALS algorithm of van der Burg, de Leeuw and Verdegaal (1988): the loss function is the sum over blocks of the squared distance between a common object score matrix and each block's weighted sum of quantified variables; it is minimized by alternating least squares, one block at a time, with the monotone regression step carried out by the pool-adjacent-violators algorithm. Categories held by fewer than three cases, or by fewer than one percent of the sample, are merged with the adjacent least frequent category before quantification, because a category held by two or three cases gets a quantification determined by those cases alone; the merges are reported. Because alternating least squares converges to a stationary point that depends on where it starts, the page restarts the algorithm from two deterministic configurations — the original category values, and the normal quantiles at the midpoints of the cumulative proportions of the categories — and then from random ones, and keeps the best solution, stopping once the same value of the loss function has been reached six times. When every indicator is numerical the quantification is a linear function of the original values, the alternating step has a closed-form solution, and the result is ordinary canonical correlation analysis; the self-test checks that equality.</p>
+  <p>Indicators declared <code>CATEGORICAL</code> are treated as category labels rather than equally spaced measurements. The page estimates optimal quantifications jointly with the composite weights: ordinal quantifications preserve category order, whereas nominal quantifications are unconstrained. The implementation follows nonlinear canonical correlation analysis (Gifi, 1990) and the OVERALS alternating-least-squares algorithm (van der Burg, de Leeuw, &amp; Verdegaal, 1988), with pool-adjacent-violators regression for ordinal updates. Categories represented by fewer than three cases or less than 1% of the sample are merged with an adjacent low-frequency category and the merge is reported. Because the solution can depend on initialization, the algorithm uses deterministic and random starts and retains the lowest-loss solution, stopping after the same loss is reached six times. With numerical indicators, the procedure reduces to ordinary canonical correlation analysis.</p>
   <p>Once the quantifications are fixed the quantified variables are treated as the observed variables: their covariance matrix is formed and every quantity on this page — weights, standardized weights, structure coefficients, canonical correlations, Wilks's lambda, redundancy — is computed from it in exactly the same way as for numerical indicators. The results show, for each categorical indicator, the weight applied to the quantified variable together with the quantification of every original category and the number of cases in it, so that the recoding can be checked; the generated syntax contains the same recoding as a sequence of <code>IF</code> statements, so the analysis is reproducible from the syntax alone. When the monotone fit assigns the same value to neighboring categories the page says so, because the indicator is then being used as a coarser variable than it was measured.</p>
 
   <h3>Step 2: the factor on the composites</h3>
   <p>The composites are entered as reflective indicators of a common factor:</p>
   <div class="eq"><math display="block"><mrow><msub><mi>P</mi><mn>1</mn></msub><mo>=</mo><msub><mi>&#x3B2;</mi><mn>1</mn></msub><msup><mi>F</mi><mo>&#x2217;</mo></msup><mo>+</mo><msub><mi>E</mi><mn>1</mn></msub><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><msub><mi>P</mi><mn>2</mn></msub><mo>=</mo><msub><mi>&#x3B2;</mi><mn>2</mn></msub><msup><mi>F</mi><mo>&#x2217;</mo></msup><mo>+</mo><msub><mi>E</mi><mn>2</mn></msub></mrow></math></div>
   <p class="where">Here <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub> are the two composites, <var>F</var>* is the common factor of the second step, β<sub>1</sub> and β<sub>2</sub> are its loadings on them, and <var>E</var><sub>1</sub> and <var>E</var><sub>2</sub> are two residuals uncorrelated with each other.</p>
-  <p>With two composites this model is not identified as it stands: two loadings, two residual variances and the factor variance are five parameters against the three distinct elements of the covariance matrix of <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub>. Fixing the factor variance at one and constraining the two loadings to be equal leaves three free parameters against three moments, which is a just-identified model; the article applies exactly this restriction (pp. 9, 11), and justifies it both by the standard cautions for two-indicator factors and by the composites being built from equivalent sets of indicators. The generated syntax imposes these two constraints and says in comments what each of them does. The residual variances are left free. Constraining them equal as well, which makes the two composites parallel indicators, is the further restriction usually recommended for a factor with two indicators; here it is unnecessary, because the weights standardize both composites to unit variance on the same data, so their two sample variances are equal exactly, the constraint holds by construction, and its one degree of freedom tests nothing. When the composites are standardized to unit variance, as the weights on this page make them, the standardized loading is the square root of the correlation between them: the article's .746 for the a priori split of the six-variable illustration and .894 for the canonical split, and .681 for the privacy example.</p>
+  <p>With two composites this model is not identified as it stands: two loadings, two residual variances and the factor variance are five parameters against the three distinct elements of the covariance matrix of <var>P</var><sub>1</sub> and <var>P</var><sub>2</sub>. Fixing the factor variance at one and constraining the two loadings to be equal leaves three free parameters against three moments, which is a just-identified model. The equality of the two loadings is the identifying restriction used by Treiblmaier, Bentler and Mair (2011) for equivalent two-composite splits (pp. 9, 11); fixing the factor variance at one is the M<em>plus</em> scaling choice used here to set the metric of the latent factor. This parameterization is scale-equivalent to any alternative identification that imposes the same equality restriction. The generated syntax makes both choices explicit in comments. The residual variances are left free. Constraining them equal as well, which makes the two composites parallel indicators, is the further restriction usually recommended for a factor with two indicators; here it is unnecessary, because the weights standardize both composites to unit variance on the same data, so their two sample variances are equal exactly, the constraint holds by construction, and its one degree of freedom tests nothing. When the composites are standardized to unit variance, as the weights on this page make them, the standardized loading is the square root of the correlation between them: the article's .746 for the a priori split of the six-variable illustration and .894 for the canonical split, and .681 for the privacy example.</p>
   <p>With three or more composites the loadings need no equality constraint: the factor variance is fixed at one, and the loadings and the residual variances are all free. With three composites the model is again just identified; with four or more it has degrees of freedom. The results panel still reports the square root of the mean correlation between the composites as the loading a model with equal loadings would give; with three or more composites it is a summary of the correlations, and the loadings the second step estimates are free to differ from it. The generated syntax is read back by the page and checked before it is shown, and the checklist under it reports what was verified: that every variable used on the right-hand side of a <code>DEFINE</code> statement is either declared in <code>NAMES</code> or created earlier in <code>DEFINE</code>, that every composite appears in <code>USEVARIABLES</code>, that no intermediate quantified variable has been left there, that no name exceeds the eight characters M<em>plus</em> allows and no line the ninety it reads, and that the coefficients read back out of the <code>DEFINE</code> statements match the weights in the table. The check on the intermediate variables matters because a variable created in <code>DEFINE</code> and listed in <code>USEVARIABLES</code> enters the model as an observed variable: the quantified variables would then be analyzed alongside the composites, and M<em>plus</em> would return a fit that has nothing to do with the intended model. Only the composites belong in <code>USEVARIABLES</code>.</p>
 
   <h3>Choosing the division from the data</h3>
-  <p>The exploratory search examines the ways of dividing the selected indicators into two blocks and reports the one whose first canonical correlation is highest. A division is represented as an integer with one bit per indicator, the first indicator held in the first block so that a division and its mirror image are not counted twice; the number of distinct divisions of <em>k</em> indicators is therefore 2<sup><em>k</em>−1</sup> − 1, which is 15 for five indicators. Bit tests and the population count are done by division rather than by the bitwise operators of the language: those coerce their operands to signed 32-bit integers, so <code>1 &lt;&lt; 32</code> wraps round to 1 and a population count written with <code>&gt;&gt;=</code> never terminates once bit 31 is set. Division is exact up to 2<sup>53</sup>, and the search is limited to 50 indicators, which is well inside that. The self-test checks the population count at and above 32 bits. The search runs in chunks of a few tens of milliseconds with the page yielding between them, so the tab stays responsive and the progress bar advances; the enumeration is exhaustive up to 200000 divisions, which is 18 indicators, and switches to hill climbing from random starting divisions beyond that, in which case the division found is not certainly the best one and the page says so.</p>
-  <p>The article does say that, for its purposes, the best division is the one that yields highly correlated parts, and Proposition 2 gives the reason. But the article obtains a high correlation by choosing the <em>weights</em> optimally within a division fixed on substantive grounds, and choosing the division itself by the same criterion on the same data is a further step it does not take. The canonical correlation is already a maximum over all weight vectors, so it is biased upward in any sample; maximizing it over the divisions as well adds a second layer of capitalization on chance, and the value that comes out is not an estimate of a population quantity. The search is useful for seeing how much the answer depends on the division and whether one indicator is consistently isolated, and its result is a hypothesis to be checked on other data rather than the division to report. A division defensible on content grounds, with the weights then chosen for maximal correlation, is what the article proposes.</p>
+  <p>The exploratory search partitions the selected indicators into two blocks and evaluates the first canonical correlation. Mirror-image partitions are counted once, giving <span class="nowrap">2<sup>k−1</sup> − 1</span> distinct partitions for <em>k</em> indicators. Enumeration is exhaustive up to 200,000 partitions (18 indicators); larger problems use hill climbing from random starts, so the reported partition may not be the global maximum. The search runs in short chunks to keep the page responsive.</p>
+  <p>Treiblmaier, Bentler and Mair optimize weights within a substantively defined partition. Optimizing the partition itself on the same data adds another selection step and can further inflate the sample canonical correlation. The exploratory search is therefore presented as a sensitivity check: its partition is a hypothesis for external evaluation, not a default reporting choice.</p>
 
   <h3>Missing data</h3>
-  <p>Cases are deleted listwise: a case is used only if it has a valid value on every indicator assigned to a composite, and indicators left out of the analysis do not cause a case to be dropped. The page reports the number of complete cases used, the number dropped, and the number of cases available on each indicator separately, so that a single indicator responsible for most of the loss can be identified. Values matching a missing value code declared in the M<em>plus</em> output, and the codes <code>.</code> and <code>*</code>, are treated as missing; the numeric codes are compared as numbers, so that −99, −99.0 and −99.000 are recognized as the same code. No imputation and no full-information estimation is available here, because the first step is a computation on a covariance matrix rather than a model fitted by maximum likelihood. When the proportion of dropped cases is large, the covariance matrix is that of the complete cases and generalizes to the rest of the sample only under an assumption this page cannot check.</p>
+  <p>Cases are analyzed listwise across the indicators assigned to the selected composites. The page reports complete cases, excluded cases, and valid cases per indicator. Missing-value codes declared in the M<em>plus</em> output, together with <code>.</code> and <code>*</code>, are treated as missing. No imputation or full-information estimation is performed because the method operates on a covariance matrix. With substantial case loss, the resulting covariance matrix represents the complete-case subset and requires the corresponding missing-data assumptions for broader interpretation.</p>
 
   <h3>What this page does not do</h3>
-  <p>The disturbance <var>D</var> of the formative construct is not estimated, and cannot be: proceeding without it is the point of the two-step approach, so the correlation between <var>F</var>* and the intended <var>F</var> is unknown in any application, as the article states (p. 9). Nothing here decides whether a construct should be measured formatively at all; that argument is conducted in Bollen and Lennox (1991), Diamantopoulos and Winklhofer (2001) and Bollen (2002), and it has to be settled before these computations are of any use. The weights are sample quantities with no standard errors attached, and the canonical correlation is a maximum over weight vectors, so it is biased upward in small samples; the page reports the ratio of complete cases to indicators and warns below five cases per indicator. The exploratory search works on the covariance matrix of the raw values even when indicators are categorical, because a quantification would have to be recomputed for every division. The page reads a raw data file, so the covariance matrix it works from is on the metric of the variables themselves and the <code>DEFINE</code> statements it writes apply to them unchanged.</p>
+  <p>The two-step procedure does not estimate the disturbance <em>D</em>; consequently, the correlation between the constructed score <em>F*</em> and the intended formative construct <em>F</em> is unknown (Treiblmaier, Bentler, &amp; Mair, p. 9). The method also does not determine whether formative measurement is substantively appropriate. Weights are sample estimates without standard errors, and canonical correlations can be upwardly biased in small samples. The page reports the complete-case-to-indicator ratio and flags values below five. For categorical indicators, the exploratory partition search uses the raw-value covariance matrix because re-estimating quantifications for every partition is not implemented.</p>
 
   <h3>Self-test</h3>
-  <p>Adding <code>?selftest=1</code> to the address of this page runs the numerical checks in the browser and prints the result at the top of the page and in the console. They cover the two published benchmarks of Treiblmaier, Bentler and Mair (2011), which appear here and nowhere else on the page, because a matrix copied out of an article is a number typed by hand: the six-variable illustration end to end — the a priori weights .5, .6 and .7 giving composite variances of 1.1, a covariance of .612, a correlation of .5564 and an equal standardized loading of .746, and the canonical correlation of .8 giving .894 — and the canonical correlations, the structure coefficients and the loading of .681 of the privacy example; the agreement of the generalized routine with canonical correlation analysis when there are two blocks; Wilks's lambda, Bartlett's statistic and its degrees of freedom against their definitions; the chi-square tail below the point where one minus the lower tail returns zero; the pseudo-inverse path and the truncation of dimensions on a rank-deficient block; the enumeration of the divisions of five indicators and the population count at 2<sup>31</sup>, 2<sup>32</sup>, 2<sup>40</sup> and 2<sup>49</sup>; the redundancy index computed both ways and agreeing; the free-format data parser, the matrix parser, the variable-range expander and the M<em>plus</em> input parser on embedded samples; the pool-adjacent-violators algorithm against monotone fits worked out by hand; optimal scaling with numerical levels reproducing canonical correlation analysis and an ordinal quantification coming out monotone; the generated syntax for two and for three composites, read back and checked, with the equal loadings and the free residual variances of the two-composite model; and a randomized run of 220 problems asserting that every composite has unit variance, that the correlation between the composites equals the first canonical correlation, that the stationarity conditions <span class="eq-in"><b>S</b><sub><var>xy</var></sub><b>b</b> = ρ<b>S</b><sub><var>xx</var></sub><b>a</b></span> and <span class="eq-in"><b>S</b><sub><var>yx</var></sub><b>a</b> = ρ<b>S</b><sub><var>yy</var></sub><b>b</b></span> hold, that the canonical correlations lie between zero and one and do not increase, and that they agree with an independent computation through the eigenvalues of <span class="eq-in"><b>S</b><sub><var>xx</var></sub><sup>−1</sup><b>S</b><sub><var>xy</var></sub><b>S</b><sub><var>yy</var></sub><sup>−1</sup><b>S</b><sub><var>yx</var></sub></span> obtained by a Gauss–Jordan inverse and unshifted QR iteration, which share no code with the routines they check.</p>
+  <p>Append <code>?selftest=1</code> to run the in-browser checks. They cover the published numerical benchmarks, canonical-correlation and MAXVAR calculations, Wilks’s lambda and Bartlett’s test, rank-deficient matrices, partition enumeration, data and input parsers, optimal scaling, generated syntax, and randomized composite problems.</p>
 </div>
 </details>
 
@@ -278,6 +286,245 @@ progress { width: 100%; max-width: 26rem; height: 1rem; }
 </footer>
 
 <script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
+/* What the run contains besides its estimates: a serious message is named
+   and put in front of the result, a note is named and left as a note. */
+function mpwNote(text) {
+  var w = MPWARN.classify(text), bits = w.serious, i, s;
+  if (bits.length) {
+    s = "";
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
+    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+  }
+  if (w.info.length || w.ignored.length) {
+    s = "";
+    var notes = w.info.concat(w.ignored);
+    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
+    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + s + "." };
+  }
+  return null;
+}
+
 "use strict";
 
 /* ==================================================================
@@ -1325,13 +1572,72 @@ var CWREAD = (function () {
     try { return { text: new TextDecoder("windows-1252").decode(u8), encoding: "Windows-1252" }; } catch (e) { /* fall through */ }
     return { text: new TextDecoder("utf-8").decode(u8), encoding: "UTF-8 with replacement characters" };
   }
-  function readFileText(file, then, onError) {
+  /* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
+function readFileText(file, then, onError) {
     var r = new FileReader();
     r.onerror = function () { if (onError) onError(new Error("The file could not be read.")); };
     if (typeof r.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined") {
       r.onload = function (e) {
         var res = e && e.target ? e.target.result : r.result;
-        try { then(decodeBuffer(res)); } catch (err) { if (onError) onError(err); }
+        try { var dec = decodeBuffer(res); try { mpwRender(file.name, String(dec && dec.text || "")); } catch (e) {} then(dec); }
+        catch (err) { if (onError) onError(err); }
       };
       r.readAsArrayBuffer(file);
     } else {
@@ -1370,7 +1676,11 @@ var CWREAD = (function () {
     return m ? m[2].replace(/\s+/g, " ").trim() : null;
   }
   function parseMplusInput(text) {
-    var i0 = text.search(/INPUT INSTRUCTIONS/i), i1 = text.search(/INPUT READING TERMINATED/i);
+    /* A run whose input drew warnings prints their count in place of INPUT
+       READING TERMINATED NORMALLY, so the echo ends at the first of the
+       lines that can follow it. */
+    var i0 = text.search(/INPUT INSTRUCTIONS/i);
+    var i1 = text.search(/^[ \t]*(INPUT READING TERMINATED|\*\*\* (WARNING|ERROR|FATAL)|\d+ WARNING\(S\) FOUND|SUMMARY OF ANALYSIS)/im);
     var src = (i0 >= 0 && i1 > i0) ? text.slice(i0, i1) : text;
     src = src.replace(/!.*$/gm, "");
     var namesRaw = statementValue(src, "NAMES");
@@ -2145,7 +2455,7 @@ var CWREAD = (function () {
     var comparison = [
       { key: "equal", label: "Equal weights", w: equalWeightVectors(sets) },
       { key: "replicated", label: "Replicated weights (first principal component per block)", w: M.replicatedWeights(S, sets) },
-      { key: "canonical", label: m === 2 ? "Maximal correlation (canonical)" : "Maximal correlation (MAXVAR)", w: opt.weights }
+      { key: "canonical", label: m === 2 ? "Maximal correlation (canonical)" : "MAXVAR generalized canonical", w: opt.weights }
     ].map(function (c) {
       var e = M.evaluateWeights(S, sets, c.w);
       return { key: c.key, label: c.label, meanCorr: e.meanCorr, loading: e.loading, eigenvalue: e.eigenvalue, proportion: e.proportion };
@@ -2173,7 +2483,7 @@ var CWREAD = (function () {
     var methodName = { equal: "equal weights",
       replicated: "replicated weights, the first principal component of each block",
       canonical: m === 2 ? "weights for maximal correlation, by canonical correlation analysis"
-                         : "weights for maximal correlation, by generalized canonical correlation analysis under the MAXVAR criterion" }[R.method];
+                         : "MAXVAR weights, by generalized canonical correlation analysis (maximizing the largest eigenvalue of the composite correlation matrix)" }[R.method];
 
     /* ---- headline ---- */
     var head = "<dl class=\"kv\">";
@@ -2553,10 +2863,11 @@ var CWREAD = (function () {
       L.push("  ! Two composites give three distinct moments: two variances and");
       L.push("  ! one covariance. A factor with two free loadings, two free");
       L.push("  ! residual variances and a free factor variance has five");
-      L.push("  ! parameters and is not identified. Fixing the factor variance");
-      L.push("  ! at one and holding the two loadings equal, as the article does");
-      L.push("  ! for equivalent splits, leaves three parameters for three");
-      L.push("  ! moments. The residual variances are left free: the composites");
+      L.push("  ! parameters and is not identified. Holding the two loadings");
+      L.push("  ! equal follows Treiblmaier et al. for equivalent splits;");
+      L.push("  ! fixing the factor variance at one only sets the factor metric.");
+      L.push("  ! Together these leave three parameters for three moments.");
+      L.push("  ! The residual variances are left free: the composites");
       L.push("  ! have unit variance by construction, so a constraint of equal");
       L.push("  ! residual variances would hold exactly and test nothing.");
       L.push("  FSTAR BY " + comp[0] + "* (LAM)");
@@ -2687,7 +2998,7 @@ var CWREAD = (function () {
        category, each category once, and only characters Mplus reads. Two
        statements for the same category would overwrite each other. */
     add(!/[^\x00-\x7F]/.test(defSec), /[^\x00-\x7F]/.test(defSec)
-      ? "The <code>DEFINE</code> section contains a character outside ASCII, which M<em>plus</em> does not read."
+      ? "The <code>DEFINE</code> section contains a character outside ASCII, which cannot be read."
       : "The <code>DEFINE</code> section contains only ASCII characters.");
     var qnames = Object.keys(syn.qname).map(function (k) { return syn.qname[k]; });
     var dupes = [], countBad = [];
@@ -2826,7 +3137,7 @@ var CWREAD = (function () {
           "(2011) do prefer a split that yields highly correlated parts, but they fix the split on substantive " +
           "grounds and choose only the weights by that criterion. Treat this division as a hypothesis for other " +
           "data, not as the division to report. The indicator table now shows this division and the weighting method " +
-          "has been set to maximal correlation; press <em>Compute the weights</em> to analyze it.");
+          "has been set to canonical/MAXVAR weighting; press <em>Compute the weights</em> to analyze it.");
         $("results").innerHTML = note;
         say("Search finished. Press “Compute the weights” to analyze this division.");
       });
@@ -2906,6 +3217,16 @@ var CWREAD = (function () {
           " The file <code>" + esc(file.name) + "</code> carries none of the headings every M<em>plus</em> output has, " +
           "so it was not read. This box takes the <code>.out</code> file of the <code>TYPE = BASIC</code> run; the " +
           "raw data file goes in the first box.");
+        return;
+      }
+      var cwFatal = MPWARN.classify(body).blocking;
+      if (cwFatal.length) {
+        pendingOut = null; st.outName = "";
+        syncWaiting(); $("load-report").innerHTML = status("bad", "The results of this run are not to be interpreted.",
+          " The run that produced <code>" + esc(file.name) + "</code> failed: " +
+          cwFatal.map(function (x) { return x.say; }).join("; ") +
+          ". What such a file prints are the last values the algorithm held, not estimates, and the names and " +
+          "the missing value codes this page needs cannot be trusted to describe the data either.");
         return;
       }
       pendingOut = { text: res.text, encoding: res.encoding, name: file.name };
@@ -3529,7 +3850,7 @@ var CWREAD = (function () {
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {
@@ -3643,8 +3964,26 @@ var CWREAD = (function () {
       }
     }
   }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
   var timer = null;
-  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
   else schedule();
   window.addEventListener("resize", schedule);

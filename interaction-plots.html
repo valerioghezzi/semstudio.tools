@@ -72,13 +72,14 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
 
 <p id="selftest" class="status info" hidden></p>
 
-<section aria-labelledby="s-steps">
-  <h2 id="s-steps">What to do</h2>
+<details class="fold" id="fold-s-steps" data-autoopen>
+  <summary><h2 id="s-steps">What to do</h2></summary>
+  <div class="fold-body">
   <ol class="steps">
     <li>Open the <span class="mp">M</span><em>plus</em> input file of the model that contains the interaction, the file with the extension <code>.inp</code>, and add this line to it, exactly as it is written here: <code>OUTPUT: SAMPSTAT STDYX TECH1 TECH3 TECH4;</code></li>
     <li>Leave the line as it is when the interaction is between two latent variables declared with <code>XWITH</code>. That model is estimated with <code>TYPE = RANDOM</code>, and TECH4 is what carries the quantities the standardized solution needs: the estimated variances of the two factors, their covariance, and the estimated variance of the dependent variable when that is itself a factor. The product term does not appear among the rows of TECH4; its variance follows from the variances and the covariance of its two components. If the run answers with the warning that TECH4 or STANDARDIZED is not available for <code>TYPE = RANDOM</code>, which versions before 7.4 do (Muthén &amp; Muthén, 2015), the page reads the variances of the factors from the <em>Variances</em> block and their covariance from the <em>WITH</em> block of MODEL RESULTS, takes their means as zero, which is where <span class="mp">M</span><em>plus</em> fixes them, and rebuilds the variance of the dependent variable from the model.</li>
     <li>Run that input in <span class="mp">M</span><em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the folder the input is in.</li>
-    <li>Drag the <code>.out</code> file onto the box below, or press <em>Choose the .out file</em> and pick it there. The file is read inside your browser and nothing leaves your computer.</li>
+    <li>Drag the <code>.out</code> file onto the box below, or press <em>Choose the .out file</em> and pick it there. The file is read inside your browser and semstudio.tools does not transmit the file contents; processing occurs in the browser.</li>
     <li>Read the paragraph headed <em>Output read</em>. It names every regression found in MODEL RESULTS, the estimator, whether TECH1 and TECH3 are in the file, and any row the program printed as asterisks.</li>
     <li>Choose the dependent variable, the predictor whose slope is drawn, and how the moderator enters the model: one continuous variable, one categorical variable with numeric codes, or a set of dummy variables with one product term each.</li>
     <li>Choose the moderator and the term that carries the product of the predictor and the moderator. The page names the coefficients it read for them; those values cannot be changed here.</li>
@@ -86,8 +87,9 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
     <li>Read the figure, the table of simple slopes under it, and the Johnson&ndash;Neyman section, which reports the values of the moderator at which the slope of Y on X stops differing from zero.</li>
     <li>Set the labels, the axes, the printed width and the resolution, then download the figure as SVG or as PNG.</li>
   </ol>
-  <p>The page refuses a file that is empty, a file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, a file that ends before MODEL RESULTS because the run was interrupted, a run that did not converge, and an output produced with TYPE = TWOLEVEL, with latent classes, with more than one group or with ESTIMATOR = BAYES, whose MODEL RESULTS sections are laid out differently. It also refuses to draw a categorical moderator whose codes are not in the file, and it reports no test when TECH1 and TECH3 are absent and no other source of the sampling covariances can be verified against the printed standard errors. Every number the page computes with is read from the output: there is no field on this page in which a coefficient, a standard error, a mean or a standard deviation can be typed.</p>
-</section>
+  <p>The page does not process empty or truncated files, nonconverged runs, or output formats currently unsupported by the parser: <code>TYPE = TWOLEVEL</code>, mixture models, multiple groups, and <code>ESTIMATOR = BAYES</code>. A categorical moderator also requires its observed codes in the file. Inferential tests are reported only when the sampling covariance of the relevant coefficients can be recovered and checked against the printed standard errors. Coefficients, standard errors, means, and standard deviations are read from the output rather than entered manually.</p>
+  </div>
+</details>
 
 <section aria-labelledby="s-load">
   <h2 id="s-load">Load the <span class="mp">M</span><em>plus</em> output</h2>
@@ -259,7 +261,7 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   <p class="where">Here Var[<var>s</var>(<var>w</var>)] is the sampling variance of the simple slope at <var>w</var>, Var(<var>b</var><sub>1</sub>) and Var(<var>b</var><sub>3</sub>) are the sampling variances of the two coefficients, and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) is their sampling covariance, all three read from TECH3.</p>
   <div class="eq"><math display="block"><mrow><mi>z</mi><mo>=</mo><mfrac><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><msqrt><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">[</mo><mrow><mi>s</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">]</mo></mrow></mrow></msqrt></mfrac></mrow></math></div>
   <p class="where">Here <var>z</var> is the test statistic of the simple slope at <var>w</var>, referred to the standard normal distribution.</p>
-  <p>The test uses the standard normal distribution, as <span class="mp">M</span><em>plus</em> does, so it is asymptotic rather than an exact <var>t</var> test, and in small samples it should be read with the caution that implies. When the moderator is categorical and represented by dummy variables, the slope in category <var>j</var> is <math><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>+</mo><msub><mi>g</mi><mi>j</mi></msub></mrow></math>, with <math><mrow><msub><mi>g</mi><mi>j</mi></msub></mrow></math> the coefficient of the product of X with the dummy variable of that category, and its variance is read from the same matrix:</p>
+  <p>The test uses the standard normal distribution, as M<em>plus</em> does, and is therefore asymptotic. Small-sample results may differ from a finite-sample <em>t</em> procedure. For a categorical moderator represented by dummy variables, the slope in category <em>j</em> is <span class="nowrap"><em>b</em><sub>1</sub> + <em>g</em><sub>j</sub></span>, and its variance is obtained from the same parameter-covariance matrix:</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>+</mo><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><mn>2</mn><mrow><mi>Cov</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>1</mn></msub><mo>,</mo><msub><mi>g</mi><mi>j</mi></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></math></div>
   <p class="where">Here <var>g</var><sub><var>j</var></sub> is the coefficient of the product of X with the dummy variable of category <var>j</var>, Var(<var>g</var><sub><var>j</var></sub>) its sampling variance, and Cov(<var>b</var><sub>1</sub>, <var>g</var><sub><var>j</var></sub>) its sampling covariance with <var>b</var><sub>1</sub>.</p>
   <p>The difference between the slopes of two non-reference categories <var>i</var> and <var>j</var> is <math><mrow><msub><mi>g</mi><mi>j</mi></msub><mo>&#x2212;</mo><msub><mi>g</mi><mi>i</mi></msub></mrow></math>, with variance</p>
@@ -275,11 +277,11 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   <p>Bauer and Curran (2005, eqs. 18&ndash;20) write the three coefficients with the opposite sign, <math><mrow><mi>a</mi><mo>=</mo><msubsup><mi>t</mi><mtext>crit</mtext><mn>2</mn></msubsup><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><msub><mi>b</mi><mn>3</mn></msub><mo stretchy="false">)</mo></mrow></mrow><mo>&#x2212;</mo><msubsup><mi>b</mi><mn>3</mn><mn>2</mn></msubsup></mrow></math> and so on, and with the critical value of a <var>t</var> distribution; multiplying an equation by &minus;1 leaves its roots unchanged, so the thresholds are the same, and with <var>z</var> = 1.96 in place of <var>t</var><sub>crit</sub> the two agree except in small samples. The sign rule below refers to the coefficients as written here. The quantity <math><mrow><mrow><mi>q</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>w</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mi>a</mi><msup><mi>w</mi><mn>2</mn></msup><mo>+</mo><mi>b</mi><mi>w</mi><mo>+</mo><mi>c</mi></mrow></mrow></math> is positive exactly where the simple slope differs from zero at the 5% level. When <var>a</var> is positive the slope is significant outside the two roots, so there are two regions of significance, one below the smaller root and one above the larger; when <var>a</var> is negative there is one region, between the roots. Bauer and Curran (2005, p. 379) speak of &ldquo;regions of significance&rdquo; for the same reason. This page also evaluates <math><mrow><mi>q</mi></mrow></math> at the midpoint of each interval and reports a warning if the two ways of deciding disagree. Only roots that fall inside the range of the moderator the data actually cover are reported and drawn, because a threshold outside that range describes no observable case. For an observed moderator that range is read from the univariate sample statistics when the output contains them, and is otherwise taken as the mean plus or minus three standard deviations, both read from the file; a latent moderator has no observed range, so the second rule is used; the page states which of the two was used. The procedure does not apply to a categorical moderator, whose intermediate values do not exist.</p>
 
   <h3>The standardized solution for a product term</h3>
-  <p>The STDYX section of <span class="mp">M</span><em>plus</em> multiplies every coefficient by the standard deviation of its own predictor and divides by the standard deviation of the outcome (Muthén &amp; Muthén, 2017, ch. 18). When the product is a variable of the model, built in DEFINE from two observed variables, that predictor is XW itself, whose standard deviation differs from SD(<var>X</var>)&nbsp;SD(<var>W</var>). A product declared with XWITH is not a variable of the model and has no standard deviation of its own, and <span class="mp">M</span><em>plus</em> standardizes its coefficient by SD(<var>X</var>)&nbsp;SD(<var>W</var>) instead, which is the solution described next (Asparouhov &amp; Muthén, 2019, eqs. 16&ndash;18). Wen, Marsh and Hau (2010) show that the appropriate standardized solution of a latent interaction model is the one in which the product term is the product of the standardized components, so that its coefficient is rescaled by the standard deviations of the two components and the variance of the product itself never enters:</p>
+  <p>For observed product terms created in <code>DEFINE</code>, <code>STDYX</code> uses the standard deviation of the product variable itself. For latent interactions declared with <code>XWITH</code>, standardization instead uses the standard deviations of the two component variables (Asparouhov &amp; Muthén, 2019, Eqs. 16–18). This matches the product-of-standardized-components formulation discussed by Wen, Marsh and Hau (2010). The product variance is therefore not used in the latent-interaction coefficient rescaling:</p>
   <div class="eq"><math display="block"><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup><mo>=</mo><msub><mi>b</mi><mn>1</mn></msub><mfrac><msub><mi>&#x3C3;</mi><mi>X</mi></msub><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><msubsup><mi>b</mi><mn>2</mn><mo>&#x2032;</mo></msubsup><mo>=</mo><msub><mi>b</mi><mn>2</mn></msub><mfrac><msub><mi>&#x3C3;</mi><mi>W</mi></msub><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><msubsup><mi>b</mi><mn>3</mn><mo>&#x2032;</mo></msubsup><mo>=</mo><msub><mi>b</mi><mn>3</mn></msub><mfrac><mrow><msub><mi>&#x3C3;</mi><mi>X</mi></msub><msub><mi>&#x3C3;</mi><mi>W</mi></msub></mrow><msub><mi>&#x3C3;</mi><mi>Y</mi></msub></mfrac></mrow></math></div>
   <p class="where">Here <var>b</var><sub>1</sub>′, <var>b</var><sub>2</sub>′ and <var>b</var><sub>3</sub>′ are the standardized coefficients of X, of W and of the product, <var>b</var><sub>1</sub>, <var>b</var><sub>2</sub> and <var>b</var><sub>3</sub> the unstandardized ones, and σ<sub><var>X</var></sub>, σ<sub><var>W</var></sub> and σ<sub><var>Y</var></sub> the standard deviations of X, of W and of Y.</p>
   <p>Under this rescaling the standardized simple slope of Y on X at a value <var>w</var> of the moderator is <math><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup><mo>+</mo><msubsup><mi>b</mi><mn>3</mn><mo>&#x2032;</mo></msubsup><mi>w</mi><mo>/</mo><msub><mi>&#x3C3;</mi><mi>W</mi></msub></mrow></math>, so the standardized coefficients and the standardized simple slopes describe the same equation, and all three are unchanged when X, W or Y is measured in different units: this is the scale-free property in the title of Wen, Marsh and Hau (2010). The value of <math><mrow><msubsup><mi>b</mi><mn>1</mn><mo>&#x2032;</mo></msubsup></mrow></math> is the standardized simple slope at <math><mrow><mi>W</mi><mo>=</mo><mn>0</mn></mrow></math> in the original metric of W. It is the coefficient of standardized X in the regression of standardized Y on standardized X, standardized W and their product only when the mean of W is zero; otherwise that coefficient is (<var>b</var><sub>1</sub> + <var>b</var><sub>3</sub>μ<sub><var>W</var></sub>)σ<sub><var>X</var></sub>/σ<sub><var>Y</var></sub> (Aiken &amp; West, 1991, ch. 3), which is why the moderator is usually centered first. With latent variables, whose means <span class="mp">M</span><em>plus</em> fixes at zero, the two coincide. The table of the standardized solution has one column with the STDYX values of <span class="mp">M</span><em>plus</em> and one with the values rebuilt from the formulas above. For X and for W the two agree. For the product they agree as well when it is declared with XWITH, since both then divide by SD(<var>X</var>)&nbsp;SD(<var>W</var>), and differ by construction when the product is an observed variable, since <span class="mp">M</span><em>plus</em> then divides by its standard deviation; the page states which of the two cases the output is in and prints the difference.</p>
-  <p>When the interaction is between latent variables declared with XWITH, the model is estimated with <code>TYPE = RANDOM</code> and the standard deviations the formulas above need belong to factors, not to observed variables. TECH4 prints them: the estimated means, variances and covariances of the latent variables of the model, including the estimated variance of the dependent variable when that is a factor. The product term itself is not among the rows and columns of TECH4, and the page does not need it there, because the variance of the product follows from the variances and covariance of its two components. The 8th edition of the user's guide records that TECH4 and the STANDARDIZED option are not available for <code>TYPE = RANDOM</code> with maximum likelihood estimation (Muthén &amp; Muthén, 2017, ch. 18), and a version that refuses them answers the request with a warning naming the option; Version 7.4 added the R-square and the standardized coefficients of models with latent variable interactions declared with XWITH (Muthén &amp; Muthén, 2015), which are computed from the same estimated variances, and both sections are printed for such a model from that version on. The page therefore reads TECH4 when the file contains it and states that it did.</p>
+  <p>For latent interactions declared with <code>XWITH</code>, the required standard deviations belong to latent variables. The page reads them from <code>TECH4</code> when available. If <code>TECH4</code> is absent, it uses the variance information printed for latent-interaction models where that reconstruction is supported and states which route was used. The product term itself need not appear in <code>TECH4</code> because its moments follow from those of its components.</p>
 
   <p>When the file has no TECH4 block, the variances of the factors are read from the <em>Variances</em> block and their covariance from the <em>WITH</em> block of MODEL RESULTS, their means are zero, and the total variance of Y is reconstructed from the model under joint normality of X and W, using the variance of a product of two normal variables given by Bohrnstedt and Goldberger (1969):</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>Var</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mrow><mi>X</mi><mi>W</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3BC;</mi><mi>X</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>W</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3BC;</mi><mi>W</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C3;</mi><mi>X</mi><mn>2</mn></msubsup><mo>+</mo><mn>2</mn><msub><mi>&#x3BC;</mi><mi>X</mi></msub><msub><mi>&#x3BC;</mi><mi>W</mi></msub><msub><mi>&#x3C3;</mi><mrow><mi>X</mi><mi>W</mi></mrow></msub></mrow></math></div>
@@ -304,14 +306,14 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   <p>TECH1 prints the parameter specification: each free parameter of the model receives a number, and the numbers are laid out in the matrices of the general model, so that the coefficient of X in the regression of Y appears as an entry of <b>Β</b> or <b>Γ</b> in row Y and column X, and the intercept of Y appears in <b>α</b> or <b>ν</b>. <span class="mp">M</span><em>plus</em> prints these matrices in blocks of five columns, repeating the name of the matrix above each block, so a parser that stops at the first block loses every column from the sixth onwards; this page reads every block and keeps the column headings of each. TECH3 prints the covariance matrix of the parameter estimates, indexed by the same numbers. Reading the two together gives the exact sampling variances and covariance that the delta method needs. When TECH3 is absent, two other sources are tried in turn, and the table of simple slopes names the one used. The first applies only to a regression among observed variables fitted by maximum likelihood: the covariance matrix of the regression coefficients is then</p>
   <div class="eq"><math display="block"><mrow><mi mathvariant="bold">V</mi><mo>=</mo><mfrac><msubsup><mi>&#x3C3;</mi><mi>e</mi><mn>2</mn></msubsup><mi>n</mi></mfrac><msup><mi mathvariant="bold">S</mi><mrow><mo>&#x2212;</mo><mn>1</mn></mrow></msup></mrow></math></div>
   <p class="where">Here <b>V</b> is the covariance matrix of the coefficients of the predictors of Y, σ<sup>2</sup><sub><var>e</var></sub> is the residual variance of Y from MODEL RESULTS, <var>n</var> is the number of observations, and <b>S</b> is the sample covariance matrix of the predictors from SAMPSTAT, which <span class="mp">M</span><em>plus</em> computes with the divisor <var>n</var>.</p>
-  <p>This reconstruction is accepted only when the square roots of its diagonal reproduce the standard errors printed in MODEL RESULTS within 8%; with a robust estimator or with latent variables it is not attempted. The second source is three simple slopes computed in MODEL CONSTRAINT as NEW parameters, from which Var(<var>b</var><sub>1</sub>), Var(<var>b</var><sub>3</sub>) and Cov(<var>b</var><sub>1</sub>, <var>b</var><sub>3</sub>) can be recovered by solving a linear system in three unknowns; those values carry the rounding of the three printed decimals, so TECH3 is preferred whenever it is available. A NEW parameter is used only when its name identifies it as a simple slope, so that an indirect or total effect that happens to fall near the same value is never mistaken for one.</p>
+  <p>The covariance reconstruction is limited to complete-data, unweighted observed-variable regressions estimated by ordinary maximum likelihood. It is not used with missing-data patterns, weights, bootstrap standard errors, <code>TYPE = COMPLEX</code>, <code>TYPE = RANDOM</code>, or latent predictors. Reconstructed standard errors must agree with the printed values within output-rounding tolerance. When <code>TECH3</code> is available it is preferred; otherwise three simple slopes defined as <code>NEW</code> parameters can identify Var(<em>b</em><sub>1</sub>), Var(<em>b</em><sub>3</sub>) and Cov(<em>b</em><sub>1</sub>, <em>b</em><sub>3</sub>) if their names identify them as simple slopes.</p>
 
   <h3>Reading the output file</h3>
-  <p>Files are read as raw bytes and decoded by inspecting the byte-order mark and by testing whether the content is valid UTF-8, falling back on Windows-1252, which is what <span class="mp">M</span><em>plus</em> writes on Windows. Fortran exponents of the form 0.123D-03 are converted before conversion to a number, a row of asterisks in place of a value is reported as unread, and the sentinel 999.000 on all four columns is treated as a value <span class="mp">M</span><em>plus</em> could not compute. The page refuses two-level, mixture, multiple-group and Bayesian outputs, whose MODEL RESULTS sections are organized differently; a file that ends before MODEL RESULTS, which comes from a run that was interrupted; a file with none of the headings <span class="mp">M</span><em>plus</em> always writes; an empty file; and a run that did not reach convergence. Each refusal names what was found. The estimator is read from SUMMARY OF ANALYSIS, and from the echoed input only when that section does not state it, in which case the page says so, because the estimator asked for in the input is not always the one the run used. It is never assumed.</p>
+  <p>Files are decoded from the byte-order mark when present; otherwise UTF-8 is tested before falling back to Windows-1252. Fortran <code>D</code> exponents are converted, asterisks are treated as unread values, and <code>999.000</code> in all four columns is treated as an unavailable M<em>plus</em> result. Unsupported model types, truncated files, unrecognized files, empty files, and nonconverged runs are reported without producing a plot. The estimator is read from <code>SUMMARY OF ANALYSIS</code> and only falls back to the echoed input when necessary; the fallback is disclosed.</p>
   <p>Every quantity the page computes with is read from that file: the coefficients and their intercept from MODEL RESULTS; the means and variances of observed variables from the <em>Means</em> and <em>Covariances</em> blocks of SAMPLE STATISTICS, or from the mean and variance columns of UNIVARIATE SAMPLE STATISTICS when that block is the only one printed, and their observed minimum and maximum from the latter; the means, variances and covariances of latent variables from TECH4 when it is present and otherwise from the <em>Variances</em> and <em>WITH</em> blocks of MODEL RESULTS, with the mean of an exogenous factor taken as the zero <span class="mp">M</span><em>plus</em> fixes it at; the intercept of the equation from the <em>Intercepts</em> block, except for a latent dependent variable that gets no such line, whose intercept <span class="mp">M</span><em>plus</em> has fixed at zero and which the page states as fixed; the codes of a categorical moderator from the same statistics; and the sampling variances and covariances from TECH1 with TECH3. None of them can be typed in, and none of them can be edited after being read. What remains adjustable is the description of the figure: which levels of a continuous moderator to draw, the labels, the axes, the type size, the printed width and the resolution of the export.</p>
 
   <h3>Self-test</h3>
-  <p>Opening this page with <code>?selftest=1</code> appended to its address runs its numerical checks in the browser and prints the outcome and the number of checks at the top, with every check listed under it. They cover the two-sided normal tail against published values from <math><mrow><mi>z</mi><mo>=</mo><mn>1</mn></mrow></math> to <math><mrow><mi>z</mi><mo>=</mo><mn>8</mn></mrow></math>; the simple slope and its delta-method variance over 2400 random problems, against the quadratic form written out separately and against a Monte Carlo of 200000 draws from the sampling distribution of the estimates; the identity on which the Johnson&ndash;Neyman quadratic rests, checked on 401 grid points in each of 2400 problems, together with the requirement that the test statistic change side of the critical value at the reported roots and nowhere else; a quadratic with no real root, with a discriminant of exactly zero, with a vanishing quadratic term and with two real roots; a slope significant over the whole range and one significant nowhere; the standardized transformation of a product term; the variance of a predicted mean, against a double loop and against a Monte Carlo; the simple slopes of a categorical moderator with three and with five categories and every difference between them; the refusal of two-level, mixture, multiple-group and Bayesian outputs; the parsers for TECH1 across twelve columns, for TECH3 with Fortran D exponents, for the univariate sample statistics and for the univariate proportions and counts of a categorical variable; the codes of a moderator dummy coded 0/1 and 1/2 and with three, five and ten categories, and the refusal to draw one whose codes are not in the file; a moderator with no variance; and one latent interaction model read twice, once with the TECH4 block and once without it, which checks that TECH4 is read past its standard error matrices, that the total variance of the dependent factor falls back on the Bohrnstedt&ndash;Goldberger reconstruction when the block is absent, that the two routes agree to within the rounding of the printed values when both are available, and that the intercept of a latent dependent variable with no <em>Intercepts</em> line is read as the zero <span class="mp">M</span><em>plus</em> fixed it at.</p>
+  <p>Append <code>?selftest=1</code> to run the in-browser checks. They cover normal-tail probabilities, simple slopes and delta-method variances, Johnson–Neyman roots and edge cases, standardized product terms, predicted-mean variance, categorical moderators, supported and unsupported output structures, <code>TECH1</code>/<code>TECH3</code>/<code>TECH4</code> parsing, moderator coding, and latent-interaction variance reconstruction. Randomized checks compare analytical results with independent algebraic or Monte Carlo calculations.</p>
 </div>
 </details>
 
@@ -340,6 +342,245 @@ figure.plot svg { border: 1px solid var(--line); width: auto; max-width: 100%; }
   <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
 </footer>
 <script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
+/* What the run contains besides its estimates: a serious message is named
+   and put in front of the result, a note is named and left as a note. */
+function mpwNote(text) {
+  var w = MPWARN.classify(text), bits = w.serious, i, s;
+  if (bits.length) {
+    s = "";
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
+    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+  }
+  if (w.info.length || w.ignored.length) {
+    s = "";
+    var notes = w.info.concat(w.ignored);
+    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
+    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + s + "." };
+  }
+  return null;
+}
+
 "use strict";
 
 /* ---------------------------------------------------------------------------
@@ -419,7 +660,68 @@ function decodeBuffer(ab) {
   try { return new TextDecoder("windows-1252").decode(body); } catch (e) { /* fall through */ }
   return new TextDecoder("utf-8").decode(body);
 }
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
 function readTextFile(file, then, fail) {
+  var mpwName = (file && file.name) ? file.name : "";
+  var mpwOuter = then;
+  then = function (t) { try { mpwRender(mpwName, String(t)); } catch (e) {} mpwOuter(t); };
   const r = new FileReader();
   r.onerror = () => { if (fail) fail(); };
   if (typeof r.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined") {
@@ -1104,21 +1406,36 @@ function cvFromML(y, preds) {
   if (S.estimator !== "ML" || !Number.isFinite(S.n) || S.n <= 1) return null;
   if (!Number.isFinite(S.residuals[y])) return null;
   if (preds.some(v => S.latent.includes(v) || v in S.latentVars)) return null;
+  /* V = sigma_e^2/n S^{-1} is the complete-data, unweighted normal-theory ML
+     result. It is not the sampling covariance matrix for FIML with missing
+     outcomes, sampling weights, bootstrap standard errors or complex/random
+     analyses. In those cases only TECH3 (or a directly defined NEW parameter)
+     is accepted. */
+  const raw = S.raw || "";
+  if (/Number of missing data patterns/i.test(raw) ||
+      /^\s*(?:Weight|Stratification) variable\b/mi.test(raw) ||
+      /(?:^|[;:\n])\s*(?:WEIGHT|STRATIFICATION)\s*(?:IS|ARE|=)/i.test(raw) ||
+      /\bBOOTSTRAP\b/i.test(raw) ||
+      /TYPE\s*(?:IS|ARE|=)\s*[^;\n]*(?:COMPLEX|RANDOM)/i.test(raw)) return null;
   const M = preds.map(a => preds.map(b => S.sampCov[a + "|" + b]));
   if (M.flat().some(v => !Number.isFinite(v))) return null;
   const inv = invertMatrix(M);
   if (!inv) return null;
   const f = S.residuals[y] / S.n, V = inv.map(r => r.map(v => v * f));
   const info = S.regInfo[y] || {};
-  const diffs = [];
-  preds.forEach((v, i) => {
-    const se = info[v] ? info[v].se : NaN;
-    if (Number.isFinite(se) && se > 0) diffs.push(Math.abs(Math.sqrt(Math.max(0, V[i][i])) - se) / se);
-  });
-  /* Without at least one printed standard error to compare against, the
-     reconstruction cannot be verified and is not used. */
-  if (!diffs.length || Math.max(...diffs) > 0.08) return null;
-  return { V, source: "the sample covariance matrix and the residual variance of a maximum likelihood fit" };
+  /* Every predictor must be a free slope with a printed SE. Otherwise the
+     inverse of the full predictor covariance matrix is not the covariance
+     matrix of the subset of free coefficients. The agreement check allows
+     only the rounding of the three-decimal Mplus output, plus a small relative
+     cushion for very small SEs; the old 8% tolerance could accept a visibly
+     different covariance model. */
+  for (let i = 0; i < preds.length; i++) {
+    const se = info[preds[i]] ? info[preds[i]].se : NaN;
+    if (!(Number.isFinite(se) && se > 0)) return null;
+    const got = Math.sqrt(Math.max(0, V[i][i]));
+    if (Math.abs(got - se) > Math.max(0.00075, 0.015 * se)) return null;
+  }
+  return { V, source: "the sample covariance matrix and residual variance of a complete-data, unweighted maximum likelihood regression" };
 }
 /* The sampling variances of b1 and b3 and their covariance, together with the
    reason when none of the three routes yields them. The reason is kept because
@@ -1141,7 +1458,7 @@ function parameterCovariance(y, x, xw, b1, b3) {
   let why;
   if (!haveT1 && !haveT3) why = "this output contains neither TECH1 nor TECH3, so the covariance matrix of the estimates is not in it. Request <code>OUTPUT: TECH1 TECH3;</code>";
   else if (!haveT1) why = "this output contains TECH3 but not TECH1, so the numbers TECH3 is indexed by cannot be matched to the coefficients. Request <code>OUTPUT: TECH1 TECH3;</code>";
-  else if (!haveT3) why = "this output contains TECH1 but not TECH3, so the parameters are numbered but their covariance matrix was not printed. Request <code>OUTPUT: TECH1 TECH3;</code>";
+  else if (!haveT3) why = "this output contains TECH1 but not TECH3, so the parameters are numbered but their covariance matrix is not in the file. Request <code>OUTPUT: TECH1 TECH3;</code>";
   else if (!(n1 > 0) || !(n3 > 0)) why = "TECH1 gives no parameter number for " + esc(!(n1 > 0) ? x : xw) +
     " in the regression of " + esc(y) + ", so its row of TECH3 cannot be found. That happens when the coefficient is fixed rather than free, or when the term belongs to a part of the model this page does not read";
   else why = "TECH1 and TECH3 are both present, but the entries the delta method needs (rows " + n1 + " and " + n3 +
@@ -1453,7 +1770,7 @@ function gather() {
   const b0 = RD.b0, b1 = RD.b1, b2 = RD.b2, b3 = RD.b3;
   const mx = RD.mx, sx = RD.sx, my = RD.my, sy = RD.sy;
   if (!X) return { error: "No predictor is selected. Choose the variable whose slope on " + esc(Y) + " is to be drawn; it is the one the moderator is supposed to change the effect of." };
-  if (!Number.isFinite(b0)) return { error: "This output prints no intercept for " + esc(Y) + " in MODEL RESULTS, so the lines have nowhere to start. " + esc(Y) + " is an observed variable, so its intercept is a free parameter whenever the model has one, and the model that produced this file was fitted without it. Choose another dependent variable, or rerun the model with the intercept free." };
+  if (!Number.isFinite(b0)) return { error: "This output carries no intercept for " + esc(Y) + " in MODEL RESULTS, so the lines have nowhere to start. " + esc(Y) + " is an observed variable, so its intercept is a free parameter whenever the model has one, and the model that produced this file was fitted without it. Choose another dependent variable, or rerun the model with the intercept free." };
   if (!Number.isFinite(b1)) return { error: "This output gives no coefficient for " + esc(X) + " in the regression of " + esc(Y) + ", so the slope that the moderator is supposed to change is not in the file. Choose a predictor that appears in the <code>ON</code> statement of " + esc(Y) + "." };
   if (std && !(Number.isFinite(sx) && sx > 0 && Number.isFinite(sy) && sy > 0 && Number.isFinite(mx) && Number.isFinite(my)))
     return { error: "The standardized figure needs the mean and the standard deviation of " + esc(X) + " and of " + esc(Y) + ", and this output does not contain all four. For an observed variable, rerun " + MP + " with <code>OUTPUT: SAMPSTAT;</code>; for a latent variable, with <code>OUTPUT: TECH4;</code>, which prints its estimated mean and variance. Or draw the figure in the original metric of the variables." };
@@ -2482,11 +2799,14 @@ function loadText(raw) {
   const t = normalize(raw);
   if (!t.trim()) { fail("The file that was chosen has no content at all. " + MP + " writes its output as it runs, so an empty .out file usually means the run was interrupted before it started or the file was copied while it was still being written. Rerun the model and load the file " + MP + " leaves behind."); return; }
   if (!/Mplus VERSION|INPUT INSTRUCTIONS|MODEL FIT INFORMATION|SUMMARY OF ANALYSIS/i.test(t)) {
-    fail("This file does not look like an " + MP + " output: none of the headings " + MP + " always writes is present (the version banner at the top of the file, <code>INPUT INSTRUCTIONS</code>, <code>SUMMARY OF ANALYSIS</code>, <code>MODEL FIT INFORMATION</code>). Load the complete .out file rather than a data file, a saved plot or a fragment copied out of the output.");
+    fail("This file does not look like an " + MP + " output: the expected output headings are absent (the version banner at the top of the file, <code>INPUT INSTRUCTIONS</code>, <code>SUMMARY OF ANALYSIS</code>, <code>MODEL FIT INFORMATION</code>). Load the complete .out file rather than a data file, a saved plot or a fragment copied out of the output.");
     return;
   }
-  if (/DID NOT TERMINATE NORMALLY|NO CONVERGENCE/i.test(t)) {
-    fail("Estimation did not converge in this output (" + MP + " reports THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY). The coefficients cannot be interpreted, so nothing is drawn.");
+  const blocked = MPWARN.classify(t).blocking;
+  if (blocked.length) {
+    fail("The run contains a condition that prevents interpretation of the affected coefficients. " + MP + " reports " +
+      blocked.map(b => (b.txt ? "\u201C" + b.txt + "\u201D \u2014 " : "") + b.say).join("; ") +
+      ". The figure is not drawn from this run. Address the reported condition and rerun the model.");
     return;
   }
   const bad = unsupportedReason(t);
@@ -2537,7 +2857,7 @@ function loadText(raw) {
     : (!haveT1 && !haveT3
       ? "Neither TECH1 nor TECH3 is in this output; request OUTPUT: TECH1 TECH3; for the exact covariance matrix of the estimates."
       : (haveT1
-        ? "TECH1 is present but TECH3 is not, so the parameters are numbered and their covariance matrix was not printed; request OUTPUT: TECH1 TECH3;."
+        ? "TECH1 is present but TECH3 is not, so the parameters are numbered and their covariance matrix is not in the file; request OUTPUT: TECH1 TECH3;."
         : "TECH3 is present but TECH1 is not, so the numbers TECH3 is indexed by cannot be matched to the coefficients; request OUTPUT: TECH1 TECH3;.")));
   if (!(haveT1 && haveT3)) bits.push("Where the standard errors of the simple slopes then come from is stated under the table; if no source can be used, no test is reported.");
   if (Object.keys(S.uni).length) bits.push("The observed minimum and maximum of the variables were read from the univariate sample statistics.");
@@ -2574,7 +2894,7 @@ function showReadValues(Y, X, W, XW) {
   const dum = moderatorKind() === "dum";
   let h = '<dl class="kv">';
   h += readRow("Intercept of " + esc(Y), RD.b0, "the model was fitted without one",
-    interceptIsFixedZero(Y) ? "fixed at zero by " + MP + ", which prints no <em>Intercepts</em> line for a latent dependent variable whose intercept was not freed" : "");
+    interceptIsFixedZero(Y) ? "fixed at zero, so there is no <em>Intercepts</em> line for a latent dependent variable whose intercept was not freed" : "");
   h += readRow("Coefficient of " + esc(X), RD.b1, "it is not in the <code>ON</code> statement of " + esc(Y));
   if (!dum) {
     h += readRow("Coefficient of " + esc(W || "the moderator"), RD.b2, "it is not in the <code>ON</code> statement of " + esc(Y));
@@ -2682,6 +3002,26 @@ function runSelfTests() {
     worst2 = Math.max(worst2, Math.abs(z.v11 - v11), Math.abs(z.v33 - v33), Math.abs(z.v13 - v13));
   }
   add("Parameter covariance recovered from three NEW parameters", bad2 === 0 && worst2 < 1e-8, bad2 + " failures, largest error " + worst2.toExponential(2));
+
+  /* The analytic ML fallback is valid only for the ordinary complete-data,
+     unweighted case and must reproduce every printed slope SE. */
+  const keepML = {};
+  Object.keys(S).forEach(k => { keepML[k] = S[k]; });
+  Object.assign(S, {
+    raw: "Mplus VERSION 9.1\nSUMMARY OF ANALYSIS\nEstimator ML\n",
+    estimator: "ML", n: 100, residuals: { Y: 1 }, latent: [], latentVars: {},
+    sampCov: { "X|X": 1, "X|Z": 0, "Z|X": 0, "Z|Z": 4 },
+    regInfo: { Y: { X: { se: 0.100 }, Z: { se: 0.050 } } }
+  });
+  const mlPlain = cvFromML("Y", ["X", "Z"]);
+  add("ML covariance fallback reproduces a complete-data unweighted regression",
+      !!mlPlain && near(mlPlain.V[0][0], 0.010, 1e-12) && near(mlPlain.V[1][1], 0.0025, 1e-12));
+  S.raw += "Number of missing data patterns 2\n";
+  add("ML covariance fallback is refused with missing-data patterns", cvFromML("Y", ["X", "Z"]) === null);
+  S.raw = "Mplus VERSION 9.1\nSUMMARY OF ANALYSIS\nEstimator ML\nWeight variable WGT\n";
+  add("ML covariance fallback is refused with sampling weights", cvFromML("Y", ["X", "Z"]) === null);
+  Object.keys(S).forEach(k => { if (!(k in keepML)) delete S[k]; });
+  Object.assign(S, keepML);
 
   /* 3. z and p are invariant under the rescaling that standardization applies. */
   let worst3 = 0;
@@ -3383,7 +3723,7 @@ if (new URLSearchParams(location.search).get("selftest") === "1") {
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {
@@ -3497,8 +3837,26 @@ if (new URLSearchParams(location.search).get("selftest") === "1") {
       }
     }
   }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
   var timer = null;
-  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
   else schedule();
   window.addEventListener("resize", schedule);

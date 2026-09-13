@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="author" content="Valerio Ghezzi">
-<meta name="description" content="Reliability of intensive longitudinal measurements: variance decomposition of a two-level dynamic model, between-person and person-specific reliability, attenuation of the autoregressive effect, and the reliability coefficients of a three-level model with two time scales.">
-<title>Intensive Longitudinal Reliability · semstudio.tools</title>
+<meta name="description" content="The trajectory a growth model implies: the mean and the variance of every occasion, the part of that variance the growth factors account for, and the growth factors rewritten about any occasion.">
+<title>Growth Trajectories &#183; semstudio.tools</title>
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/style.css">
 <style>
 #selftest-banner { margin-top: 1rem; }
 label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
-.big { font-size: 1.35rem; font-weight: 600; }
+table.enum td.num, table.enum th.num { font-variant-numeric: tabular-nums; text-align: right; }
+svg.chart { max-width: 100%; height: auto; display: block; }
+.src { color: var(--muted); font-size: 0.92em; }
 </style>
 </head>
 <body>
@@ -21,10 +23,10 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
     <a class="brand" href="index.html">semstudio.tools</a>
     <a href="index.html#tools">All the tools</a>
   </nav>
-  <h1>Intensive Longitudinal Reliability</h1>
-  <p class="lede">A measurement taken many times on the same person carries more than one kind of error, and more than one kind of reliability follows. This page reads the output of a two-level dynamic structural equation model and reports the decomposition of the variance of the measure, the reliability for differences between persons and the reliability for the fluctuations within a person, together with the amount by which measurement error attenuates the autoregressive effect. It also computes the family of coefficients defined for a design with moments nested in days, in which reliability depends on how far apart in time the two measurements are.</p>
+  <h1>Growth Trajectories</h1>
+  <p class="lede">A growth model is estimated as a set of factor means, variances and covariances, and the trajectory itself is left implicit: the mean of the outcome at an occasion, the variance at that occasion and the part of it the growth factors account for follow from those parameters and from the time scores. This page reads them from the output, writes the trajectory out occasion by occasion, sets the model-implied means beside the sample means, decomposes the variance of every occasion into the parts that produce it, and rewrites the factors about any occasion, which is what shows how much the correlation between intercept and slope depends on where the origin was put.</p>
   <div class="callout" role="note">
-    <strong>What to request from M<em>plus</em>.</strong> Nothing beyond the standard output of the dynamic model: the page reads the parameters of the between level and of the within level from MODEL RESULTS. Separating measurement error from the innovations needs a model that contains it, either several indicators per occasion or a single indicator with the measurement error made a parameter of its own; a model without one leaves the two confounded, which is the point Schuurman and Hamaker (2019) make. A warning printed by M<em>plus</em> is reported and does not remove a result the file supports; what removes a result is a quantity that is missing or inadmissible.
+    <strong>What to request from M<em>plus</em>.</strong> The growth model itself, fitted in the usual way with <code>i s | y1@0 y2@1 y3@2 y4@3;</code>, and <code>OUTPUT: SAMPSTAT STDYX;</code>. The time scores and the factor parameters are read from MODEL RESULTS, the sample means from SAMPSTAT, and the R-square of every occasion from the standardized solution, where it is printed for the same quantity the page computes. Nothing on this page can be typed in.
   </div>
 </header>
 
@@ -32,86 +34,70 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
 <div id="selftest-banner" hidden></div>
 
 <section aria-labelledby="h-steps">
-  <h2 id="h-steps">The fitted dynamic model</h2>
+  <h2 id="h-steps">What to do</h2>
   <ol class="steps">
-    <li>Fit the model in M<em>plus</em> and keep the <code>.out</code> file.</li>
-    <li>Drop it on the box below. The page lists every parameter it read.</li>
-    <li>Say which parameter plays which part: the variance of the person means, the autoregressive effect, the innovation variance and, when the model has one, the measurement error variance. The page proposes a reading from the names and you correct it.</li>
+    <li>Fit the growth model and add <code>OUTPUT: SAMPSTAT STDYX;</code> to the run.</li>
+    <li>Drop the <code>.out</code> file on the box below.</li>
+    <li>Read the trajectory, the variance of every occasion, and the factors written about the occasion that matters for the question.</li>
   </ol>
   <div class="drop" id="drop">
     <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
-    <label class="visually-hidden" for="file">M<em>plus</em> output file of the dynamic model</label>
+    <label class="visually-hidden" for="file">M<em>plus</em> output file</label>
     <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
     <span class="file-name" id="file-name"></span>
   </div>
   <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere.</p>
   <div id="report" aria-live="polite"></div>
-  <div class="row" id="pickers" hidden>
-    <div class="field"><label for="p-mu">Variance of the person means</label><select id="p-mu"></select></div>
-    <div class="field"><label for="p-phi">Autoregressive effect</label><select id="p-phi"></select></div>
-    <div class="field"><label for="p-zeta">Innovation variance</label><select id="p-zeta"></select></div>
-    <div class="field"><label for="p-err">Measurement error variance</label><select id="p-err"></select></div>
-  </div>
-  <div id="results"></div>
 </section>
 
-<details class="fold" id="fold-h-lags" data-autoopen>
-  <summary><h2 id="h-lags">Reliability at each distance in time</h2></summary>
-  <div class="fold-body">
-  <p>With moments nested in days, the agreement between two measurements depends on whether they belong to the same day and on how many moments or days separate them. Lin, Tuerlinckx and Vanbelle (2026) define a family of coefficients for that design from the variance components of a three-level model with an autoregressive process at each time scale. The components are typed in here, because the model that yields them is not one M<em>plus</em> fits in this form.</p>
+<section aria-labelledby="h-traj">
+  <h2 id="h-traj">The trajectory</h2>
+  <div id="trajectory"><p class="hint">The trajectory appears here once an output has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-var">
+  <h2 id="h-var">The variance at every occasion</h2>
+  <div id="variance"><p class="hint">The decomposition appears here once an output has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-shift">
+  <h2 id="h-shift">The trajectory written about another occasion</h2>
   <div class="row">
-    <div class="field w2"><label for="v-s">Between persons, σ²<sub>s</sub></label><input type="number" id="v-s" step="0.01" value="0.60"></div>
-    <div class="field w2"><label for="v-d">Between days, σ²<sub>d</sub></label><input type="number" id="v-d" step="0.01" value="0.25"></div>
-    <div class="field w2"><label for="t-d">Day-level process, τ²<sub>d</sub></label><input type="number" id="t-d" step="0.01" value="0.20"></div>
-    <div class="field w2"><label for="t-m">Moment-level process, τ²<sub>m</sub></label><input type="number" id="t-m" step="0.01" value="0.40"></div>
+    <div class="field w2"><label for="origin">Origin of the trajectory</label>
+      <select id="origin"><option value="0">the first occasion</option></select>
+      <span class="hint">The occasion whose time score is taken as zero.</span></div>
   </div>
-  <div class="row">
-    <div class="field w2"><label for="e-var">Measurement error, σ²<sub>ε</sub></label><input type="number" id="e-var" step="0.01" value="0.30"></div>
-    <div class="field w2"><label for="phi-m">Moment-level autoregression, φ<sub>m</sub></label><input type="number" id="phi-m" step="0.01" min="-0.99" max="0.99" value="0.45"></div>
-    <div class="field w2"><label for="phi-d">Day-level autoregression, φ<sub>d</sub></label><input type="number" id="phi-d" step="0.01" min="-0.99" max="0.99" value="0.30"></div>
-    <div class="field w2"><label for="m-per-day">Moments per day</label><input type="number" id="m-per-day" min="1" step="1" value="5"></div>
-  </div>
-  <div id="lag-out" aria-live="polite"></div>
-  </div>
-</details>
+  <div id="shift"><p class="hint">The factors about the chosen occasion appear here once an output has been read.</p></div>
+</section>
 
 <details class="fold" id="fold-h-methods">
   <summary><h2 id="h-methods">Methods and formulas</h2></summary>
   <div class="fold-body">
 
-  <h3>The variance of a repeated measurement</h3>
-  <p>In a two-level autoregressive model with measurement error the observed score of person <var>i</var> at occasion <var>t</var> is the person's mean, plus a within-person fluctuation that follows an autoregressive process, plus measurement error. Taken over all persons and occasions, its variance divides into three parts (Schuurman &amp; Hamaker, 2019, Eq. 5):</p>
-  <div class="eq"><math display="block"><mrow><mi mathvariant="normal">V</mi><mo>&#x2061;</mo><mrow><mo>(</mo><mi>y</mi><mo>)</mo></mrow><mo>=</mo><msubsup><mi>&#x3C8;</mi><mi>&#x3BC;</mi><mn>2</mn></msubsup><mo>+</mo><mrow><mi mathvariant="normal">E</mi><mo>&#x2061;</mo><mrow><mo>[</mo><msubsup><mi>&#x3C4;</mi><mi>y</mi><mn>2</mn></msubsup><mo>]</mo></mrow></mrow><mo>+</mo><msubsup><mi>&#x3B3;</mi><mi>&#x3C3;</mi><mn>2</mn></msubsup></mrow></math></div>
-  <p class="where">Here ψ²<sub>μ</sub> is the variance of the person means, that is the between-person or trait variance; E[τ²<sub><var>y</var></sub>] is the expectation over persons of the variance of the autoregressive process, that is the systematic within-person fluctuation; and γ<sub>σ</sub>² is the expectation of the measurement error variance. For a first-order process the variance of the fluctuation of person <var>i</var> is the stationary variance of an autoregression, <math><mrow><msubsup><mi>&#x3C4;</mi><mi>y</mi><mn>2</mn></msubsup><mo>=</mo><msubsup><mi>&#x3B6;</mi><mi>i</mi><mn>2</mn></msubsup><mo>/</mo><mrow><mo>(</mo><mn>1</mn><mo>&#x2212;</mo><msubsup><mi>&#x3C6;</mi><mi>i</mi><mn>2</mn></msubsup><mo>)</mo></mrow></mrow></math>, with ζ² the innovation variance and φ the autoregressive effect; the multivariate form is Equation 6 of the same paper.</p>
+  <h3>What the page reads</h3>
+  <p>MODEL RESULTS, and nothing else is needed. A growth factor is printed there with the <code>|</code> symbol and with the time score of every occasion beneath it, so the time scores are read from the output itself rather than from the input, and a time score that was estimated rather than fixed is read with the value it took. Beneath them come the covariance between the factors under <code>WITH</code>, the factor means under <code>Means</code>, the factor variances under <code>Variances</code> and the residual variance of every occasion under <code>Residual Variances</code>. When the factors are regressed on predictors, M<em>plus</em> prints intercepts and residual variances in place of means and variances, and the page says so and reports the trajectory of a case whose predictors are all zero.</p>
 
-  <h3>Two reliabilities, and what each is for</h3>
-  <p>For measuring differences between persons the true score is the person's mean, and everything that fluctuates within the person is noise (Schuurman &amp; Hamaker, 2019, Eq. 7):</p>
-  <div class="eq"><math display="block"><mrow><msub><mi>rel</mi><mi>b</mi></msub><mrow><mo>(</mo><mi>y</mi><mo>)</mo></mrow><mo>=</mo><mfrac><msubsup><mi>&#x3C8;</mi><mi>&#x3BC;</mi><mn>2</mn></msubsup><mrow><mi mathvariant="normal">V</mi><mo>&#x2061;</mo><mrow><mo>(</mo><mi>y</mi><mo>)</mo></mrow></mrow></mfrac></mrow></math></div>
-  <p>For measuring the fluctuations of one person the true score is that person's position in the process at that moment, and only measurement error is noise (Eq. 9):</p>
-  <div class="eq"><math display="block"><mrow><msub><mi>rel</mi><mi>w</mi></msub><mrow><mo>(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>)</mo></mrow><mo>=</mo><mfrac><msubsup><mi>&#x3C4;</mi><mrow><mi>y</mi><mi>i</mi></mrow><mn>2</mn></msubsup><mrow><msubsup><mi>&#x3C4;</mi><mrow><mi>y</mi><mi>i</mi></mrow><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mrow><mi>&#x3B5;</mi><mi>i</mi></mrow><mn>2</mn></msubsup></mrow></mfrac></mrow></math></div>
-  <p class="where">The second one is person-specific: two people with the same measure can have different within-person reliabilities, because their processes differ in how much systematic fluctuation they carry. The page computes it at the average parameters, which is the reliability of an average member of the group; the reliability of a particular person needs that person's own estimates, which M<em>plus</em> writes with <code>SAVEDATA</code> when the model has random innovation variances.</p>
+  <h3>The trajectory</h3>
+  <p>In a linear growth model, let <math><msub><mi>&#955;</mi><mi>t</mi></msub></math> be the time score attached to occasion <var>t</var> in the M<em>plus</em> growth statement. The outcome is</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo>=</mo><msub><mi>&#958;</mi><mi>I</mi></msub><mo>+</mo><msub><mi>&#955;</mi><mi>t</mi></msub><mo>&#8901;</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>+</mo><msub><mi>&#949;</mi><mi>t</mi></msub></mrow></math></div>
+  <p class="where">where <math><msub><mi>&#958;</mi><mi>I</mi></msub></math> is the level at the point whose time score is zero, <math><msub><mi>&#958;</mi><mi>S</mi></msub></math> is change per unit of the chosen time metric, and <math><msub><mi>&#949;</mi><mi>t</mi></msub></math> is the occasion-specific residual (Geiser, 2021, Section 3.5.2.2). Taking the expectation gives the mean implied at that occasion. Writing the equation with <math><msub><mi>&#955;</mi><mi>t</mi></msub></math>, rather than with the occasion number, matters when observations are unequally spaced or one or more time scores are freely estimated. A quadratic or cubic model adds further growth factors with the corresponding powers or time-score loadings, and the page follows the loadings actually printed in the file.</p>
 
-  <h3>What measurement error does to the dynamics</h3>
-  <p>Disregarding measurement error does not only inflate the noise: it biases the autoregressive effect toward zero by exactly the factor the within-person reliability gives (Schuurman &amp; Hamaker, 2019, Eq. 10):</p>
-  <div class="eq"><math display="block"><mrow><msub><mover><mi>&#x3C6;</mi><mo>&#x5E;</mo></mover><mi>i</mi></msub><mo>=</mo><msub><mi>rel</mi><mi>w</mi></msub><mrow><mo>(</mo><msub><mi>y</mi><mi>i</mi></msub><mo>)</mo></mrow><msub><mi>&#x3C6;</mi><mi>i</mi></msub></mrow></math></div>
-  <p class="where">Here φ̂<sub><var>i</var></sub> is the autoregressive effect a model without measurement error returns and φ<sub><var>i</var></sub> the one of the process itself. A within-person reliability of .70 therefore turns a true carry-over of .50 into an estimate near .35, and the inertia of a person is understated by the same factor. The page reports both directions: what the estimate in the file implies about the process, and what a process with the reported parameters would look like if the error were ignored.</p>
+  <h3>The variance at every occasion, and the part the growth factors account for</h3>
+  <p>For the linear model the variance of the outcome decomposes as</p>
+  <div class="eq"><math display="block"><mrow><mi>Var</mi><mo>(</mo><msub><mi>Y</mi><mi>t</mi></msub><mo>)</mo><mo>=</mo><mi>Var</mi><mo>(</mo><msub><mi>&#958;</mi><mi>I</mi></msub><mo>)</mo><mo>+</mo><msubsup><mi>&#955;</mi><mi>t</mi><mn>2</mn></msubsup><mo>&#8901;</mo><mi>Var</mi><mo>(</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>)</mo><mo>+</mo><mn>2</mn><mo>&#8901;</mo><msub><mi>&#955;</mi><mi>t</mi></msub><mo>&#8901;</mo><mi>Cov</mi><mo>(</mo><msub><mi>&#958;</mi><mi>I</mi></msub><mo>,</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>)</mo><mo>+</mo><mi>Var</mi><mo>(</mo><msub><mi>&#949;</mi><mi>t</mi></msub><mo>)</mo></mrow></math></div>
+  <p class="where">and the share of it the growth factors account for is the first three terms over the whole (Geiser, 2021, Section 3.5.2.3). The table gives each term separately, since the two factors and their covariance move the variance in different directions: with a negative covariance between level and change the variance can fall before it rises, and the term that produces that is then visible on its own. The same share is the R-square M<em>plus</em> prints for that variable in the standardized solution, and when the file carries it the two are reported side by side.</p>
 
-  <h3>Two time scales</h3>
-  <p>When measurements are taken at several moments within a day and over several days, the agreement between two of them depends on how far apart they are and on whether they fall on the same day. Lin, Tuerlinckx and Vanbelle (2026) define the coefficients of that design from the components of a three-level model with an autoregressive process at each scale. Writing σ²<sub><var>s</var></sub> for the variance between persons, σ²<sub><var>d</var></sub> for the variance between days within a person, τ²<sub><var>d</var></sub> and τ²<sub><var>m</var></sub> for the stationary variances of the day-level and moment-level processes, σ²<sub>ε</sub> for the measurement error and φ<sub><var>d</var></sub> and φ<sub><var>m</var></sub> for the two autoregressive effects, the between-person coefficients are</p>
-  <div class="eq"><math display="block"><mrow><msub><mi>&#x3C1;</mi><mrow><mi>B</mi><mi>M</mi></mrow></msub><mrow><mo>(</mo><mi mathvariant="normal">&#x394;</mi><mo>)</mo></mrow><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C3;</mi><mi>s</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C6;</mi><mi>m</mi><mi mathvariant="normal">&#x394;</mi></msubsup></mrow><mrow><msubsup><mi>&#x3C3;</mi><mi>s</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>&#x3B5;</mi><mn>2</mn></msubsup></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1.2em"></mspace></mrow><msub><mi>&#x3C1;</mi><mrow><mi>B</mi><mi>D</mi></mrow></msub><mrow><mo>(</mo><mi mathvariant="normal">&#x394;</mi><mo>)</mo></mrow><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C3;</mi><mi>s</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C6;</mi><mi>d</mi><mi mathvariant="normal">&#x394;</mi></msubsup></mrow><mrow><msubsup><mi>&#x3C3;</mi><mi>s</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>&#x3B5;</mi><mn>2</mn></msubsup></mrow></mfrac></mrow></math></div>
-  <p class="where">The first is the agreement between two moments of the same day separated by Δ moments, the second between two days separated by Δ days. The limit of the first as Δ goes to zero is what the authors call instantaneity: the agreement between a measurement and a hypothetical parallel one taken at the same instant, which differs from it only by the realized measurement error.</p>
-  <p>The within-person coefficients drop the between-person variance from both parts of the ratio, since they describe one person:</p>
-  <div class="eq"><math display="block"><mrow><msubsup><mi>&#x3C1;</mi><mi>M</mi><mi>W</mi></msubsup><mrow><mo>(</mo><mi mathvariant="normal">&#x394;</mi><mo>)</mo></mrow><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C6;</mi><mi>m</mi><mi mathvariant="normal">&#x394;</mi></msubsup></mrow><mrow><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>&#x3B5;</mi><mn>2</mn></msubsup></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1.2em"></mspace></mrow><msubsup><mi>&#x3C1;</mi><mi>D</mi><mi>W</mi></msubsup><mrow><mo>(</mo><mi mathvariant="normal">&#x394;</mi><mo>)</mo></mrow><mo>=</mo><mfrac><mrow><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><msubsup><mi>&#x3C6;</mi><mi>d</mi><mi mathvariant="normal">&#x394;</mi></msubsup></mrow><mrow><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>&#x3B5;</mi><mn>2</mn></msubsup></mrow></mfrac></mrow></math></div>
-  <p class="where">The first is the agreement between two moments of one person separated by Δ moments, the second between two days of one person separated by Δ days.</p>
-  <p>Daily averages have their own day-to-day coefficients at both levels. Averaging <var>M</var> moments within each day divides the moment-level process variance and measurement-error variance by <var>M</var>. Between persons, the numerator retains the stable person variance; within a person, it does not:</p>
-  <div class="eq"><span>&rho;&#772;<sub>D</sub><sup>B</sup>(&Delta;) = [&sigma;&sup2;<sub>s</sub> + &tau;&sup2;<sub>d</sub>&phi;<sub>d</sub><sup>&Delta;</sup>] / [&sigma;&sup2;<sub>s</sub> + &sigma;&sup2;<sub>d</sub> + &tau;&sup2;<sub>d</sub> + &tau;&sup2;<sub>m</sub>/<var>M</var> + &sigma;&sup2;<sub>&epsilon;</sub>/<var>M</var>]</span><br><span>&rho;&#772;<sub>D</sub><sup>W</sup>(&Delta;) = [&tau;&sup2;<sub>d</sub>&phi;<sub>d</sub><sup>&Delta;</sup>] / [&sigma;&sup2;<sub>d</sub> + &tau;&sup2;<sub>d</sub> + &tau;&sup2;<sub>m</sub>/<var>M</var> + &sigma;&sup2;<sub>&epsilon;</sub>/<var>M</var>]</span></div>
-  <p class="where">Here <var>M</var> is the number of moments averaged within a day. These are Equations 4.7 and 4.14 in Lin, Tuerlinckx and Vanbelle (2026). They compare averages from two distinct days, so their day lag starts at one.</p>
-  <p>The final coefficient is the limit of the between-person coefficient as the distance grows without bound, which takes the autoregressive terms to zero:</p>
-  <div class="eq"><math display="block"><mrow><munder><mi>lim</mi><mrow><mi mathvariant="normal">&#x394;</mi><mo>&#x2192;</mo><mi>&#x221E;</mi></mrow></munder><msub><mi>&#x3C1;</mi><mrow><mi>B</mi><mi>M</mi></mrow></msub><mrow><mo>(</mo><mi mathvariant="normal">&#x394;</mi><mo>)</mo></mrow><mo>=</mo><mfrac><msubsup><mi>&#x3C3;</mi><mi>s</mi><mn>2</mn></msubsup><mrow><msubsup><mi>&#x3C3;</mi><mi>s</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>d</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C4;</mi><mi>m</mi><mn>2</mn></msubsup><mo>+</mo><msubsup><mi>&#x3C3;</mi><mi>&#x3B5;</mi><mn>2</mn></msubsup></mrow></mfrac></mrow></math></div>
-  <p class="where">What is left is the share of the variance that belongs to the stable differences between persons: what the measure retains of a person over the long run.</p>
+  <h3>The trajectory written about another occasion</h3>
+  <p>The time score of an occasion enters the equation above only as a multiplier of the change factor, so writing the trajectory about another occasion is a substitution. With the time score <var>c</var> taken as the origin, the equation becomes</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo>=</mo><mo>[</mo><msub><mi>&#958;</mi><mn>1</mn></msub><mo>+</mo><mi>c</mi><mo>&#8901;</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>]</mo><mo>+</mo><mo>(</mo><msub><mi>&#955;</mi><mi>t</mi></msub><mo>&#8722;</mo><mi>c</mi><mo>)</mo><mo>&#8901;</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>+</mo><msub><mi>&#949;</mi><mi>t</mi></msub></mrow></math></div>
+  <p class="where">so that the factor for the level becomes <math><mrow><msub><mi>&#958;</mi><mn>1</mn></msub><mo>+</mo><mi>c</mi><msub><mi>&#958;</mi><mi>S</mi></msub></mrow></math>. Its mean, its variance and its covariance with the change factor are those of that sum, which the ordinary rules for the mean and the variance of a linear combination give as <math><mrow><mi>E</mi><mo>(</mo><msub><mi>&#958;</mi><mn>1</mn></msub><mo>)</mo><mo>+</mo><mi>c</mi><mi>E</mi><mo>(</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>)</mo></mrow></math>, <math><mrow><mi>Var</mi><mo>(</mo><msub><mi>&#958;</mi><mn>1</mn></msub><mo>)</mo><mo>+</mo><mn>2</mn><mi>c</mi><mi>Cov</mi><mo>+</mo><msup><mi>c</mi><mn>2</mn></msup><mi>Var</mi><mo>(</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>)</mo></mrow></math> and <math><mrow><mi>Cov</mi><mo>+</mo><mi>c</mi><mi>Var</mi><mo>(</mo><msub><mi>&#958;</mi><mi>S</mi></msub><mo>)</mo></mrow></math>. With a quadratic model the same substitution puts <math><mrow><msub><mi>&#958;</mi><mn>1</mn></msub><mo>+</mo><mi>c</mi><msub><mi>&#958;</mi><mi>S</mi></msub><mo>+</mo><msup><mi>c</mi><mn>2</mn></msup><msub><mi>&#958;</mi><mi>Q</mi></msub></mrow></math> in the first place and <math><mrow><msub><mi>&#958;</mi><mi>S</mi></msub><mo>+</mo><mn>2</mn><mi>c</mi><msub><mi>&#958;</mi><mi>Q</mi></msub></mrow></math> in the second, and the page applies the transformation the powers of the time scores call for.</p>
+  <p>The quantity this bears on is the correlation between level and change. It is not a property of the process: it is the correlation at the occasion whose time score is zero, and moving that point moves it, sometimes from a clear negative value to a clear positive one over the span of the study. The table is there so that the correlation is read at the occasion the question is about, and reported with that occasion named.</p>
+
+  <h3>Unsupported inputs</h3>
+  <p>A file whose MODEL RESULTS carries no factor written with <code>|</code>, since there is then no growth model to read. The output of a multiple-group run and of a two-level run, which print one set of factors per group or per level. A run whose messages put it among those whose results are not to be interpreted. The substitution of the origin is left out, with the reason given, when the time scores are not the successive powers of one time variable, which is the case with a piecewise specification. A linear model with a freely estimated time score is not in that class: its time scores are read with the values they took and the substitution applies to them as it does to fixed ones.</p>
 
   <h3>Self-test</h3>
-  <p>Append <code>?selftest=1</code> to run checks of output parsing, stationary variance, variance decomposition, reliability, attenuation, and the lag-dependent coefficients.</p>
+  <p>Append <code>?selftest=1</code> to check time-score parsing, implied means and variances, variance decomposition, recentering of time, quadratic trajectories, and unsupported inputs.</p>
   </div>
 </details>
 
@@ -119,14 +105,17 @@ label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
   <summary><h2 id="h-refs">References</h2></summary>
   <div class="fold-body">
   <ul class="refs">
-    <li>Asparouhov, T., Hamaker, E. L., &amp; Muthén, B. (2018). Dynamic structural equation models. <em>Structural Equation Modeling, 25</em>(3), 359–388. <a href="https://doi.org/10.1080/10705511.2017.1406803">https://doi.org/10.1080/10705511.2017.1406803</a></li>
-    <li>Lin, T.-Y., Tuerlinckx, F., &amp; Vanbelle, S. (2026). Single-item reliability for intensive longitudinal data: A three-level linear mixed-effect autoregressive modeling approach. <em>Psychometrika</em>. <a href="https://doi.org/10.1017/psy.2026.10133">https://doi.org/10.1017/psy.2026.10133</a></li>
-    <li>McNeish, D., &amp; Hamaker, E. L. (2020). A primer on two-level dynamic structural equation models for intensive longitudinal data in M<span class="mp">plus</span>. <em>Psychological Methods, 25</em>(5), 610–635. <a href="https://doi.org/10.1037/met0000250">https://doi.org/10.1037/met0000250</a></li>
-    <li>Schuurman, N. K., &amp; Hamaker, E. L. (2019). Measurement error and person-specific reliability in multilevel autoregressive modeling. <em>Psychological Methods, 24</em>(1), 70–91. <a href="https://doi.org/10.1037/met0000188">https://doi.org/10.1037/met0000188</a></li>
+    <li>Geiser, C. (2021). <em>Longitudinal structural equation modeling with M<span class="mp">plus</span>: A latent state&#8211;trait perspective</em>. Guilford Press.</li>
+    <li>Grimm, K. J., Ram, N., &amp; Estabrook, R. (2017). <em>Growth modeling: Structural equation and multilevel modeling approaches</em>. Guilford Press.</li>
+    <li>Wickrama, K. A. S., Lee, T. K., O'Neal, C. W., &amp; Lorenz, F. O. (2022). <em>Higher-order growth curves and mixture modeling with M<span class="mp">plus</span>: A practical guide</em> (2nd ed.). Routledge. <a href="https://doi.org/10.4324/9781003158769">https://doi.org/10.4324/9781003158769</a></li>
+    <li>Muthén, L. K., &amp; Muthén, B. O. (1998&#8211;2017). <em>M<span class="mp">plus</span> user's guide</em> (8th ed.). Muthén &amp; Muthén. <a href="https://www.statmodel.com/ugexcerpts.shtml">https://www.statmodel.com/ugexcerpts.shtml</a></li>
   </ul>
   </div>
 </details>
+
 </main>
+
+
 <footer class="site">
   <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
   <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
@@ -355,6 +344,10 @@ function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 var MP = "M<em>plus</em>";
+
+/* ==================================================================
+   Reading the file
+   ================================================================== */
 function decodeBuffer(ab) {
   var bytes = new Uint8Array(ab), i, s;
   if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
@@ -442,396 +435,556 @@ function readTextFile(file, then, fail) {
   };
   r.readAsArrayBuffer(file);
 }
-var MPLUS_SIGNATURE = /(^|\n)[ \t]*(Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION)/;
+/* ==================================================================
+   Growth curves: what is read from the output and what is computed
+   from it. Everything here is a pure function of the text of the
+   file, so that the self-test can run it without a browser file.
+   ================================================================== */
+var GRO = (function () {
+  "use strict";
 
-var DS = (function () {
-  var ROW = /^\s{2,}([A-Za-z][A-Za-z0-9_$#.&]*)\s+(-?\d+\.\d+(?:[DdEe][-+]?\d+)?)((?:\s+(?:-?\d+\.\d+(?:[DdEe][-+]?\d+)?|\*+))*)\s*\*?\s*$/;
-  /* Every parameter of a two-level output, with the level and the heading it
-     was printed under, so that a name can be found again. */
-  function readParameters(text) {
-    var lines = text.split(/\r?\n/), out = [], level = null, head = "", started = false, i;
-    for (i = 0; i < lines.length; i++) {
-      var l = lines[i], t = l.trim();
-      if (!started) { if (/^MODEL RESULTS\s*$/.test(t)) started = true; continue; }
-      if (/^(STANDARDIZED MODEL RESULTS|R-SQUARE|QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|DIAGRAM INFORMATION|MUTHEN & MUTHEN|Beginning Time|SAVEDATA INFORMATION)/.test(t)) break;
-      if (/^Within Level\s*$/i.test(t)) { level = "within"; head = ""; continue; }
-      if (/^Between Level\s*$/i.test(t)) { level = "between"; head = ""; continue; }
-      var mh = l.match(/^\s+([A-Za-z][A-Za-z0-9_]*)\s+(BY|WITH|ON)\s*$/i);
-      if (mh) { head = mh[1].toUpperCase() + " " + mh[2].toUpperCase(); continue; }
-      if (/^\s*(Intercepts|Means|Thresholds|Variances|Residual Variances|New\/Additional Parameters)\s*$/i.test(t)) { head = t.toUpperCase(); continue; }
-      var mv = l.match(ROW);
-      if (!mv) { if (t !== "" && !/\d/.test(l)) head = ""; continue; }
-      out.push({ level: level, head: head, name: mv[1].toUpperCase(), est: parseFloat(mv[2]),
-        label: (level || "?") + " · " + (head ? head.toLowerCase() + " " : "") + mv[1].toUpperCase() });
+  function lines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+
+  function num(s) {
+    if (s === undefined || s === null) return null;
+    var v = parseFloat(String(s).replace(/D([+\-]?\d+)/i, "e$1"));
+    return isFinite(v) ? v : null;
+  }
+
+  /* The MODEL RESULTS block, from its heading to the first heading that
+     follows it. A multiple-group run prints one such block per group and
+     the page does not read those. */
+  function modelResults(text) {
+    var L = lines(text), i, at = -1, end = L.length;
+    for (i = 0; i < L.length; i++) if (/^MODEL RESULTS\s*$/.test(L[i])) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at + 1; i < L.length; i++)
+      if (/^(QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|STANDARDIZED MODEL RESULTS|CONFIDENCE INTERVALS|MODEL MODIFICATION INDICES|R-SQUARE|TOTAL, TOTAL INDIRECT|MUTHEN & MUTHEN|Beginning Time:)/.test(L[i])) { end = i; break; }
+    return L.slice(at + 1, end);
+  }
+
+  /* Every line of MODEL RESULTS under the heading it belongs to. A heading
+     is either a relation ("S WITH I", "I ON X1", "S |") or one of the
+     sections Mplus prints on its own ("Means", "Intercepts", "Variances",
+     "Residual Variances", "Thresholds"). */
+  function walk(block, onEntry) {
+    var i, head = null, rel = null, m, t, nums;
+    for (i = 0; i < block.length; i++) {
+      t = block[i].replace(/\s+$/, "");
+      if (!t.trim()) continue;
+      m = /^\s{0,4}([A-Za-z][A-Za-z0-9_$#.]*)\s+(BY|ON|WITH|\|)\s*$/.exec(t);
+      if (m) { head = m[1].toUpperCase(); rel = m[2] === "|" ? "|" : m[2].toUpperCase(); continue; }
+      m = /^\s{0,4}(Means|Intercepts|Variances|Residual Variances|Thresholds|New\/Additional Parameters)\s*$/.exec(t);
+      if (m) { head = null; rel = m[1]; continue; }
+      m = /^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s+(-?\d+\.\d+|\*+)\s*$/.exec(t);
+      if (m && rel) {
+        nums = [num(m[2]), num(m[3]), num(m[4]), num(m[5])];
+        onEntry(rel, head, m[1].toUpperCase(), nums);
+      }
     }
+  }
+
+  /* The growth part of a run: the factors written with the "|" symbol,
+     the time score of every outcome on every factor, the means or
+     intercepts of the factors, their variances and covariances, and the
+     residual variance of every outcome. */
+  function readGrowth(text) {
+    var block = modelResults(text);
+    if (!block) return null;
+    var factors = [], loadings = {}, order = [], alpha = {}, alphaSE = {}, psi = {}, psiSE = {},
+        theta = {}, thetaSE = {}, varSE = {}, onFactor = {}, seen = {};
+    walk(block, function (rel, head, name, v) {
+      if (rel === "|") {
+        if (!loadings[head]) { loadings[head] = {}; factors.push(head); }
+        loadings[head][name] = v[0];
+        if (!seen[name]) { seen[name] = 1; order.push(name); }
+      } else if (rel === "WITH") {
+        psi[head + "|" + name] = v[0]; psi[name + "|" + head] = v[0];
+        psiSE[head + "|" + name] = v[1]; psiSE[name + "|" + head] = v[1];
+      } else if (rel === "ON") {
+        if (!onFactor[head]) onFactor[head] = [];
+        onFactor[head].push({ predictor: name, est: v[0], se: v[1] });
+      } else if (rel === "Means" || rel === "Intercepts") {
+        if (alpha[name] === undefined) { alpha[name] = v[0]; alphaSE[name] = v[1]; }
+      } else if (rel === "Variances" || rel === "Residual Variances") {
+        if (theta[name] === undefined) { theta[name] = v[0]; thetaSE[name] = v[1]; }
+      }
+    });
+    if (!factors.length) return null;
+    var i, j, psiD = {}, res = {};
+    for (i = 0; i < factors.length; i++) { psiD[factors[i]] = theta[factors[i]]; varSE[factors[i]] = thetaSE[factors[i]]; }
+    for (i = 0; i < order.length; i++) res[order[i]] = theta[order[i]];
+    /* A factor regressed on something is reported at the value zero of its
+       predictors, and the page says so rather than calling it a mean. */
+    var conditional = false;
+    for (i = 0; i < factors.length; i++) if (onFactor[factors[i]] && onFactor[factors[i]].length) conditional = true;
+    var times = [];
+    for (i = 0; i < order.length; i++) {
+      var row = { name: order[i], load: [] };
+      for (j = 0; j < factors.length; j++) row.load.push(loadings[factors[j]][order[i]]);
+      times.push(row);
+    }
+    return { factors: factors, outcomes: order, times: times, alpha: alpha, alphaSE: alphaSE,
+      psi: psi, psiSE: psiSE, psiVar: psiD, psiVarSE: varSE, resid: res, residSE: thetaSE,
+      on: onFactor, conditional: conditional };
+  }
+
+  function cov(g, a, b) {
+    if (a === b) return g.psiVar[a];
+    var v = g.psi[a + "|" + b];
+    return (v === undefined || v === null) ? 0 : v;
+  }
+
+  /* The mean at an occasion is the sum of the factor means weighted by the
+     time scores of that occasion (Geiser, 2021, Section 3.5.2). */
+  function impliedMean(g, row) {
+    var s = 0, i, a;
+    for (i = 0; i < g.factors.length; i++) {
+      a = g.alpha[g.factors[i]];
+      if (a === undefined || a === null || row.load[i] === null) return null;
+      s += row.load[i] * a;
+    }
+    return s;
+  }
+
+  /* The variance at an occasion is the variance of the same weighted sum
+     plus the residual variance of that occasion. The parts are kept apart
+     so that the page can report where the variance comes from. */
+  function impliedVariance(g, row) {
+    var i, j, own = [], crossed = 0, total = 0, li, lj, c;
+    for (i = 0; i < g.factors.length; i++) {
+      li = row.load[i];
+      c = g.psiVar[g.factors[i]];
+      if (li === null || c === undefined || c === null) return null;
+      own.push(li * li * c);
+      total += li * li * c;
+    }
+    for (i = 0; i < g.factors.length; i++)
+      for (j = i + 1; j < g.factors.length; j++) {
+        li = row.load[i]; lj = row.load[j];
+        c = cov(g, g.factors[i], g.factors[j]);
+        crossed += 2 * li * lj * c;
+        total += 2 * li * lj * c;
+      }
+    var e = g.resid[row.name];
+    if (e === undefined || e === null) return null;
+    return { own: own, crossed: crossed, explained: total, residual: e, total: total + e };
+  }
+
+  /* Writing the trajectory about another occasion. Substituting the time
+     score of that occasion for zero in the measurement equation gives a new
+     set of factors, each a linear combination of the old ones, and the mean
+     and the covariance matrix of a linear combination follow from the
+     ordinary rules. With a linear model the new intercept factor is
+     xi1 + c * xiS; with a quadratic model it is xi1 + c * xiS + c^2 * xiQ
+     and the new slope factor is xiS + 2c * xiQ. */
+  function shiftMatrix(powers, c) {
+    var k = powers.length, T = [], i, j;
+    for (i = 0; i < k; i++) { T.push([]); for (j = 0; j < k; j++) T[i].push(0); }
+    for (i = 0; i < k; i++)
+      for (j = 0; j < k; j++) {
+        var p = powers[j], q = powers[i];
+        if (q > p) { T[i][j] = 0; continue; }
+        T[i][j] = binom(p, q) * Math.pow(c, p - q);
+      }
+    return T;
+  }
+  function binom(n, k) {
+    if (k < 0 || k > n) return 0;
+    var r = 1, i;
+    for (i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+    return r;
+  }
+
+  /* The time scores of a polynomial growth model are the powers of one
+     underlying time variable. The exponent of every factor is recovered
+     from its own time scores, and a set of time scores that is not a power
+     of the first slope is reported as such rather than shifted. */
+  function powersOf(g) {
+    var i, j, k = g.factors.length, t = [], powers = [], ok = true;
+    for (i = 0; i < g.times.length; i++) if (g.times[i].load[0] !== 1) ok = false;
+    if (!ok || k < 2) return null;
+    for (i = 0; i < g.times.length; i++) t.push(g.times[i].load[1]);
+    powers.push(0); powers.push(1);
+    for (j = 2; j < k; j++) {
+      var p = null, cand;
+      for (cand = 2; cand <= 4; cand++) {
+        var good = true;
+        for (i = 0; i < g.times.length; i++)
+          if (Math.abs(g.times[i].load[j] - Math.pow(t[i], cand)) > 1e-6) good = false;
+        if (good) { p = cand; break; }
+      }
+      if (p === null) return null;
+      powers.push(p);
+    }
+    return { powers: powers, times: t };
+  }
+
+  function matVec(T, v) {
+    var i, j, out = [];
+    for (i = 0; i < T.length; i++) { var s = 0; for (j = 0; j < v.length; j++) s += T[i][j] * v[j]; out.push(s); }
     return out;
   }
-  /* The stationary variance of a first-order autoregressive process. */
-  function stationaryVariance(zeta2, phi) {
-    if (!(zeta2 >= 0)) return NaN;
-    if (!(Math.abs(phi) < 1)) return NaN;
-    return zeta2 / (1 - phi * phi);
+  function congruence(T, S) {
+    var i, j, k, n = T.length, M = [], out = [];
+    for (i = 0; i < n; i++) { M.push([]); for (j = 0; j < n; j++) { var s = 0; for (k = 0; k < n; k++) s += T[i][k] * S[k][j]; M[i].push(s); } }
+    for (i = 0; i < n; i++) { out.push([]); for (j = 0; j < n; j++) { var s2 = 0; for (k = 0; k < n; k++) s2 += M[i][k] * T[j][k]; out[i].push(s2); } }
+    return out;
   }
-  function decompose(psiMu, tau2, sigmaErr) {
-    var total = psiMu + tau2 + (sigmaErr || 0);
-    return { total: total, betweenShare: psiMu / total, withinShare: tau2 / total,
-      errorShare: (sigmaErr || 0) / total };
-  }
-  function relB(psiMu, tau2, sigmaErr) { return psiMu / (psiMu + tau2 + (sigmaErr || 0)); }
-  function relW(tau2, sigmaErr) { return tau2 / (tau2 + (sigmaErr || 0)); }
-  function attenuated(phi, relw) { return relw * phi; }
-  function disattenuated(phiHat, relw) { return relw > 0 ? phiHat / relw : NaN; }
 
-  /* The coefficients of Lin, Tuerlinckx and Vanbelle (2026). */
-  function lin(c) {
-    var s = c.sigmaS, d = c.sigmaD, td = c.tauD, tm = c.tauM, e = c.sigmaE;
-    var M = c.moments && c.moments > 0 ? c.moments : 1;
-    var denB = s + d + td + tm + e, denW = d + td + tm + e;
-    return {
-      denB: denB, denW: denW,
-      bInstant: (s + d + td + tm) / denB,
-      bMoment: function (lag) { return (s + d + td + tm * Math.pow(c.phiM, lag)) / denB; },
-      bDay: function (lag) { return (s + td * Math.pow(c.phiD, lag)) / denB; },
-      wInstant: (d + td + tm) / denW,
-      wMoment: function (lag) { return (d + td + tm * Math.pow(c.phiM, lag)) / denW; },
-      wDay: function (lag) { return (td * Math.pow(c.phiD, lag)) / denW; },
-      bDayMean: function (lag) { return (s + td * Math.pow(c.phiD, lag)) / (s + d + td + tm / M + e / M); },
-      wDayMean: function (lag) { return (td * Math.pow(c.phiD, lag)) / (d + td + tm / M + e / M); },
-      stability: s / denB
-    };
+  /* The factor means and the factor covariance matrix as they would be with
+     the time score c taken as the origin. */
+  function recentre(g, c) {
+    var p = powersOf(g);
+    if (!p) return null;
+    var k = g.factors.length, i, j, a = [], S = [];
+    for (i = 0; i < k; i++) {
+      var v = g.alpha[g.factors[i]];
+      if (v === undefined || v === null) return null;
+      a.push(v);
+      S.push([]);
+      for (j = 0; j < k; j++) {
+        var cc = (i === j) ? g.psiVar[g.factors[i]] : cov(g, g.factors[i], g.factors[j]);
+        if (cc === undefined || cc === null) return null;
+        S[i].push(cc);
+      }
+    }
+    var T = shiftMatrix(p.powers, c);
+    return { mean: matVec(T, a), cov: congruence(T, S), powers: p.powers };
   }
-  return { readParameters: readParameters, stationaryVariance: stationaryVariance,
-    decompose: decompose, relB: relB, relW: relW, attenuated: attenuated,
-    disattenuated: disattenuated, lin: lin };
+
+  /* The sample means of the outcomes, when SAMPSTAT was requested, so that
+     the trajectory the model implies can be read beside them. */
+  function sampleMeans(text) {
+    var L = lines(text), i, at = -1, out = {}, names = [], j, m;
+    for (i = 0; i < L.length; i++)
+      if (/^\s*(SAMPLE STATISTICS|ESTIMATED SAMPLE STATISTICS)\s*$/.test(L[i])) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at; i < L.length && i < at + 4000; i++) {
+      if (/^\s*Means\s*$/.test(L[i])) {
+        names = []; 
+        for (j = i + 1; j < L.length && j < i + 8; j++) {
+          m = L[j].match(/[A-Za-z][A-Za-z0-9_$#.]*/g);
+          if (m && !/^\s*_+/.test(L[j])) { names = m.map(function (x) { return x.toUpperCase(); }); }
+          if (/^\s*_{3,}/.test(L[j])) {
+            var row = L[j + 1] || "", v = row.match(/-?\d+\.\d+/g) || [];
+            for (var q = 0; q < names.length && q < v.length; q++) out[names[q]] = parseFloat(v[q]);
+            break;
+          }
+        }
+      }
+    }
+    var any = false; for (var key in out) if (out.hasOwnProperty(key)) any = true;
+    return any ? out : null;
+  }
+
+  /* The R-square of every outcome, when the standardized solution was
+     requested, so that the reliability computed here can be set beside the
+     one the file prints. */
+  function readRSquare(text) {
+    var L = lines(text), i, at = -1, out = {}, m;
+    for (i = 0; i < L.length; i++) if (/^R-SQUARE\s*$/.test(L[i])) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at + 1; i < L.length; i++) {
+      if (/^[A-Z][A-Z ]{6,}$/.test(L[i]) && !/^\s/.test(L[i])) break;
+      m = /^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s+(\d+\.\d+)\s/.exec(L[i]);
+      if (m) out[m[1].toUpperCase()] = parseFloat(m[2]);
+    }
+    var any = false; for (var k in out) if (out.hasOwnProperty(k)) any = true;
+    return any ? out : null;
+  }
+
+  function isMultipleGroup(text) { return /^Group [A-Z0-9_]+\s*$/m.test(String(text)); }
+  function isTwoLevel(text) { return /^\s*(Within Level|Between Level)\s*$/m.test(String(text)); }
+
+  return { readGrowth: readGrowth, impliedMean: impliedMean, impliedVariance: impliedVariance,
+    recentre: recentre, powersOf: powersOf, shiftMatrix: shiftMatrix, binom: binom,
+    sampleMeans: sampleMeans, readRSquare: readRSquare, modelResults: modelResults,
+    cov: cov, isMultipleGroup: isMultipleGroup, isTwoLevel: isTwoLevel };
 })();
-
 /* ==================================================================
    Page
    ================================================================== */
-/* The messages Mplus printed about the run, sorted by what they cost.
-   A run whose estimation failed is refused: what follows the failure in
-   the file is not an estimate of anything. A run that carries a serious
-   message is computed and marked, and a note is reported as a note. */
-/* What the run contains besides its estimates: a serious message is named
-   and put in front of the result, a note is named and left as a note. */
-function mpwNote(text) {
-  var w = MPWARN.classify(text), bits = w.serious, i, s;
-  if (bits.length) {
-    s = "";
-    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
-    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
-      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+function mpwFailedText(text) {
+  var w = MPWARN.classify(text), i, s = "";
+  for (i = 0; i < w.blocking.length; i++) {
+    var b = w.blocking[i];
+    s += "<li>" + (b.txt ? "<q>" + esc(b.txt) + "</q> &#8212; " : "") + b.say + ".</li>";
   }
-  if (w.info.length || w.ignored.length) {
-    s = "";
-    var notes = w.info.concat(w.ignored);
-    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
-    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
-      " about this run, none of which bears on the estimates: " + s + "." };
-  }
-  return null;
+  return "M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run.<ul>" + s + "</ul>" +
+    "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
 }
 
-function mpwarnReport(text) {
-  var w = MPWARN.classify(text), i, bits;
-  var out = { verdict: w, blockHtml: "", noteHtml: "", noteKind: "ok" };
-  function list(a) {
-    var s = "", i;
-    for (i = 0; i < a.length; i++)
-      s += "<li>" + (a[i].say && a[i].txt ? "<q>" + esc(a[i].txt) + "</q> &#8212; " : "") + (a[i].say ? a[i].say : esc(a[i].txt || "")) + ".</li>";
-    return "<ul>" + s + "</ul>";
-  }
-  if (w.blocking.length) {
-    out.blockHtml = "Nothing was computed from this file. M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run." +
-      list(w.blocking) +
-      "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
-    return out;
-  }
-  bits = w.serious;
-  if (bits.length) {
-    out.noteKind = "warn";
-    out.noteHtml = "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
-      " that bear on every number computed from it: " + list(bits) +
-      "Supported quantities are still computed, with the same limitations as the affected estimates.";
-  } else if (w.info.length || w.ignored.length) {
-    out.noteKind = "info";
-    var notes = w.info.concat(w.ignored);
-    out.noteHtml = MP + " printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
-      " about this run, none of which bears on the estimates: " + list(notes);
-  }
-  return out;
+function diagnoseFile(text) {
+  if (!text || !text.replace(/\s/g, "").length) return "empty";
+  if (!/Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION/i.test(text)) return "foreign";
+  if (MPWARN.classify(text).blocking.length) return "failed";
+  return "ok";
 }
 
 (function () {
+  "use strict";
   function $(id) { return document.getElementById(id); }
-  function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
-  function n3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3); }
-  function pct(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : (100 * x).toFixed(1) + "%"; }
+  function f3(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : Number(x).toFixed(3); }
+  function f2(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : Number(x).toFixed(2); }
+  function pc(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : (100 * x).toFixed(1) + "%"; }
   function statusBlock(kind, tag, text) {
-    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
-    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
+    var glyph = kind === "ok" ? "&#10003;" : (kind === "bad" ? "&#10007;" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span> " + text + "</p></div>";
   }
-  var params = null;
 
-  function fill(sel, list, guess, allowNone) {
-    var s = $(sel);
-    s.innerHTML = "";
-    if (allowNone) {
-      var o0 = document.createElement("option");
-      o0.value = ""; o0.textContent = "none: the model has no such parameter";
-      s.appendChild(o0);
+  var OKABE = ["#000000", "#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9"];
+  var STATE = { g: null, name: "", means: null, rsq: null };
+
+  /* ---------------- the trajectory ---------------- */
+
+  function factorLabel(i) {
+    var g = STATE.g;
+    return g.factors[i];
+  }
+
+  function trajectoryRows() {
+    var g = STATE.g, out = [], i;
+    for (i = 0; i < g.times.length; i++) {
+      var row = g.times[i];
+      var v = GRO.impliedVariance(g, row);
+      out.push({ name: row.name, load: row.load, mean: GRO.impliedMean(g, row), v: v,
+        sample: STATE.means ? STATE.means[row.name] : undefined });
     }
-    list.forEach(function (p, i) {
-      var o = document.createElement("option");
-      o.value = String(i); o.textContent = p.label + " = " + n3(p.est);
-      s.appendChild(o);
-    });
-    var pick = guess === null ? "" : String(guess);
-    s.value = pick;
-    if (s.value === "" && !allowNone && list.length) s.value = "0";
-  }
-  function guessIndex(list, test) {
-    var i;
-    for (i = 0; i < list.length; i++) if (test(list[i])) return i;
-    return null;
-  }
-  function chosen(sel) {
-    var v = $(sel).value;
-    if (v === "") return null;
-    return params[parseInt(v, 10)] || null;
+    return out;
   }
 
-  function render() {
-    if (!params) { $("results").innerHTML = ""; return null; }
-    var mu = chosen("p-mu"), phi = chosen("p-phi"), zeta = chosen("p-zeta"), err = chosen("p-err");
-    if (!mu || !phi || !zeta) {
-      $("results").innerHTML = statusBlock("info", "Choose the parameters.",
-        "The variance of the person means, the autoregressive effect and the innovation variance are needed; the measurement error variance is optional and changes what can be said.");
-      return null;
+  function renderTrajectory() {
+    var g = STATE.g, host = $("trajectory");
+    if (!g) { host.innerHTML = EMPTY.trajectory; return; }
+    var rows = trajectoryRows(), i, j, html = "";
+    html += '<p class="table-note">' + (g.conditional
+      ? "Every factor of this model is regressed on one or more predictors, so what the output prints is the intercept of the factor rather than its mean. The trajectory below is therefore the one of a case whose predictors are all zero, and it moves with them."
+      : "The mean of the outcome at an occasion is the sum of the factor means weighted by the time scores of that occasion.") + "</p>";
+    html += '<div class="table-wrap"><table><caption>The trajectory the model implies</caption><thead><tr><th scope="col">Occasion</th>';
+    for (i = 0; i < g.factors.length; i++) html += '<th class="num" scope="col">Time score on ' + esc(g.factors[i]) + "</th>";
+    html += '<th class="num" scope="col">' + (g.conditional ? "Implied value" : "Implied mean") + "</th>";
+    if (STATE.means) html += '<th class="num" scope="col">Sample mean</th>';
+    html += '<th class="num" scope="col">Implied SD</th></tr></thead><tbody>';
+    for (i = 0; i < rows.length; i++) {
+      html += "<tr><th scope=\"row\">" + esc(rows[i].name) + "</th>";
+      for (j = 0; j < g.factors.length; j++) html += '<td class="num">' + f3(rows[i].load[j]) + "</td>";
+      html += '<td class="num">' + f3(rows[i].mean) + "</td>";
+      if (STATE.means) html += '<td class="num">' + (rows[i].sample === undefined ? "&#8212;" : f3(rows[i].sample)) + "</td>";
+      html += '<td class="num">' + (rows[i].v ? f3(Math.sqrt(rows[i].v.total)) : "&#8212;") + "</td></tr>";
     }
-    var tau2 = DS.stationaryVariance(zeta.est, phi.est);
-    var out = "";
-    if (!isFinite(tau2)) {
-      out += statusBlock("bad", "The process is not stationary.",
-        "The autoregressive effect chosen is " + n3(phi.est) + ", and a first-order process has a finite variance only while it is smaller than one in absolute value. Nothing below is defined for it. Check that the parameter chosen is the autoregression and not something else, and that the model converged.");
-      $("results").innerHTML = out;
-      return null;
+    html += "</tbody></table></div>";
+    html += chart(rows);
+    if (STATE.means) html += '<p class="hint">The sample means come from the SAMPSTAT block of the same file. A model that describes the data well reproduces them closely; a systematic departure at one occasion is a sign that the shape chosen for the trajectory does not hold there.</p>';
+    host.innerHTML = html;
+  }
+
+  /* A figure of the implied trajectory, with the sample means beside it
+     when the file carries them. One scale, one line, points marked. */
+  function chart(rows) {
+    var i, W = 680, H = 340, ml = 56, mr = 18, mt = 18, mb = 46;
+    var xs = [], ys = [], has = [];
+    for (i = 0; i < rows.length; i++) {
+      xs.push(rows[i].load.length > 1 ? rows[i].load[1] : i);
+      ys.push(rows[i].mean);
+      if (rows[i].sample !== undefined && rows[i].sample !== null) has.push(rows[i].sample);
     }
-    var sErr = err ? err.est : 0;
-    var dec = DS.decompose(mu.est, tau2, sErr);
-    var rb = DS.relB(mu.est, tau2, sErr);
-    var rw = err ? DS.relW(tau2, sErr) : NaN;
-
-    out += "<h3>Where the variance is</h3>";
-    out += '<div class="table-wrap"><table><caption class="visually-hidden">Decomposition of the variance of the measure</caption><tr><th>Part</th><th>Variance</th><th>Share</th></tr>' +
-      "<tr><th scope=\"row\">Between persons, ψ²<sub>μ</sub></th><td class=\"num\">" + n3(mu.est) + '</td><td class="num">' + pct(dec.betweenShare) + "</td></tr>" +
-      "<tr><th scope=\"row\">Within-person process, τ²</th><td class=\"num\">" + n3(tau2) + '</td><td class="num">' + pct(dec.withinShare) + "</td></tr>" +
-      (err ? "<tr><th scope=\"row\">Measurement error, σ²<sub>ε</sub></th><td class=\"num\">" + n3(sErr) + '</td><td class="num">' + pct(dec.errorShare) + "</td></tr>" : "") +
-      "<tr><th scope=\"row\">Total</th><td class=\"num\">" + n3(dec.total) + '</td><td class="num">100%</td></tr>' +
-      "</table></div>";
-    out += "<p>The variance of the within-person process is the stationary variance of the autoregression, " +
-      n3(zeta.est) + " / (1 − " + n3(phi.est) + "²) = " + n3(tau2) + ".</p>";
-
-    out += "<h3>Reliability</h3>";
-    out += '<p class="big">Between persons: ' + p3(rb) + (err ? "  ·  Within a person: " + p3(rw) : "") + "</p>";
-    out += "<p>The first is the reliability of the measure for telling people apart: the share of its variance that belongs to the person rather than to the moment. " +
-      (err ? "The second is the reliability of the same measure for following one person over time, at the average parameters of this model." :
-        "Without a measurement error variance in the model the second one cannot be computed, because what fluctuates within the person and what is error are not separated.") + "</p>";
-    if (err) {
-      var att = DS.attenuated(phi.est, rw), dis = DS.disattenuated(phi.est, rw);
-      out += "<h3>What the error does to the dynamics</h3>";
-      out += "<p>With a within-person reliability of " + p3(rw) + ", an analysis that ignored the measurement error would return an autoregressive effect of about " +
-        n3(att) + " in place of the " + n3(phi.est) + " this model estimates, since the two differ by exactly that factor (Schuurman &amp; Hamaker, 2019). Read the other way, an autoregression of " +
-        n3(phi.est) + " estimated without a measurement error term would correspond to a process whose true carry-over is about " + n3(dis) + ".</p>";
-    } else {
-      out += statusBlock("warn", "Measurement error and innovations are confounded here.",
-        "This model has no measurement error variance, so the innovation variance carries both the shocks of the process and the error of the instrument. " +
-        "The within-person reliability is then not defined, the autoregressive effect is biased toward zero by an unknown amount, and the between-person reliability above is a lower bound. " +
-        "Separating the two needs several indicators per occasion, or a single indicator with the error made a parameter of its own.");
+    var all = ys.concat(has);
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    if (!(isFinite(lo) && isFinite(hi))) return "";
+    if (hi === lo) { hi = lo + 1; lo = lo - 1; }
+    var pad = (hi - lo) * 0.12; lo -= pad; hi += pad;
+    var xlo = Math.min.apply(null, xs), xhi = Math.max.apply(null, xs);
+    if (xhi === xlo) { xhi = xlo + 1; }
+    function px(x) { return ml + (x - xlo) / (xhi - xlo) * (W - ml - mr); }
+    function py(y) { return H - mb - (y - lo) / (hi - lo) * (H - mt - mb); }
+    var s = '<figure class="panel-chart"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-labelledby="chart-title chart-desc" preserveAspectRatio="xMidYMid meet">';
+    s += '<title id="chart-title">The trajectory the model implies</title>';
+    s += '<desc id="chart-desc">The implied mean of the outcome at every occasion, drawn against the time score' +
+      (has.length ? ", with the sample means of the same occasions" : "") + ". The same values are in the table above.</desc>";
+    /* the grid and the axes */
+    var k, ticks = 5;
+    for (k = 0; k <= ticks; k++) {
+      var yv = lo + (hi - lo) * k / ticks, yy = py(yv);
+      s += '<line x1="' + ml + '" y1="' + yy.toFixed(1) + '" x2="' + (W - mr) + '" y2="' + yy.toFixed(1) + '" stroke="#d8d8d8" stroke-width="1"/>';
+      s += '<text x="' + (ml - 8) + '" y="' + (yy + 4).toFixed(1) + '" text-anchor="end" font-size="12" fill="#444">' + yv.toFixed(2) + "</text>";
     }
-    out += '<p class="hint">Every quantity is computed at the parameters chosen above. Where the model gives the autoregression or the innovation variance a variance of its own across persons, these are the values of an average member of the group, and the reliability of a particular person needs that person\'s own estimates.</p>';
-    $("results").innerHTML = out;
-    return { tau2: tau2, relB: rb, relW: rw, total: dec.total };
+    for (i = 0; i < xs.length; i++) {
+      s += '<text x="' + px(xs[i]).toFixed(1) + '" y="' + (H - mb + 18) + '" text-anchor="middle" font-size="12" fill="#444">' + esc(rows[i].name) + "</text>";
+    }
+    s += '<line x1="' + ml + '" y1="' + (H - mb) + '" x2="' + (W - mr) + '" y2="' + (H - mb) + '" stroke="#444" stroke-width="1"/>';
+    /* the implied line */
+    var d = "";
+    for (i = 0; i < xs.length; i++) d += (i ? " L" : "M") + px(xs[i]).toFixed(1) + " " + py(ys[i]).toFixed(1);
+    s += '<path d="' + d + '" fill="none" stroke="' + OKABE[1] + '" stroke-width="2"/>';
+    for (i = 0; i < xs.length; i++)
+      s += '<circle cx="' + px(xs[i]).toFixed(1) + '" cy="' + py(ys[i]).toFixed(1) + '" r="4.5" fill="' + OKABE[1] + '" stroke="#fff" stroke-width="2"/>';
+    if (has.length === rows.length) {
+      var d2 = "";
+      for (i = 0; i < xs.length; i++) d2 += (i ? " L" : "M") + px(xs[i]).toFixed(1) + " " + py(rows[i].sample).toFixed(1);
+      s += '<path d="' + d2 + '" fill="none" stroke="' + OKABE[2] + '" stroke-width="2" stroke-dasharray="6 4"/>';
+      for (i = 0; i < xs.length; i++)
+        s += '<rect x="' + (px(xs[i]) - 4).toFixed(1) + '" y="' + (py(rows[i].sample) - 4).toFixed(1) + '" width="8" height="8" fill="' + OKABE[2] + '" stroke="#fff" stroke-width="2"/>';
+    }
+    s += "</svg><figcaption>" + (has.length === rows.length
+      ? "Solid line with circles: the mean the model implies. Dashed line with squares: the sample mean."
+      : "The mean the model implies at every occasion.") + "</figcaption></figure>";
+    return s;
   }
 
-  var HIDE_ON_FAILURE = ["pickers"];
-  /* Anything a refused file must not leave behind. */
-  var EMPTY_HTML = {};
-  function rememberEmpty(ids) {
-    ids.forEach(function (id) { if ($(id)) EMPTY_HTML[id] = $(id).innerHTML; });
+  /* ---------------- where the variance comes from ---------------- */
+
+  function renderVariance() {
+    var g = STATE.g, host = $("variance");
+    if (!g) { host.innerHTML = EMPTY.variance; return; }
+    var rows = trajectoryRows(), i, j, html = "";
+    html += '<p class="table-note">The variance of the outcome at an occasion is the variance of the weighted sum of the growth factors plus the residual variance of that occasion. The columns give the parts of that sum: each factor carries its own variance times the square of its time score, and a pair of factors carries twice their covariance times the product of their time scores.</p>';
+    html += '<div class="table-wrap"><table><caption>The variance at every occasion and where it comes from</caption><thead><tr><th scope="col">Occasion</th>';
+    for (i = 0; i < g.factors.length; i++) html += '<th class="num" scope="col">' + esc(g.factors[i]) + "</th>";
+    if (g.factors.length > 1) html += '<th class="num" scope="col">Covariance term</th>';
+    html += '<th class="num" scope="col">Residual</th><th class="num" scope="col">Total</th><th class="num" scope="col">Share of the growth factors</th>';
+    if (STATE.rsq) html += '<th class="num" scope="col">R-square in the file</th>';
+    html += "</tr></thead><tbody>";
+    for (i = 0; i < rows.length; i++) {
+      var v = rows[i].v;
+      html += '<tr><th scope="row">' + esc(rows[i].name) + "</th>";
+      if (!v) { html += '<td class="num" colspan="' + (g.factors.length + (g.factors.length > 1 ? 4 : 3) + (STATE.rsq ? 1 : 0)) + '">&#8212;</td></tr>'; continue; }
+      for (j = 0; j < g.factors.length; j++) html += '<td class="num">' + f3(v.own[j]) + "</td>";
+      if (g.factors.length > 1) html += '<td class="num">' + f3(v.crossed) + "</td>";
+      html += '<td class="num">' + f3(v.residual) + "</td>";
+      html += '<td class="num">' + f3(v.total) + "</td>";
+      html += '<td class="num">' + pc(v.explained / v.total) + "</td>";
+      if (STATE.rsq) {
+        var r = STATE.rsq[rows[i].name];
+        html += '<td class="num">' + (r === undefined ? "&#8212;" : pc(r)) + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table></div>";
+    html += '<p class="hint">The column headed <em>Share of the growth factors</em> is the part of the variance of that occasion which the growth factors account for. It is the reliability coefficient of the growth model in the sense of Geiser (2021, Section 3.5.2.3)' +
+      (STATE.rsq ? ', and it is set beside the R-square the file prints for the same variable, which is the same quantity: the two agree to rounding when the model is the one read here.' : '. Requesting <code>STDYX</code> puts the same quantity in the file under R-SQUARE, and the page then prints the two side by side.') + "</p>";
+    var neg = false;
+    for (i = 0; i < rows.length; i++) if (rows[i].v && rows[i].v.residual < 0) neg = true;
+    if (neg) html += statusBlock("warn", "A residual variance is negative.",
+      "At least one occasion has a negative residual variance, so the shares at that occasion do not describe a decomposition of a variance. A negative variance estimate indicates that the model is not admissible as specified; the problem should be resolved before the trajectory is interpreted.");
+    host.innerHTML = html;
   }
-  function clearAfterFailure() {
-    var id;
-    for (id in EMPTY_HTML) if (Object.prototype.hasOwnProperty.call(EMPTY_HTML, id) && $(id)) $(id).innerHTML = EMPTY_HTML[id];
-    HIDE_ON_FAILURE.forEach(function (h) { if ($(h)) $(h).hidden = true; });
-    if ($("file-name")) $("file-name").textContent = "";
+
+  /* ---------------- the trajectory about another occasion ---------------- */
+
+  function renderShift() {
+    var g = STATE.g, host = $("shift");
+    if (!g) { host.innerHTML = EMPTY.shift; return; }
+    var p = GRO.powersOf(g);
+    if (!p) {
+      host.innerHTML = statusBlock("info", "Not a polynomial trajectory.",
+        "The time scores of this model are not the successive powers of one time variable, which is what a piecewise specification gives: the model has more than one change factor and they do not stand to one another as a variable to its powers. The origin of a trajectory of that kind is not moved by the substitution used here, so the table is left out.");
+      return;
+    }
+    var c = parseFloat($("origin").value);
+    if (!isFinite(c)) c = 0;
+    var r = GRO.recentre(g, c);
+    if (!r) { host.innerHTML = statusBlock("info", "Nothing to shift.", "One of the factor means or variances is not in the file."); return; }
+    var i, j, html = "";
+    html += '<p class="table-note">The factors of the same model with the time score ' + f3(c) + ' taken as the origin. The first factor is then the level of the trajectory at that point, and the change factor is unchanged in mean but not in its covariance with it.</p>';
+    html += '<div class="table-wrap"><table><caption>The growth factors about the time score ' + f3(c) + "</caption><thead><tr><th scope=\"col\">Factor</th><th class=\"num\" scope=\"col\">" +
+      (g.conditional ? "Intercept" : "Mean") + '</th><th class="num" scope="col">Variance</th><th class="num" scope="col">SD</th>';
+    for (i = 0; i < g.factors.length; i++) html += '<th class="num" scope="col">r with ' + esc(g.factors[i]) + "</th>";
+    html += "</tr></thead><tbody>";
+    for (i = 0; i < g.factors.length; i++) {
+      html += '<tr><th scope="row">' + esc(g.factors[i]) + (i === 0 ? " at " + f3(c) : "") + "</th>";
+      html += '<td class="num">' + f3(r.mean[i]) + "</td>";
+      html += '<td class="num">' + f3(r.cov[i][i]) + "</td>";
+      html += '<td class="num">' + (r.cov[i][i] > 0 ? f3(Math.sqrt(r.cov[i][i])) : "&#8212;") + "</td>";
+      for (j = 0; j < g.factors.length; j++) {
+        var den = Math.sqrt(r.cov[i][i] * r.cov[j][j]);
+        html += '<td class="num">' + (i === j ? "&#8212;" : (den > 0 ? f3(r.cov[i][j] / den) : "&#8212;")) + "</td>";
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table></div>";
+    html += '<p class="hint">The covariance between the first factor and the slope, and hence their correlation, depends on where the origin is placed: it is the covariance at the point chosen, not a property of the process. A correlation between intercept and slope reported without the occasion it belongs to is therefore not interpretable, and moving the origin is what shows how much it moves.</p>';
+    host.innerHTML = html;
   }
+
+  function fillOrigin() {
+    var g = STATE.g, sel = $("origin"), i, html = "";
+    if (!g) return;
+    var p = GRO.powersOf(g);
+    if (!p) { sel.innerHTML = "<option value=\"0\">0</option>"; return; }
+    for (i = 0; i < g.times.length; i++)
+      html += '<option value="' + p.times[i] + '"' + (i === 0 ? " selected" : "") + ">" + esc(g.times[i].name) + " (time score " + p.times[i] + ")</option>";
+    var last = p.times[p.times.length - 1], mid = (p.times[0] + last) / 2;
+    html += '<option value="' + mid + '">the middle of the period (time score ' + mid + ")</option>";
+    sel.innerHTML = html;
+  }
+
+  function renderAll() { renderTrajectory(); renderVariance(); renderShift(); }
+
+  var EMPTY = {};
+  function remember() { ["trajectory", "variance", "shift"].forEach(function (id) { EMPTY[id] = $(id).innerHTML; }); }
 
   function handleFile(file) {
     readTextFile(file, function (text) {
-      params = null;
-      clearAfterFailure();
-      if (!String(text).replace(/\s/g, "").length) {
-        $("report").innerHTML = statusBlock("bad", "Nothing to read.",
-          "The file is empty. " + MP + " writes the output as the run proceeds, so an empty file usually means the " +
-          "run was interrupted or the file was opened before it finished.");
-        return;
-      }
-      if (!MPLUS_SIGNATURE.test(text)) {
+      STATE = { g: null, name: file.name || "", means: null, rsq: null };
+      renderAll();
+      var d = diagnoseFile(text);
+      if (d === "empty") { $("report").innerHTML = statusBlock("bad", "Nothing to read.", "The file is empty."); return; }
+      if (d === "foreign") {
         $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
           "The file carries none of the headings an " + MP + " output has, so it is not an output file.");
         return;
       }
-      var MPW = mpwarnReport(text);
-      if (MPW.blockHtml) {
-        $("report").innerHTML = statusBlock("bad", "The results of this run are not to be interpreted.", MPW.blockHtml);
+      if (d === "failed") { $("report").innerHTML = statusBlock("bad", "The results of this run are not to be interpreted.", mpwFailedText(text)); return; }
+      if (GRO.isMultipleGroup(text)) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was computed.",
+          "This is the output of a multiple-group run, which prints one set of growth factors per group. This page reads a single-group growth model.");
         return;
       }
-      if (!(/^\s*Within Level\s*$/m.test(String(text)) && /^\s*Between Level\s*$/m.test(String(text)))) {
+      if (GRO.isTwoLevel(text)) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was computed.",
+          "MODEL RESULTS has Within Level and Between Level sections, so this is a two-level run. This page reads a single-level growth model.");
+        return;
+      }
+      var g = GRO.readGrowth(text);
+      if (!g) {
         $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
-          "MODEL RESULTS has no <em>Within Level</em> and <em>Between Level</em> blocks, so this is not the output " +
-          "of a two-level dynamic model. Every coefficient on this page separates a between-person part from a " +
-          "within-person one, and a single-level output has neither.");
+          "MODEL RESULTS carries no factor written with the <code>|</code> symbol, which is what a growth model produces. Fit the model with a line of the form <code>i s | y1@0 y2@1 y3@2 y4@3;</code> and load the output of that run.");
         return;
       }
-      var list = DS.readParameters(text);
-      if (!list.length) {
-        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.", "No parameter was found in MODEL RESULTS.");
-        return;
-      }
-      params = list;
+      STATE.g = g;
+      STATE.means = GRO.sampleMeans(text);
+      STATE.rsq = GRO.readRSquare(text);
       $("file-name").textContent = file.name || "";
-      $("pickers").hidden = false;
-      var isBetweenVar = function (p) { return p.level === "between" && p.head === "VARIANCES"; };
-      fill("p-mu", list, guessIndex(list, function (p) { return isBetweenVar(p) && !/^(PHI|BETA|LOGV|S\d*)/.test(p.name); }), false);
-      fill("p-phi", list, guessIndex(list, function (p) { return p.level === "between" && p.head === "MEANS" && /^PHI/.test(p.name); }), false);
-      var zetaGuess = guessIndex(list, function (p) { return p.level === "within" && p.head === "RESIDUAL VARIANCES"; });
-      if (zetaGuess === null) zetaGuess = guessIndex(list, function (p) { return p.level === "within" && p.head === "VARIANCES"; });
-      fill("p-zeta", list, zetaGuess, false);
-      fill("p-err", list, null, true);
-      var warningCount = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
-      $("report").innerHTML = statusBlock(warningCount ? "warn" : "ok", warningCount ? "File read, with warnings." : "File read.",
-        "Read " + list.length + " parameters. Check the four menus below: the page proposes a reading from the names " + MP +
-        " prints, and the names of a dynamic model are whatever the syntax called them." +
-        (warningCount ? " " + MP + " printed " + warningCount + " warning" + (warningCount === 1 ? "" : "s") + "; read " + (warningCount === 1 ? "it" : "them") + " in the file before interpreting the results." : ""));
-      render();
+      var have = [], miss = [];
+      (STATE.means ? have : miss).push("the sample means");
+      (STATE.rsq ? have : miss).push("the R-square of every occasion");
+      var msg = "Read " + g.factors.length + " growth factor" + (g.factors.length === 1 ? "" : "s") +
+        " (" + g.factors.join(", ") + ") over " + g.times.length + " occasion" + (g.times.length === 1 ? "" : "s") + ".";
+      if (have.length) msg += " The file also carries " + (have.length > 1 ? have.join(" and ") : have[0]) + ".";
+      if (miss.length) msg += " It carries " + (miss.length > 1 ? "neither " + miss.join(" nor ") : "not " + miss[0]) +
+        "; add <code>SAMPSTAT STDYX</code> to the OUTPUT command of the run to have " + (miss.length > 1 ? "them." : "it.");
+      $("report").innerHTML = statusBlock(miss.length ? "warn" : "ok", "File read.", msg);
+      fillOrigin();
+      renderAll();
     }, function () {
       $("report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
     });
   }
 
-  rememberEmpty(["results"]);
+  remember();
   var drop = $("drop"), input = $("file");
-  drop.addEventListener("click", function () { input.click(); });
-  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  input.addEventListener("change", function () { if (input.files && input.files[0]) handleFile(input.files[0]); });
   drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
   drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
   drop.addEventListener("drop", function (e) {
     e.preventDefault(); drop.classList.remove("over");
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   });
-  input.addEventListener("change", function () { if (input.files[0]) handleFile(input.files[0]); });
-  ["p-mu", "p-phi", "p-zeta", "p-err"].forEach(function (id) { $(id).addEventListener("change", render); });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  $("origin").addEventListener("change", renderShift);
+  
 })();
-
-/* ---- the coefficients at each lag -------------------------------- */
-(function () {
-  function $(id) { return document.getElementById(id); }
-  function num(id) { return Number($(id).value); }
-  function p3(x) { return (x === null || x === undefined || !isFinite(x)) ? "—" : Number(x).toFixed(3).replace(/^(-?)0\./, "$1."); }
-  function statusBlock(kind, tag, text) {
-    var glyph = kind === "ok" ? "✓" : (kind === "bad" ? "✗" : (kind === "info" ? "i" : "!"));
-    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span>" + text + "</p></div>";
-  }
-  function components() {
-    return { sigmaS: num("v-s"), sigmaD: num("v-d"), tauD: num("t-d"), tauM: num("t-m"),
-      sigmaE: num("e-var"), phiM: num("phi-m"), phiD: num("phi-d"), moments: num("m-per-day") };
-  }
-  function figure(L, c) {
-    var w = 640, h = 300, ml = 56, mr = 16, mt = 16, mb = 44, lags = [], i;
-    for (i = 0; i <= 10; i++) lags.push(i);
-    function x(l) { return ml + (l / 10) * (w - ml - mr); }
-    function y(v) { return mt + (1 - v) * (h - mt - mb); }
-    var s = '<svg class="chart" viewBox="0 0 ' + w + " " + h + '" width="100%" role="img" aria-label="Reliability against the distance in time between two measurements, for the four coefficients">';
-    s += '<rect x="0" y="0" width="' + w + '" height="' + h + '" fill="#ffffff"/>';
-    var t;
-    for (t = 0; t <= 10; t += 2) {
-      s += '<line x1="' + x(t) + '" y1="' + y(0) + '" x2="' + x(t) + '" y2="' + (y(0) + 6) + '" stroke="#000000"/>';
-      s += '<text x="' + x(t) + '" y="' + (y(0) + 20) + '" text-anchor="middle" font-size="12" fill="#000000">' + t + "</text>";
-    }
-    for (t = 0; t <= 10; t += 2) {
-      var v = t / 10;
-      s += '<line x1="' + (ml - 6) + '" y1="' + y(v) + '" x2="' + ml + '" y2="' + y(v) + '" stroke="#000000"/>';
-      s += '<text x="' + (ml - 10) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="12" fill="#000000">' + v.toFixed(1).replace(/^0\./, ".") + "</text>";
-    }
-    s += '<line x1="' + ml + '" y1="' + y(0) + '" x2="' + (w - mr) + '" y2="' + y(0) + '" stroke="#000000"/>';
-    s += '<line x1="' + ml + '" y1="' + y(0) + '" x2="' + ml + '" y2="' + mt + '" stroke="#000000"/>';
-    s += '<text x="' + (ml + (w - ml - mr) / 2) + '" y="' + (h - 8) + '" text-anchor="middle" font-size="13" fill="#000000">Distance between the two measurements, in moments or in days</text>';
-    s += '<text x="14" y="' + (mt + (h - mt - mb) / 2) + '" text-anchor="middle" font-size="13" fill="#000000" transform="rotate(-90 14 ' + (mt + (h - mt - mb) / 2) + ')">Reliability</text>';
-    var series = [
-      { name: "Between persons, moment to moment", f: L.bMoment, color: "#0072B2", dash: "" },
-      { name: "Between persons, day to day", f: L.bDay, color: "#D55E00", dash: "7 4" },
-      { name: "Within a person, moment to moment", f: L.wMoment, color: "#009E73", dash: "2 3" },
-      { name: "Within a person, day to day", f: L.wDay, color: "#CC79A7", dash: "9 3 2 3" }
-    ];
-    series.forEach(function (se) {
-      /* Day-to-day coefficients compare distinct days, so their first meaningful lag is one. */
-      var use = /day to day/.test(se.name) ? lags.filter(function (l) { return l >= 1; }) : lags;
-      var d = use.map(function (l, i2) { return (i2 ? "L" : "M") + x(l) + " " + y(Math.max(0, Math.min(1, se.f(l)))); }).join(" ");
-      s += '<path d="' + d + '" fill="none" stroke="' + se.color + '" stroke-width="2.5"' + (se.dash ? ' stroke-dasharray="' + se.dash + '"' : "") + "/>";
-    });
-    s += "</svg>";
-    /* The key carries the dash pattern of its line as well as its color, so
-       that the four series stay apart in print and in greyscale. */
-    var legend = '<ul class="legend">' + series.map(function (se) {
-      return '<li><svg width="34" height="10" aria-hidden="true" focusable="false" style="flex:none"><line x1="1" y1="5" x2="33" y2="5" stroke="' +
-        se.color + '" stroke-width="2.5"' + (se.dash ? ' stroke-dasharray="' + se.dash + '"' : "") + '/></svg><span>' + se.name + "</span></li>";
-    }).join("") + "</ul>";
-    return s + legend;
-  }
-  function render() {
-    var c = components(), bad = [];
-    ["sigmaS", "sigmaD", "tauD", "tauM", "sigmaE"].forEach(function (k) { if (!(c[k] >= 0)) bad.push(k); });
-    if (bad.length || !(Math.abs(c.phiM) < 1) || !(Math.abs(c.phiD) < 1)) {
-      $("lag-out").innerHTML = statusBlock("bad", "Nothing was computed.",
-        "Every variance has to be zero or more and both autoregressive effects smaller than one in absolute value, since a process with a larger one has no stationary variance.");
-      return null;
-    }
-    if (!(c.moments >= 1) || c.moments !== Math.round(c.moments)) {
-      $("lag-out").innerHTML = statusBlock("bad", "Nothing was computed.",
-        "The number of moments per day has to be a whole number of one or more. A day holds at least the one " +
-        "measurement the coefficient is computed on, and an empty box is read as no value rather than as a number.");
-      return null;
-    }
-    var L = DS.lin(c), out = "", i;
-    out += '<p class="big">Instantaneity: ' + p3(L.bInstant) + " between persons, " + p3(L.wInstant) + " within a person</p>";
-    out += "<p>The first is the agreement between this measurement and a parallel one taken at the same instant, which is what reliability means when time is not allowed to pass. The second is the same agreement inside one person, where the differences between persons no longer count as true variance. At the other end, the agreement between two measurements very far apart in time is " +
-      p3(L.stability) + ", which is what the measure retains of a person over the long run.</p>";
-    out += '<div class="table-wrap"><table><caption class="visually-hidden">Reliability at each distance in time</caption><tr>' +
-      "<th scope=\"col\">&#916;</th><th scope=\"col\" class=\"num\">Between, moments</th><th scope=\"col\" class=\"num\">Between, days</th><th scope=\"col\" class=\"num\">Between, day averages</th><th scope=\"col\" class=\"num\">Within, moments</th><th scope=\"col\" class=\"num\">Within, days</th><th scope=\"col\" class=\"num\">Within, day averages</th></tr>";
-    for (i = 0; i <= 6; i++) {
-      var dayCell = i === 0 ? '<span title="Day-to-day coefficients require two distinct days">&mdash;</span>' : null;
-      out += "<tr><th scope=\"row\">" + i + "</th>" +
-        '<td class="num">' + p3(L.bMoment(i)) + "</td>" +
-        '<td class="num">' + (dayCell || p3(L.bDay(i))) + "</td>" +
-        '<td class="num">' + (dayCell || p3(L.bDayMean(i))) + "</td>" +
-        '<td class="num">' + p3(L.wMoment(i)) + "</td>" +
-        '<td class="num">' + (dayCell || p3(L.wDay(i))) + "</td>" +
-        '<td class="num">' + (dayCell || p3(L.wDayMean(i))) + "</td></tr>";
-    }
-    out += "</table></div>";
-    out += '<div class="figure">' + figure(L, c) + "</div>";
-    out += '<p class="hint">&#916; is the distance between the two measurements. It is counted in moments in the two columns headed <em>moments</em> and in days in the four day-to-day columns. For moment-to-moment reliability, &#916;&#8201;=&#8201;0 is the instantaneity limit. Day-to-day reliability requires two distinct days, so it begins at &#916;&#8201;=&#8201;1 and the zero-lag day cells are intentionally left undefined. The two <em>day averages</em> columns refer to the average of the ' + c.moments +
-      (c.moments === 1 ? " moment" : " moments") + " within each day. Every coefficient follows Lin, Tuerlinckx and Vanbelle (2026).</p>";
-    $("lag-out").innerHTML = out;
-    return L;
-  }
-  ["v-s", "v-d", "t-d", "t-m", "e-var", "phi-m", "phi-d", "m-per-day"].forEach(function (id) {
-    $(id).addEventListener("change", render); $(id).addEventListener("input", render);
-  });
-  render();
-})();
-
 /* ==================================================================
    Self-test
    ================================================================== */
@@ -845,92 +998,224 @@ function selfTest() {
   }
   function okTrue(name, cond) { ok(name, !!cond, true); }
 
-  /* The stationary variance and the decomposition. */
-  ok("the stationary variance of an autoregression", DS.stationaryVariance(0.36, 0.40), 0.4285714285714285, 1e-14);
-  ok("a process with no carry-over keeps its innovation variance", DS.stationaryVariance(0.5, 0), 0.5);
-  okTrue("a process at the boundary has none", !isFinite(DS.stationaryVariance(0.5, 1)));
-  okTrue("a process beyond it has none", !isFinite(DS.stationaryVariance(0.5, 1.2)));
-  ok("a negative carry-over gives the same variance as its mirror",
-     DS.stationaryVariance(0.36, -0.40), DS.stationaryVariance(0.36, 0.40), 1e-15);
-
-  var tau2 = DS.stationaryVariance(0.36, 0.40);
-  ok("the reliability between persons", DS.relB(0.80, tau2, 0.20), 0.5600000000000001, 1e-14);
-  ok("the reliability within a person", DS.relW(tau2, 0.20), 0.6818181818181818, 1e-14);
-  ok("with no measurement error the within reliability is one", DS.relW(tau2, 0), 1);
-  ok("the attenuated autoregression", DS.attenuated(0.40, DS.relW(tau2, 0.20)), 0.2727272727272728, 1e-14);
-  ok("undoing the attenuation returns the original", DS.disattenuated(DS.attenuated(0.40, 0.68), 0.68), 0.40, 1e-14);
-  var dec = DS.decompose(0.80, tau2, 0.20);
-  ok("the three shares add to one", dec.betweenShare + dec.withinShare + dec.errorShare, 1, 1e-14);
-  ok("the total variance", dec.total, 0.80 + tau2 + 0.20, 1e-14);
-
-  /* The family of coefficients at two time scales. */
-  var L = DS.lin({ sigmaS: 0.60, sigmaD: 0.25, tauD: 0.20, tauM: 0.40, sigmaE: 0.30,
-    phiM: 0.45, phiD: 0.30, moments: 5 });
-  ok("the denominator between persons", L.denB, 1.75, 1e-14);
-  ok("the denominator within a person", L.denW, 1.15, 1e-14);
-  ok("instantaneity between persons", L.bInstant, 0.8285714285714285, 1e-14);
-  ok("moment-to-moment reliability at a lag of two", L.bMoment(2), 0.6462857142857142, 1e-14);
-  ok("day-to-day reliability at a lag of one", L.bDay(1), 0.3771428571428571, 1e-14);
-  ok("instantaneity within a person", L.wInstant, 0.7391304347826086, 1e-14);
-  ok("within-person moment reliability at a lag of three", L.wMoment(3), 0.4229999999999999, 1e-13);
-  ok("within-person day reliability at a lag of two", L.wDay(2), 0.0156521739130435, 1e-14);
-  ok("between-person reliability of a daily average at a lag of one", L.bDayMean(1), 0.5546218487394958, 1e-14);
-  ok("within-person reliability of a daily average at a lag of one", L.wDayMean(1), 0.1016949152542373, 1e-14);
-  ok("long-run stability", L.stability, 0.3428571428571428, 1e-14);
-  ok("at a lag of zero the moment coefficient is instantaneity", L.bMoment(0), L.bInstant, 1e-15);
-  okTrue("the moment coefficient falls as the lag grows", L.bMoment(1) > L.bMoment(2) && L.bMoment(2) > L.bMoment(3));
-  okTrue("it approaches the coefficient that drops the moment process", Math.abs(L.bMoment(60) - (0.60 + 0.25 + 0.20) / 1.75) < 1e-12);
-  okTrue("averaging the moments of a day raises the day coefficient", L.wDayMean(1) > L.wDay(1));
-
-  /* Reading a two-level output. */
-  var out = [
-    "Mplus VERSION 8.11", "", "SUMMARY OF ANALYSIS", "",
-    "Number of observations                                        5000", "",
+  /* A linear growth model over four occasions. The estimates are those of
+     the first example of chapter 6 of the Mplus User's Guide. */
+  var lin = [
+    "Mplus VERSION 8.8", "", "INPUT INSTRUCTIONS", "",
+    "  MODEL: i s | y11@0 y12@1 y13@2 y14@3;", "",
+    "INPUT READING TERMINATED NORMALLY", "",
     "MODEL RESULTS", "",
-    "                                Posterior  One-Tailed         95% C.I.",
-    "                    Estimate       S.D.      P-Value   Lower 2.5%  Upper 2.5%  Significance", "",
-    "Within Level", "",
-    " Residual Variances",
-    "    URGE               0.360      0.024      0.000       0.091       0.185      *", "",
-    "Between Level", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " I        |",
+    "    Y11                1.000      0.000    999.000    999.000",
+    "    Y12                1.000      0.000    999.000    999.000",
+    "    Y13                1.000      0.000    999.000    999.000",
+    "    Y14                1.000      0.000    999.000    999.000", "",
+    " S        |",
+    "    Y11                0.000      0.000    999.000    999.000",
+    "    Y12                1.000      0.000    999.000    999.000",
+    "    Y13                2.000      0.000    999.000    999.000",
+    "    Y14                3.000      0.000    999.000    999.000", "",
+    " S        WITH",
+    "    I                  0.133      0.032      4.100      0.000", "",
     " Means",
-    "    URGE              -0.005      0.084      0.471      -0.183       0.156",
-    "    PHI                0.400      0.017      0.000       0.173       0.243      *", "",
+    "    I                  0.523      0.051     10.152      0.000",
+    "    S                  1.026      0.025     40.264      0.000", "",
+    " Intercepts",
+    "    Y11                0.000      0.000    999.000    999.000",
+    "    Y12                0.000      0.000    999.000    999.000",
+    "    Y13                0.000      0.000    999.000    999.000",
+    "    Y14                0.000      0.000    999.000    999.000", "",
     " Variances",
-    "    URGE               0.800      0.097      0.000       0.438       0.825      *",
-    "    PHI                0.019      0.004      0.000       0.012       0.029      *", "",
-    "DIAGRAM INFORMATION"
+    "    I                  0.989      0.088     11.178      0.000",
+    "    S                  0.224      0.022     10.068      0.000", "",
+    " Residual Variances",
+    "    Y11                0.475      0.058      8.122      0.000",
+    "    Y12                0.482      0.040     11.980      0.000",
+    "    Y13                0.473      0.047     10.080      0.000",
+    "    Y14                0.545      0.083      6.593      0.000", "",
+    "QUALITY OF NUMERICAL RESULTS"
   ].join("\n");
-  var pars = DS.readParameters(out);
-  ok("five parameters are read", pars.length, 5);
-  ok("the within residual variance is read", pars[0].est, 0.36);
-  ok("its level is kept", pars[0].level, "within");
-  ok("the mean of the autoregression is read", pars.filter(function (p) { return p.level === "between" && p.head === "MEANS" && p.name === "PHI"; })[0].est, 0.4);
-  ok("the variance of the person means is read", pars.filter(function (p) { return p.level === "between" && p.head === "VARIANCES" && p.name === "URGE"; })[0].est, 0.8);
-  okTrue("every parameter carries a label naming its level and heading", pars.every(function (p) { return /·/.test(p.label); }));
+
+  var g = GRO.readGrowth(lin);
+  okTrue("the growth model is found", !!g);
+  ok("two factors are read", g.factors.join(","), "I,S");
+  ok("four occasions are read", g.times.length, 4);
+  ok("the time score of the third occasion on the slope", g.times[2].load[1], 2, 1e-12);
+  ok("the mean of the level factor", g.alpha.I, 0.523, 1e-12);
+  ok("the mean of the slope factor", g.alpha.S, 1.026, 1e-12);
+  ok("the variance of the level factor", g.psiVar.I, 0.989, 1e-12);
+  ok("their covariance", GRO.cov(g, "I", "S"), 0.133, 1e-12);
+  ok("the residual variance of the last occasion", g.resid.Y14, 0.545, 1e-12);
+  okTrue("the factors are not regressed on anything", !g.conditional);
+
+  /* the implied mean, computed a second way */
+  ok("the implied mean at the first occasion", GRO.impliedMean(g, g.times[0]), 0.523, 1e-12);
+  ok("at the second", GRO.impliedMean(g, g.times[1]), 0.523 + 1.026, 1e-12);
+  ok("at the fourth", GRO.impliedMean(g, g.times[3]), 0.523 + 3 * 1.026, 1e-12);
+
+  /* the implied variance, computed a second way */
+  var v0 = GRO.impliedVariance(g, g.times[0]), v3 = GRO.impliedVariance(g, g.times[3]);
+  ok("the variance at the first occasion", v0.total, 0.989 + 0.475, 1e-12);
+  ok("the variance at the fourth", v3.total, 0.989 + 9 * 0.224 + 2 * 3 * 0.133 + 0.545, 1e-12);
+  ok("the part the covariance contributes at the fourth", v3.crossed, 2 * 3 * 0.133, 1e-12);
+  ok("the part the slope contributes at the fourth", v3.own[1], 9 * 0.224, 1e-12);
+  ok("the share the growth factors account for at the fourth",
+     v3.explained / v3.total, (0.989 + 9 * 0.224 + 6 * 0.133) / (0.989 + 9 * 0.224 + 6 * 0.133 + 0.545), 1e-12);
+
+  /* moving the origin */
+  var r3 = GRO.recentre(g, 3);
+  ok("the mean of the level factor at the last occasion is the implied mean there",
+     r3.mean[0], GRO.impliedMean(g, g.times[3]), 1e-12);
+  ok("the mean of the slope factor does not move", r3.mean[1], 1.026, 1e-12);
+  ok("its variance is the variance of the linear combination",
+     r3.cov[0][0], 0.989 + 2 * 3 * 0.133 + 9 * 0.224, 1e-12);
+  ok("its covariance with the slope", r3.cov[0][1], 0.133 + 3 * 0.224, 1e-12);
+  ok("the variance of the slope does not move", r3.cov[1][1], 0.224, 1e-12);
+  var back = GRO.recentre({ factors: g.factors, times: g.times,
+    alpha: { I: r3.mean[0], S: r3.mean[1] },
+    psiVar: { I: r3.cov[0][0], S: r3.cov[1][1] },
+    psi: { "I|S": r3.cov[0][1], "S|I": r3.cov[0][1] } }, -3);
+  ok("moving the origin back gives the mean the file has", back.mean[0], 0.523, 1e-9);
+  ok("and the variance the file has", back.cov[0][0], 0.989, 1e-9);
+  ok("and the covariance the file has", back.cov[0][1], 0.133, 1e-9);
+  var rHalf = GRO.recentre(g, 1.5);
+  var cor0 = 0.133 / Math.sqrt(0.989 * 0.224), corH = rHalf.cov[0][1] / Math.sqrt(rHalf.cov[0][0] * rHalf.cov[1][1]);
+  okTrue("the correlation between level and change moves with the origin", Math.abs(corH - cor0) > 0.05);
+  /* the variance at an occasion does not depend on where the origin is */
+  var shifted = { factors: g.factors, times: [{ name: "Y14", load: [1, 0] }],
+    alpha: { I: rHalf.mean[0], S: rHalf.mean[1] },
+    psiVar: { I: rHalf.cov[0][0], S: rHalf.cov[1][1] },
+    psi: { "I|S": rHalf.cov[0][1], "S|I": rHalf.cov[0][1] }, resid: { Y14: 0 } };
+  var atOrigin = GRO.impliedVariance(shifted, shifted.times[0]);
+  var direct = 0.989 + 1.5 * 1.5 * 0.224 + 2 * 1.5 * 0.133;
+  ok("the variance of the true part at the new origin", atOrigin.total, direct, 1e-9);
+
+  /* the powers of the time scores */
+  var p = GRO.powersOf(g);
+  ok("the exponents of a linear model", p.powers.join(","), "0,1");
+  ok("the time scores", p.times.join(","), "0,1,2,3");
+  ok("the binomial coefficient of two over one", GRO.binom(2, 1), 2, 1e-12);
+  var T = GRO.shiftMatrix([0, 1, 2], 2);
+  ok("the transformation of a quadratic model, first row", T[0].join(","), "1,2,4");
+  ok("its second row", T[1].join(","), "0,1,4");
+  ok("its third row", T[2].join(","), "0,0,1");
+
+  /* a quadratic model */
+  var quad = lin
+    .replace("  MODEL: i s | y11@0 y12@1 y13@2 y14@3;", "  MODEL: i s q | y11@0 y12@1 y13@2 y14@3;")
+    .replace(" S        WITH\n    I                  0.133      0.032      4.100      0.000",
+      " Q        |\n    Y11                0.000      0.000    999.000    999.000\n" +
+      "    Y12                1.000      0.000    999.000    999.000\n" +
+      "    Y13                4.000      0.000    999.000    999.000\n" +
+      "    Y14                9.000      0.000    999.000    999.000\n\n" +
+      " S        WITH\n    I                  0.133      0.032      4.100      0.000\n\n" +
+      " Q        WITH\n    I                 -0.040      0.010     -4.000      0.000\n" +
+      "    S                 -0.060      0.010     -6.000      0.000")
+    .replace("    S                  1.026      0.025     40.264      0.000\n",
+      "    S                  1.026      0.025     40.264      0.000\n    Q                  0.100      0.020      5.000      0.000\n")
+    .replace("    S                  0.224      0.022     10.068      0.000\n",
+      "    S                  0.224      0.022     10.068      0.000\n    Q                  0.030      0.008      3.750      0.000\n");
+  var gq = GRO.readGrowth(quad);
+  ok("three factors are read from a quadratic model", gq.factors.join(","), "I,S,Q");
+  ok("the time score of the last occasion on the quadratic factor", gq.times[3].load[2], 9, 1e-12);
+  ok("the implied mean at the last occasion of the quadratic model",
+     GRO.impliedMean(gq, gq.times[3]), 0.523 + 3 * 1.026 + 9 * 0.1, 1e-12);
+  var pq = GRO.powersOf(gq);
+  ok("the exponents of a quadratic model", pq.powers.join(","), "0,1,2");
+  var rq = GRO.recentre(gq, 3);
+  ok("the level factor at the last occasion of the quadratic model is the implied mean there",
+     rq.mean[0], GRO.impliedMean(gq, gq.times[3]), 1e-9);
+  ok("the slope factor of the quadratic model at that point",
+     rq.mean[1], 1.026 + 2 * 3 * 0.1, 1e-12);
+  ok("the quadratic factor does not move", rq.mean[2], 0.1, 1e-12);
+  ok("the variance of the level factor there",
+     rq.cov[0][0],
+     0.989 + 9 * 0.224 + 81 * 0.030 + 2 * 3 * 0.133 + 2 * 9 * (-0.040) + 2 * 3 * 9 * (-0.060), 1e-9);
+
+  /* the share the page reports is the R-square the file prints */
+  var withR = lin.replace("QUALITY OF NUMERICAL RESULTS",
+    ["R-SQUARE", "",
+     "    Observed                                        Two-Tailed",
+     "    Variable        Estimate       S.E.  Est./S.E.    P-Value", "",
+     "    Y11                0.675      0.030     22.500      0.000",
+     "    Y12                0.754      0.020     37.700      0.000",
+     "    Y13                0.836      0.015     55.733      0.000",
+     "    Y14                0.875      0.018     48.611      0.000", "",
+     "QUALITY OF NUMERICAL RESULTS"].join("\n"));
+  var rsq = GRO.readRSquare(withR);
+  okTrue("the R-square block is read", !!rsq);
+  var gr = GRO.readGrowth(withR), vv, i, worst = 0;
+  for (i = 0; i < gr.times.length; i++) {
+    vv = GRO.impliedVariance(gr, gr.times[i]);
+    worst = Math.max(worst, Math.abs(vv.explained / vv.total - rsq[gr.times[i].name]));
+  }
+  ok("the share the page computes is the R-square the file prints", worst < 6e-4, true);
+
+  /* the sample means */
+  var withS = lin.replace("MODEL RESULTS",
+    ["SAMPLE STATISTICS", "", "     Means", "              Y11           Y12           Y13           Y14",
+     "              ________      ________      ________      ________",
+     "                0.520         1.560         2.580         3.610", "", "MODEL RESULTS"].join("\n"));
+  var sm = GRO.sampleMeans(withS);
+  okTrue("the sample means are read", !!sm);
+  ok("the first of them", sm.Y11, 0.520, 1e-12);
+  ok("the last of them", sm.Y14, 3.610, 1e-12);
+
+  /* what the page refuses */
+  ok("a file with no growth factor is refused",
+     GRO.readGrowth("Mplus VERSION 8\nMODEL RESULTS\n\n F1       BY\n    Y1                 1.000      0.000    999.000    999.000\n\nQUALITY OF NUMERICAL RESULTS"), null);
+  ok("a file with no MODEL RESULTS is refused", GRO.readGrowth("Mplus VERSION 8\n"), null);
+  okTrue("a multiple-group output is recognised", GRO.isMultipleGroup(lin.replace("MODEL RESULTS", "MODEL RESULTS\n\nGroup MALE")));
+  okTrue("a two-level output is recognised", GRO.isTwoLevel(lin.replace("MODEL RESULTS", "MODEL RESULTS\n\nWithin Level")));
+  okTrue("a single-level single-group output is neither", !GRO.isMultipleGroup(lin) && !GRO.isTwoLevel(lin));
+  var freed = lin.replace("    Y13                2.000      0.000    999.000    999.000",
+                          "    Y13                1.640      0.121     13.554      0.000");
+  var gf = GRO.readGrowth(freed);
+  ok("an estimated time score is read with the value it took", gf.times[2].load[1], 1.640, 1e-12);
+  ok("a linear model with an estimated time score can still be written about another occasion",
+     GRO.powersOf(gf).powers.join(","), "0,1");
+  ok("and the level factor at that score is the implied mean there",
+     GRO.recentre(gf, 1.64).mean[0], GRO.impliedMean(gf, gf.times[2]), 1e-9);
+  /* two slope factors whose time scores are not powers of one variable:
+     a piecewise trajectory, which the substitution does not apply to */
+  var piece = lin.replace(" S        WITH",
+    " S2       |\n    Y11                0.000      0.000    999.000    999.000\n" +
+    "    Y12                0.000      0.000    999.000    999.000\n" +
+    "    Y13                1.000      0.000    999.000    999.000\n" +
+    "    Y14                2.000      0.000    999.000    999.000\n\n S        WITH")
+    .replace("    S                  1.026      0.025     40.264      0.000\n",
+      "    S                  1.026      0.025     40.264      0.000\n    S2                 0.400      0.030     13.333      0.000\n")
+    .replace("    S                  0.224      0.022     10.068      0.000\n",
+      "    S                  0.224      0.022     10.068      0.000\n    S2                 0.150      0.020      7.500      0.000\n");
+  ok("a piecewise trajectory has no polynomial origin to move", GRO.powersOf(GRO.readGrowth(piece)), null);
+
+  /* a model whose factors are regressed on a predictor */
+  var cond = lin.replace(" S        WITH",
+    " I        ON\n    X1                 0.500      0.040     12.500      0.000\n\n S        ON\n    X1                 0.200      0.030      6.667      0.000\n\n S        WITH");
+  var gc = GRO.readGrowth(cond);
+  okTrue("a model with predictors of the growth factors is recognised as conditional", gc.conditional);
+  ok("the coefficient of the predictor on the level factor", gc.on.I[0].est, 0.500, 1e-12);
 
   return { checks: checks, failed: failed };
 }
 
 (function () {
-  if (!/[?&]selftest=1(&|$)/.test(window.location.search)) return;
-  var out;
-  try { out = selfTest(); }
-  catch (err) { out = { checks: [{ name: "the self-test raised an error: " + (err && err.message ? err.message : String(err)), ok: false }], failed: 1 }; }
-  var b = document.getElementById("selftest-banner");
-  b.hidden = false;
-  b.className = "status " + (out.failed ? "bad" : "ok");
-  b.innerHTML = '<p><span aria-hidden="true">' + (out.failed ? "✗" : "✓") + '</span> <span class="tag">' +
-    (out.failed ? "Self-test failed." : "Self-test passed.") + "</span> " + out.checks.length + " checks, " + out.failed +
-    " failed. They cover the stationary variance of the autoregressive process, the decomposition of the variance, the " +
-    "two reliabilities and the attenuation of the autoregression against their definitions, the whole family of " +
-    "coefficients at two time scales with their limits at a lag of zero and at a long lag, and the reading of a " +
-    "two-level output. Each check is listed in the browser console.</p>";
+  if (!/[?&]selftest=1\b/.test(location.search)) return;
+  var out = selfTest(), banner = document.getElementById("selftest-banner");
   var lines = out.checks.map(function (c) {
-    return (c.ok ? "ok   " : "FAIL ") + c.name + (c.ok ? "" : "  got " + c.got + ", wanted " + c.want);
+    return (c.ok ? "OK   " : "FAIL ") + c.name + "  got " + c.got + ", wanted " + c.want;
   });
+  if (banner) {
+    banner.hidden = false;
+    banner.innerHTML = '<div class="status ' + (out.failed ? "bad" : "ok") + '" role="status"><p><span class="tag">' +
+      (out.failed ? "&#10007; Self-test failed." : "&#10003; Self-test passed.") + "</span> " + out.checks.length +
+      " checks, " + out.failed + " failed. They cover the reading of the time scores, of the factor parameters and of the residual variances, the implied mean and the implied variance against the same quantities computed a second way, the identity between the share the page reports and the R-square of the standardized solution, the substitution of the origin and its inverse, the quadratic case, and unsupported cases.</p></div>";
+  }
   if (out.failed) console.error(lines.join("\n")); else console.log(lines.join("\n"));
 })();
+
 </script>
 <script>
 /* A box that scrolls sideways has to be reachable from the keyboard, and has

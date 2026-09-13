@@ -38,28 +38,30 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
   <h1>Chi-Square Difference Test</h1>
   <p class="lede">Reads two <span class="mp">M</span><em>plus</em> output files, checks the conditions that a nesting relation requires, and computes the difference test that the estimator of those two runs allows: the classical difference for ML, MLF, GLS and WLS, the Satorra–Bentler scaled difference for MLR, MLM and WLSM, and the DIFFTEST result for MLMV, WLSMV and ULSMV. Every number it uses is read from those files, and none of them can be typed in.</p>
   <div class="callout" role="note">
-    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> Nothing beyond the standard output: the page reads <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> always prints. With MLMV, WLSMV or ULSMV add <code>SAVEDATA: DIFFTEST = file.dat;</code> to the unrestricted run and <code>ANALYSIS: DIFFTEST = file.dat;</code> to the restricted one, because for those estimators the difference of the two printed statistics is not chi-square distributed.
+    <strong>What to request from <span class="mp">M</span><em>plus</em>.</strong> Nothing beyond the standard output: the page reads <code>MODEL FIT INFORMATION</code>, available in the standard <span class="mp">M</span><em>plus</em> output. With MLMV, WLSMV or ULSMV add <code>SAVEDATA: DIFFTEST = file.dat;</code> to the unrestricted run and <code>ANALYSIS: DIFFTEST = file.dat;</code> to the restricted one, because for those estimators the difference of the two printed statistics is not chi-square distributed.
     A warning printed by M<em>plus</em> is counted and reported next to the comparison, which is left in place; a run that did not converge blocks the test instead.
   </div>
 </header>
 <main id="main" tabindex="-1">
   <p id="selftest" class="status" hidden></p>
 
-  <section aria-labelledby="h-steps">
-    <h2 id="h-steps">What to do</h2>
+  <details class="fold" id="fold-h-steps" data-autoopen>
+  <summary><h2 id="h-steps">What to do</h2></summary>
+  <div class="fold-body">
     <ol class="steps">
       <li>Write two <span class="mp">M</span><em>plus</em> inputs, one for each of the two models you want to compare, and save each in its own <code>.inp</code> file. The two runs have to use the same data file, the same observed variables and the same estimator, and one of the two models has to be the other one with restrictions added to it.</li>
-      <li>Add nothing to the OUTPUT command. The chi-square of a model is in the section <code>MODEL FIT INFORMATION</code>, which <span class="mp">M</span><em>plus</em> writes in every output without being asked.</li>
+      <li>Add nothing to the OUTPUT command. The chi-square of a model is in the section <code>MODEL FIT INFORMATION</code>, which is part of the standard <span class="mp">M</span><em>plus</em> output.</li>
       <li>Only if the estimator of the two runs is MLMV, WLSMV or ULSMV: add the line <code>SAVEDATA: DIFFTEST = deriv.dat;</code> to the input of the unrestricted model (H1), add the line <code>ANALYSIS: DIFFTEST = deriv.dat;</code> to the input of the restricted model (H0), and run the unrestricted one first. For those three estimators the difference of the two printed statistics is not a chi-square, and only <span class="mp">M</span><em>plus</em> itself can produce the test.</li>
       <li>Run both inputs. <span class="mp">M</span><em>plus</em> writes for each one a plain text file with the same name and the extension <code>.out</code>, in the folder the input is in.</li>
-      <li>Drag one <code>.out</code> file onto the first box below and the other onto the second, or press a box and choose the file there. Which file goes in which box makes no difference: the page reads the degrees of freedom of both and treats the model with more of them as the restricted one. The files are read inside your browser and nothing leaves your computer.</li>
+      <li>Drag one <code>.out</code> file onto the first box below and the other onto the second, or press a box and choose the file there. Which file goes in which box makes no difference: the page reads the degrees of freedom of both and treats the model with more of them as the restricted one. The files are read inside your browser and semstudio.tools does not transmit the file contents; processing occurs in the browser.</li>
       <li>Read the list headed <em>Compatible with a nesting relation</em>. One line per condition says what was read from the two files: the estimator, the number of observations, the observed dependent variables, the degrees of freedom and the free parameters.</li>
       <li>Choose the significance level, and say which kind of parameter the restricted model holds fixed. Those two choices decide the level the p-value is compared with and which of the published cutoffs are marked as matching this comparison; they change nothing that was read from the files.</li>
       <li>Read the test in the table headed with the name of the test the estimator allows, and the sentence written under it for a manuscript. Every number in it comes from the two output files, and no field on this page can change one.</li>
       <li>Only if the page reports that the scaled test cannot be computed: run the <em>unrestricted</em> model once more with the estimates of the restricted model as starting values and no iterations, as described under <em>Third output</em> below, and drop that third output in the box at the end of the loading section.</li>
     </ol>
-    <p>The page refuses four kinds of file and says which one and why. An empty file. A file that carries none of the headings <span class="mp">M</span><em>plus</em> always writes, which is not an output. A file that stops before the sections following the fit statistics, which comes from a run that was interrupted. A file written with the abbreviated invariance syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code>, which holds several models so that no single chi-square belongs to it. It also computes nothing when the estimator cannot be read on the <code>Estimator</code> line of either file, because the formula for the test depends on the estimator, and when the two files report different estimators, different numbers of observations or different dependent variables. Nothing on this page can be typed in: every number it computes with is read from an output file.</p>
-  </section>
+    <p>Files are not compared when they are empty, not recognizable as M<em>plus</em> output, truncated before the completed results, or produced with the abbreviated invariance syntax <code>MODEL = CONFIGURAL METRIC SCALAR;</code>, which contains several models. A comparison is also withheld when the estimator is unavailable or when the two files differ in estimator, sample size, or dependent variables. All numerical inputs are read from the files.</p>
+  </div>
+</details>
 
   <section aria-labelledby="h-load">
     <h2 id="h-load">Load the two outputs</h2>
@@ -132,12 +134,14 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
     </fieldset>
   </section>
 
-  <section aria-labelledby="h-results">
-    <h2 id="h-results">Results</h2>
+  <details class="fold" id="fold-h-results" data-autoopen>
+  <summary><h2 id="h-results">Results</h2></summary>
+  <div class="fold-body">
     <div id="results">
       <div class="status info"><span class="tag">Waiting for two files</span> Nothing has been loaded yet. Drop an <span class="mp">M</span><em>plus</em> output file on each of the two boxes above; the test appears here as soon as both have been read.</div>
     </div>
-  </section>
+  </div>
+</details>
 
   <details class="fold" id="fold-h-methods">
   <summary><h2 id="h-methods">Methods and formulas</h2></summary>
@@ -162,7 +166,7 @@ pre.syntax .changed { background: var(--warn-bg); font-weight: 700; }
     <p>When both outputs report an H0 log-likelihood and its scaling correction factor, the same test can be computed from the log-likelihoods:</p>
     <div class="eq"><math display="block"><mrow><msub><mi>c</mi><mi>d</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>q</mi><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mi>q</mi><mn>1</mn></msub><msub><mi>c</mi><mn>1</mn></msub></mrow><mrow><msub><mi>q</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mi>q</mi><mn>1</mn></msub></mrow></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi>T</mi><mo>=</mo><mfrac><mrow><mo>&#x2212;</mo><mn>2</mn><mrow><mo stretchy="false">(</mo><msub><mi>L</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mi>L</mi><mn>1</mn></msub><mo stretchy="false">)</mo></mrow></mrow><msub><mi>c</mi><mi>d</mi></msub></mfrac><mrow><mo>&#x2c;</mo><mspace width="1em"></mspace></mrow><mi mathvariant="normal">&#x394;</mi><mrow><mi>d</mi><mi>f</mi></mrow><mo>=</mo><msub><mi>q</mi><mn>1</mn></msub><mo>&#x2212;</mo><msub><mi>q</mi><mn>0</mn></msub></mrow></math></div>
     <p class="where">Here <var>c</var><sub><var>d</var></sub> is the difference scaling correction, <var>q</var><sub>0</sub> and <var>q</var><sub>1</sub> are the numbers of free parameters of the restricted and of the unrestricted model, <var>c</var><sub>0</sub> and <var>c</var><sub>1</sub> are their H0 scaling correction factors, <var>L</var><sub>0</sub> and <var>L</var><sub>1</sub> are their H0 log-likelihoods, <var>T</var> is the difference statistic and Δ<var>df</var> is the number of degrees of freedom it is referred to.</p>
-    <p>The page computes both versions when it can and reports them together. They answer the same question and should agree; a disagreement is flagged, because with the same data and the same nesting it points to an inconsistency between the two files rather than to a substantive result.</p>
+    <p>When both formulations are available, both are reported. A material discrepancy is flagged because, for the same data and nesting relation, the two results are expected to agree within numerical and printing precision.</p>
 
     <h3>Strictly positive scaled test</h3>
     <p>The scaled difference test can produce a non-positive <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> or a negative <var>T</var>, and neither outcome is a non-significant test: the test is not computable in that form. The correction <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math> of Satorra and Bentler (2001) is an approximation in which the correction factor of the unrestricted model is taken at the unrestricted estimates; Satorra and Bentler (2010) take it at the restricted estimates instead and obtain a correction that is positive by construction. It needs one additional <span class="mp">M</span><em>plus</em> run of the <em>unrestricted</em> model in which the restricted estimates supply the starting values and no iteration is taken, so that <span class="mp">M</span><em>plus</em> evaluates the unrestricted model at the restricted estimates and prints the scaling correction factor of that evaluation, written <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math>. Asparouhov and Muthén (2013) give the steps for <span class="mp">M</span><em>plus</em>, and Bryant and Satorra (2012) the general procedure. With that factor the correction becomes</p>
@@ -180,16 +184,16 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
     <p>The second output then contains a block headed <code>Chi-Square Test for Difference Testing</code> with a value, its degrees of freedom and a p-value. When the restricted model you load contains that block, the page reads it and reports it; when it does not, the page prints the procedure and computes nothing. Since <span class="mp">M</span><em>plus</em> 6 the degrees of freedom printed for MLMV, WLSMV and ULSMV are the usual ones, the number of moments minus the number of free parameters, and the degrees of freedom of the DIFFTEST result equal the difference in the number of free parameters (Asparouhov &amp; Muthén, 2010). A DIFFTEST block whose degrees of freedom differ from the difference between the two printed values therefore comes from an older version or from a derivatives file saved by another model, and the page says so.</p>
 
     <h3>Files this page will not read</h3>
-    <p>Four kinds of file are refused with a message rather than read. A file written with the abbreviated invariance syntax (<code>MODEL = CONFIGURAL METRIC SCALAR;</code>) holds several models, each with its own fit statistics, and no single chi-square belongs to it; the page reads none of them and names the models it found. A file that stops before the sections that follow the fit statistics comes from a run that was interrupted, and the numbers in it may belong to a model that was never finished. A file with none of the headings <span class="mp">M</span><em>plus</em> always writes is not an output at all. And an empty file is reported as empty. In each case the page says which file and why, and computes nothing: a difference test built on numbers read out of one of these would look like a result.</p>
+    <p>The parser does not use empty files, truncated runs, files that lack the usual M<em>plus</em> output headings, or abbreviated invariance outputs containing several models. The message identifies the condition found. No difference test is computed from these files.</p>
 
     <h3>Estimators without a chi-square difference test</h3>
-    <p>ULS prints no chi-square test of model fit, so there is nothing to difference; the mean- and variance-adjusted ULSMV with DIFFTEST is the usual route to a test. BAYES estimates the model by MCMC and prints no chi-square: model comparison there rests on the posterior predictive p-value for absolute fit and on the DIC for relative fit.</p>
+    <p>With ULS there is no chi-square test of model fit, so there is nothing to difference; the mean- and variance-adjusted ULSMV with DIFFTEST is the usual route to a test. BAYES estimates the model by MCMC, and fit is judged from the posterior predictive p-value: model comparison there rests on the posterior predictive p-value for absolute fit and on the DIC for relative fit.</p>
 
     <h3>Differences in fit indices</h3>
     <p>The chi-square difference test answers whether the restrictions are compatible with sampling error, and with a large sample a difference of no practical size can reach significance. For that reason the change in the approximate fit indices is usually reported next to the test. The page computes each difference as the value of the restricted model minus the value of the unrestricted model, for CFI, TLI, RMSEA, SRMR, AIC, BIC and the sample-size adjusted BIC. The cutoffs below for CFI, RMSEA and SRMR were all derived in simulations of multiple-group measurement invariance tests with normal continuous indicators; the page lists them for every nested comparison and marks a cutoff as matching the comparison only when the number of groups, the group sizes and the type of indicator agree with the design it was derived under (Svetina, Rutkowski, &amp; Rutkowski, 2020, Table 1).</p>
     <ul>
       <li>Cheung and Rensvold (2002): a change in CFI of at least −0.010, that is a drop no larger than 0.010, supports the restricted model. Two groups of 150 or 300 cases, two or three factors.</li>
-      <li>Chen (2007): for two groups of comparable size with more than 300 cases in each, a change in CFI of −0.010 together with a change in RMSEA of 0.015 and a change in SRMR of 0.030 when the constraints are on loadings, or 0.010 when they are on intercepts, thresholds or residual variances. For two unequal groups with 300 or fewer cases in each, the stricter values are −0.005 for CFI, 0.010 for RMSEA and 0.025 for SRMR with loadings or 0.005 with intercepts and residual variances. Chen simulated two groups of 150, 250 or 500 cases, and the sample-size condition is read here per group, following Svetina et al. (2020, p. 114): the page compares the smallest group with 300. Those are the two designs Chen studied; a comparison that falls between them, two equal groups of 200 for instance, matches neither, and the table then lists both sets and marks neither as matching.</li>
+      <li>Chen (2007): for two groups of comparable size with more than 300 cases in each, a change in CFI of &#8722;0.010 together with a change in RMSEA of 0.015 and a change in SRMR of 0.030 when the constraints are on loadings, or 0.010 when they are on intercepts, thresholds or residual variances. For two unequal groups with 300 or fewer cases in each, the stricter values are &#8722;0.005 for CFI, 0.010 for RMSEA and 0.025 for SRMR with loadings or 0.005 with intercepts and residual variances. Chen simulated two groups of 150, 250 or 500 cases, and the sample-size condition is read here per group, following Svetina, Rutkowski and Rutkowski (2020, p. 114): the page compares the smallest group with 300, and reads two groups as of comparable size while the larger is less than one and a half times the smaller, a value this page adopts for reading rather than one Chen states. A comparison that falls between the two designs, two equal groups of 200 for instance, matches neither, and the table then lists both sets and marks neither as matching.</li>
       <li>Rutkowski and Svetina (2014): 10 or 20 groups of 600 to 6,000 cases, one factor. A change in CFI of −0.020 with a change in RMSEA of 0.030 at the metric step, and −0.010 with 0.010 at the scalar step. The page lists them from five groups upward and marks them as matching from ten.</li>
       <li>Raftery (1995), for BIC differences between two models fitted to the same data: 0 to 2 weak, 2 to 6 positive, 6 to 10 strong and above 10 very strong evidence for the model with the lower value.</li>
       <li>Burnham and Anderson (2004), for AIC differences: a difference up to 2 leaves both models substantially supported, a difference of 4 to 7 gives the model with the higher AIC considerably less support, and a difference above 10 essentially none. They give no name to the intervals between these bands, and the page says so when a difference falls in one.</li>
@@ -197,7 +201,7 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
     <p>A change exactly equal to a cutoff is counted here as within it. These values come from simulation studies run under specific conditions of sample size, number of groups, number of indicators and type of misspecification, and they do not replace the evaluation of the model: a change within a cutoff is not evidence that the constraints hold, and a change beyond it is not by itself grounds for rejecting them. When the checks find something that a nesting relation excludes, the two sets of fit values are still shown but the cutoffs are not applied, because they were derived for nested comparisons. The information criteria are compared only when the two runs used the same number of observations, since they are on the scale of the log-likelihood of the sample.</p>
 
     <h3>Self-test</h3>
-    <p>Adding <code>?selftest=1</code> to the address of this page runs its numerical checks in the browser and prints the outcome and the number of checks at the top. The checks cover the upper tail of the chi-square distribution against eighty published quantiles from 1 to 100 degrees of freedom and against a series and continued-fraction implementation written separately for the purpose. They cover the classical difference, the Satorra–Bentler scaled difference, its strictly positive form and the log-likelihood version, each over more than a thousand randomly drawn problems, with the cases that cannot be computed counted separately to confirm that they are refused rather than reported. They cover the differences in the fit indices, both sides of every cutoff the page can show, including a change exactly equal to it, and the bands of the Raftery and of the Burnham and Anderson scales at their boundaries. They run the parser on synthetic outputs for every estimator, on a file written with the abbreviated invariance syntax, on a truncated file, on an empty file, on a file that is not an output, on runs that did not converge, on runs with errors and with warnings, and on three groups of unequal size. They check values an output file should never contain, such as a negative chi-square or a scaling correction factor of zero, and the decoding of Windows-1252, UTF-8 with and without a byte-order mark, and UTF-16 in both byte orders.</p>
+    <p>Append <code>?selftest=1</code> to run the in-browser checks. They cover chi-square tails, the classical, scaled, strictly positive and log-likelihood difference tests, fit-index changes and cutoff boundaries, parser behavior across estimators and file states, invalid numerical inputs, and common text encodings. The randomized checks include more than 1,000 generated comparisons.</p>
   </div>
 </details>
 
@@ -226,6 +230,245 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
   <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
 </footer>
 <script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
+/* What the run contains besides its estimates: a serious message is named
+   and put in front of the result, a note is named and left as a note. */
+function mpwNote(text) {
+  var w = MPWARN.classify(text), bits = w.serious, i, s;
+  if (bits.length) {
+    s = "";
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
+    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+  }
+  if (w.info.length || w.ignored.length) {
+    s = "";
+    var notes = w.info.concat(w.ignored);
+    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
+    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + s + "." };
+  }
+  return null;
+}
+
 (function(){
 "use strict";
 
@@ -447,7 +690,11 @@ function parseMplus(text, fileName){
 
   /* Convergence and messages: an output that did not converge is unusable */
   r.converged    = /THE MODEL ESTIMATION TERMINATED NORMALLY/.test(text);
-  r.notConverged = /DID NOT TERMINATE NORMALLY|NO CONVERGENCE|THE MODEL ESTIMATION DID NOT/i.test(text);
+  /* Every message that says the estimation failed, not the two forms
+     this line used to look for. */
+  r.mpw = MPWARN.classify(text);
+  r.notConverged = r.mpw.blocking.length > 0;
+  r.fatalSay = r.mpw.blocking.map(function (x) { return x.say; }).join("; ");
   r.nWarnings = (text.match(/^\s*\*\*\* WARNING/gm) || []).length;
   r.nErrors   = (text.match(/^\s*\*\*\* ERROR/gm) || []).length;
   r.isMplus   = /INPUT INSTRUCTIONS|MODEL FIT INFORMATION|Mplus VERSION/i.test(text);
@@ -536,7 +783,7 @@ function fixedAtZero(v){
 /* ---------- Necessary conditions for nesting ---------- */
 /* Why a model has no chi-square, in the words of the case at hand: what is
    wrong with this file, and what to do about it. The reason differs for a file
-   that is not an output at all, for an estimator that prints no chi-square, and
+   that is not an output at all, for an estimator that yields no chi-square, and
    for a file holding several models, so one message would fit none of them. */
 function whyNoStatistic(m, label){
   var nm = esc(label), est = m.estimator ? String(m.estimator).toUpperCase() : null;
@@ -550,15 +797,15 @@ function whyNoStatistic(m, label){
       m.shortcut.length + " models, each with its own fit statistics. No single chi-square belongs to that file, and this page reads none of them: " +
       "estimate the two models you want to compare in separate runs, or use the invariance tool, which separates them.";
   if(est === "ULS")
-    return nm + " was estimated with ULS, which prints no chi-square test of model fit, so there is no statistic to difference. " +
+    return nm + " was estimated with ULS, for which there is no chi-square test of model fit, so there is no statistic to difference. " +
       "The mean- and variance-adjusted ULSMV with the DIFFTEST option is the usual way to test the same restrictions.";
   if(est === "BAYES")
-    return nm + " was estimated with BAYES, which prints no chi-square: model fit is judged from the posterior predictive p-value and two models fitted to the same data are compared with the DIC. There is no chi-square difference test here.";
+    return nm + " was estimated with BAYES, for which fit is judged from the posterior predictive p-value and two models fitted to the same data are compared with the DIC. There is no chi-square difference test here.";
   if(m.truncated)
     return "The file loaded as " + nm + " ends before " + MP + " finished writing it: the sections that follow the fit statistics are missing. " +
       "A run that was interrupted, or a file copied while " + MP + " was still writing, gives an output that cannot be read. Rerun the model and load the complete file.";
   if(m.notConverged)
-    return "Estimation did not reach convergence in " + nm + ", so " + MP + " printed no usable chi-square. A statistic from a run that did not converge cannot be interpreted, and neither can the difference test.";
+    return "The run that produced " + nm + " did not give usable estimates (" + m.fatalSay + "), so there is no chi-square to read from it and no difference test to compute. Revise the model and run it again.";
   if(m.nErrors)
     return MP + " printed " + m.nErrors + " <b>*** ERROR</b> message(s) in " + nm + " and did not estimate the model as specified, so there is no chi-square to read. Correct the input and rerun.";
   if(m.noFitSection)
@@ -592,12 +839,12 @@ function evaluateNesting(A,B){
       estimator = String(H0.estimator).toUpperCase();
       method = methodOf(estimator);
       if(method) add("ok","Both models were estimated with "+esc(estimator)+".");
-      else add("bad","The <code>Estimator</code> line of both files reads "+esc(estimator)+", which is not one this page knows how to test (ML, MLF, MLR, MLM, MLMV, GLS, WLS, WLSM, WLSMV, ULS, ULSMV, BAYES). No test is computed, because the formula depends on which estimator was used and the page assumes none.");
+      else add("bad","The <code>Estimator</code> line of both files reads "+esc(estimator)+", which is not one this page knows how to test (ML, MLF, MLR, MLM, MLMV, GLS, WLS, WLSM, WLSMV, ULS, ULSMV, BAYES). No test is computed because the required formula depends on the estimator.");
     }else{
       add("bad","The two files report different estimators ("+esc(A.estimator)+" and "+esc(B.estimator)+"). The difference test requires the same estimator in both runs; the difference between a chi-square from one estimator and a chi-square from another is not a test statistic.");
     }
   }else{
-    add("bad","The estimator could not be read on the <code>Estimator</code> line of "+(H0.estimator?esc(names.H1):esc(names.H0))+", so no test is computed. Which difference test applies depends on the estimator, and this page assumes none: check that the file is the complete output of a run that finished, and load it again. Nothing can be typed in to replace it.");
+    add("bad","The estimator could not be read on the <code>Estimator</code> line of "+(H0.estimator?esc(names.H1):esc(names.H0))+", so no test is computed. The difference-test formula depends on the estimator. Check that the file is the complete output of a finished run and load it again.");
   }
 
   /* Abbreviated invariance syntax: several models in one file, and no way to
@@ -621,7 +868,7 @@ function evaluateNesting(A,B){
     if(m.nErrors)
       add("bad","" + MP + " printed "+m.nErrors+" <b>*** ERROR</b> message(s) in "+nm+". That output does not describe a model that was estimated as specified.");
     if(m.notConverged)
-      add("bad","" + MP + " reports that estimation did not reach convergence in "+nm+". A chi-square from a run that did not converge cannot be interpreted, and neither can the difference test.");
+      add("bad","The run that produced "+nm+" did not give usable estimates ("+m.fatalSay+"). A chi-square from such a run cannot be interpreted, and neither can the difference test. Revise the model and run it again.");
     else if(m.isMplus && !m.converged)
       add("warn","The line “THE MODEL ESTIMATION TERMINATED NORMALLY” does not appear in "+nm+". Some analyses do not print it (EFA, TYPE = BASIC, estimation with numerical integration); for a CFA or a structural model, check in the output that estimation converged before using this comparison.");
     else if(m.nWarnings)
@@ -738,7 +985,7 @@ function classicalDifference(H0,H1){
   out.stat = H0.chi2 - H1.chi2;
   if(out.stat < 0){
     out.negative = true;
-    out.error = "The difference between the two chi-square values is negative (" + fmt(out.stat) + "). Adding restrictions cannot improve fit, so the test is not computed and nothing follows from it, for H0 or for H1. Check that the two models are nested and that both runs converged.";
+    out.error = "The difference between the two chi-square values is negative (" + fmt(out.stat) + "). This formulation does not yield a valid chi-square difference statistic, so no p-value is reported. Check nesting, convergence, and that both runs use the same data and estimator.";
     return out;
   }
   out.p = chi2Tail(out.stat, out.ddf);
@@ -771,8 +1018,8 @@ function scaledDifference(H0,H1,c10){
       out.blocked = true;
       out.error = (out.cd<=0
         ? "The difference scaling correction is not positive (cd = "+fmt(out.cd,4)+")."
-        : "The scaled test statistic comes out negative (T = "+fmt(numerator/out.cd)+").")
-        + " With nested models estimated without trouble this does not happen, and it is not a non-significant test: the statistic in this form cannot be referred to a chi-square distribution, and nothing follows from it for H0 or for H1. The remedy is the strictly positive version of the test (Satorra &amp; Bentler, 2010). It needs one more " + MP + " run: the <em>unrestricted</em> model with the estimates of the restricted model as starting values and no iteration, obtained as Asparouhov and Muthén (2013) describe (<code>OUTPUT: SVALUES;</code> in the restricted run, its MODEL command pasted into the unrestricted input, <code>ANALYSIS: CONVERGENCE = 100000000;</code>). Load that output in the box headed <em>Third output</em> at the end of the loading section and the page recomputes the test with <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>10</mn></msub><mo stretchy=\"false\">)</mo></mrow><mo>/</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><mo stretchy=\"false\">)</mo></mrow></mrow></math> in place of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>."
+        : "The scaled test statistic is negative (T = "+fmt(numerator/out.cd)+").")
+        + " This is not a non-significant result: in this form the statistic does not define a valid chi-square difference test, so no p-value is reported. Satorra and Bentler (2010) provide a strictly positive formulation. It needs one more " + MP + " run: the <em>unrestricted</em> model with the estimates of the restricted model as starting values and no iteration, obtained as Asparouhov and Muthén (2013) describe (<code>OUTPUT: SVALUES;</code> in the restricted run, its MODEL command pasted into the unrestricted input, <code>ANALYSIS: CONVERGENCE = 100000000;</code>). Load that output in the box headed <em>Third output</em> at the end of the loading section and the page recomputes the test with <math><mrow><msubsup><mi>c</mi><mi>d</mi><mo>&#x2032;</mo></msubsup><mo>=</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><msub><mi>c</mi><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><msub><mi>c</mi><mn>10</mn></msub><mo stretchy=\"false\">)</mo></mrow><mo>/</mo><mrow><mo stretchy=\"false\">(</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>0</mn></msub><mo>&#x2212;</mo><msub><mrow><mi>d</mi><mi>f</mi></mrow><mn>1</mn></msub><mo stretchy=\"false\">)</mo></mrow></mrow></math> in place of <math><mrow><msub><mi>c</mi><mi>d</mi></msub></mrow></math>."
         + (out.cdStar !== undefined ? " The third output that was loaded gives c10 = " + fmt(c10,4) + ", with which the correction is still not positive or the statistic still negative; check that it is the unrestricted model evaluated at the restricted estimates, with the same log-likelihood as the restricted run." : "");
       return out;
     }
@@ -832,14 +1079,14 @@ function guidanceRows(deltas, ctx){
      of indicator of that design; every row is still listed for reference. */
   var two  = ctx.nGroups === 2;
   var cont = !ctx.categorical;
-  var per  = ctx.minGroupN;
-  /* Chen (2007) gives one set for groups of comparable size with more than 300
-     cases in each and one for unequal groups with 300 or fewer; the page reads
-     the size of the smallest group. A comparison between the two designs
-     matches neither, and both sets are listed unmarked. */
-  var chenCorner = (per === null) ? "neither"
-                 : (!ctx.unequalGroups && per > 300) ? "large"
-                 : (ctx.unequalGroups && per <= 300) ? "small" : "neither";
+  var per = Number.isFinite(ctx.minGroupN) ? ctx.minGroupN : null;
+  /* The sample-size condition of Chen (2007) is read per group, as Svetina,
+     Rutkowski and Rutkowski (2020, p. 114) state it: "larger than 300 in each
+     group" on one side, "each sample size was smaller than 300" on the
+     other. */
+  var chenCorner = (per === null || ctx.unequalGroups === null || ctx.unequalGroups === undefined) ? "neither"
+                 : (ctx.unequalGroups === false && per > 300) ? "large"
+                 : (ctx.unequalGroups === true && per <= 300) ? "small" : "neither";
   var many = (ctx.nGroups!==null && ctx.nGroups>=10);
 
   drop("cfi", -0.010, "Cheung &amp; Rensvold (2002)", "two groups, continuous indicators", two && cont);
@@ -874,12 +1121,12 @@ function guidanceNote(ctx){
   if(ctx.categorical)
     out.push("The indicators are ordered categorical. The cutoffs were derived with continuous indicators, and Svetina, Rutkowski and Rutkowski (2020) advise against carrying them over unchanged, so none is marked as matching.");
   if(ctx.nGroups === 2 && !ctx.categorical){
-    if(ctx.minGroupN === null)
-      out.push("The size of each group could not be read, so it is not known which of the two sets of values proposed by Chen (2007) matches this comparison; both are listed and neither is marked.");
-    else if(!((!ctx.unequalGroups && ctx.minGroupN > 300) || (ctx.unequalGroups && ctx.minGroupN <= 300)))
-      out.push("Chen (2007) derived one set of values for two groups of comparable size with more than 300 cases in each and another for two unequal groups with 300 or fewer in each; the condition is read here per group, following Svetina et al. (2020, p. 114). This comparison has " +
-        (ctx.unequalGroups ? "unequal groups" : "groups of comparable size") + " with " + ctx.minGroupN +
-        " cases in the smallest, which is neither of the two, so both sets are listed and neither is marked as matching.");
+    if(per === null || ctx.unequalGroups === null || ctx.unequalGroups === undefined)
+      out.push("The number of cases in each group could not be read, so it is not known which of the two sets of values proposed by Chen (2007) matches this comparison; both are listed and neither is marked.");
+    else if(!((ctx.unequalGroups === false && per > 300) || (ctx.unequalGroups === true && per <= 300)))
+      out.push("Chen (2007) recommends one set of values for two groups of comparable size with more than 300 cases in each and another for two unequal groups with 300 or fewer in each, read per group as in Svetina, Rutkowski and Rutkowski (2020, p. 114). This comparison has " +
+        (ctx.unequalGroups ? "unequal" : "comparable") + " groups and " + per +
+        " cases in the smaller one, which is neither condition, so both sets are listed and neither is marked as matching.");
   }
   if(ctx.nGroups !== null && ctx.nGroups >= 3 && ctx.nGroups < 10)
     out.push("With " + ctx.nGroups + " groups the comparison matches neither the two-group designs of Cheung and Rensvold (2002) and Chen (2007) nor the 10 and 20 groups of Rutkowski and Svetina (2014); the values are listed for reference.");
@@ -1159,7 +1406,68 @@ function decodeBuffer(ab){
   try{ return new TextDecoder("windows-1252").decode(body); }catch(e){ /* fall through */ }
   return new TextDecoder("utf-8").decode(body);
 }
-function readTextFile(file, then, fail){
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
+function readTextFile(file, then, fail) {
+  var mpwName = (file && file.name) ? file.name : "";
+  var mpwOuter = then;
+  then = function (t) { try { mpwRender(mpwName, String(t)); } catch (e) {} mpwOuter(t); };
   var r = new FileReader();
   r.onerror = function(){ if(fail) fail(); };
   if(typeof r.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined"){
@@ -1218,7 +1526,7 @@ function loadFile(file, letter){
          be reported here rather than through the comparison of the two models. */
       var cMsg = "";
       if(parsed.empty) cMsg = "The file dropped in this box is empty. Load the .out file " + MP + " wrote.";
-      else if(!parsed.isMplus) cMsg = "The file dropped in this box is not an " + MP + " output: it carries none of the headings " + MP + " always writes. Load the .out file itself.";
+      else if(!parsed.isMplus) cMsg = "The file dropped in this box is not an " + MP + " output: it carries the expected output headings. Load the .out file itself.";
       else if(parsed.scf === null) cMsg = "The file dropped in this box carries no “Scaling Correction Factor” under its chi-square, so the factor <math><mrow><msub><mi>c</mi><mn>10</mn></msub></mrow></math> that the strictly positive test needs could not be read. " + MP + " prints that factor only for MLR, MLM and WLSM. Check that this is the output of the unrestricted model evaluated at the restricted estimates, with the same estimator as the other two.";
       el("detC").innerHTML = cMsg ? "Read, but the factor this box needs is not in it" : "File read; press to replace it";
       if(cMsg) el("cMsg").innerHTML = '<div class="status warn"><span class="tag">Not used</span> ' + cMsg + '</div>';
@@ -1262,6 +1570,11 @@ function showControls(opts){
 function groupSizes(){
   return (state.A && state.A.groupNs) || (state.B && state.B.groupNs) || null;
 }
+/* Chen contrasts groups of equal size with unequal ones without naming the
+   ratio at which the one becomes the other. Two groups are read here as of
+   comparable size while the larger is less than one and a half times the
+   smaller; that value is a reading convention of this page and is named as
+   such wherever the condition is reported. */
 function unequalGroups(){
   var gn = groupSizes();
   if(!gn || gn.length < 2) return null;
@@ -1373,15 +1686,15 @@ function testPanel(ev, alpha){
   var ddf = H0.df - H1.df;
 
   if(!ev.method){
-    out.html = '<div class="status bad"><span class="tag">No test</span> The estimator was not read from the two files, so no difference test is computed: which test applies depends on it, and this page assumes none. Load the complete output of each run again.</div>';
+    out.html = '<div class="status bad"><span class="tag">No test</span> The estimator was not read from the two files, so no difference test is computed: the required formula depends on it. Load the complete output of each run again.</div>';
     return out;
   }
   if(ev.method === "nochi2"){
-    out.html = '<div class="status bad"><span class="tag">No test</span> ULS prints no chi-square test of model fit, so there is no statistic to difference. The mean- and variance-adjusted ULSMV, with the DIFFTEST option, is the usual way to obtain a test of the same restrictions.</div>';
+    out.html = '<div class="status bad"><span class="tag">No test</span> With ULS there is no chi-square test of model fit, so there is no statistic to difference. The mean- and variance-adjusted ULSMV, with the DIFFTEST option, is the usual way to obtain a test of the same restrictions.</div>';
     return out;
   }
   if(ev.method === "bayes"){
-    out.html = '<div class="status bad"><span class="tag">No test</span> BAYES estimates the model by MCMC and prints no chi-square, so there is no chi-square difference test. Absolute fit is judged from the posterior predictive p-value, and two models fitted to the same data are compared with the DIC.</div>';
+    out.html = '<div class="status bad"><span class="tag">No test</span> BAYES estimates the model by MCMC, and fit is judged from the posterior predictive p-value, so there is no chi-square difference test. Absolute fit is judged from the posterior predictive p-value, and two models fitted to the same data are compared with the DIC.</div>';
     return out;
   }
   if(ev.method === "difftest"){
@@ -1589,7 +1902,7 @@ function compare(){
     n: (ev.H0.n!==null && ev.H1.n!==null) ? Math.min(ev.H0.n, ev.H1.n) : (ev.H0.n!==null ? ev.H0.n : ev.H1.n),
     nGroups: ev.H0.nGroups!==null ? ev.H0.nGroups : ev.H1.nGroups,
     minGroupN: smallestGroup(),
-    unequalGroups: unequalGroups() === true,
+    unequalGroups: unequalGroups(),
     categorical: !!(ev.H0.categorical || ev.H1.categorical),
     constraint: el("selConstraint").value
   };
@@ -2378,7 +2691,7 @@ function runSelfTest(){
     return guidanceRows(fitDeltas(H0,H1), ctx);
   }
   var LARGE = {n:800, nGroups:2, minGroupN:400, unequalGroups:false, categorical:false};
-  var SMALL = {n:500, nGroups:2, minGroupN:200, unequalGroups:true,  categorical:false};
+  var SMALL = {n:300, nGroups:2, minGroupN:100, unequalGroups:true,  categorical:false};
   var MANY  = {n:9600, nGroups:12, minGroupN:800, unequalGroups:false, categorical:false};
   function withC(base, c){ var o = {}; Object.keys(base).forEach(function(k){ o[k] = base[k]; }); o.constraint = c; return o; }
   var CUTOFFS = [
@@ -2407,7 +2720,11 @@ function runSelfTest(){
   ok("ordered categorical indicators match no cutoff", matching({n:800,nGroups:2,minGroupN:400,unequalGroups:false,categorical:true,constraint:"loadings"}, {cfi:-0.004}).length === 0);
   ok("a design between Chen's two lists both sets and marks neither",
      matching({n:400,nGroups:2,minGroupN:200,unequalGroups:false,categorical:false,constraint:"loadings"}, {cfi:-0.004}).join("|") === "Cheung & Rensvold (2002)" &&
-     guidanceAt({cfi:-0.004}, {n:400,nGroups:2,minGroupN:200,unequalGroups:false,categorical:false,constraint:"loadings"}).filter(function(r){ return r.source.indexOf("Chen")===0 && r.index==="ΔCFI"; }).length === 2);
+     guidanceAt({cfi:-0.004}, {n:400,nGroups:2,minGroupN:200,unequalGroups:false,categorical:false,constraint:"loadings"}).filter(function(r){ return r.source.indexOf("Chen")===0 && r.index==="\u0394CFI"; }).length === 2);
+  ok("Chen's condition is read from the smallest group, not from the total",
+     matching({n:800,nGroups:2,minGroupN:200,unequalGroups:true,categorical:false,constraint:"loadings"}, {cfi:-0.004}).indexOf("Chen (2007)") >= 0);
+  ok("unequal groups with a large smallest group match neither Chen condition",
+     matching({n:2400,nGroups:2,minGroupN:600,unequalGroups:true,categorical:false,constraint:"loadings"}, {cfi:-0.004}).indexOf("Chen (2007)") < 0);
   ok("twelve groups match Rutkowski & Svetina only", matching(withC(MANY,"loadings"), {cfi:-0.004, rmsea:0.001}).every(function(s){ return s.indexOf("Rutkowski") === 0; }) && matching(withC(MANY,"loadings"), {cfi:-0.004, rmsea:0.001}).length === 2);
   ok("six groups match no cutoff", matching({n:3000,nGroups:6,minGroupN:500,unequalGroups:false,categorical:false,constraint:"loadings"}, {cfi:-0.004}).length === 0);
   ok("the note explains a single-group comparison", guidanceNote({n:400,nGroups:1,minGroupN:null,unequalGroups:false,categorical:false}).indexOf("one group") > 0);
@@ -2558,9 +2875,9 @@ function runSelfTest(){
     parseMplus(mkOut({estimator:"ML", chi2:12, df:6, dep:"Y1          Y2          Y3          Y9"}),"b.out")), "dependent variables differ");
 
   /* estimators that print no chi-square, and a mismatched pair */
-  contains("ULS prints no chi-square", messageFor(parseMplus(mkOut({estimator:"ULS", chi2:null}),"a.out"),
+  contains("with ULS there is no chi-square", messageFor(parseMplus(mkOut({estimator:"ULS", chi2:null}),"a.out"),
     parseMplus(mkOut({estimator:"ULS", chi2:null}),"b.out")), "ULS");
-  contains("BAYES prints no chi-square", messageFor(parseMplus(mkOut({estimator:"BAYES", chi2:null}),"a.out"),
+  contains("with BAYES there is no chi-square", messageFor(parseMplus(mkOut({estimator:"BAYES", chi2:null}),"a.out"),
     parseMplus(mkOut({estimator:"BAYES", chi2:null}),"b.out")), "posterior predictive");
   contains("two different estimators", messageFor(parseMplus(mkOut({estimator:"ML", chi2:30, df:10}),"a.out"),
     parseMplus(mkOut({estimator:"MLR", chi2:12, df:6, scf:1.1}),"b.out")), "different estimators");
@@ -2594,7 +2911,16 @@ function runSelfTest(){
 
   /* a run that did not converge, one with errors, one with warnings */
   contains("a run that did not converge",
-    messageFor(parseMplus(mkOut({estimator:"ML", chi2:30, df:10, notConverged:true}),"a.out"), mlB), "did not reach convergence");
+    messageFor(parseMplus(mkOut({estimator:"ML", chi2:30, df:10, notConverged:true}),"a.out"), mlB), "did not give usable estimates");
+  /* Every message of the family, not the one wording the page used to look for. */
+  ok("a run whose estimates cannot be trusted is refused",
+    parseMplus(mkOut({estimator:"ML", chi2:30, df:10}).replace("MODEL RESULTS",
+      "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.\n     INCREASE THE NUMBER OF MITERATIONS.  ESTIMATES CANNOT BE TRUSTED.\n\nMODEL RESULTS"), "a.out").notConverged === true);
+  ok("a run whose standard errors could not be computed is refused",
+    parseMplus(mkOut({estimator:"ML", chi2:30, df:10}).replace("MODEL RESULTS",
+      "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.\n     THE MODEL MAY NOT BE IDENTIFIED.  CHECK YOUR MODEL.\n\nMODEL RESULTS"), "a.out").notConverged === true);
+  ok("a sound run is not refused",
+    parseMplus(mkOut({estimator:"ML", chi2:30, df:10}), "a.out").notConverged === false);
   contains("a run with error messages",
     messageFor(parseMplus(mkOut({estimator:"ML", chi2:30, df:10, errors:true}),"a.out"), mlB), "*** ERROR");
   contains("a run with warning messages",
@@ -2715,7 +3041,7 @@ if(/[?&]selftest=1\b/.test(window.location.search)){
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math, th math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {
@@ -2829,8 +3155,26 @@ if(/[?&]selftest=1\b/.test(window.location.search)){
       }
     }
   }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
   var timer = null;
-  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
   else schedule();
   window.addEventListener("resize", schedule);

@@ -48,18 +48,20 @@
 
 <div id="selftest-banner" hidden></div>
 
-<section aria-labelledby="h-steps">
-  <h2 id="h-steps">What to do</h2>
+<details class="fold" id="fold-h-steps" data-autoopen>
+  <summary><h2 id="h-steps">What to do</h2></summary>
+  <div class="fold-body">
   <ol class="steps">
     <li>Fit the model at the item level in M<em>plus</em>, with every item as an indicator of the construct it belongs to, and add this line to the input file, exactly as it is written here: <code>OUTPUT: STDYX MODINDICES;</code></li>
     <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the same folder as the input.</li>
-    <li>Drag the <code>.out</code> file onto the box below, or click that box, or move the focus to it and press Enter, to choose the file from your computer. It is read inside your browser and nothing leaves your computer.</li>
+    <li>Drag the <code>.out</code> file onto the box below, or click that box, or move the focus to it and press Enter, to choose the file from your computer. It is read inside your browser and semstudio.tools does not transmit the file contents; processing occurs in the browser.</li>
     <li>Choose which items are to be parceled: those of one factor, or those of every factor at once, each factor then taken as a facet of one construct. The item names, their standardized loadings and their facet all come from that choice.</li>
     <li>Choose how the items are to be allocated, how many parcels are wanted, and whether a parcel is the mean or the sum of its items. These are decisions about the scheme, not values from the file.</li>
     <li>Press <em>Build the parcels from this file</em>, then read the allocation table, the M<em>plus</em> input written under it, and the paragraph that describes what was done.</li>
   </ol>
-  <p>The page refuses a file that has no <code>STDYX Standardization</code> section, because the loadings it orders the items by are the standardized ones. It refuses the purposeful strategy when the output carries no modification indices, because the pairs of items that belong together are read from them. It refuses the two facet strategies unless every item carries a facet, which means choosing every factor at once in a file that holds more than one factor. In each case it says which OUTPUT option supplies what is missing.</p>
-</section>
+  <p>The page requires <code>STDYX</code> loadings for item ordering. Purposeful parceling additionally requires modification indices, and the facet-based strategies require a facet assignment for every selected item. When a required section is absent, the page reports the corresponding M<em>plus</em> output option.</p>
+  </div>
+</details>
 
 <section aria-labelledby="h-file">
   <h2 id="h-file">Load the M<em>plus</em> output</h2>
@@ -79,8 +81,9 @@
   <p id="items-note" class="hint">No file has been read yet, so there are no items to parcel.</p>
 </section>
 
-<section aria-labelledby="h-parcels">
-  <h2 id="h-parcels">Choose the scheme</h2>
+<details class="fold" id="fold-h-parcels" data-autoopen>
+  <summary><h2 id="h-parcels">Choose the scheme</h2></summary>
+  <div class="fold-body">
 
   <div class="field">
     <label for="strategy">Allocate the items to parcels by</label>
@@ -158,20 +161,26 @@
   <div class="actions">
     <button type="button" id="build">Build the parcels from this file</button>
   </div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-alloc">
-  <h2 id="h-alloc">Allocation</h2>
+<details class="fold" id="fold-h-alloc" data-autoopen>
+  <summary><h2 id="h-alloc">Allocation</h2></summary>
+  <div class="fold-body">
   <div id="alloc" aria-live="polite"><p class="hint">The parcels, the items in each of them and their balance appear here once an output file has been read and the parcels have been built.</p></div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-syntax">
-  <h2 id="h-syntax">M<em>plus</em> syntax</h2>
+<details class="fold" id="fold-h-syntax" data-autoopen>
+  <summary><h2 id="h-syntax">M<em>plus</em> syntax</h2></summary>
+  <div class="fold-body">
   <div id="syntax" aria-live="polite"><p class="hint">The <code>DEFINE</code> statements, the <code>USEVARIABLES</code> line and a measurement model skeleton appear here once the parcels have been built.</p></div>
-</section>
+  </div>
+</details>
 
-<section aria-labelledby="h-report">
-  <h2 id="h-report">Wording for a manuscript</h2>
+<details class="fold" id="fold-h-report" data-autoopen>
+  <summary><h2 id="h-report">Wording for a manuscript</h2></summary>
+  <div class="fold-body">
   <p>The paragraph below states what was done, in the terms the strategy is described in, and is meant to be edited rather than copied unchanged: the name of the scale and the sample are yours to supply.</p>
   <div class="actions">
     <button type="button" id="copy-report">Copy the paragraph</button>
@@ -181,7 +190,8 @@
     <label for="report-text">Description of the allocation</label>
     <textarea id="report-text" readonly spellcheck="false"></textarea>
   </div>
-</section>
+  </div>
+</details>
 
 <details class="fold" id="fold-h-when">
   <summary><h2 id="h-when">When parceling is appropriate and when it distorts the model</h2></summary>
@@ -190,22 +200,22 @@
   <p>Everything in this section is an account of what the cited authors argue. None of it is a rule, and none of it settles a particular application.</p>
 
   <h3>The question the decision turns on</h3>
-  <p>Little, Rioux, Odejimi and Stickley (2022) make the decision turn on the aim of the analysis. If the aim is to study the behavior of the items — developing an instrument, examining how a particular item works — parceling should not be done, because the items are the object of study. If the aim is to model the relationships among latent variables, they treat parceling as a viable technique for recovering population values, and refer that conclusion to Little, Cunningham, Shahar and Widaman (2002). The same authors state that a parceling scheme has to be justified, executed well, and reported transparently, and that a parceling scheme chosen without a rationale is not recommended.</p>
+  <p>Little, Rioux, Odejimi and Stickley (2022) distinguish uses by analytic aim. When item behavior is itself the object of study, they advise retaining item-level analysis. When the aim is relations among latent constructs, they treat parceling as a possible modeling strategy, provided the rationale, construction and reporting are explicit. The page reports this position rather than treating parceling as a default.</p>
 
   <h3>The items in a parcel have to be unidimensional</h3>
   <p>The strategies for a unidimensional item set — random assignment, purposeful parceling, the balancing technique — are described by Little, Rioux, Odejimi and Stickley (2022) for items that measure one construct. Random assignment in particular is said to rest on the strong assumption that the items are interchangeable in the population, and to be recommended for unidimensional indicators, or for a large set of items with high communality, when sampling variability is low; the sample size they attach to that condition is above about 200. When items are not interchangeable, the allocation is no longer arbitrary and the choice of allocation begins to matter.</p>
   <p>The arguments against parceling are reviewed at length in Little, Cunningham, Shahar and Widaman (2002) and Matsunaga (2008), to which Little, Rioux, Odejimi and Stickley (2022) refer. The consequence of parceling items that are not unidimensional is the main argument against parceling that these authors report, and they attribute it to Bandalos (2002): with multidimensional or multifaceted constructs, parcels can bias the estimated factor loadings in the measurement model and confuse the interpretation of the structural relations. Their own position is that this holds when parcels are created randomly or improperly, and that parcels built by a strategy suited to the dimensionality of the items — the two multidimensional strategies below — can make the structure of a multidimensional construct easier rather than harder to interpret, a position they attribute to Graham, Tatterson and Widaman (2000).</p>
 
   <h3>What to do with a multidimensional item set</h3>
-  <p>Little, Rioux, Odejimi and Stickley (2022) describe two schemes, and the choice between them is a choice about what the latent construct is to mean. Both have older names, which they list: the first has been called homogeneous parceling, the isolated uniqueness strategy (Hall, Snell &amp; Foust, 1999) and factored homogeneous item dimensions (Comrey, 1961); the second heterogeneous parceling and the distributed uniqueness strategy (Hall, Snell &amp; Foust, 1999), and its present name comes from Kishton and Widaman (1994). In facet-representative parceling, the items of one facet go into one parcel, so the uniqueness of the facet is isolated inside that parcel and the common factor captures only what the facets share; this is an implicit way of estimating what would otherwise be a higher-order model, and they recommend it when the interest is in the higher-order construct alone. In domain-representative parceling, the items of each facet are spread over the parcels, so the secondary variance becomes common to the parcels and enters the latent factor along with the original common variance; they recommend it when each facet's specific variance is expected to relate to other constructs in the model beyond the variance the facets share, referring that recommendation to Kishton and Widaman (1994) and Little, Rhemtulla, Gibson and Schoemann (2013). They also report that in the comparison of the two schemes on an Internal–External Locus of Control measure by Kishton and Widaman (1994) the domain-representative scheme performed better.</p>
+  <p>Little, Rioux, Odejimi and Stickley (2022) describe two schemes, and the choice between them is a choice about what the latent construct is to mean. Both have older names, which they list: the first has been called homogeneous parceling, the isolated uniqueness strategy (Hall, Snell &amp; Foust, 1999) and factored homogeneous item dimensions (Comrey, 1961); the second heterogeneous parceling and the distributed uniqueness strategy (Hall, Snell &amp; Foust, 1999), and its present name comes from Kishton and Widaman (1994). In facet-representative parceling, the items of one facet go into one parcel, so the uniqueness of the facet is isolated inside that parcel and the common factor captures only what the facets share; this is an implicit way of estimating what would otherwise be a higher-order model, and they recommend it when the interest is in the higher-order construct alone. In domain-representative parceling, each facet is distributed across parcels. Little et al. (2022), citing Kishton and Widaman (1994), recommend this strategy when facet-specific variance is substantively relevant to relations with other constructs. They also report that in the comparison of the two schemes on an Internal–External Locus of Control measure by Kishton and Widaman (1994) the domain-representative scheme performed better.</p>
 
   <h3>The effect on fit and on parameter estimates</h3>
-  <p>Two effects are separated in the source. The first is that fit improves. Little, Rioux, Odejimi and Stickley (2022) report the demonstration in their own Section 3, where an item-level model with poor fit becomes a parcel-level model with good fit, and they attribute a general version of the finding to Landis, Beal and Tesluk (2000): improvements in fit are generally the result of a stronger measurement model. They also note that a model with four parceled indicators per construct rather than three is overidentified and that the extra degrees of freedom typically produce an arbitrary improvement in fit.</p>
+  <p>Parceling can improve global fit even when item-level misspecification remains. Little et al. (2022) illustrate this and note that additional parcel indicators also add degrees of freedom that can improve fit mechanically. A better-fitting parcel model therefore does not by itself establish a better measurement model.</p>
   <p>The second effect is the argument that parcels camouflage misspecification, which they attribute to Bandalos (2002) and to Marsh, Lüdtke, Nagengast, Morin and von Davier (2013): cross-loadings and residual correlations are harder to detect with parcels, so estimates may be biased, and the better fit may be read as the absence of misspecification. Against this they cite the simulation of Rhemtulla (2016), in which parcel-level models produced similar or less biased estimates more often than item-level models, and in which parcel-level models had lower power to detect a within-factor misspecification or a single cross-loading but higher power to detect multiple cross-loadings and misspecifications in the structural model.</p>
-  <p>A third effect concerns the allocation itself. Results can vary with the parceling scheme, which Little, Rioux, Odejimi and Stickley (2022) list as an argument against parceling and answer in two parts: the parceling decisions should be described so that they can be reproduced, and the variability of the results across allocations of items to parcels can itself be examined and reported, for which they refer to Sterba (2019) and Sterba and MacCallum (2010). Sterba and Rights (2017) is cited by them for the point that a random scheme requires the combinations to be generated and evaluated and a decision rule to be stated for what counts as an optimal set of parcels.</p>
+  <p>Results can vary across parcel allocations. Little et al. (2022) therefore recommend reporting the allocation rule and, where relevant, examining sensitivity across alternative allocations (Sterba, 2019; Sterba &amp; MacCallum, 2010). For random parceling, the generation rule and the criterion used to summarize or select allocations should be stated.</p>
 
   <h3>What they recommend reporting</h3>
-  <p>The review of the developmental literature in Section 5 of Little, Rioux, Odejimi and Stickley (2022) found that reporting was often incomplete, and states what a report should contain: the results of the preliminary analyses used to inform the strategy, such as an item-level exploratory or confirmatory factor analysis; a rationale for the technique and for the number of parcels; and the items combined in each parcel. Where space does not allow it, they suggest supplementary materials. On checking the parcels against the items, they recommend modeling the data at the item level first, to identify the causes of misspecification and to inform how the parcels are built, attributing that recommendation to Bandalos and Finney (2001), Little, Rhemtulla, Gibson and Schoemann (2013) and Rhemtulla (2016); and they recommend examining local misfit in the parcel-level model, noting that the RMSEA and the SRMR were found by Rhemtulla (2016) to increase in parcel-level models relative to item-level models when there was misspecification.</p>
+  <p>Little et al. (2022) recommend reporting the preliminary item-level analyses, the rationale for parceling and for the number of parcels, and the item composition of each parcel. They also recommend examining the item-level model before parcel construction and checking local fit after parceling. Supplementary materials can be used when the allocation details do not fit in the main report.</p>
   <p>Two further pieces of guidance from the same source bear on what this page writes. They recommend averaging the items rather than summing them, so that the parcel keeps the metric of the response scale; with effects-coded scaling the mean of the construct is then the mean of the items. And they recommend against proration, that is against averaging the items that are present when some are missing, on the ground that proration is a within-person mean imputation whose assumptions are often untenable and which is associated with bias even under data missing completely at random, referring to Lee, Bartholow, McCarthy, Pedersen and Sher (2015), Mazza, Enders and Ruehlman (2015) and Schafer and Graham (2002). Their suggestion is that the parcel be computed only when all its items are present, and that the incomplete items be entered as auxiliary variables when full information maximum likelihood is used.</p>
 </div>
 </details>
@@ -217,7 +227,7 @@
   <ul>
     <li>Three parcels per construct is the configuration they call optimum. With three indicators the construct is just identified once a scaling constraint is chosen, so there are no within-construct degrees of freedom and all the misfit of the model is between constructs.</li>
     <li>Four or more parcels leave the construct overidentified. They note that the leftover degrees of freedom typically give an arbitrary improvement in fit, and that overidentified constructs have been known to be awkward under model constraints because the orientation among the loadings can shift.</li>
-    <li>Two parcels are acceptable in longitudinal and multiple-group models, because the constraints that establish measurement invariance identify the loadings and intercepts. In a single-group, single-occasion model a two-indicator construct is underidentified; the parameters can be identified by constraining the two loadings equal, and they report simulation work by Little, Lindenberger and Nesselroade (1999) in which such constraints were on average unbiased.</li>
+    <li>Two parcels can be identified in longitudinal or multiple-group models when invariance constraints provide the required information. In a single-group, single-occasion model, a two-indicator factor needs an additional identification constraint, such as equal loadings; Little, Lindenberger and Nesselroade (1999) report simulation results for this case.</li>
     <li>The number of items in a parcel does not have to be the same for every parcel, and not every item has to be assigned to a parcel. An item that sits at the center of the construct — their example is “I feel lonely” in a loneliness scale — can be left as an indicator on its own.</li>
     <li>They give no minimum number of items per parcel. Their examples run from two items upward, and their remark on designing a measure with parceling in mind is that multiples of three are a good starting point for the number of items, with at least three indicators for each subscale.</li>
   </ul>
@@ -230,26 +240,26 @@
   <p>Each strategy below is the procedure described in the section of Little, Rioux, Odejimi and Stickley (2022) named with it, together with the rules this page uses to settle the cases the description leaves open. Those rules are marked as such.</p>
   <h3>Reading the output file</h3>
   <p>Everything about the items is read from the <code>.out</code> file of the item-level model, and nothing about them can be entered on this page. The <code>STDYX Standardization</code> section supplies the item names and their standardized loadings, SUMMARY OF ANALYSIS supplies the name of the data file that the written input then names in turn, the input echoed under INPUT INSTRUCTIONS supplies the <code>NAMES</code> and <code>MISSING</code> statements that the written input repeats, and MODEL MODIFICATION INDICES supplies the pairs of items the purposeful strategy keeps together. Windows-1252, UTF-8 and UTF-16 encodings are decoded, Fortran <code>D</code> exponents are accepted, an estimate printed with asterisks in place of its standard error is still read, and the <code>999.000</code> sentinel, which M<em>plus</em> prints for a quantity it could not compute, is discarded rather than read as a loading of 999. Only the first group of a multiple-group output is read, and when the invariance shortcut has written several models into one file the first of them is read.</p>
-  <p>Choosing one factor gives its items and their loadings on it. Choosing every factor at once gives the items of all of them and writes the name of the factor an item loads on as its facet, which is the input the two multidimensional strategies need; an item that loads on more than one factor is assigned the factor on which its loading is largest in absolute value, and is named in the message, because such an item is not cleanly a member of one facet. The construct in the written input is the factor the items came from; with every factor taken as a facet the output holds no name for the construct the facets share, so the input calls it G.</p>
+  <p>Choosing one factor gives its items and their loadings on it. Choosing every factor treats each factor name as a facet label for the multidimensional strategies. If an item loads on more than one factor, the page assigns the facet with the largest absolute loading and reports the item, because its facet membership is not unique. The construct in the written input is the factor the items came from; with every factor taken as a facet the output holds no name for the construct the facets share, so the input calls it G.</p>
 
   <h3>The balancing technique</h3>
-  <p>Section 3.2.6. The items are put in decreasing order of their loading. The first goes to parcel 1, the second to parcel 2, the third to parcel 3; the fourth then goes back to parcel 3, the fifth to parcel 2, the sixth to parcel 1, and the sequence turns again. With six items and three parcels this is exactly the pairing the source describes, the highest-loading item with the lowest, the second highest with the second lowest, and so on. Rules used here for what the description leaves open: ties are broken by the order in which the items appear in the output, so the same input always gives the same allocation; an item with no loading is placed after every item that has one, and the page says how many items that applies to; and a negative loading counts as the lowest, which is what the ordering says, with a separate warning that the item should be reverse-coded first.</p>
+  <p><strong>Balancing.</strong> Items are ordered by standardized loading and assigned in a serpentine sequence across parcels, pairing relatively high and low loadings. Ties follow output order. Items without a loading are placed last and reported; negative loadings are ordered numerically and trigger a coding check. These deterministic rules make the same input reproduce the same allocation.</p>
 
   <h3>Random assignment</h3>
-  <p>Section 3.2.1. The items are shuffled by the Fisher–Yates algorithm and then cut into parcels whose sizes are as equal as they can be. The numbers come from a counter-based generator rather than from <code>Math.random</code>, so an allocation is reproduced exactly from its seed; a seed of zero is a valid state. With more than one draw the page repeats the allocation over consecutive seeds, records for each the range of the parcel loading sums, and shows the draw at the median of that distribution, naming the seed that produced it. The median draw is shown rather than the best one because selecting the allocation that looks best is the data-driven step the source asks to be justified. The dispersion reported is the dispersion of the balance of the loadings, which is what can be computed without fitting anything; the parcel-allocation variability of Sterba (2019) and Sterba and MacCallum (2010) is variability in the parameter estimates and the fit, and obtaining it means fitting the model under each allocation.</p>
+  <p><strong>Random assignment.</strong> Items are shuffled with Fisher–Yates and split into parcel sizes that differ by at most one item. A seedable counter-based generator makes allocations reproducible. With multiple draws, the page reports the allocation at the median loading-balance dispersion rather than selecting the most favorable draw. This dispersion concerns parcel loading balance; assessing variability in fitted parameters requires fitting each allocation separately.</p>
 
   <h3>Purposeful parceling</h3>
-  <p>Sections 3.2.4 and 3.2.5, followed by the balancing technique for the items that were not kept together, which is the combination described at the end of Section 3.2.6. Section 3.2.4 names three patterns in the modification indices of the item-level model: a pair of items with a noticeably high cross-loading on the same other construct, which can be parceled together so that the cross-loading is estimated at the parcel level; a pair of items whose cross-loadings on another construct are of similar size and opposite sign, which cancel when the two are averaged; and a pair of items with a high residual covariance. This page acts on the second and the third, both read from the output rather than named by the reader: the opposite-sign pair is printed under <code>BY Statements</code> and the residual covariance under <code>WITH Statements</code>. The first pattern is not acted on, because whether a shared cross-loading is to be kept and estimated or removed is a decision about the model that the indices alone do not settle; two items that both load on another construct are left to be placed by their loadings, and the cross-loading is visible in the printed indices. The source also says that cross-loadings usually take priority over correlated residuals; this page gives no priority to either pattern, since every pair that reaches the threshold is kept together. Rules used here: a pair counts when its modification index reaches the threshold set above the table, which selects among the indices M<em>plus</em> printed and changes nothing that was estimated; for the cross-loading pattern the two items are paired on the same other factor, largest positive expected parameter change with largest negative, and only when the smaller of the two changes is at least half the larger in absolute value, since a pair of very unequal cross-loadings does not cancel; items linked directly, or linked through a third item, form one group, so that no item can be claimed by two parcels. The largest group is then seeded into the first parcel, the next into the second, and so on, with a group beyond the last parcel going to the parcel then holding the fewest items; each remaining item, taken in decreasing order of loading, goes to the parcel with the fewest items, ties broken by the smaller sum of loadings. Because each group occupies a parcel of its own, at most the number of groups plus the number of items in no group can be filled, and asking for more parcels than that is refused with the number that can be filled.</p>
+  <p><strong>Purposeful parceling.</strong> The implementation uses two patterns described by Little et al. (2022): opposite-sign cross-loadings on the same other factor and elevated residual covariances. Shared cross-loadings in the same direction are displayed but not used automatically because retaining or removing that cross-loading is a model-specification decision. Pairs are selected from the modification indices at the user-set threshold. For opposite-sign cross-loadings, the smaller expected parameter change must be at least half the larger in absolute value. Directly or transitively linked items form a group and stay in one parcel; remaining items are assigned by the balancing rule. If the requested number of parcels cannot be populated under these grouping constraints, the page reports the maximum feasible number.</p>
   <p>The operation this strategy performs is also the objection raised against it. Placing two items with a high residual covariance in the same parcel removes that covariance from the parcel-level model, and Coffman and MacCallum (2005) and Little, Cunningham, Shahar and Widaman (2002) hold that aggregating items whose residuals are correlated hides the misspecification and inflates the fit of the parcel-level model. Little, Rioux, Odejimi and Stickley (2022) present the same operation as the way to keep local dependence from distorting the measurement model, on the condition that the items are unidimensional and that the decision is reported. Both readings describe the same consequence: the parcel-level model is no longer able to show what was folded into a parcel. The page therefore prints, beside the allocation, every pair it kept together with the modification index it was read from, so that the pairs can be reported and the fit of the parcel-level model interpreted with them in view.</p>
 
   <h3>Facet-representative parceling</h3>
   <p>Section 3.3.1. Every parcel is built from the items of one facet. When the number of parcels equals the number of facets there is one parcel per facet. When more parcels are asked for, the extra ones are given to the facets with the most items per parcel, and the items of a facet split over two or more parcels are divided by the balancing rule; this follows the source's remark that a facet with more than three scores can itself be parceled. Fewer parcels than facets is refused, because two facets sharing a parcel would defeat the purpose of the scheme, which is to isolate the uniqueness of each facet inside its own parcel. A facet with a single item yields a parcel that is that item, which the source allows and the page reports.</p>
 
   <h3>Domain-representative parceling</h3>
-  <p>Section 3.3.2. The items of each facet are spread over the parcels. Rule used here: within a facet the items are taken in decreasing order of loading, and each goes to a parcel that does not yet hold an item of that facet in the current round; among those the parcel with the fewest items is chosen, ties broken by the smaller sum of loadings. A new round begins when every parcel has received one. This guarantees that whenever a facet has at least as many items as there are parcels, every parcel receives at least one item from it. When a facet has fewer items than there are parcels the guarantee cannot hold, and the page names the parcels that lack a facet and the facets they lack, because the parcels are then not interchangeable: they do not sample the same facets.</p>
+  <p><strong>Domain-representative allocation.</strong> Items from each facet are distributed across parcels in decreasing loading order. Within each round, assignment favors a parcel that has not yet received that facet, then the parcel with fewer items and, if needed, the lower loading sum. When a facet contains at least as many items as there are parcels, every parcel receives that facet; otherwise the missing facet–parcel combinations are reported.</p>
 
   <h3>What became of the a priori scheme</h3>
-  <p>Section 3.3.3 describes an allocation fixed in advance by the design of the measure. That allocation is a decision of the researcher and is nowhere in an M<em>plus</em> output, so this page does not offer it: a scheme typed in here would be the one input that could not be traced to the file. An a priori design is written directly as <code>DEFINE</code> statements in the input, and the source's own warning applies to it, that such a scheme should be checked against the covariance pattern actually observed before it is used.</p>
+  <p><strong>A priori allocation.</strong> Section 3.3.3 describes parcel membership fixed by the measurement design. Because that information is not recoverable from an M<em>plus</em> output, this page does not generate it. An a priori allocation should be written directly in <code>DEFINE</code> and checked against the observed covariance structure, as recommended by the source.</p>
 
   <h3>Balance, and the comparison shown beside it</h3>
   <p>For each parcel the page reports the number of items in it, the mean of their loadings and the sum of their loadings. Writing <var>P</var><sub><var>p</var></sub> for the set of items allocated to parcel <var>p</var> and <var>n</var><sub><var>p</var></sub> for how many there are, the two quantities are</p>
@@ -260,13 +270,13 @@
   <p>The mean says how strongly the parcel marks the construct; the sum is what an equal split of total strength would equalize, and the balancing technique reduces the spread of it, that is</p>
   <div class="eq"><math display="block"><mrow><mrow><mi>range</mi><mo>&#x2061;</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><munder><mi>max</mi><mi>p</mi></munder><mspace width="0.17em"></mspace><msub><mi>S</mi><mi>p</mi></msub><mo>&#x2212;</mo><munder><mi>min</mi><mi>p</mi></munder><mspace width="0.17em"></mspace><msub><mi>S</mi><mi>p</mi></msub></mrow></math></div>
   <p class="where">Here range(<var>S</var>) is the spread reported under the allocation table, and the maximum and the minimum are taken over the parcels of the scheme.</p>
-  <p>A plain sequential split — the items cut into consecutive blocks in the order they were read from the file — is summarized beside the allocation for comparison. Over 2,500 generated problems, each with 4 to 200 items and 2 to 20 parcels drawn uniformly and standardized loadings drawn uniformly between .30 and .90, the balancing technique gave a smaller spread of parcel loading sums than that split in 98.2% of them and the same spread in the remaining 1.8%; the median reduction was 80.4% of the spread the sequential split produced. The page warns when the mean loadings of the parcels range over more than .10; that threshold is a display convention of this page and not a criterion from the literature. It also reports when the parcels differ in size by more than one item, which is not a fault — the source states that parcels need not hold the same number of items — but does mean that a larger parcel is more reliable than a smaller one and will carry a larger loading for that reason alone.</p>
+  <p>A sequential split is shown only as a comparison. In 2,500 generated loading configurations, the balancing algorithm produced a smaller loading-sum spread than the sequential split in 98.2% and the same spread in 1.8%; this simulation is a software check, not a literature-based cutoff. The page flags a range of parcel mean loadings above .10 as a display convention and reports parcel-size differences greater than one item because size alone can affect parcel reliability and loading magnitude.</p>
 
   <h3>The syntax, and what is checked in it</h3>
-  <p>A parcel written as an average appears as the sum of its items in parentheses divided by their number, rather than through a function that aggregates them, so that the value of the parcel depends on every item in it. The reason is the source's recommendation against proration; the input carries a comment asking that the covariance coverage the program prints be compared with the coverage of the least complete item of each parcel, which is how proration would show itself. Names longer than eight characters, names that are M<em>plus</em> operators or keywords, names that repeat, and names that are not legal variable names are refused before anything is written, with the offending names given. A parcel name that would collide with an item name is changed and the change is visible in the table. The <code>NAMES</code> and <code>MISSING</code> statements are those of the item-level model, read from the input echoed at the head of the output, because the written input reads the same data file and has to declare the same columns; when the output does not echo them, or the <code>NAMES</code> statement uses a range that cannot be expanded without the data file, the items alone are listed and the input says that the line has to be completed. The generated input is then read back and checked against what it was meant to say: that <code>NAMES</code> lists those columns and holds every item, that <code>USEVARIABLES</code> lists the parcels and no item, that no line of the <code>MODEL</code> command carries more than one parameter label, that there is one <code>DEFINE</code> statement per parcel using exactly the items allocated to it and, for an average, dividing by the right number, that every variable used in <code>DEFINE</code> is declared or created earlier, that the <code>BY</code> statement names every parcel, that no line exceeds the ninety characters the program reads, and that no name exceeds eight characters. The checks are written against the requirement rather than against the generator, so that a generator wrong twice in the same way does not pass.</p>
+  <p>Parcel averages are written explicitly as the sum of all assigned items divided by their count, so a parcel is missing when any contributing item is missing; this follows the source’s recommendation against proration. Variable names are validated against M<em>plus</em> naming rules, and parcel-name collisions are resolved visibly. <code>NAMES</code> and <code>MISSING</code> are copied from the echoed input when available; otherwise the generated input marks the lines that require completion. The generated syntax is then parsed again to verify variable declarations, <code>USEVARIABLES</code>, parcel definitions, <code>BY</code> statements, parameter labels, line length, and name length.</p>
 
   <h3>What the page does not do</h3>
-  <p>It does not fit any model. It cannot tell whether the items in a parcel are unidimensional, cannot compute modification indices, and cannot compare a parcel-level solution with an item-level one; all three have to be done in M<em>plus</em>, and the source treats the item-level model as the step that comes first. It does not read raw data, so it cannot compute the parcels themselves, only the syntax that computes them, and it cannot check for missing values or for items that are keyed reverse-keyed. It does not accept an allocation, a loading or an item name typed by hand, so an item that is not in the output cannot be parceled here. The loadings it orders items by are the standardized loadings of the model that was fitted, so they are only as good as that model. Only one construct is handled at a time; a model with several constructs means running the page once for each and merging the inputs. The two multidimensional strategies take the facet structure as given rather than testing it. Nothing here decides whether a construct should be parceled at all.</p>
+  <p>The page constructs parcel allocations and M<em>plus</em> syntax; it does not fit the item-level or parcel-level model, test unidimensionality, or compute new modification indices. It does not read raw data, so it cannot create parcel scores or evaluate missingness. Standardized loadings and facet assignments are taken from the fitted item-level output. One construct is handled at a time, and facet-based strategies assume the supplied facet structure. Whether parceling is appropriate for the construct remains a substantive modeling decision.</p>
 </div>
 </details>
 
@@ -307,6 +317,225 @@
   <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
 </footer>
 
+<script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
 <script>
 "use strict";
 
@@ -806,9 +1035,9 @@ var PARCEL = (function () {
 
     /* the number of parcels, against what the source recommends */
     var k = parcels.length;
-    if (k === 2) out.notes.push("Two parcels. Little, Rioux, Odejimi and Stickley (2022) accept two indicators in longitudinal and multiple-group models, where the invariance constraints identify the loadings and intercepts; in a single-group, single-occasion model a two-indicator construct is underidentified unless the two loadings are constrained equal.");
-    else if (k === 3) out.notes.push("Three parcels. This is the configuration Little, Rioux, Odejimi and Stickley (2022) call optimum: the construct is just identified once a scaling constraint is chosen, so no misfit arises within it.");
-    else if (k >= 4) out.notes.push(k + " parcels. Little, Rioux, Odejimi and Stickley (2022) note that four or more indicators leave the construct overidentified, and that the leftover degrees of freedom typically give an arbitrary improvement in fit.");
+    if (k === 2) out.notes.push("Two parcels. In a single-group, single-occasion one-factor model, two indicators do not identify the measurement model without an additional constraint, such as equality of the two loadings. Longitudinal or multiple-group equality constraints can supply identification, but that depends on the model rather than on parceling itself.");
+    else if (k === 3) out.notes.push("Three parcels. In the ordinary single-factor measurement model, three indicators define a locally just-identified measurement space once the factor metric is set. That leaves no within-construct degrees of freedom with which to test the parcel-level measurement model, so the adequacy of the item-level model and of the parceling scheme has to be established before this step.");
+    else if (k >= 4) out.notes.push(k + " parcels. Four or more indicators make the construct locally overidentified. The resulting model-fit test therefore contains information about both the measurement part of this construct and the relations among constructs; global misfit cannot be attributed to the structural model alone.");
     return out;
   }
 
@@ -1112,7 +1341,100 @@ function decodeBuffer(ab) {
   return new TextDecoder("utf-8").decode(u8);
 }
 
+/* The reasons a run is refused, in the words of what M<em>plus</em> printed. */
+/* What the run contains besides its estimates: a serious message is named
+   and put in front of the result, a note is named and left as a note. */
+function mpwNote(text) {
+  var w = MPWARN.classify(text), bits = w.serious, i, s;
+  if (bits.length) {
+    s = "";
+    for (i = 0; i < bits.length; i++) s += (i ? "; " : "") + (bits[i].say ? bits[i].say : esc(bits[i].txt || ""));
+    return { kind: "warn", text: "The run contains " + (bits.length === 1 ? "a message" : bits.length + " messages") +
+      " that bear on every number computed from it: " + s + ". The page still computes supported quantities, which retain the limitations of the affected estimates." };
+  }
+  if (w.info.length || w.ignored.length) {
+    s = "";
+    var notes = w.info.concat(w.ignored);
+    for (i = 0; i < notes.length; i++) s += (i ? "; " : "") + notes[i].say;
+    return { kind: "info", text: "M<em>plus</em> printed " + (notes.length === 1 ? "one note" : notes.length + " notes") +
+      " about this run, none of which bears on the estimates: " + s + "." };
+  }
+  return null;
+}
+
+function mpwFailedText(text) {
+  var w = MPWARN.classify(text), i, s = "";
+  for (i = 0; i < w.blocking.length; i++) {
+    var b = w.blocking[i];
+    s += "<li>" + (b.txt ? "<q>" + esc(b.txt) + "</q> &#8212; " : "") + b.say + ".</li>";
+  }
+  return "M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run." +
+    "<ul>" + s + "</ul>" +
+    "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
+}
+
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
 function readTextFile(file, then, fail) {
+  var mpwName = (file && file.name) ? file.name : "";
+  var mpwOuter = then;
+  then = function (t) { try { mpwRender(mpwName, String(t)); } catch (e) {} mpwOuter(t); };
   var r = new FileReader();
   r.onerror = function () { if (fail) fail(); };
   if (typeof r.readAsArrayBuffer === "function" && typeof Uint8Array !== "undefined") {
@@ -2117,6 +2439,14 @@ function parcelSelfTest() {
       catch (e) { setStatus($("mplus-report"), "bad", "The file could not be read.", esc(String(e && e.message ? e.message : e))); return; }
       lastParsed = parsed;
       lastParsed.nWarnings = (String(text).match(/^\s*\*\*\* WARNING/gm) || []).length;
+      if (parsed.isMplus && MPWARN.classify(String(text)).blocking.length) {
+        setStatus($("mplus-report"), "bad", "The results of this run are not to be interpreted.", mpwFailedText(String(text)));
+        $("factor-picker").hidden = true;
+        state.items = [];
+        describeItems();
+        syncControls();
+        return;
+      }
       if (!parsed.isMplus) {
         setStatus($("mplus-report"), "bad", "Nothing was read from this file.",
           "It carries none of the headings " + MPLUS + " writes in every output, so it is not an " + MPLUS +
@@ -2278,7 +2608,7 @@ function parcelSelfTest() {
    tab stop for nothing. Pages that already mark their own boxes are left
    alone: an element that carries tabindex is not touched. */
 (function () {
-  var SEL = ".table-wrap, pre.syntax, .eq, .scroller";
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math, th math";
   function mark() {
     var boxes = document.querySelectorAll(SEL), i;
     for (i = 0; i < boxes.length; i++) {
@@ -2392,8 +2722,26 @@ function parcelSelfTest() {
       }
     }
   }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
   var timer = null;
-  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); }, 60); }
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
   else schedule();
   window.addEventListener("resize", schedule);

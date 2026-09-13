@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Valerio Ghezzi">
+<meta name="description" content="The items of a categorical factor model in the item response metric: discriminations and difficulties, the information of every item and of the whole test, the standard error of estimation and the reliability along the trait.">
+<title>Item and Test Information &#183; semstudio.tools</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+#selftest-banner { margin-top: 1rem; }
+label.check code, .field .hint code, p.hint code { overflow-wrap: anywhere; }
+table.enum td.num, table.enum th.num { font-variant-numeric: tabular-nums; text-align: right; }
+svg.chart { max-width: 100%; height: auto; display: block; }
+.src { color: var(--muted); font-size: 0.92em; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site">
+  <nav class="site-nav" aria-label="Site">
+    <a class="brand" href="index.html">semstudio.tools</a>
+    <a href="index.html#tools">All the tools</a>
+  </nav>
+  <h1>Item and Test Information</h1>
+  <p class="lede">A factor model for categorical items is the same model as the two-parameter item response model written another way, and the passage between the two is a matter of the scaling: the discrimination of an item and the level of the trait at which it separates people come from the loading and the thresholds. This page puts the items of a run into that metric, draws the information every item carries and the information of the whole test, turns it into the standard error with which the trait is estimated and into the reliability at each point of the range, and says over what stretch of the trait the test reaches a given precision.</p>
+  <div class="callout" role="note">
+    <strong>What to request from M<em>plus</em>.</strong> A one-factor model for the items of one scale, with the items in the <code>CATEGORICAL</code> list, the factor mean fixed at zero and its variance fixed at one, and the loadings free. Both estimators are read: maximum likelihood, which prints the response metric itself, and the weighted least squares of the default, whose loadings and thresholds are carried into that metric here. Nothing on this page can be typed in.
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+<div id="selftest-banner" hidden></div>
+
+<section aria-labelledby="h-steps">
+  <h2 id="h-steps">What to do</h2>
+  <ol class="steps">
+    <li>Fit the one-factor model for the items of one scale, with the items declared <code>CATEGORICAL</code> and the factor scaled by <code>f@1;</code>.</li>
+    <li>Drop the <code>.out</code> file on the box below.</li>
+    <li>Read where the test measures precisely and where it does not, and which items carry that precision.</li>
+  </ol>
+  <div class="drop" id="drop">
+    <strong>Drop the M<em>plus</em> <code>.out</code> file here</strong>, or press Enter to choose one.
+    <label class="visually-hidden" for="file">M<em>plus</em> output file</label>
+    <input type="file" id="file" accept=".out,.txt,text/plain" aria-describedby="drop-hint">
+    <span class="file-name" id="file-name"></span>
+  </div>
+  <p id="drop-hint" class="hint">The file is read in your browser and is not sent anywhere.</p>
+  <div id="report" aria-live="polite"></div>
+</section>
+
+<section aria-labelledby="h-metric">
+  <h2 id="h-metric">The items in the response metric</h2>
+  <div id="metric"><p class="hint">The items appear here once an output has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-info">
+  <h2 id="h-info">The information the test carries</h2>
+  <div id="info"><p class="hint">The information appears here once an output has been read.</p></div>
+</section>
+
+<section aria-labelledby="h-curves">
+  <h2 id="h-curves">The categories of one item</h2>
+  <div class="row">
+    <div class="field w2"><label for="which">Item</label>
+      <select id="which"></select>
+      <span class="hint">Only items with more than two categories are listed.</span></div>
+  </div>
+  <div id="curves"><p class="hint">The curves appear here once an output with ordered categorical items has been read.</p></div>
+</section>
+
+<details class="fold" id="fold-h-methods">
+  <summary><h2 id="h-methods">Methods and formulas</h2></summary>
+  <div class="fold-body">
+
+  <h3>The two ways of writing the same model</h3>
+  <p>A one-factor model for binary items with the logit link is the two-parameter logistic model. The factor model writes the log odds of the higher category as <math><mrow><msub><mi>&#955;</mi><mi>j</mi></msub><mi>f</mi><mo>&#8722;</mo><msub><mi>&#964;</mi><mi>j</mi></msub></mrow></math> and the response model writes it as <math><mrow><msub><mi>a</mi><mi>j</mi></msub><mo>(</mo><mi>&#952;</mi><mo>&#8722;</mo><msub><mi>b</mi><mi>j</mi></msub><mo>)</mo></mrow></math>, so that the factor score is the trait, and the discrimination and the difficulty follow from the loading, the threshold and the scaling of the factor (Grimm, 2026, Equations 10.5 and 10.6; Wang &amp; Wang, 2020, Equations 2.12 and 2.13). Asparouhov and Muthén (2020) write the passage in a form that holds whatever the factor mean <math><mi>&#945;</mi></math> and variance <math><mi>&#968;</mi></math> are, and that is the form used here. With maximum likelihood, under either link (their Equations 21 and 22):</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>a</mi><mi>j</mi></msub><mo>=</mo><msub><mi>&#955;</mi><mi>j</mi></msub><msqrt><mi>&#968;</mi></msqrt><mo>,</mo><mspace width="2em"/><msub><mi>b</mi><mrow><mi>j</mi><mi>m</mi></mrow></msub><mo>=</mo><mfrac><mrow><msub><mi>&#964;</mi><mrow><mi>j</mi><mi>m</mi></mrow></msub><mo>&#8722;</mo><msub><mi>&#955;</mi><mi>j</mi></msub><mi>&#945;</mi></mrow><mrow><msub><mi>&#955;</mi><mi>j</mi></msub><msqrt><mi>&#968;</mi></msqrt></mrow></mfrac></mrow></math></div>
+  <p class="where">The expression for the difficulty is the same in every case that follows. With weighted least squares and the theta parameterization, in which the residual variance <math><msub><mi>&#952;</mi><mi>j</mi></msub></math> of the underlying response variable is a parameter (their Equation 25):</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>a</mi><mi>j</mi></msub><mo>=</mo><mfrac><mrow><msub><mi>&#955;</mi><mi>j</mi></msub><msqrt><mi>&#968;</mi></msqrt></mrow><msqrt><msub><mi>&#952;</mi><mi>j</mi></msub></msqrt></mfrac></mrow></math></div>
+  <p class="where">and with the delta parameterization, in which the scale factor <math><msub><mi>&#916;</mi><mi>j</mi></msub></math> takes that place (their Equation 27):</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>a</mi><mi>j</mi></msub><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><msubsup><mi>&#916;</mi><mi>j</mi><mrow><mo>&#8722;</mo><mn>2</mn></mrow></msubsup><msubsup><mi>&#955;</mi><mi>j</mi><mrow><mo>&#8722;</mo><mn>2</mn></mrow></msubsup><msup><mi>&#968;</mi><mrow><mo>&#8722;</mo><mn>1</mn></mrow></msup><mo>&#8722;</mo><mn>1</mn></mrow></msqrt></mfrac></mrow></math></div>
+  <p class="where">With the factor mean at zero, its variance at one and the scale factor at one, the last expression is the one Wang and Wang (2020) print as Equations 2.20 and 2.27, and the first is their Equations 2.12 and 2.24. Where a parameter is not in the file the value it is fixed at is used: one for the residual variance of the underlying response variable under the theta parameterization, one for the scale factor under the delta parameterization, and zero for the factor mean. With more than two ordered categories the same relations give one difficulty per threshold, which is the graded response model (Wang &amp; Wang, 2020, Equations 2.24, 2.25, 2.27 and 2.28). When the run was fitted by maximum likelihood, M<em>plus</em> prints the response metric in the output and the page takes the values from there, and it reports how far the same quantities computed from the loadings and the thresholds fall from them, which is the rounding of the printed values.</p>
+
+  <h3>The information of an item and of the test</h3>
+  <p>For a categorical item, information is computed from all of its response categories. If <math><msub><mi>P</mi><mi>r</mi></msub><mo>(</mo><mi>&#952;</mi><mo>)</mo></math> is the probability of category <math><mi>r</mi></math>, Samejima's general expression is</p>
+  <div class="eq"><math display="block"><mrow><msub><mi>I</mi><mi>j</mi></msub><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>=</mo><munder><mo>&#8721;</mo><mi>r</mi></munder><mfrac><msup><mrow><mo>[</mo><msup><msub><mi>P</mi><mi>r</mi></msub><mo>&#8242;</mo><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>]</mo></mrow><mn>2</mn></msup><mrow><msub><mi>P</mi><mi>r</mi></msub><mo>(</mo><mi>&#952;</mi><mo>)</mo></mrow></mfrac></mrow></math></div>
+  <p class="where">(Samejima, 1974; Asparouhov &amp; Muthén, 2020, Equation 14). For a binary logistic item this reduces to <math><mrow><msubsup><mi>a</mi><mi>j</mi><mn>2</mn></msubsup><msub><mi>P</mi><mi>j</mi></msub><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>[</mo><mn>1</mn><mo>&#8722;</mo><msub><mi>P</mi><mi>j</mi></msub><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>]</mo></mrow></math>. For ordered items the category probabilities are those of the graded response model, so every category contributes to the information rather than being discarded.</p>
+  <p>The page keeps the link fitted in M<em>plus</em>. With a logit link it uses the logistic cumulative distribution; with a probit link it uses the standard normal cumulative distribution and its density. The probit discrimination therefore remains on the normal-ogive metric printed or implied by M<em>plus</em>; it is <strong>not</strong> multiplied by 1.7. This is the convention stated explicitly by Asparouhov and Muthén (2020, Equation 23).</p>
+  <p>The information of the test is the sum of the item information functions. From that measurement information follow the conditional standard error and, for the standardized IRT trait with variance one, the local reliability:</p>
+  <div class="eq"><math display="block"><mrow><mi>I</mi><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>=</mo><munder><mo>&#8721;</mo><mi>j</mi></munder><msub><mi>I</mi><mi>j</mi></msub><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>,</mo><mspace width="2em"/><mi>SEE</mi><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><mi>I</mi><mo>(</mo><mi>&#952;</mi><mo>)</mo></mrow></msqrt></mfrac><mo>,</mo><mspace width="2em"/><mi>R</mi><mo>(</mo><mi>&#952;</mi><mo>)</mo><mo>=</mo><mn>1</mn><mo>&#8722;</mo><mi>SEE</mi><msup><mrow><mo>(</mo><mi>&#952;</mi><mo>)</mo></mrow><mn>2</mn></msup></mrow></math></div>
+  <p class="where">This is measurement information only. M<em>plus</em>'s factor-score information additionally contains the normal prior term <math><mrow><mn>1</mn><mo>/</mo><mi>&#968;</mi></mrow></math> (Asparouhov &amp; Muthén, 2020, Equation 19); adding that prior would answer a different question about posterior factor-score precision, so it is not added here.</p>
+
+  <h3>The categories of one item</h3>
+  <p>For an item with more than two ordered categories, the probability of a particular category is the difference between two adjacent cumulative response probabilities. The page evaluates those probabilities with the fitted link: logistic for logit models and normal-ogive for probit models (Asparouhov &amp; Muthén, 2020, Equations 1&ndash;12). The figure therefore remains in the model's own response metric.</p>
+
+  <h3>Unsupported inputs</h3>
+  <p>A model with more than one factor, since an item that loads on two traits has no single difficulty. A model whose items have no thresholds, which is a model whose items were not declared categorical. A run whose messages show that estimation did not produce interpretable parameter estimates. Information is computed for binary and ordered polytomous items; an item is omitted only when the quantities needed for its response function cannot be recovered from the output.</p>
+
+  <h3>Self-test</h3>
+  <p>Append <code>?selftest=1</code> to check parameterization, factor scaling, logistic and probit response functions, item and test information, standard errors, reliability, and unsupported inputs.</p>
+  </div>
+</details>
+
+<details class="fold" id="fold-h-refs">
+  <summary><h2 id="h-refs">References</h2></summary>
+  <div class="fold-body">
+  <ul class="refs">
+    <li>Asparouhov, T., &amp; Muthén, B. (2020). <em>IRT in M<span class="mp">plus</span></em> (Version 4, technical note). Muthén &amp; Muthén. <a href="https://www.statmodel.com/techappen.shtml">https://www.statmodel.com/techappen.shtml</a></li>
+    <li>de Ayala, R. J. (2009). <em>The theory and practice of item response theory</em>. Guilford Press.</li>
+    <li>Grimm, K. J. (2026). <em>Categorical data analysis with structural equation models</em>. Guilford Press.</li>
+    <li>Samejima, F. (1969). Estimation of latent ability using a response pattern of graded scores. <em>Psychometrika Monograph Supplement, 34</em>(4, Pt. 2), 1&#8211;97.</li>
+    <li>Thissen, D. (2000). Reliability and measurement precision. In H. Wainer (Ed.), <em>Computerized adaptive testing: A primer</em> (2nd ed., pp. 159&#8211;183). Lawrence Erlbaum.</li>
+    <li>Wang, J., &amp; Wang, X. (2020). <em>Structural equation modeling: Applications using M<span class="mp">plus</span></em> (2nd ed.). Wiley. <a href="https://doi.org/10.1002/9781119422730">https://doi.org/10.1002/9781119422730</a></li>
+  </ul>
+  </div>
+</details>
+
+</main>
+
+
+<footer class="site">
+  <p>Valerio Ghezzi, Department of Psychology, Sapienza University of Rome. Comments and bug reports: <a href="mailto:valerio.ghezzi@uniroma1.it">valerio.ghezzi@uniroma1.it</a>.</p>
+  <p>Everything runs in your browser; no data leave your computer. Code released under the MIT License. <a href="privacy.html">Privacy</a>.</p>
+</footer>
+<script>
+/* ==================================================================
+   What Mplus reports about a run, and what each report costs.
+
+   The catalogue below is the operative repertoire of the diagnostic
+   messages, with the wording checked against the Mplus 9.1 distribution
+   and the meaning against the User's Guide, the Technical Appendices,
+   the Web Notes and the authors' published answers. Every message
+   carries the class it belongs to:
+
+     B2  the model did not converge, is not identified, or prints
+         results that should not be interpreted;
+     M   the estimates exist, but the part involved is not to be
+         trusted until the problem is resolved;
+     V   the analysis can still be used, and the message changes the
+         sample, the inference, the availability or the reach of a
+         result, so it requires review;
+     I   nothing that changes a reading; computing cost or output.
+
+   The class does not follow the word Mplus chose: a message headed
+   WARNING can leave results unusable, and the repertoire says so.
+   A request that was not honored is reported on its own, because the
+   quantity it names is then not there to be read. Anything the
+   estimation printed that the catalogue does not account for is
+   reported in full and treated as a message to check, since a message
+   nobody recognises is not the same as no message.
+   ================================================================== */
+var MPWARN = (function () {
+  "use strict";
+
+  var MESSAGES = [
+    { n: 44, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH11(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+BECAUSE\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+MODEL\s+WITH\s+ONE\s+LESS\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LARGER\s+THAN\s+THE\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE\s+ESTIMATED\s+MODEL/i, say: "the TECH11 p-value is not supported for interpretation in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH11 DID NOT TERMINATE NORMALLY BECAUSE THE LOGLIKELIHOOD VALUE FOR THE MODEL WITH ONE LESS CLASS IS LARGER THAN THE LOGLIKELIHOOD VALUE FOR THE ESTIMATED MODEL.", sub: [] },
+    { n: 47, c: "M", re: /WARNING:\s+OF\s+THE[^.\n]{0,80}BOOTSTRAP\s+DRAWS,[^.\n]{0,80}DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAD\s+BOTH\s+A\s+SMALLER\s+LRT\s+VALUE\s+THAN\s+THE\s+OBSERVED\s+LRT\s+VALUE\s+AND\s+NOT\s+A\s+REPLICATED\s+BEST\s+LOGLIKELIHOOD\s+VALUE\s+FOR\s+THE[^.\n]{0,80}\-CLASS\s+MODEL/i, say: "the TECH14 p-value may be affected by local maxima", txt: "WARNING: OF THE [number] BOOTSTRAP DRAWS, [number] DRAWS HAD BOTH A SMALLER LRT VALUE THAN THE OBSERVED LRT VALUE AND NOT A REPLICATED BEST LOGLIKELIHOOD VALUE FOR THE [k]-CLASS MODEL.", sub: [] },
+    { n: 9, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+NOT\s+BE\s+TRUSTWORTHY\s+FOR\s+SOME\s+PARAMETERS\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FIRST\-ORDER\s+DERIVATIVE\s+PRODUCT\s+MATRIX/i, say: "the affected standard errors may be unstable, and the model may be unidentified", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES MAY NOT BE TRUSTWORTHY FOR SOME PARAMETERS DUE TO A NON-POSITIVE DEFINITE FIRST-ORDER DERIVATIVE PRODUCT MATRIX.", sub: [] },
+    { n: 72, c: "V", re: /WARNING:\s+THE\s+VARIANCE\s+CONTRIBUTION\s+FROM\s+A\s+STRATUM\s+WITH\s+A\s+SINGLE\s+CLUSTER\s+\(PSU\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+BASED\s+ON\s+THE\s+DIFFERENCE\s+BETWEEN\s+THE\s+SINGLE\s+CLUSTER\s+VALUE\s+AND[^.\n]{0,80}/i, say: "the standard errors depend on the specified rule", txt: "WARNING: THE VARIANCE CONTRIBUTION FROM A STRATUM WITH A SINGLE CLUSTER (PSU) IS BASED ON THE DIFFERENCE BETWEEN THE SINGLE CLUSTER VALUE AND [reference].", sub: [] },
+    { n: 61, c: "M", re: /THE\s+KOLMOGOROV\-SMIRNOV\s+DISTRIBUTION\s+TEST\s+FOR\s+UNROTATED\s+PARAMETER[^.\n]{0,80}INDICATES\s+DISCREPANT\s+POSTERIOR\s+DISTRIBUTIONS\s+IN\s+THE\s+DIFFERENT\s+MCMC\s+CHAINS/i, say: "possible non-convergence or non-identification; posterior summaries may be unstable", txt: "THE KOLMOGOROV-SMIRNOV DISTRIBUTION TEST FOR UNROTATED PARAMETER [parameter] INDICATES DISCREPANT POSTERIOR DISTRIBUTIONS IN THE DIFFERENT MCMC CHAINS.", sub: [] },
+    { n: 7, c: "B2", re: /WARNING:\s+THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+REACHED\s+A\s+SADDLE\s+POINT\s+OR\s+A\s+POINT\s+WHERE\s+THE\s+OBSERVED\s+AND\s+THE\s+EXPECTED\s+INFORMATION\s+MATRICES\s+DO\s+NOT\s+MATCH/i, say: "the estimates, especially their standard errors, may be unstable; resolve the issue or verify solution stability before inference", txt: "WARNING: THE MODEL ESTIMATION HAS REACHED A SADDLE POINT OR A POINT WHERE THE OBSERVED AND THE EXPECTED INFORMATION MATRICES DO NOT MATCH.", sub: [] },
+    { n: 52, c: "M", re: /WARNING:\s+THE\s+ESTIMATED\s+LATENT\s+CLASS\s+MODEL\s+\(C\s+ON\s+X\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+YIELDS\s+CLASS\s+PROPORTIONS\s+THAT(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+SUBSTANTIALLY\s+DIFFERENT\s+FROM\s+THE\s+AVERAGE\s+BCH\s+WEIGHTS/i, say: "BCH results with C ON X may not preserve the intended measurement solution", txt: "WARNING: THE ESTIMATED LATENT CLASS MODEL (C ON X) YIELDS CLASS PROPORTIONS THAT ARE SUBSTANTIALLY DIFFERENT FROM THE AVERAGE BCH WEIGHTS.", sub: [] },
+    { n: 60, c: "V", re: /WARNING:\s+THE\s+PRIOR\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+AVAILABLE\s+ONLY\s+WHEN\s+THE\s+NUMBER\s+OF\s+PROCESSORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DOES\s+NOT\s+EXCEED\s+THE\s+NUMBER\s+OF\s+CHAINS/i, say: "parameter estimates remain available; the prior posterior predictive p-value is unavailable", txt: "WARNING: THE PRIOR POSTERIOR PREDICTIVE P-VALUE IS AVAILABLE ONLY WHEN THE NUMBER OF PROCESSORS DOES NOT EXCEED THE NUMBER OF CHAINS.", sub: [] },
+    { n: 56, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE\s+IN\s+THE\s+LAST\s+STEP(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+MORE\s+THAN\s+20%\s+CLASSIFICATION\s+ERROR\s+RELATIVE\s+TO\s+STEP\s+1\s+IN\s+CLASS[^.\n]{0,80}/i, say: "distal outcome estimates for that class may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE IN THE LAST STEP HAS MORE THAN 20% CLASSIFICATION ERROR RELATIVE TO STEP 1 IN CLASS [class].", sub: [] },
+    { n: 59, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+SEVERAL\s+ITERATIONS\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+STANDARDIZED\s+ESTIMATES\s+FOR\s+SEVERAL\s+CLUSTERS/i, say: "standardized posterior estimates may have been selectively affected and may be biased", txt: "WARNING: PROBLEMS OCCURRED IN SEVERAL ITERATIONS IN THE COMPUTATION OF THE STANDARDIZED ESTIMATES FOR SEVERAL CLUSTERS.", sub: [] },
+    { n: 17, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+CHI\-SQUARE\s+TEST\s+AND\s+ESTIMATED\s+SKEW\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square is unavailable, so fit indices that depend on it cannot be reconstructed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. CHI-SQUARE TEST AND ESTIMATED SKEW SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 57, c: "M", re: /WARNING:\s+PROBLEM(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+IN\s+THE\s+COMPUTATION\s+OF\s+THE\s+POSTERIOR\s+PREDICTIVE\s+P\-VALUE\s+IN\s+LARGE\s+NUMBER\s+OF\s+ITERATIONS/i, say: "the posterior predictive p-value may be unstable; inspect the posterior predictive check and MCMC diagnostics before interpreting it", txt: "WARNING: PROBLEM OCCURRED IN THE COMPUTATION OF THE POSTERIOR PREDICTIVE P-VALUE IN LARGE NUMBER OF ITERATIONS.", sub: [] },
+    { n: 79, c: "I", re: /WARNING:\s+THE\s+ESTIMATION\s+OF\s+A\s+MODEL\s+WITH[^.\n]{0,80}VARIABLES\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "no direct statistical consequence when the run converges and terminates normally", txt: "WARNING: THE ESTIMATION OF A MODEL WITH [number] VARIABLES WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 3, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+CHANGE\s+IN\s+THE\s+LOGLIKELIHOOD\s+DURING\s+THE\s+LAST\s+E\s+STEP/i, say: "the EM algorithm did not settle in its last step; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A CHANGE IN THE LOGLIKELIHOOD DURING THE LAST E STEP.", sub: [] },
+    { n: 23, c: "V", re: /WARNING:\s+THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+NEARLY\s+SINGULAR\s+BECAUSE\s+OF\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+CLUSTERS\s+IN\s+THE\s+DATA/i, say: "standard errors and tests may be unstable because the number of clusters is small for the weight matrix", txt: "WARNING: THE WEIGHT MATRIX MAY BE NEARLY SINGULAR BECAUSE OF AN INSUFFICIENT NUMBER OF CLUSTERS IN THE DATA.", sub: [] },
+    { n: 78, c: "I", re: /WARNING:\s+EXPLORATORY\s+FACTOR\s+ANALYSIS\s+OF[^.\n]{0,80}ITEMS\s+WITH\s+THE[^.\n]{0,80}ESTIMATOR(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+TAKE\s+A\s+LONG\s+TIME/i, say: "has no direct inferential consequence if the run terminates normally", txt: "WARNING: EXPLORATORY FACTOR ANALYSIS OF [number] ITEMS WITH THE [estimator] ESTIMATOR MAY TAKE A LONG TIME.", sub: [] },
+    { n: 58, c: "M", re: /WARNING:\s+THE\s+LATENT\s+CLASS\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+REMAINED\s+UNCHANGED\s+DURING\s+THE\s+ESTIMATION\s+IN\s+SOME\s+OR\s+ALL\s+OF\s+THE\s+CLASSES/i, say: "if caused by high correlations, MCMC mixing may be impaired and posterior inference may be unstable", txt: "WARNING: THE LATENT CLASS VARIABLE REMAINED UNCHANGED DURING THE ESTIMATION IN SOME OR ALL OF THE CLASSES.", sub: [] },
+    { n: 11, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-POSITIVE\s+DEFINITE\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is not positive definite; review the source before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-POSITIVE DEFINITE FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 53, c: "M", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+LATENT\s+CLASS\s+REGRESSION\s+ESTIMATION\s+FOR[^.\n]{0,80}PSEUDO\s+CLASS\s+DRAWS/i, say: "estimates and tests from the auxiliary regression may be unavailable or unstable", txt: "WARNING: PROBLEMS OCCURRED DURING THE LATENT CLASS REGRESSION ESTIMATION FOR [number] PSEUDO CLASS DRAWS.", sub: [] },
+    { n: 76, c: "I", re: /WARNING:\s+THE\s+STANDARDIZED\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the unstandardized estimates", txt: "WARNING: THE STANDARDIZED OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 70, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+ARE\s+USED\s+AS\s+CERTAINTY\s+CLUSTERS\s+THAT\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the variance may be underestimated, depending on the design", txt: "WARNING: SINGLE CLUSTER STRATA ARE USED AS CERTAINTY CLUSTERS THAT DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 75, c: "I", re: /WARNING:\s+THE\s+RESIDUAL\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE RESIDUAL OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 10, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ILL\-CONDITIONED\s+FISHER\s+INFORMATION\s+MATRIX/i, say: "the Fisher information matrix is ill-conditioned; estimates and inference may be unstable", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ILL-CONDITIONED FISHER INFORMATION MATRIX.", sub: [] },
+    { n: 49, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+VARIANCE\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the variance and quantities that depend on it require review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED VARIANCE IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 50, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+SKEWNESS\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the skewness estimate requires review before interpretation", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED SKEWNESS IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 4, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+A\s+NON\-ZERO\s+DERIVATIVE\s+OF\s+THE\s+LOGLIKELIHOOD/i, say: "the gradient is not close enough to zero; the point reached may not be a local maximum", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO A NON-ZERO DERIVATIVE OF THE LOGLIKELIHOOD.", sub: [] },
+    { n: 62, c: "V", re: /WARNING:\s+THE\s+INITIAL\s+CONDITION\s+PRIOR\s+DISTRIBUTION\s+FOR\s+AN\s+OBSERVED\s+LAGGED\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS[^.\n]{0,80}/i, say: "it may affect MCMC mixing, stationarity, or the initial-condition interpretation; the consequence depends on the full message", txt: "WARNING: THE INITIAL CONDITION PRIOR DISTRIBUTION FOR AN OBSERVED LAGGED VARIABLE HAS [condition].", sub: [] },
+    { n: 74, c: "I", re: /WARNING:\s+THE\s+TECH4\s+OUTPUT\s+OPTION\s+FOR\s+THIS\s+MODEL(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+INCREASE\s+THE\s+COMPUTATIONAL\s+TIME\s+SUBSTANTIALLY/i, say: "has no direct effect on the parameter estimates", txt: "WARNING: THE TECH4 OUTPUT OPTION FOR THIS MODEL MAY INCREASE THE COMPUTATIONAL TIME SUBSTANTIALLY.", sub: [] },
+    { n: 82, c: "V", re: /WARNING:\s+OUTLIER\s+MEASURES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+FOR\s+SOME\s+OBSERVATIONS\s+DUE\s+TO\s+CONVERGENCE\s+PROBLEMS/i, say: "the model may remain interpretable, but outlier diagnostics are incomplete and the missingness mechanism may be non-random", txt: "WARNING: OUTLIER MEASURES COULD NOT BE COMPUTED FOR SOME OBSERVATIONS DUE TO CONVERGENCE PROBLEMS.", sub: [] },
+    { n: 48, c: "V", re: /WARNING:\s+DUE\s+TO\s+A\s+LOW\s+DF\s+ESTIMATE\s+IN\s+CLASS[^.\n]{0,80}THE\s+ESTIMATED\s+MEAN\s+IN\s+THAT\s+CLASS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+INFINITY/i, say: "the mean is not defined under the estimated distribution", txt: "WARNING: DUE TO A LOW DF ESTIMATE IN CLASS [class] THE ESTIMATED MEAN IN THAT CLASS IS INFINITY.", sub: [] },
+    { n: 54, c: "V", re: /WARNING:\s+AUXILIARY\s+\(E\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+BCH\s+AND\s+DU3STEP\s+OPTIONS/i, say: "these results are generally not preferred for final inference", txt: "WARNING: AUXILIARY (E) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE BCH AND DU3STEP OPTIONS.", sub: [] },
+    { n: 6, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+INSUFFICIENT\s+NUMBER\s+OF\s+E\s+STEPS/i, say: "too few E steps were taken; the solution has not converged", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN INSUFFICIENT NUMBER OF E STEPS.", sub: [] },
+    { n: 40, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+CLASS[^.\n]{0,80}/i, say: "covariate effects in that class are not separately estimable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN CLASS [class].", sub: [] },
+    { n: 41, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR\s+IN\s+GROUP[^.\n]{0,80}/i, say: "effects in that group and their standard errors may be unstable or unidentified", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR IN GROUP [group].", sub: [] },
+    { n: 39, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+DEPENDENT\s+VARIABLES\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the model or unrestricted model may not be estimable, and fit indices may be unavailable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE DEPENDENT VARIABLES IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 51, c: "M", re: /WARNING:\s+IN\s+CLASS[^.\n]{0,80}[^.\n]{0,80}HAS\s+A\s+NEGATIVE\s+FREQUENCY\s+FOR\s+CATEGORY[^.\n]{0,80}/i, say: "the probabilities and derived quantities should not be read as ordinary frequencies", txt: "WARNING: IN CLASS [class] [variable] HAS A NEGATIVE FREQUENCY FOR CATEGORY [category].", sub: [] },
+    { n: 55, c: "V", re: /WARNING:\s+AUXILIARY\s+\(R\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+CAN\s+GIVE\s+BIASED\s+RESULTS\s+AND(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SUPERSEDED\s+BY\s+THE\s+R3STEP\s+OPTION/i, say: "the class regressions may be biased", txt: "WARNING: AUXILIARY (R) CAN GIVE BIASED RESULTS AND IS SUPERSEDED BY THE R3STEP OPTION.", sub: [] },
+    { n: 45, c: "M", re: /WARNING:\s+THE\s+LIKELIHOOD\s+RATIO\s+TEST\s+COMPUTATION\s+FOR\s+TECH14(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "the TECH14 p-value is not supported for inference in this run", txt: "WARNING: THE LIKELIHOOD RATIO TEST COMPUTATION FOR TECH14 DID NOT TERMINATE NORMALLY.", sub: [] },
+    { n: 83, c: "B2", re: /WARNING:\s+THE\s+ESTIMATED\s+NUMBER\s+OF\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+LIKELY\s+INCORRECT\s+FOR\s+THIS\s+PSEM\s+MODEL/i, say: "fit statistics, penalty terms, and criteria that depend on the parameter count may be inaccurate", txt: "WARNING: THE ESTIMATED NUMBER OF PARAMETERS IS LIKELY INCORRECT FOR THIS PSEM MODEL.", sub: [] },
+    { n: 5, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY\s+DUE\s+TO\s+AN\s+ERROR\s+IN\s+THE\s+COMPUTATION/i, say: "a numerical error occurred during estimation; affected results require review before substantive interpretation", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY DUE TO AN ERROR IN THE COMPUTATION.", sub: [] },
+    { n: 68, c: "V", re: /WARNING:\s+JACKKNIFE2\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: JACKKNIFE2 STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 16, c: "B2", re: /THE\s+H1\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE\.\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the chi-square, sample statistics, and corrections that depend on the unrestricted model may be unavailable or unsuitable for inference, even when parameter estimates are printed", txt: "THE H1 MODEL ESTIMATION DID NOT CONVERGE. SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 12, c: "B2", re: /ONE\s+OR\s+MORE\s+PARAMETERS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WERE\s+FIXED\s+TO\s+AVOID\s+SINGULARITY\s+OF\s+THE\s+INFORMATION\s+MATRIX/i, say: "the estimated model differs from the requested model; inference may therefore differ", txt: "ONE OR MORE PARAMETERS WERE FIXED TO AVOID SINGULARITY OF THE INFORMATION MATRIX.", sub: [] },
+    { n: 31, c: "V", re: /WARNING:\s+LISTWISE\s+DELETION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+APPLIED\s+TO\s+THE\s+AUXILIARY\s+VARIABLES\s+IN\s+THE\s+ANALYSIS/i, say: "the analyzed sample may change in size or composition, with possible bias and lower power", txt: "WARNING: LISTWISE DELETION IS APPLIED TO THE AUXILIARY VARIABLES IN THE ANALYSIS.", sub: [] },
+    { n: 34, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+BETWEEN\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "between-level effects and their standard errors may be unstable", txt: "WARNING: THE SAMPLE BETWEEN COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [] },
+    { n: 25, c: "B2", re: /WARNING:\s+THE\s+BIVARIATE\s+TABLE\s+OF[^.\n]{0,80}BY[^.\n]{0,80}HAS\s+AN\s+EMPTY\s+CELL/i, say: "the correlations, thresholds, and weight matrix may be unstable; the risk increases as empty cells accumulate", txt: "WARNING: THE BIVARIATE TABLE OF [variable 1] BY [variable 2] HAS AN EMPTY CELL.", sub: [] },
+    { n: 13, c: "B2", re: /WARNING:\s+THE\s+LATENT\s+VARIABLE\s+COVARIANCE\s+MATRIX\s+\(PSI\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "the affected part of the model may be inadmissible; correlations at or above one and negative variances require review", txt: "WARNING: THE LATENT VARIABLE COVARIANCE MATRIX (PSI) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 36, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+INVERTED\s+FOR\s+CLASS[^.\n]{0,80}/i, say: "class-specific results and auxiliary procedures may be affected", txt: "WARNING: THE SAMPLE COVARIANCE MATRIX COULD NOT BE INVERTED FOR CLASS [class].", sub: [] },
+    { n: 24, c: "B2", re: /THE\s+WEIGHT\s+MATRIX\s+FOR\s+GROUP[^.\n]{0,80}IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "WLS tests and standard errors for that group may be unstable", txt: "THE WEIGHT MATRIX FOR GROUP [group] IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 38, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+CORRELATION\s+OF[^.\n]{0,80}AND[^.\n]{0,80}IS[^.\n]{0,80}/i, say: "the matrix may be singular, and the separate effects of the two variables may be unidentified", txt: "WARNING: THE SAMPLE CORRELATION OF [variable 1] AND [variable 2] IS [value].", sub: [] },
+    { n: 67, c: "V", re: /WARNING:\s+FAY\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "if the assumption does not hold, standard errors may be biased", txt: "WARNING: FAY STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 69, c: "V", re: /WARNING:\s+BRR\s+STANDARD\s+ERRORS\s+ASSUME\s+THAT\s+EACH\s+STRATUM\s+CONTAINS\s+TWO\s+CLUSTERS/i, say: "standard errors may be biased where the assumption is violated", txt: "WARNING: BRR STANDARD ERRORS ASSUME THAT EACH STRATUM CONTAINS TWO CLUSTERS.", sub: [] },
+    { n: 8, c: "B2", re: /THE\s+STANDARD\s+ERRORS\s+OF\s+THE\s+MODEL\s+PARAMETER\s+ESTIMATES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "without standard errors, tests, p-values, confidence intervals, and robust fit statistics are unavailable", txt: "THE STANDARD ERRORS OF THE MODEL PARAMETER ESTIMATES COULD NOT BE COMPUTED.", sub: [] },
+    { n: 26, c: "V", re: /WARNING:\s+VARIABLE[^.\n]{0,80}MAY\s+BE\s+DICHOTOMOUS\s+BUT\s+DECLARED\s+AS\s+CONTINUOUS/i, say: "it may be deliberate; otherwise review the estimator, link, and interpretation of that variable", txt: "WARNING: VARIABLE [variable] MAY BE DICHOTOMOUS BUT DECLARED AS CONTINUOUS.", sub: [] },
+    { n: 14, c: "B2", re: /WARNING:\s+THE\s+RESIDUAL\s+COVARIANCE\s+MATRIX\s+\(THETA\)(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE/i, say: "estimates that depend on the residual covariance matrix may reflect an inadmissible solution", txt: "WARNING: THE RESIDUAL COVARIANCE MATRIX (THETA) IS NOT POSITIVE DEFINITE.", sub: [] },
+    { n: 15, c: "B2", re: /THE\s+ESTIMATED\s+COVARIANCE\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+POSITIVE\s+DEFINITE\s+AS\s+IT\s+SHOULD\s+BE/i, say: "the computation was not completed; review the underlying solution", txt: "THE ESTIMATED COVARIANCE MATRIX IS NOT POSITIVE DEFINITE AS IT SHOULD BE.", sub: [] },
+    { n: 33, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+OF\s+THE\s+INDEPENDENT\s+VARIABLES(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+SINGULAR/i, say: "the affected coefficients and tests may be unidentified or numerically unstable", txt: "WARNING: THE SAMPLE COVARIANCE OF THE INDEPENDENT VARIABLES IS SINGULAR.", sub: [40, 41] },
+    { n: 65, c: "M", re: /STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED\s+IN\s+EXPLORATORY\s+FACTOR\s+ANALYSIS/i, say: "point loadings may be available, but inferential quantities are incomplete", txt: "STANDARD ERRORS COULD NOT BE COMPUTED IN EXPLORATORY FACTOR ANALYSIS.", sub: [] },
+    { n: 73, c: "V", re: /WARNING:\s+THIS\s+MODEL\s+REQUIRES\s+A\s+LARGE\s+AMOUNT\s+OF\s+MEMORY\s+AND\s+DISK\s+SPACE/i, say: "has no direct inferential consequence for a completed run; it indicates higher computational demand and interruption risk", txt: "WARNING: THIS MODEL REQUIRES A LARGE AMOUNT OF MEMORY AND DISK SPACE.", sub: [] },
+    { n: 77, c: "V", re: /WARNING:\s+THE\s+VALUE\s+SPECIFIED\s+IN\s+THE\s+TINTERVAL\s+OPTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+MAY\s+BE\s+TOO\s+BIG/i, say: "possible loss of numerical accuracy or problems with discretization or estimation", txt: "WARNING: THE VALUE SPECIFIED IN THE TINTERVAL OPTION MAY BE TOO BIG.", sub: [] },
+    { n: 46, c: "M", re: /WARNING:[^.\n]{0,80}OUT\s+OF[^.\n]{0,80}BOOTSTRAP\s+DRAWS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+CONVERGE/i, say: "the bootstrap p-value may be biased; risk increases with failed draws", txt: "WARNING: [number] OUT OF [number] BOOTSTRAP DRAWS DID NOT CONVERGE.", sub: [] },
+    { n: 29, c: "V", re: /WARNING:\s+THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "covariances and derived quantities may be unstable; the EM algorithm may also fail to initialize", txt: "WARNING: THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 63, c: "V", re: /WARNING:\s+THE\s+CONDITION\s+NUMBER\s+OF\s+THE\s+ROTATED\s+SOLUTION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS[^.\n]{0,80}/i, say: "rotated loadings, their standard errors, and factor interpretation may be unstable across near-equivalent solutions", txt: "WARNING: THE CONDITION NUMBER OF THE ROTATED SOLUTION IS [value].", sub: [] },
+    { n: 71, c: "V", re: /WARNING:\s+SINGLE\s+CLUSTER\s+STRATA\s+DO\s+NOT\s+CONTRIBUTE\s+TO\s+THE\s+VARIANCE/i, say: "the standard errors may be underestimated", txt: "WARNING: SINGLE CLUSTER STRATA DO NOT CONTRIBUTE TO THE VARIANCE.", sub: [] },
+    { n: 84, c: "V", re: /WARNING:\s+A\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+A\s+FREE\s+MEAN\s+AND\s+VARIANCE\s+FIXED\s+TO\s+ZERO/i, say: "it may impair convergence or mixing and may indicate an incoherent parameterization", txt: "WARNING: A VARIABLE HAS A FREE MEAN AND VARIANCE FIXED TO ZERO.", sub: [] },
+    { n: 66, c: "V", re: /WARNING:\s+JACKKNIFE1\s+STANDARD\s+ERRORS\s+ASSUME\s+NO\s+STRATIFICATION/i, say: "if the design is stratified, standard errors may be biased", txt: "WARNING: JACKKNIFE1 STANDARD ERRORS ASSUME NO STRATIFICATION.", sub: [] },
+    { n: 85, c: "B2", re: /WARNING:\s+PROBLEMS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+OCCURRED\s+DURING\s+THE\s+ALIGNMENT\s+OPTIMIZATION/i, say: "the alignment estimates, and the conclusions about approximate invariance, are unavailable", txt: "WARNING: PROBLEMS OCCURRED DURING THE ALIGNMENT OPTIMIZATION.", sub: [] },
+    { n: 35, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+COVARIANCE\s+IN\s+GROUP[^.\n]{0,80}IS\s+SINGULAR/i, say: "the multiple-group model may be inestimable, or its inference may be unstable", txt: "WARNING: THE SAMPLE COVARIANCE IN GROUP [group] IS SINGULAR.", sub: [] },
+    { n: 42, c: "M", re: /WARNING:\s+THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+WAS\s+NOT\s+REPLICATED/i, say: "the solution may be a local maximum; increase random starts before interpreting information criteria, class proportions, or classification diagnostics", txt: "WARNING: THE BEST LOGLIKELIHOOD VALUE WAS NOT REPLICATED.", sub: [] },
+    { n: 30, c: "B2", re: /THE\s+COVARIANCE\s+COVERAGE\s+FALLS\s+BELOW\s+THE\s+SPECIFIED\s+LIMIT/i, say: "the analysis that was asked for was not estimated", txt: "THE COVARIANCE COVERAGE FALLS BELOW THE SPECIFIED LIMIT.", sub: [] },
+    { n: 80, c: "V", re: /WARNING:\s+THE\s+MLR\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the inference differs from the request because p-values and intervals use a different correction", txt: "WARNING: THE MLR STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 81, c: "V", re: /WARNING:\s+THE\s+ML\s+STANDARD\s+ERRORS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the reported inference differs from the requested inference", txt: "WARNING: THE ML STANDARD ERRORS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 28, c: "V", re: /WARNING:\s+NEGATIVE\s+BINOMIAL\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "as for counts, with possible instability in the dispersion parameter", txt: "WARNING: NEGATIVE BINOMIAL VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 32, c: "V", re: /Data\s+set\s+contains\s+cases\s+with\s+missing\s+on\s+x\-variables/i, say: "cases missing on an x-variable were excluded; those variables are not handled by full-information maximum likelihood", txt: "Data set contains cases with missing on x-variables.", sub: [] },
+    { n: 64, c: "M", re: /THE\s+OPTIMAL\s+ROTATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+IS\s+NOT\s+SUFFICIENTLY\s+IDENTIFIED/i, say: "tests and confidence intervals for the rotated loadings are not supported for inference in this run", txt: "THE OPTIMAL ROTATION IS NOT SUFFICIENTLY IDENTIFIED.", sub: [] },
+    { n: 37, c: "B2", re: /WARNING:\s+THE\s+SAMPLE\s+VARIANCE\s+OF[^.\n]{0,80}IS\s+ZERO/i, say: "any effect, correlation or part of the model that needs that variance cannot be estimated", txt: "WARNING: THE SAMPLE VARIANCE OF [variable] IS ZERO.", sub: [] },
+    { n: 43, c: "V", re: /THE\s+BEST\s+LOGLIKELIHOOD\s+VALUE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+BEEN\s+REPLICATED/i, say: "replication supports stability across the random starts used; additional starts can be used as a sensitivity check", txt: "THE BEST LOGLIKELIHOOD VALUE HAS BEEN REPLICATED.", sub: [] },
+    { n: 1, c: "B2", re: /THE\s+MODEL\s+ESTIMATION(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+DID\s+NOT\s+TERMINATE\s+NORMALLY/i, say: "printed estimates do not support substantive interpretation because estimation did not terminate normally", txt: "THE MODEL ESTIMATION DID NOT TERMINATE NORMALLY.", sub: [3, 4, 5, 6, 10, 11] },
+    { n: 2, c: "B2", re: /NO\s+CONVERGENCE\.\s+NUMBER\s+OF\s+ITERATIONS\s+EXCEEDED/i, say: "the iteration limit was reached without convergence; estimates, standard errors, tests, and fit statistics are not supported for inference", txt: "NO CONVERGENCE. NUMBER OF ITERATIONS EXCEEDED.", sub: [] },
+    { n: 20, c: "B2", re: /THE\s+BASELINE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI and TLI may be unavailable or unstable", txt: "THE BASELINE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 19, c: "B2", re: /THE\s+ROBUST\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the robust chi-square and fit indices that depend on it are not supported for inference in this run", txt: "THE ROBUST CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] },
+    { n: 21, c: "B2", re: /THE\s+SAMPLE\s+STATISTICS(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "the requested estimation may be incomplete, and some fit statistics may be unavailable", txt: "THE SAMPLE STATISTICS COULD NOT BE COMPUTED.", sub: [] },
+    { n: 27, c: "V", re: /WARNING:\s+COUNT\s+VARIABLE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+HAS\s+LARGE\s+VALUES/i, say: "large counts may cause numerical instability or high influence and may indicate a coding issue or model-data mismatch", txt: "WARNING: COUNT VARIABLE HAS LARGE VALUES.", sub: [] },
+    { n: 22, c: "B2", re: /THE\s+WEIGHT\s+MATRIX(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "WLS, WLSM, or WLSMV inference that depends on the weight matrix is unavailable", txt: "THE WEIGHT MATRIX COULD NOT BE COMPUTED.", sub: [] },
+    { n: 18, c: "B2", re: /THE\s+CHI\-SQUARE(?:\s+(?:IN|ON|FOR)\s+(?:THE\s+)?[A-Z0-9_$#.\- ]{1,40}?)?\s+COULD\s+NOT\s+BE\s+COMPUTED/i, say: "CFI, TLI, RMSEA, and other global fit quantities that depend on the chi-square may be unavailable", txt: "THE CHI-SQUARE COULD NOT BE COMPUTED.", sub: [] }
+  ];
+
+  /* Notes Mplus writes while reading the input. They do not bear on the
+     estimates; they are reported so that nothing in the file goes
+     unmentioned. */
+  var NOTES = [
+    { re: /Input line exceeded 90 characters/i, say: "an input line ran past 90 characters and was truncated in the echo" },
+    { re: /Data set contains cases with missing on all variables except/i, say: "cases missing on all variables except x-variables were excluded from the analysis" },
+    { re: /Data set contains cases with missing on all variables/i, say: "cases missing on every variable were excluded from the analysis" },
+    { re: /have no variation within a\s+cluster|no variation within a cluster/i, say: "one or more variables have no within-cluster variation in some clusters" },
+    { re: /refers to the whole observed\s*variable/i, say: "a predictor enters as the observed variable rather than its latent within-level component" },
+    { re: /has been turned into a y variable to enable latent variable decomposition/i, say: "a predictor was treated as a dependent variable to allow decomposition" },
+    { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
+  ];
+
+  /* A request Mplus did not honour: the quantity it names is not in the
+     file, and nothing is to be reported as if it had been computed. */
+  var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
+
+  /* An error in a command: the model that was asked for was not
+     estimated at all. */
+  var INPUT_ERROR = /^[ \t]*\*\*\*\s*(FATAL ERROR|ERROR)\b([^\n]*)/gm;
+
+  function norm(s) { return String(s).replace(/\s+/g, " ").trim(); }
+
+  /* The blocks the estimation printed, used only to find what the
+     catalogue does not cover. */
+  function blocks(t) {
+    var out = [], m, re;
+    re = /^[ \t]*WARNING:[ \t]*([\s\S]*?)(?=\n[ \t]*\n)/gm;
+    while ((m = re.exec(t)) !== null) out.push({ kind: "estimation", body: m[1], text: m[0] });
+    re = /(?:^|\n)[ \t]*\n((?:[ \t]*[A-Z0-9][A-Z0-9 ,.\-()\/'&:+*]*[.:]\n){1,12})(?=[ \t]*\n)/g;
+    while ((m = re.exec(t)) !== null) {
+      if (!/[A-Z]{4}/.test(m[1])) continue;
+      out.push({ kind: "capitals", body: m[1], text: m[1] });
+    }
+    return out;
+  }
+
+  var NOT_A_MESSAGE = [
+    /THE MODEL ESTIMATION TERMINATED NORMALLY/i,
+    /WARNING\(S\) FOUND IN THE (INPUT INSTRUCTIONS|MODEL ESTIMATION)/i,
+    /^\s*(MODEL|SUMMARY|INPUT|UNIVARIATE|QUALITY|TECHNICAL|RESULTS|SAVEDATA|PLOT|DIAGRAM|MUTHEN|BEGINNING|ELAPSED|FINAL|RANDOM|CLASSIFICATION|LATENT|TESTS|STANDARDIZED|CONFIDENCE|R-SQUARE|COVARIANCE COVERAGE|PROPORTION|THE FOLLOWING DATA|TOTAL|NEW\/ADDITIONAL|THE CHI-SQUARE|ESTIMATED|IRT|ITEM|BROWNE|RESIDUAL|SAMPLE|MISSING|CATEGORICAL|EXPLORATORY|GEOMIN|PROMAX|VARIMAX|EIGENVALUES|CHI-SQUARE|LOGLIKELIHOOD|INFORMATION|BAYESIAN|POSTERIOR|POTENTIAL|AVERAGE|ENTROPY|DIAGRAM)/i
+  ];
+
+  function classify(text) {
+    var t = String(text).replace(/\r\n?/g, "\n");
+    var out = { blocking: [], correct: [], check: [], info: [], ignored: [], unknown: [] };
+    var i, j, m, hit = [], suppressed = {};
+
+    for (i = 0; i < MESSAGES.length; i++) if (MESSAGES[i].re.test(t)) hit.push(MESSAGES[i]);
+    for (i = 0; i < hit.length; i++) for (j = 0; j < hit[i].sub.length; j++) suppressed[hit[i].sub[j]] = 1;
+    for (i = 0; i < hit.length; i++) {
+      if (suppressed[hit[i].n]) continue;
+      var item = { n: hit[i].n, say: hit[i].say, txt: hit[i].txt, cls: hit[i].c };
+      if (hit[i].c === "B2") out.blocking.push(item);
+      else if (hit[i].c === "M") out.correct.push(item);
+      else if (hit[i].c === "V") out.check.push(item);
+      else out.info.push(item);
+    }
+
+    INPUT_ERROR.lastIndex = 0;
+    while ((m = INPUT_ERROR.exec(t)) !== null)
+      out.blocking.push({ n: 0, cls: "B2", txt: norm(m[0]),
+        say: "M<em>plus</em> reported an input error; the requested model was not estimated" });
+
+    IGNORED.lastIndex = 0;
+    var seenIgnored = {};
+    while ((m = IGNORED.exec(t)) !== null) {
+      var what = norm(m[1]);
+      if (seenIgnored[what]) continue;
+      seenIgnored[what] = 1;
+      out.ignored.push({ what: what, txt: norm(m[0]),
+        say: "the request for " + what + " was not honored, so that quantity is not in the file and should not be reported as though it had been computed" });
+    }
+
+    for (i = 0; i < NOTES.length; i++) if (NOTES[i].re.test(t)) out.info.push({ n: 0, cls: "I", say: NOTES[i].say, txt: null });
+
+    /* What the estimation printed and the catalogue does not cover. */
+    var bs = blocks(t), seen = {};
+    for (i = 0; i < bs.length; i++) {
+      var flat = norm(bs[i].text);
+      if (seen[flat]) continue;
+      seen[flat] = 1;
+      var known = false;
+      for (j = 0; j < MESSAGES.length && !known; j++) if (MESSAGES[j].re.test(bs[i].text)) known = true;
+      for (j = 0; j < NOTES.length && !known; j++) if (NOTES[j].re.test(bs[i].text)) known = true;
+      if (known) continue;
+      if (IGNORED.test(bs[i].text)) { IGNORED.lastIndex = 0; continue; }
+      IGNORED.lastIndex = 0;
+      var skip = false;
+      for (j = 0; j < NOT_A_MESSAGE.length; j++) if (NOT_A_MESSAGE[j].test(bs[i].body)) skip = true;
+      if (skip) continue;
+      out.unknown.push({ n: 0, cls: "?", say: null, txt: flat.slice(0, 400) });
+    }
+
+    out.serious = out.correct.concat(out.check).concat(out.unknown);
+    return out;
+  }
+
+  return { classify: classify, messages: MESSAGES };
+})();
+</script>
+<script>
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+var MP = "M<em>plus</em>";
+
+/* ==================================================================
+   Reading the file
+   ================================================================== */
+function decodeBuffer(ab) {
+  var bytes = new Uint8Array(ab), i, s;
+  if (bytes.length >= 2 && bytes[0] === 0xFF && bytes[1] === 0xFE) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode(bytes[i] | (bytes[i + 1] << 8)); return s;
+  }
+  if (bytes.length >= 2 && bytes[0] === 0xFE && bytes[1] === 0xFF) {
+    s = ""; for (i = 2; i + 1 < bytes.length; i += 2) s += String.fromCharCode((bytes[i] << 8) | bytes[i + 1]); return s;
+  }
+  var start = (bytes.length >= 3 && bytes[0] === 0xEF && bytes[1] === 0xBB && bytes[2] === 0xBF) ? 3 : 0;
+  try {
+    if (typeof TextDecoder !== "undefined")
+      return new TextDecoder("utf-8", { fatal: true }).decode(bytes.subarray(start));
+  } catch (e) { /* not valid UTF-8: read as Windows-1252 */ }
+  s = ""; for (i = start; i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+  return s;
+}
+/* The box that carries the messages of every file read on this page.
+   It is filled from one place, so that a page with one file and a page
+   with several report them the same way. */
+var MPW_SEEN = [];
+function mpwRender(name, text) {
+  var host = document.getElementById("mpw-note"), i, w, bits, s, kind = "info", body = "";
+  if (!host) {
+    var after = document.querySelector(".drop, .zones, #routes");
+    if (!after || !after.parentNode) return;
+    host = document.createElement("div");
+    host.id = "mpw-note";
+    host.setAttribute("aria-live", "polite");
+    if (after.nextSibling) after.parentNode.insertBefore(host, after.nextSibling);
+    else after.parentNode.appendChild(host);
+  }
+  if (name !== null) {
+    w = MPWARN.classify(text);
+    bits = w.serious;
+    for (i = MPW_SEEN.length - 1; i >= 0; i--) if (MPW_SEEN[i].name === name) MPW_SEEN.splice(i, 1);
+    var notes = w.info.concat(w.ignored);
+    if (bits.length || notes.length) MPW_SEEN.push({ name: name, serious: bits, caution: notes });
+  }
+  var anySerious = false;
+  for (i = 0; i < MPW_SEEN.length; i++) if (MPW_SEEN[i].serious.length) anySerious = true;
+  if (!MPW_SEEN.length) { host.innerHTML = ""; return; }
+  for (i = 0; i < MPW_SEEN.length; i++) {
+    var e = MPW_SEEN[i], parts = [];
+    var j;
+    var nCorrect = 0, nCheck = 0;
+    for (j = 0; j < e.serious.length; j++) {
+      var it = e.serious[j], tag;
+      if (it.cls === "M") { tag = "requires correction"; nCorrect++; }
+      else if (it.cls === "?") { tag = "unrecognized message"; nCheck++; }
+      else { tag = "requires review"; nCheck++; }
+      parts.push("<li><strong>" + (it.say ? it.say : esc(it.txt)) + "</strong>" +
+        (it.txt && it.say ? " <span class=\"hint\">&#8212; <q>" + esc(it.txt) + "</q></span>" : "") +
+        " <span class=\"hint\">(" + tag + ")</span></li>");
+    }
+    for (j = 0; j < e.caution.length; j++) parts.push("<li>" + (e.caution[j].say ? e.caution[j].say : esc(e.caution[j].txt || "")) + "</li>");
+    var lead;
+    if (nCorrect && nCheck) lead = "The run contains messages that require correction and messages that require review before the results are reported.";
+    else if (nCorrect) lead = nCorrect === 1 ? "The run contains a message that requires correction; reporting of the affected result is deferred until the issue is resolved." :
+      "The run contains " + nCorrect + " messages that require correction; reporting of the affected results is deferred until the issues are resolved.";
+    else if (nCheck) lead = nCheck === 1 ? "The run contains a message that requires review because it affects the sample, the inference, or the availability of a result." :
+      "The run contains " + nCheck + " messages that require review because they affect the sample, the inference, or the availability of a result.";
+    else lead = "M<em>plus</em> printed " + (e.caution.length === 1 ? "a note about this run that does not affect the estimates." :
+      e.caution.length + " notes about this run, none of which affects the estimates.");
+    body += "<p>" + (MPW_SEEN.length > 1 ? "<code>" + esc(e.name) + "</code>: " : "") + lead + "</p><ul>" + parts.join("") + "</ul>";
+  }
+  if (anySerious) {
+    kind = "warn";
+    body += "<p>What the page computes from " + (MPW_SEEN.length > 1 ? "these files" : "this file") +
+      " inherits the limitations of the affected estimates.</p>";
+  }
+  host.innerHTML = '<div class="status ' + kind + '" role="status"><p><strong>' +
+    (anySerious ? "What M<em>plus</em> reported about this run." : "Notes about the run.") + "</strong></p>" + body + "</div>";
+}
+
+function readTextFile(file, then, fail) {
+  var mpwName = (file && file.name) ? file.name : "";
+  var mpwOuter = then;
+  then = function (t) { try { mpwRender(mpwName, String(t)); } catch (e) {} mpwOuter(t); };
+  var r = new FileReader();
+  r.onerror = function () { if (fail) fail(); };
+  r.onload = function (e) {
+    var res = (e && e.target) ? e.target.result : r.result, text;
+    try { text = decodeBuffer(res); } catch (err) { if (fail) fail(err); return; }
+    then(text);
+  };
+  r.readAsArrayBuffer(file);
+}
+/* ==================================================================
+   The item response metric of a categorical factor model, and the
+   information it carries. Pure functions of the text of the file.
+   ================================================================== */
+var IRT = (function () {
+  "use strict";
+
+  function lines(text) { return String(text).replace(/\r\n?/g, "\n").split("\n"); }
+  function n(s) { var v = parseFloat(String(s).replace(/D([+\-]?\d+)/i, "e$1")); return isFinite(v) ? v : null; }
+
+  function section(text, head, stops) {
+    var L = lines(text), i, at = -1, end = L.length;
+    for (i = 0; i < L.length; i++) if (head.test(L[i])) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at + 1; i < L.length; i++) if (stops.test(L[i])) { end = i; break; }
+    return L.slice(at + 1, end);
+  }
+
+  var STOP = /^(QUALITY OF NUMERICAL RESULTS|TECHNICAL \d+ OUTPUT|STANDARDIZED MODEL RESULTS|IRT PARAMETERIZATION|R-SQUARE|MODEL RESULTS|CONFIDENCE INTERVALS|MUTHEN & MUTHEN|Beginning Time:|LOGISTIC REGRESSION ODDS RATIO)/;
+
+  /* The block Mplus prints when the model is a factor model for
+     categorical items fitted by maximum likelihood with the logit link.
+     It carries the discrimination of every item and its difficulty, and
+     for an item with more than two categories one difficulty per
+     threshold. */
+  function readIrtBlock(text) {
+    var B = section(text, /^IRT PARAMETERIZATION\s*$/, STOP);
+    if (!B) return null;
+    var i, t, m, mode = null, disc = {}, diff = {}, fvar = null, head = null;
+    for (i = 0; i < B.length; i++) {
+      t = B[i].replace(/\s+$/, "");
+      if (!t.trim()) continue;
+      if (/^\s*Item Discriminations\s*$/.test(t)) { mode = "a"; continue; }
+      if (/^\s*Item Difficulties\s*$/.test(t)) { mode = "b"; continue; }
+      if (/^\s*Variances\s*$/.test(t)) { mode = "v"; continue; }
+      m = /^\s{0,4}([A-Za-z][A-Za-z0-9_$#.]*)\s+(BY|ON|WITH)\s*$/.exec(t);
+      if (m) { head = m[1].toUpperCase(); continue; }
+      m = /^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s*$/.exec(t);
+      if (!m) continue;
+      var name = m[1].toUpperCase(), v = n(m[2]), se = n(m[3]);
+      if (mode === "a") disc[name] = { est: v, se: se, factor: head };
+      else if (mode === "b") {
+        var p = name.split("$"), item = p[0], k = p.length > 1 ? parseInt(p[1], 10) : 1;
+        if (!diff[item]) diff[item] = [];
+        diff[item].push({ k: k, est: v, se: se });
+      } else if (mode === "v") fvar = v;
+    }
+    var any = false, key;
+    for (key in disc) if (disc.hasOwnProperty(key)) any = true;
+    if (!any) return null;
+    for (key in diff) if (diff.hasOwnProperty(key)) diff[key].sort(function (x, y) { return x.k - y.k; });
+    return { disc: disc, diff: diff, factorVariance: fvar };
+  }
+
+  /* MODEL RESULTS: the loadings of every factor, the thresholds of every
+     item, and the mean and the variance of the factor. */
+  function readModel(text) {
+    var B = section(text, /^MODEL RESULTS\s*$/, STOP);
+    if (!B) return null;
+    var i, t, m, head = null, rel = null,
+        load = {}, tau = {}, means = {}, vars = {}, scales = {}, order = [], seen = {};
+    for (i = 0; i < B.length; i++) {
+      t = B[i].replace(/\s+$/, "");
+      if (!t.trim()) continue;
+      m = /^\s{0,4}([A-Za-z][A-Za-z0-9_$#.]*)\s+(BY|ON|WITH|\|)\s*$/.exec(t);
+      if (m) { head = m[1].toUpperCase(); rel = m[2] === "|" ? "|" : m[2].toUpperCase(); continue; }
+      m = /^\s{0,4}(Means|Intercepts|Variances|Residual Variances|Thresholds|Scales|New\/Additional Parameters)\s*$/.exec(t);
+      if (m) { head = null; rel = m[1]; continue; }
+      m = /^\s+([A-Za-z][A-Za-z0-9_$#.]*)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s*$/.exec(t);
+      if (!m || !rel) continue;
+      var name = m[1].toUpperCase(), v = n(m[2]), se = n(m[3]);
+      if (rel === "BY") {
+        if (!load[head]) load[head] = {};
+        load[head][name] = { est: v, se: se };
+        if (!seen[name]) { seen[name] = 1; order.push(name); }
+      } else if (rel === "Thresholds") {
+        var p = name.split("$"), item = p[0], k = p.length > 1 ? parseInt(p[1], 10) : 1;
+        if (!tau[item]) tau[item] = [];
+        tau[item].push({ k: k, est: v, se: se });
+      } else if (rel === "Means" || rel === "Intercepts") {
+        if (means[name] === undefined) means[name] = v;
+      } else if (rel === "Variances" || rel === "Residual Variances") {
+        if (vars[name] === undefined) vars[name] = v;
+      } else if (rel === "Scales") {
+        if (scales[name] === undefined) scales[name] = v;
+      }
+    }
+    var key;
+    for (key in tau) if (tau.hasOwnProperty(key)) tau[key].sort(function (x, y) { return x.k - y.k; });
+    var factors = [];
+    for (key in load) if (load.hasOwnProperty(key)) factors.push(key);
+    if (!factors.length) return null;
+    return { load: load, tau: tau, means: means, vars: vars, scales: scales, factors: factors, items: order };
+  }
+
+  function estimatorOf(text) {
+    var m = /^\s*Estimator\s+([A-Z]+)\s*$/m.exec(String(text));
+    return m ? m[1] : null;
+  }
+  function linkOf(text) {
+    var m = /^\s*Link\s+([A-Z]+)\s*$/m.exec(String(text));
+    return m ? m[1] : null;
+  }
+  function parameterizationOf(text) {
+    var m = /^\s*Parameterization\s+([A-Z]+)\s*$/m.exec(String(text));
+    return m ? m[1] : null;
+  }
+  function categoricalNames(text) {
+    var out = [], re = /^\s*(?:Binary and ordered categorical \(ordinal\)|Unordered categorical \(nominal\))\s*$/m;
+    var L = lines(text), i, at = -1, j;
+    for (i = 0; i < L.length; i++) if (/^\s*Binary and ordered categorical \(ordinal\)\s*$/.test(L[i])) { at = i; break; }
+    if (at < 0) return null;
+    for (j = at + 1; j < L.length; j++) {
+      if (!L[j].trim()) break;
+      var m = L[j].match(/[A-Za-z][A-Za-z0-9_$#.]*/g);
+      if (m) for (i = 0; i < m.length; i++) out.push(m[i].toUpperCase());
+    }
+    return out.length ? out : null;
+  }
+
+  /* How many categories each item has, from the proportions Mplus prints
+     for every categorical variable. */
+  function categoryCounts(text) {
+    var L = lines(text), i, at = -1, out = {}, cur = null;
+    for (i = 0; i < L.length; i++) if (/^UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES\s*$/.test(L[i])) { at = i; break; }
+    if (at < 0) return null;
+    for (i = at + 1; i < L.length; i++) {
+      if (/^[A-Z][A-Z ,\-]{8,}$/.test(L[i]) && !/^\s/.test(L[i])) break;
+      var m = /^\s{2,6}([A-Za-z][A-Za-z0-9_$#.]*)\s*$/.exec(L[i]);
+      if (m) { cur = m[1].toUpperCase(); out[cur] = 0; continue; }
+      if (cur && /^\s+Category\s+\d+/.test(L[i])) out[cur]++;
+    }
+    var any = false, k;
+    for (k in out) if (out.hasOwnProperty(k)) any = true;
+    return any ? out : null;
+  }
+
+  /* The item response metric. When the file carries the block Mplus
+     prints, the values are taken from it; otherwise they are obtained
+     from the loading and the thresholds, which is the same relation
+     written the other way round: a = lambda, b = tau / lambda
+     (Wang & Wang, 2020, Eqs. 2.12, 2.13, 2.24 and 2.25). */
+  function metric(text) {
+    var mr = readModel(text);
+    if (!mr) return null;
+    var blk = readIrtBlock(text);
+    var factor = null, key, items = [], i;
+    if (blk) {
+      for (key in blk.disc) if (blk.disc.hasOwnProperty(key)) { factor = blk.disc[key].factor; break; }
+    }
+    if (!factor) factor = mr.factors[0];
+    var lam = mr.load[factor] || {};
+    var names = [];
+    for (i = 0; i < mr.items.length; i++) if (lam[mr.items[i]]) names.push(mr.items[i]);
+    var counts = categoryCounts(text);
+    var fromBlock = false;
+    var link = linkOf(text), par = parameterizationOf(text);
+    var probit = (link === "PROBIT");
+    var est = estimatorOf(text);
+    var wls = /^(WLS|ULS)/.test(est || "");
+    var psi = mr.vars[factor];
+    if (psi === undefined || psi === null) psi = (blk && blk.factorVariance !== null && blk.factorVariance !== undefined) ? blk.factorVariance : 1;
+    var alpha = mr.means[factor];
+    if (alpha === undefined || alpha === null) alpha = 0;
+    var rootPsi = psi > 0 ? Math.sqrt(psi) : null;
+    for (i = 0; i < names.length; i++) {
+      var nm = names[i], a = null, aSE = null, b = [], src, rule;
+      var lj = lam[nm] ? lam[nm].est : null;
+      var theta = (mr.vars[nm] === undefined || mr.vars[nm] === null) ? 1 : mr.vars[nm];
+      var delta = (mr.scales[nm] === undefined || mr.scales[nm] === null) ? 1 : mr.scales[nm];
+      if (blk && blk.disc[nm]) {
+        a = blk.disc[nm].est; aSE = blk.disc[nm].se; fromBlock = true; src = "file"; rule = "file";
+      } else if (lj === null || rootPsi === null) {
+        src = "computed"; rule = "none";
+      } else if (wls && par === "DELTA") {
+        var q2 = (1 / (delta * delta)) * (1 / (lj * lj)) * (1 / psi) - 1;
+        a = q2 > 0 ? 1 / Math.sqrt(q2) : null;
+        src = "computed"; rule = "delta";
+      } else if (wls) {
+        a = theta > 0 ? lj * rootPsi / Math.sqrt(theta) : null;
+        src = "computed"; rule = "theta";
+      } else {
+        a = lj * rootPsi;
+        src = "computed"; rule = "ml";
+      }
+      if (blk && blk.diff[nm]) {
+        for (var j = 0; j < blk.diff[nm].length; j++) b.push({ k: blk.diff[nm][j].k, est: blk.diff[nm][j].est, se: blk.diff[nm][j].se });
+      } else if (mr.tau[nm] && lj && rootPsi) {
+        for (var q = 0; q < mr.tau[nm].length; q++)
+          b.push({ k: mr.tau[nm][q].k, est: (mr.tau[nm][q].est - lj * alpha) / (lj * rootPsi), se: null });
+      }
+      var nc = counts && counts[nm] ? counts[nm] : (b.length + 1);
+      items.push({ name: nm, a: a, aSE: aSE, b: b, categories: nc, source: src, rule: rule,
+        lambda: lj, residual: theta, scale: delta,
+        tau: mr.tau[nm] ? mr.tau[nm].map(function (x) { return x.est; }) : [] });
+    }
+    if (!items.length) return null;
+    return { factor: factor, items: items, factorMean: alpha,
+      factorVariance: psi, fromBlock: fromBlock, factors: mr.factors,
+      estimator: est, link: link, parameterization: par, probit: probit, wls: wls };
+  }
+
+  /* Response functions in the metric in which the reported IRT
+     discrimination is defined.  Mplus does not rescale probit
+     discriminations by D=1.7 (Asparouhov & Muthen, 2020, Eq. 23). */
+  function logistic(z) { return 1 / (1 + Math.exp(-z)); }
+  function p2pl(a, b, theta) { return logistic(a * (theta - b)); }
+  function normalPdf(z) { return Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI); }
+  /* Abramowitz-Stegun 7.1.26: more than sufficient for display and the
+     numerical checks on these curves. */
+  function normalCdf(z) {
+    var x = Math.abs(z), t = 1 / (1 + 0.2316419 * x);
+    var d = 0.3989422804014327 * Math.exp(-x * x / 2);
+    var q = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+    var c = 1 - q;
+    return z >= 0 ? c : 1 - c;
+  }
+  function linkCdf(z, link) { return String(link || "LOGIT").toUpperCase() === "PROBIT" ? normalCdf(z) : logistic(z); }
+  function linkPdf(z, link) {
+    if (String(link || "LOGIT").toUpperCase() === "PROBIT") return normalPdf(z);
+    var p = logistic(z); return p * (1 - p);
+  }
+
+  /* Category probabilities of the graded response model.  With one
+     threshold this is the ordinary binary response model. */
+  function gradedCurves(item, theta, link) {
+    var m = item.b.length, i, cum = [1], out = [];
+    for (i = 0; i < m; i++) cum.push(linkCdf(item.a * (theta - item.b[i].est), link));
+    cum.push(0);
+    for (i = 0; i <= m; i++) out.push(Math.max(0, cum[i] - cum[i + 1]));
+    return out;
+  }
+
+  /* Samejima information in its general categorical form,
+       I(theta) = sum_r [P'_r(theta)^2 / P_r(theta)].
+     This is exact for both the logistic and normal-ogive graded response
+     models and reduces to a^2 P(1-P) for a binary logistic item. */
+  function gradedInformation(item, theta, link) {
+    if (!item || !(item.a !== null && isFinite(item.a)) || !item.b || !item.b.length) return 0;
+    var m = item.b.length, i, cum = [1], der = [0], info = 0;
+    for (i = 0; i < m; i++) {
+      var z = item.a * (theta - item.b[i].est);
+      cum.push(linkCdf(z, link));
+      der.push(item.a * linkPdf(z, link));
+    }
+    cum.push(0); der.push(0);
+    for (i = 0; i <= m; i++) {
+      var p = cum[i] - cum[i + 1];
+      var dp = der[i] - der[i + 1];
+      if (p > 1e-15) info += dp * dp / p;
+    }
+    return info;
+  }
+  function itemInformation(a, b, theta, link) {
+    return gradedInformation({ a: a, b: [{ k: 1, est: b }] }, theta, link || "LOGIT");
+  }
+
+  /* Test information is the sum of the item information functions.  The
+     page intentionally reports measurement information rather than adding
+     the latent-normal prior information used for posterior factor-score SEs. */
+  function testInformation(items, theta, link) {
+    var s = 0, i;
+    for (i = 0; i < items.length; i++) s += gradedInformation(items[i], theta, link || "LOGIT");
+    return s;
+  }
+  function seeOf(info) { return info > 0 ? 1 / Math.sqrt(info) : null; }
+  function reliabilityOf(info) { var s = seeOf(info); return s === null ? null : 1 - s * s; }
+
+  function allBinary(items) {
+    var i; for (i = 0; i < items.length; i++) if (items[i].categories !== 2) return false;
+    return items.length > 0;
+  }
+  function anyBinary(items) {
+    var i; for (i = 0; i < items.length; i++) if (items[i].categories === 2) return true;
+    return false;
+  }
+
+  return { readIrtBlock: readIrtBlock, readModel: readModel, metric: metric,
+    categoryCounts: categoryCounts, categoricalNames: categoricalNames,
+    estimatorOf: estimatorOf, linkOf: linkOf, parameterizationOf: parameterizationOf,
+    p2pl: p2pl, normalCdf: normalCdf, itemInformation: itemInformation,
+    gradedInformation: gradedInformation, testInformation: testInformation,
+    seeOf: seeOf, reliabilityOf: reliabilityOf, gradedCurves: gradedCurves,
+    allBinary: allBinary, anyBinary: anyBinary };
+})();
+/* ==================================================================
+   Page
+   ================================================================== */
+function mpwFailedText(text) {
+  var w = MPWARN.classify(text), i, s = "";
+  for (i = 0; i < w.blocking.length; i++) {
+    var b = w.blocking[i];
+    s += "<li>" + (b.txt ? "<q>" + esc(b.txt) + "</q> &#8212; " : "") + b.say + ".</li>";
+  }
+  return "M<em>plus</em> reported conditions that prevent interpretation of the affected results in this run.<ul>" + s + "</ul>" +
+    "<p>The page does not compute from this file. Address the condition reported by M<em>plus</em> and rerun the model before interpreting the affected results.</p>";
+}
+
+function diagnoseFile(text) {
+  if (!text || !text.replace(/\s/g, "").length) return "empty";
+  if (!/Mplus VERSION|INPUT INSTRUCTIONS|SUMMARY OF ANALYSIS|MODEL RESULTS|MODEL FIT INFORMATION/i.test(text)) return "foreign";
+  if (MPWARN.classify(text).blocking.length) return "failed";
+  return "ok";
+}
+
+(function () {
+  "use strict";
+  function $(id) { return document.getElementById(id); }
+  function f3(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : Number(x).toFixed(3); }
+  function f2(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : Number(x).toFixed(2); }
+  function pc(x) { return (x === null || x === undefined || !isFinite(x)) ? "&#8212;" : (100 * x).toFixed(1) + "%"; }
+  function statusBlock(kind, tag, text) {
+    var glyph = kind === "ok" ? "&#10003;" : (kind === "bad" ? "&#10007;" : (kind === "info" ? "i" : "!"));
+    return '<div class="status ' + kind + '"><p><span aria-hidden="true">' + glyph + '</span> <span class="tag">' + tag + "</span> " + text + "</p></div>";
+  }
+  var OKABE = ["#000000", "#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9"];
+  var STATE = { m: null, name: "" };
+  var GRID = [];
+  (function () { var t; for (t = -4; t <= 4.0001; t += 0.05) GRID.push(Math.round(t * 1000) / 1000); })();
+
+  /* ---------------- the metric ---------------- */
+
+  function renderMetric() {
+    var m = STATE.m, host = $("metric");
+    if (!m) { host.innerHTML = EMPTY.metric; return; }
+    var i, j, maxB = 0, html = "";
+    for (i = 0; i < m.items.length; i++) maxB = Math.max(maxB, m.items[i].b.length);
+    var rule = m.items[0].rule;
+    var says = { file: "The discriminations and the difficulties are the ones the file itself reports, and the loadings and thresholds they come from are printed beside them.",
+      ml: "This run was fitted by maximum likelihood, so the discrimination of an item is its loading multiplied by the standard deviation of the factor.",
+      delta: "This run was fitted by weighted least squares with the delta parameterization, so the discrimination of an item follows the expression written for that case in the methods below.",
+      theta: "This run was fitted by weighted least squares with the theta parameterization, so the discrimination of an item is its loading multiplied by the factor standard deviation and divided by the residual standard deviation of the underlying response variable.",
+      none: "The loadings this page needs are not all in the file." };
+    html += '<p class="table-note">' + says[rule] +
+      " The variance of the factor in this run is " + f3(m.factorVariance) + " and its mean is " + f3(m.factorMean) +
+      ", and both enter the passage into the response metric, so the values below do not depend on how the factor was scaled.</p>";
+    html += '<div class="table-wrap"><table><caption>The items in the response metric</caption><thead><tr>' +
+      '<th scope="col">Item</th><th class="num" scope="col">Categories</th>' +
+      '<th class="num" scope="col">Loading</th><th class="num" scope="col">Discrimination</th>';
+    for (j = 0; j < maxB; j++) html += '<th class="num" scope="col">' + (maxB === 1 ? "Difficulty" : "Difficulty " + (j + 1)) + "</th>";
+    html += "</tr></thead><tbody>";
+    for (i = 0; i < m.items.length; i++) {
+      var it = m.items[i];
+      html += '<tr><th scope="row">' + esc(it.name) + '</th><td class="num">' + it.categories + "</td>";
+      html += '<td class="num">' + f3(it.lambda) + '</td><td class="num">' + f3(it.a) + "</td>";
+      for (j = 0; j < maxB; j++) html += '<td class="num">' + (it.b[j] ? f3(it.b[j].est) : "&#8212;") + "</td>";
+      html += "</tr>";
+    }
+    html += "</tbody></table></div>";
+    html += '<p class="hint">A difficulty is the value of the trait at which the probability of answering in that category or above is one half, and it is read on the same scale as the trait. A discrimination is the steepness of the curve at that point: the larger it is, the more sharply the item separates people who lie just above the difficulty from people who lie just below it.</p>';
+    if (m.fromBlock) {
+      var worst = 0, has = false;
+      for (i = 0; i < m.items.length; i++) {
+        var t = m.items[i];
+        if (t.lambda && t.tau.length && t.b.length) {
+          has = true;
+          worst = Math.max(worst, Math.abs(t.b[0].est - t.tau[0] / t.lambda));
+        }
+      }
+      if (has) html += '<p class="hint">The difficulty of the first threshold obtained from the loading and the threshold of the same item departs from the one in the file by at most ' + f3(worst) + ", which is the rounding of the printed values.</p>";
+    }
+    host.innerHTML = html;
+  }
+
+  /* ---------------- the information ---------------- */
+
+  function informationItems() {
+    var m = STATE.m, out = [], i;
+    for (i = 0; i < m.items.length; i++)
+      if (m.items[i].a !== null && isFinite(m.items[i].a) && m.items[i].b.length) out.push(m.items[i]);
+    return out;
+  }
+
+  function renderInfo() {
+    var m = STATE.m, host = $("info");
+    if (!m) { host.innerHTML = EMPTY.info; return; }
+    var items = informationItems(), html = "";
+    if (!items.length) {
+      host.innerHTML = statusBlock("info", "No information curve is drawn.",
+        "None of the items contains both a usable discrimination and at least one difficulty, so an item response function cannot be reconstructed from this output.");
+      return;
+    }
+    if (items.length < m.items.length)
+      html += statusBlock("warn", "Some items are omitted from the information curve.",
+        (m.items.length - items.length) + " of the " + m.items.length + " items do not contain all quantities needed to reconstruct their response function. The curve uses the remaining " + items.length + ".");
+    if (m.probit)
+      html += statusBlock("info", "Normal-ogive information.",
+        "This run uses the probit link. The response probabilities and information below are therefore evaluated with the standard normal distribution, using the discrimination on the normal-ogive metric. No 1.7 rescaling is applied.");
+    var info = GRID.map(function (t) { return IRT.testInformation(items, t, m.link); });
+    html += testChart(info);
+    html += '<div class="table-wrap"><table><caption>The test at selected points of the trait</caption><thead><tr><th scope="col">Trait</th>' +
+      '<th class="num" scope="col">Information</th><th class="num" scope="col">Standard error of estimation</th><th class="num" scope="col">Reliability</th></tr></thead><tbody>';
+    var pts = [-3, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 3], k;
+    for (k = 0; k < pts.length; k++) {
+      var I = IRT.testInformation(items, pts[k], m.link);
+      html += '<tr><th scope="row">' + pts[k].toFixed(1) + '</th><td class="num">' + f3(I) +
+        '</td><td class="num">' + f3(IRT.seeOf(I)) + '</td><td class="num">' + f3(IRT.reliabilityOf(I)) + "</td></tr>";
+    }
+    html += "</tbody></table></div>";
+    html += '<p class="hint">Where information falls below one, the local reliability expression becomes negative. That is not a reliability coefficient to report as such; it is a direct sign that conditional measurement error is larger than the unit variance of the standardized trait at that point.</p>';
+    html += bands(items, m.link);
+    html += itemPanels(items, m.link);
+    host.innerHTML = html;
+  }
+
+  /* The stretch of the trait over which the test measures with a given
+     precision, read off the same curve. */
+  function bands(items, link) {
+    var out = "", levels = [0.8, 0.9], k, i;
+    var rows = "";
+    for (k = 0; k < levels.length; k++) {
+      var lo = null, hi = null;
+      for (i = 0; i < GRID.length; i++) {
+        var I = IRT.testInformation(items, GRID[i], link);
+        var r = IRT.reliabilityOf(I);
+        if (r !== null && r >= levels[k]) { if (lo === null) lo = GRID[i]; hi = GRID[i]; }
+      }
+      rows += '<tr><th scope="row">' + levels[k].toFixed(2) + '</th><td class="num">' +
+        (lo === null ? "nowhere in the range drawn" : lo.toFixed(2) + " to " + hi.toFixed(2)) + "</td></tr>";
+    }
+    out += '<div class="table-wrap"><table><caption>Where the test reaches a given local reliability</caption><thead><tr>' +
+      '<th scope="col">Reliability</th><th class="num" scope="col">Range of the trait</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    out += '<p class="hint">Local reliability changes along the trait. The intervals above are read from the information curve and show where the requested precision is reached; they are not substitutes for a single marginal reliability coefficient.</p>';
+    return out;
+  }
+
+  function testChart(info) {
+    var i, W = 680, H = 300, ml = 56, mr = 18, mt = 16, mb = 44;
+    var hiI = Math.max.apply(null, info);
+    if (!(hiI > 0)) return "";
+    function px(t) { return ml + (t + 4) / 8 * (W - ml - mr); }
+    function py(v) { return H - mb - v / (hiI * 1.08) * (H - mt - mb); }
+    var s = '<figure class="panel-chart"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-labelledby="tif-t tif-d" preserveAspectRatio="xMidYMid meet">';
+    s += '<title id="tif-t">The information of the test</title><desc id="tif-d">The information the whole test carries at every level of the trait between minus four and four. The same quantity is in the table below at selected points.</desc>';
+    var k;
+    for (k = 0; k <= 4; k++) {
+      var yv = hiI * 1.08 * k / 4, yy = py(yv);
+      s += '<line x1="' + ml + '" y1="' + yy.toFixed(1) + '" x2="' + (W - mr) + '" y2="' + yy.toFixed(1) + '" stroke="#d8d8d8" stroke-width="1"/>';
+      s += '<text x="' + (ml - 8) + '" y="' + (yy + 4).toFixed(1) + '" text-anchor="end" font-size="12" fill="#444">' + yv.toFixed(1) + "</text>";
+    }
+    for (k = -4; k <= 4; k += 2)
+      s += '<text x="' + px(k).toFixed(1) + '" y="' + (H - mb + 18) + '" text-anchor="middle" font-size="12" fill="#444">' + k + "</text>";
+    s += '<text x="' + ((ml + W - mr) / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="12" fill="#444">Trait</text>';
+    s += '<line x1="' + ml + '" y1="' + (H - mb) + '" x2="' + (W - mr) + '" y2="' + (H - mb) + '" stroke="#444" stroke-width="1"/>';
+    var d = "";
+    for (i = 0; i < GRID.length; i++) d += (i ? " L" : "M") + px(GRID[i]).toFixed(1) + " " + py(info[i]).toFixed(1);
+    s += '<path d="' + d + '" fill="none" stroke="' + OKABE[1] + '" stroke-width="2"/>';
+    var at = 0;
+    for (i = 0; i < info.length; i++) if (info[i] > info[at]) at = i;
+    s += '<circle cx="' + px(GRID[at]).toFixed(1) + '" cy="' + py(info[at]).toFixed(1) + '" r="5" fill="none" stroke="' + OKABE[2] + '" stroke-width="2"/>';
+    s += '<text x="' + px(GRID[at]).toFixed(1) + '" y="' + (py(info[at]) - 12).toFixed(1) + '" text-anchor="middle" font-size="12" fill="#444">most at ' + GRID[at].toFixed(2) + "</text>";
+    s += "</svg><figcaption>The information of the whole test along the trait. The circle marks where it is greatest, which is where the trait is estimated most precisely.</figcaption></figure>";
+    return s;
+  }
+
+  /* One panel per item, all on the same vertical scale. */
+  function itemPanels(items, link) {
+    var i, k, hi = 0, curves = [];
+    for (i = 0; i < items.length; i++) {
+      (function (item) {
+        var c = GRID.map(function (t) { return IRT.gradedInformation(item, t, link); });
+        curves.push(c);
+        for (k = 0; k < c.length; k++) if (c[k] > hi) hi = c[k];
+      })(items[i]);
+    }
+    if (!(hi > 0)) return "";
+    var out = '<h3>The information of every item</h3><p class="hint">One panel per item, all drawn on the same vertical scale. Binary and ordered polytomous items use the same general information definition, so the panels are directly comparable within the fitted link and trait metric.</p><div class="panel-grid">';
+    var W = 220, H = 130, ml = 28, mr = 8, mt = 10, mb = 24;
+    function px(t) { return ml + (t + 4) / 8 * (W - ml - mr); }
+    function py(v) { return H - mb - v / (hi * 1.08) * (H - mt - mb); }
+    for (i = 0; i < items.length; i++) {
+      var s = '<figure class="panel"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="The information of item ' + esc(items[i].name) + '" preserveAspectRatio="xMidYMid meet">';
+      s += '<line x1="' + ml + '" y1="' + (H - mb) + '" x2="' + (W - mr) + '" y2="' + (H - mb) + '" stroke="#999" stroke-width="1"/>';
+      s += '<line x1="' + ml + '" y1="' + mt + '" x2="' + ml + '" y2="' + (H - mb) + '" stroke="#999" stroke-width="1"/>';
+      var d = "";
+      for (k = 0; k < GRID.length; k++) d += (k ? " L" : "M") + px(GRID[k]).toFixed(1) + " " + py(curves[i][k]).toFixed(1);
+      s += '<path d="' + d + '" fill="none" stroke="' + OKABE[1] + '" stroke-width="2"/>';
+      s += '<text x="' + ml + '" y="' + (H - 6) + '" font-size="11" fill="#444">&#8722;4</text>';
+      s += '<text x="' + (W - mr) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11" fill="#444">4</text>';
+      s += '<text x="' + (ml - 4) + '" y="' + (mt + 8) + '" text-anchor="end" font-size="11" fill="#444">' + hi.toFixed(1) + "</text>";
+      var loc = items[i].b.length === 1 ? "difficulty " + items[i].b[0].est.toFixed(2) : items[i].b.length + " difficulties";
+      s += "</svg><figcaption>" + esc(items[i].name) + " &#8212; " + loc + ", discrimination " + items[i].a.toFixed(2) + "</figcaption></figure>";
+      out += s;
+    }
+    return out + "</div>";
+  }
+
+  /* ---------------- the category curves ---------------- */
+
+  function fillItemPicker() {
+    var m = STATE.m, sel = $("which"), i, html = "";
+    for (i = 0; i < m.items.length; i++)
+      if (m.items[i].b.length > 1) html += '<option value="' + i + '">' + esc(m.items[i].name) + "</option>";
+    if (!html) { sel.innerHTML = ""; return false; }
+    sel.innerHTML = html;
+    return true;
+  }
+
+  function renderCurves() {
+    var m = STATE.m, host = $("curves");
+    if (!m) { host.innerHTML = EMPTY.curves; return; }
+    var sel = $("which");
+    if (!sel.options.length) {
+      host.innerHTML = statusBlock("info", "No category curve is drawn.",
+        "Every item of this model has two categories, so there is one curve per item and it is the item response function itself, whose steepness and position are the discrimination and the difficulty reported above.");
+      return;
+    }
+    var it = m.items[parseInt(sel.value, 10)];
+    var a = it.a;
+    var i, k, W = 680, H = 320, ml = 50, mr = 120, mt = 16, mb = 44;
+    function px(t) { return ml + (t + 4) / 8 * (W - ml - mr); }
+    function py(v) { return H - mb - v * (H - mt - mb); }
+    var s = '<figure class="panel-chart"><svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="The probability of every category of item ' + esc(it.name) + ' at each level of the trait" preserveAspectRatio="xMidYMid meet">';
+    for (k = 0; k <= 4; k++) {
+      var yy = py(k / 4);
+      s += '<line x1="' + ml + '" y1="' + yy.toFixed(1) + '" x2="' + (W - mr) + '" y2="' + yy.toFixed(1) + '" stroke="#d8d8d8" stroke-width="1"/>';
+      s += '<text x="' + (ml - 8) + '" y="' + (yy + 4).toFixed(1) + '" text-anchor="end" font-size="12" fill="#444">' + (k / 4).toFixed(2) + "</text>";
+    }
+    for (k = -4; k <= 4; k += 2)
+      s += '<text x="' + px(k).toFixed(1) + '" y="' + (H - mb + 18) + '" text-anchor="middle" font-size="12" fill="#444">' + k + "</text>";
+    s += '<text x="' + ((ml + W - mr) / 2).toFixed(1) + '" y="' + (H - 8) + '" text-anchor="middle" font-size="12" fill="#444">Trait</text>';
+    var dash = ["", "6 4", "2 3", "8 3 2 3", "1 3", "10 4"];
+    var ncat = it.b.length + 1;
+    for (k = 0; k < ncat; k++) {
+      var d = "";
+      for (i = 0; i < GRID.length; i++) {
+        var pr = IRT.gradedCurves({ a: a, b: it.b }, GRID[i], m.link)[k];
+        d += (i ? " L" : "M") + px(GRID[i]).toFixed(1) + " " + py(pr).toFixed(1);
+      }
+      s += '<path d="' + d + '" fill="none" stroke="' + OKABE[k % OKABE.length] + '" stroke-width="2"' +
+        (dash[k % dash.length] ? ' stroke-dasharray="' + dash[k % dash.length] + '"' : "") + "/>";
+      s += '<text x="' + (W - mr + 8) + '" y="' + (mt + 16 + k * 18) + '" font-size="12" fill="#444">Category ' + (k + 1) + "</text>";
+      s += '<line x1="' + (W - mr - 26) + '" y1="' + (mt + 12 + k * 18) + '" x2="' + (W - mr + 2) + '" y2="' + (mt + 12 + k * 18) +
+        '" stroke="' + OKABE[k % OKABE.length] + '" stroke-width="2"' + (dash[k % dash.length] ? ' stroke-dasharray="' + dash[k % dash.length] + '"' : "") + "/>";
+    }
+    s += "</svg><figcaption>The probability of every category of " + esc(it.name) + " at each level of the trait.</figcaption></figure>";
+    s += '<p class="hint">A category whose curve never rises above the others anywhere on the trait is a category no one is ever most likely to choose, which is a reason to look again at how the response scale is working.</p>';
+    host.innerHTML = s;
+  }
+
+  function renderAll() { renderMetric(); renderInfo(); renderCurves(); }
+
+  var EMPTY = {};
+  function remember() { ["metric", "info", "curves"].forEach(function (id) { EMPTY[id] = $(id).innerHTML; }); }
+
+  function handleFile(file) {
+    readTextFile(file, function (text) {
+      STATE = { m: null, name: file.name || "" };
+      renderAll();
+      var d = diagnoseFile(text);
+      if (d === "empty") { $("report").innerHTML = statusBlock("bad", "Nothing to read.", "The file is empty."); return; }
+      if (d === "foreign") {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "The file carries none of the headings an " + MP + " output has, so it is not an output file."); return;
+      }
+      if (d === "failed") { $("report").innerHTML = statusBlock("bad", "The results of this run are not to be interpreted.", mpwFailedText(text)); return; }
+      var m = IRT.metric(text);
+      if (!m) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was read from this file.",
+          "MODEL RESULTS carries no factor with indicators, so there is no measurement model to put in the response metric.");
+        return;
+      }
+      if (!m.items.length || !m.items[0].b.length) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was computed.",
+          "The items of this model have no thresholds, so they were not declared categorical. The response metric is defined for a model whose items are binary or ordered categorical; add them to the <code>CATEGORICAL</code> list and run the model again.");
+        return;
+      }
+      if (m.factors.length > 1) {
+        $("report").innerHTML = statusBlock("bad", "Nothing was computed.",
+          "This model has " + m.factors.length + " factors. The response metric of an item is defined against one trait, and an item that loads on more than one does not have a single difficulty. Fit the items of one scale at a time and load that output.");
+        return;
+      }
+      STATE.m = m;
+      $("file-name").textContent = file.name || "";
+      var msg = "Read " + m.items.length + " item" + (m.items.length === 1 ? "" : "s") + " on the factor " + esc(m.factor) +
+        ", estimated with " + esc(m.estimator || "an estimator the file does not name") +
+        (m.link ? " and the " + m.link.toLowerCase() + " link" : "") + ".";
+      msg += m.fromBlock
+        ? " The file carries the response metric itself, and the page reads it from there."
+        : " The response metric is obtained from the loadings and the thresholds.";
+      $("report").innerHTML = statusBlock("ok", "File read.", msg);
+      fillItemPicker();
+      renderAll();
+    }, function () {
+      $("report").innerHTML = statusBlock("bad", "The file could not be read.", "The browser refused to open it.");
+    });
+  }
+
+  remember();
+  var drop = $("drop"), input = $("file");
+  input.addEventListener("change", function () { if (input.files && input.files[0]) handleFile(input.files[0]); });
+  drop.addEventListener("dragover", function (e) { e.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", function () { drop.classList.remove("over"); });
+  drop.addEventListener("drop", function (e) {
+    e.preventDefault(); drop.classList.remove("over");
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  drop.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
+  $("which").addEventListener("change", renderCurves);
+})();
+/* ==================================================================
+   Self-test
+   ================================================================== */
+function selfTest() {
+  var checks = [], failed = 0;
+  function ok(name, got, want, tol) {
+    var t = tol === undefined ? 1e-12 : tol;
+    var good = (typeof want === "number") ? (isFinite(got) && Math.abs(got - want) <= t) : (got === want);
+    if (!good) failed++;
+    checks.push({ name: name, got: got, want: want, ok: good });
+  }
+  function okTrue(name, cond) { ok(name, !!cond, true); }
+
+  /* ---- the item response function and its information ---- */
+  ok("the response function at the difficulty is one half", IRT.p2pl(1.5, 0.4, 0.4), 0.5, 1e-12);
+  ok("far above the difficulty it is close to one", IRT.p2pl(1.5, 0, 6) > 0.9998, true);
+  ok("far below it is close to zero", IRT.p2pl(1.5, 0, -6) < 0.0002, true);
+  ok("the response function against its definition",
+     IRT.p2pl(1.2, -0.3, 0.8), 1 / (1 + Math.exp(-1.2 * (0.8 + 0.3))), 1e-14);
+  ok("the information at the difficulty is the square of the discrimination over four",
+     IRT.itemInformation(1.5, 0.4, 0.4), 1.5 * 1.5 / 4, 1e-12);
+  ok("the information against its definition",
+     IRT.itemInformation(0.9, 0.2, 1.1),
+     0.81 * IRT.p2pl(0.9, 0.2, 1.1) * (1 - IRT.p2pl(0.9, 0.2, 1.1)), 1e-14);
+  ok("the normal CDF at zero is one half", IRT.normalCdf(0), 0.5, 1e-7);
+  var ip0 = IRT.itemInformation(1.2, 0.4, 0.4, "PROBIT");
+  ok("binary probit information at the difficulty follows phi(0)^2 over P Q",
+     ip0, 1.2 * 1.2 * (1 / (2 * Math.PI)) / 0.25, 2e-7);
+  /* the information of an item is greatest at its difficulty */
+  var best = -9, bestAt = null, t;
+  for (t = -4; t <= 4.0001; t += 0.01) {
+    var v = IRT.itemInformation(1.3, 0.7, t);
+    if (v > best) { best = v; bestAt = t; }
+  }
+  ok("the information of an item peaks at its difficulty", Math.abs(bestAt - 0.7) < 0.02, true);
+
+  /* ---- the test, the standard error and the reliability ---- */
+  var set = [
+    { name: "U1", a: 1.0, b: -0.5, categories: 2 },
+    { name: "U2", a: 1.5, b: 0.0, categories: 2 },
+    { name: "U3", a: 0.8, b: 0.5, categories: 2 }
+  ].map(function (x) { return { name: x.name, a: x.a, b: [{ k: 1, est: x.b }], categories: 2 }; });
+  var I0 = IRT.testInformation(set, 0);
+  ok("the information of the test is the sum over the items", I0,
+     IRT.itemInformation(1.0, -0.5, 0) + IRT.itemInformation(1.5, 0, 0) + IRT.itemInformation(0.8, 0.5, 0), 1e-14);
+  ok("the standard error is the reciprocal of the square root", IRT.seeOf(I0), 1 / Math.sqrt(I0), 1e-14);
+  ok("the reliability follows from it", IRT.reliabilityOf(I0), 1 - 1 / I0, 1e-14);
+  ok("with no information there is no standard error", IRT.seeOf(0), null);
+  var many = [], i;
+  for (i = 0; i < 40; i++) many.push({ name: "U" + i, a: 1.2, b: [{ k: 1, est: 0 }], categories: 2 });
+  okTrue("a longer test carries more information", IRT.testInformation(many, 0) > I0);
+  okTrue("and is measured with a smaller standard error", IRT.seeOf(IRT.testInformation(many, 0)) < IRT.seeOf(I0));
+
+  /* ---- the categories of a graded item ---- */
+  var gr = { a: 1.4, b: [{ k: 1, est: -1 }, { k: 2, est: 0.2 }, { k: 3, est: 1.3 }] };
+  var pr = IRT.gradedCurves(gr, 0.4, "LOGIT");
+  ok("a graded item with three thresholds has four categories", pr.length, 4);
+  var sum = 0; for (i = 0; i < pr.length; i++) sum += pr[i];
+  ok("the probabilities of the categories add to one", sum, 1, 1e-12);
+  var allPos = true; for (i = 0; i < pr.length; i++) if (pr[i] < 0) allPos = false;
+  okTrue("and none of them is negative", allPos);
+  ok("the probability of the first category is one minus the first cumulative probability",
+     pr[0], 1 - IRT.p2pl(1.4, -1, 0.4), 1e-14);
+  ok("far below every threshold the first category is almost certain",
+     IRT.gradedCurves(gr, -6, "LOGIT")[0] > 0.99, true);
+  okTrue("a graded logistic item carries positive information", IRT.gradedInformation(gr, 0.4, "LOGIT") > 0);
+  var prp = IRT.gradedCurves(gr, 0.4, "PROBIT"), sump = 0;
+  for (i = 0; i < prp.length; i++) sump += prp[i];
+  ok("probit graded category probabilities also add to one", sump, 1, 2e-7);
+  okTrue("a graded probit item carries positive information", IRT.gradedInformation(gr, 0.4, "PROBIT") > 0);
+
+  /* ---- a run fitted by maximum likelihood, which prints the metric ---- */
+  var ml = [
+    "Mplus VERSION 8.8", "",
+    "SUMMARY OF ANALYSIS", "",
+    "Estimator                                                       ML",
+    "Link                                                         LOGIT", "",
+    "UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES", "",
+    "    U1",
+    "      Category 1    0.426          213.000",
+    "      Category 2    0.574          287.000",
+    "    U2",
+    "      Category 1    0.412          206.000",
+    "      Category 2    0.588          294.000", "",
+    "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " F        BY",
+    "    U1                 1.026      0.152      6.755      0.000",
+    "    U2                 1.062      0.157      6.780      0.000", "",
+    " Thresholds",
+    "    U1$1              -0.368      0.116     -3.172      0.002",
+    "    U2$1              -0.443      0.119     -3.723      0.000", "",
+    " Variances",
+    "    F                  1.000      0.000    999.000    999.000", "",
+    "IRT PARAMETERIZATION", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " Item Discriminations", "",
+    " F        BY",
+    "    U1                 1.026      0.152      6.755      0.000",
+    "    U2                 1.062      0.157      6.780      0.000", "",
+    " Item Difficulties",
+    "    U1                -0.359      0.113     -3.176      0.001",
+    "    U2                -0.417      0.112     -3.721      0.000", "",
+    " Variances",
+    "    F                  1.000      0.000      0.000      1.000", "",
+    "QUALITY OF NUMERICAL RESULTS"
+  ].join("\n");
+  var m = IRT.metric(ml);
+  okTrue("the model is read", !!m);
+  ok("the estimator is read", m.estimator, "ML");
+  ok("the link is read", m.link, "LOGIT");
+  ok("two items are read", m.items.length, 2);
+  ok("the discrimination comes from the block the file prints", m.items[0].source, "file");
+  ok("its value", m.items[0].a, 1.026, 1e-12);
+  ok("the discrimination is the loading", m.items[0].a, m.items[0].lambda, 1e-12);
+  ok("the difficulty", m.items[0].b[0].est, -0.359, 1e-12);
+  ok("the difficulty is the threshold over the loading",
+     Math.abs(m.items[0].b[0].est - m.items[0].tau[0] / m.items[0].lambda) < 6e-4, true);
+  ok("the item has two categories", m.items[0].categories, 2);
+  ok("the factor variance is one", m.factorVariance, 1, 1e-12);
+  okTrue("every item is binary", IRT.allBinary(m.items));
+
+  /* the same file without the block it prints: the metric is obtained
+     from the loadings and the thresholds and comes out the same */
+  var noBlock = ml.slice(0, ml.indexOf("IRT PARAMETERIZATION")) + "QUALITY OF NUMERICAL RESULTS";
+  var m2 = IRT.metric(noBlock);
+  ok("without the block the discrimination is computed", m2.items[0].source, "computed");
+  ok("and agrees with the one the file gave", Math.abs(m2.items[0].a - m.items[0].a) < 1e-9, true);
+  ok("and so does the difficulty", Math.abs(m2.items[0].b[0].est - m.items[0].b[0].est) < 6e-4, true);
+
+  /* ---- a run fitted by weighted least squares, which is the probit ---- */
+  var wls = [
+    "Mplus VERSION 8.8", "",
+    "SUMMARY OF ANALYSIS", "",
+    "Estimator                                                    WLSMV",
+    "Parameterization                                             DELTA",
+    "Link                                                        PROBIT", "",
+    "UNIVARIATE PROPORTIONS AND COUNTS FOR CATEGORICAL VARIABLES", "",
+    "    U1",
+    "      Category 1    0.200          200.000",
+    "      Category 2    0.300          300.000",
+    "      Category 3    0.300          300.000",
+    "      Category 4    0.200          200.000", "",
+    "MODEL RESULTS", "",
+    "                                                    Two-Tailed",
+    "                    Estimate       S.E.  Est./S.E.    P-Value", "",
+    " F        BY",
+    "    U1                 0.697      0.030     23.233      0.000", "",
+    " Thresholds",
+    "    U1$1              -0.842      0.060    -14.033      0.000",
+    "    U1$2               0.000      0.055      0.000      1.000",
+    "    U1$3               0.842      0.060     14.033      0.000", "",
+    " Variances",
+    "    F                  1.000      0.000    999.000    999.000", "",
+    "QUALITY OF NUMERICAL RESULTS"
+  ].join("\n");
+  var mw = IRT.metric(wls);
+  okTrue("a probit run is recognised", mw.probit);
+  ok("the parameterization is read", mw.parameterization, "DELTA");
+  ok("the discrimination of a probit run", mw.items[0].a, 0.697 / Math.sqrt(1 - 0.697 * 0.697), 1e-12);
+  ok("its first difficulty is the threshold over the loading", mw.items[0].b[0].est, -0.842 / 0.697, 1e-12);
+  ok("four categories are counted", mw.items[0].categories, 4);
+  ok("three difficulties are read", mw.items[0].b.length, 3);
+  okTrue("not every item is binary", !IRT.allBinary(mw.items));
+  okTrue("a graded item carries positive information", IRT.testInformation(mw.items, 0, mw.link) > 0);
+
+  /* ---- what the page refuses ---- */
+  ok("a file with no measurement model is refused", IRT.metric("Mplus VERSION 8\nMODEL RESULTS\n\n Means\n    F                  0.000      0.000    999.000    999.000\n\nQUALITY OF NUMERICAL RESULTS"), null);
+  ok("the theta parameterization is recognised",
+     IRT.parameterizationOf(wls.replace("DELTA", "THETA")), "THETA");
+  var mt = IRT.metric(wls.replace("DELTA", "THETA"));
+  ok("under the theta parameterization the discrimination is the loading times the factor SD over the residual SD",
+     mt.items[0].a, 0.697, 1e-12);
+  ok("the rule used is named", mt.items[0].rule, "theta");
+  ok("under the delta parameterization it is the other expression", mw.items[0].rule, "delta");
+  /* a factor that is not scaled to mean zero and variance one */
+  var scaled = wls
+    .replace("    U1                 0.697      0.030     23.233      0.000", "    U1                 0.350      0.030     11.667      0.000")
+    .replace("    F                  1.000      0.000    999.000    999.000", "    F                  4.000      0.500      8.000      0.000")
+    .replace(" Variances", " Means\n    F                  0.500      0.100      5.000      0.000\n\n Variances");
+  var ms = IRT.metric(scaled);
+  ok("the factor variance is read", ms.factorVariance, 4, 1e-12);
+  ok("the factor mean is read", ms.factorMean, 0.5, 1e-12);
+  ok("the difficulty takes the factor mean and variance into account",
+     ms.items[0].b[0].est, (-0.842 - 0.350 * 0.5) / (0.350 * 2), 1e-12);
+  ok("and so does the discrimination",
+     ms.items[0].a, 1 / Math.sqrt((1 / (0.350 * 0.350)) * (1 / 4) - 1), 1e-12);
+  var mlScaled = ml.slice(0, ml.indexOf("IRT PARAMETERIZATION"))
+    .replace("    F                  1.000      0.000    999.000    999.000", "    F                  2.250      0.300      7.500      0.000") + "QUALITY OF NUMERICAL RESULTS";
+  var mls = IRT.metric(mlScaled);
+  ok("with maximum likelihood the discrimination is the loading times the standard deviation of the factor",
+     mls.items[0].a, 1.026 * 1.5, 1e-12);
+  ok("and the difficulty is the threshold over the same product",
+     mls.items[0].b[0].est, -0.368 / (1.026 * 1.5), 1e-12);
+  var twoF = ml.replace(" F        BY\n    U1                 1.026      0.152      6.755      0.000\n    U2                 1.062      0.157      6.780      0.000",
+    " F        BY\n    U1                 1.026      0.152      6.755      0.000\n\n G        BY\n    U2                 1.062      0.157      6.780      0.000");
+  ok("a model with two factors is seen to have two", IRT.metric(twoF).factors.length, 2);
+  var noCat = noBlock.replace(" Thresholds\n    U1$1              -0.368      0.116     -3.172      0.002\n    U2$1              -0.443      0.119     -3.723      0.000", " Intercepts\n    U1                -0.368      0.116     -3.172      0.002");
+  ok("a model whose items have no thresholds has no difficulties", IRT.metric(noCat).items[0].b.length, 0);
+
+  return { checks: checks, failed: failed };
+}
+
+(function () {
+  if (!/[?&]selftest=1\b/.test(location.search)) return;
+  var out = selfTest(), banner = document.getElementById("selftest-banner");
+  var lines = out.checks.map(function (c) {
+    return (c.ok ? "OK   " : "FAIL ") + c.name + "  got " + c.got + ", wanted " + c.want;
+  });
+  if (banner) {
+    banner.hidden = false;
+    banner.innerHTML = '<div class="status ' + (out.failed ? "bad" : "ok") + '" role="status"><p><span class="tag">' +
+      (out.failed ? "&#10007; Self-test failed." : "&#10003; Self-test passed.") + "</span> " + out.checks.length +
+      " checks, " + out.failed + " failed. They cover the item response function and its information against their definitions, the peak of an item's information at its difficulty, the sum over the items, the standard error and the reliability, the probabilities of the categories of a graded item, the reading of the response metric from a run fitted by maximum likelihood and from one fitted by weighted least squares, the agreement between the metric the file prints and the one obtained from the loadings and the thresholds, and unsupported cases.</p></div>";
+  }
+  if (out.failed) console.error(lines.join("\n")); else console.log(lines.join("\n"));
+})();
+
+</script>
+<script>
+/* A box that scrolls sideways has to be reachable from the keyboard, and has
+   to say what it is when it is reached. The attributes are put on only where
+   the content really overflows, so that a table which fits does not become a
+   tab stop for nothing. Pages that already mark their own boxes are left
+   alone: an element that carries tabindex is not touched. */
+(function () {
+  var SEL = ".table-wrap, pre.syntax, .eq, .scroller, p math, li math, td math";
+  function mark() {
+    var boxes = document.querySelectorAll(SEL), i;
+    for (i = 0; i < boxes.length; i++) {
+      var b = boxes[i];
+      var over = b.scrollWidth > b.clientWidth + 1 || b.scrollHeight > b.clientHeight + 1;
+      var mine = b.getAttribute("data-scrollbox") === "auto";
+      if (over && (mine || !b.hasAttribute("tabindex"))) {
+        b.setAttribute("data-scrollbox", "auto");
+        b.setAttribute("tabindex", "0");
+        b.setAttribute("role", "region");
+        var cap = b.querySelector("caption"), note = b.previousElementSibling;
+        var name = cap ? cap.textContent : (note && note.className === "table-note" ? note.textContent : "");
+        name = name.replace(/\s+/g, " ").trim();
+        b.setAttribute("aria-label", (name ? name.slice(0, 90) : "Wide content") + ", scrolls sideways");
+      } else if (!over && mine) {
+        b.removeAttribute("tabindex"); b.removeAttribute("role");
+        b.removeAttribute("aria-label"); b.removeAttribute("data-scrollbox");
+      }
+    }
+  }
+  /* A header cell whose whole content is a formula has no accessible name in
+     some browsers, because the name is not computed from MathML. The text of
+     the cell is a faithful reading of the symbol, so it is used as the name. */
+  function nameFormulaHeaders() {
+    var cells = document.querySelectorAll("th"), i;
+    for (i = 0; i < cells.length; i++) {
+      var c = cells[i];
+      if (c.hasAttribute("aria-label") || !c.querySelector("math")) continue;
+      var name = (c.textContent || "").replace(/\s+/g, " ").trim();
+      if (name) c.setAttribute("aria-label", name);
+    }
+  }
+  /* A column of numbers is set to the right; its header follows it, so that the
+     name of the column sits over the digits rather than away from them. */
+  function alignNumericHeaders() {
+    var tables = document.querySelectorAll("table"), t, i;
+    for (t = 0; t < tables.length; t++) {
+      var heads = tables[t].querySelectorAll("thead th, tr:first-child th");
+      for (i = 0; i < heads.length; i++) {
+        if (heads[i].classList.contains("num")) continue;
+        var cell = tables[t].querySelector("tbody tr td:nth-child(" + (i + 1) + ")") ||
+                   tables[t].querySelector("tr:nth-child(2) td:nth-child(" + (i + 1) + ")");
+        if (cell && cell.classList.contains("num")) heads[i].classList.add("num");
+      }
+    }
+  }
+  /* Fields set side by side read as one row only if their controls begin at
+     the same height. A label that runs to two lines pushes its own control
+     down, and the row then sits on two baselines, so the labels of the fields
+     that share a line are given the height of the tallest among them, and a
+     field whose only control is a checkbox is lowered by the same amount. */
+  function alignRowLabels() {
+    var rows = document.querySelectorAll(".row"), r, i, k;
+    for (r = 0; r < rows.length; r++) {
+      var kids = rows[r].children, entries = [];
+      for (i = 0; i < kids.length; i++) {
+        var f = kids[i];
+        if (!f.classList || !f.classList.contains("field")) continue;
+        f.style.paddingTop = "";
+        var lab = null, c;
+        for (k = 0; k < f.children.length; k++) {
+          c = f.children[k];
+          if (c.tagName === "LABEL" && !c.classList.contains("check")) { lab = c; break; }
+        }
+        if (lab) lab.style.minHeight = "";
+        entries.push({ field: f, label: lab });
+      }
+      if (entries.length < 2) continue;
+      var groups = {};
+      for (i = 0; i < entries.length; i++) {
+        var top = Math.round(entries[i].field.getBoundingClientRect().top);
+        if (!groups[top]) groups[top] = [];
+        groups[top].push(entries[i]);
+      }
+      for (k in groups) {
+        if (!groups.hasOwnProperty(k)) continue;
+        var g = groups[k], max = 0, gap = 0, ref = null;
+        for (i = 0; i < g.length; i++)
+          if (g[i].label) {
+            var h = g[i].label.getBoundingClientRect().height;
+            if (h > max) { max = h; ref = g[i].label; }
+          }
+        if (!(max > 0) || g.length < 2) continue;
+        gap = parseFloat(window.getComputedStyle(ref).marginBottom) || 0;
+        for (i = 0; i < g.length; i++) {
+          if (g[i].label) {
+            if (g[i].label.getBoundingClientRect().height < max - 0.5)
+              g[i].label.style.minHeight = max.toFixed(2) + "px";
+          } else {
+            g[i].field.style.paddingTop = (max + gap).toFixed(2) + "px";
+          }
+        }
+        /* A checkbox is drawn a little below the top of its own line, so the
+           height of the labels alone does not put it on the line of the boxes
+           beside it; what remains is measured on the controls themselves and
+           taken up in the padding of the field that carries them. */
+        var ctl = [], top, best = null;
+        for (i = 0; i < g.length; i++) {
+          var c2 = g[i].field.querySelector("input, select, textarea");
+          if (!c2) { ctl.push(null); continue; }
+          top = c2.getBoundingClientRect().top;
+          ctl.push(top);
+          if (best === null || top > best) best = top;
+        }
+        if (best === null) continue;
+        for (i = 0; i < g.length; i++) {
+          if (ctl[i] === null || best - ctl[i] <= 0.5) continue;
+          var pad = parseFloat(g[i].field.style.paddingTop) || 0;
+          g[i].field.style.paddingTop = (pad + (best - ctl[i])).toFixed(2) + "px";
+        }
+      }
+    }
+  }
+  /* A section that fills with a result opens itself, so that the page is
+     short before anything is loaded and shows the result once there is
+     one. A section the reader has closed by hand stays closed. */
+  function autoOpenFolds() {
+    var folds = document.querySelectorAll("details.fold[data-autoopen]"), i;
+    for (i = 0; i < folds.length; i++) {
+      var d = folds[i], body = d.querySelector(".fold-body");
+      if (!body) continue;
+      if (d.getAttribute("data-seen") === null) {
+        d.setAttribute("data-seen", body.innerHTML.replace(/\s+/g, " ").trim().length);
+        d.addEventListener("toggle", function () { this.setAttribute("data-touched", "1"); });
+        continue;
+      }
+      if (d.getAttribute("data-touched") === "1" || d.open) continue;
+      var now = body.innerHTML.replace(/\s+/g, " ").trim().length;
+      if (now > parseInt(d.getAttribute("data-seen"), 10) + 40) d.open = true;
+    }
+  }
+  var timer = null;
+  function schedule() { if (timer) clearTimeout(timer); timer = setTimeout(function () { mark(); nameFormulaHeaders(); alignNumericHeaders(); alignRowLabels(); autoOpenFolds(); }, 60); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule);
+  else schedule();
+  window.addEventListener("resize", schedule);
+  if (window.MutationObserver)
+    new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+</body>
+</html>
