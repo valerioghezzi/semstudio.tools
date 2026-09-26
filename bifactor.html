@@ -212,7 +212,7 @@
         <li>Reise, S. P., Bonifay, W. E., &amp; Haviland, M. G. (2013). Scoring and modeling psychological measures in the presence of multidimensionality. <em>Journal of Personality Assessment, 95</em>(2), 129–140. <a href="https://doi.org/10.1080/00223891.2012.725437">https://doi.org/10.1080/00223891.2012.725437</a></li>
     <li>Reise, S. P., Scheines, R., Widaman, K. F., &amp; Haviland, M. G. (2013). Multidimensionality and structural coefficient bias in structural equation modeling: A bifactor perspective. <em>Educational and Psychological Measurement, 73</em>(1), 5–26. <a href="https://doi.org/10.1177/0013164412449831">https://doi.org/10.1177/0013164412449831</a></li>
     <li>Rodriguez, A., Reise, S. P., &amp; Haviland, M. G. (2016a). Evaluating bifactor models: Calculating and interpreting statistical indices. <em>Psychological Methods, 21</em>(2), 137–150. <a href="https://doi.org/10.1037/met0000045">https://doi.org/10.1037/met0000045</a></li>
-    <li>Rodriguez, A., Reise, S. P., &amp; Haviland, M. G. (2016b). Applying bifactor statistical indices in the evaluation of psychological measures. <em>Journal of Personality Assessment, 98</em>(3), 223–237. <a href="https://doi.org/10.1080/00223891.2015.1089249">https://doi.org/10.1080/00223891.2015.1089249</a></li>
+    <li>Rodriguez, A., Reise, S. P., &amp; Haviland, M. G. (2016b). Applying bifactor statistical indices in the evaluation of psychological measures. <em>Journal of Personality Assessment, 98</em>(3), 223–237. <a href="https://doi.org/10.1080/00223891.2015.1089249">https://doi.org/10.1080/00223891.2015.1089249</a> Correction: <em>Journal of Personality Assessment, 98</em>(4), 444. <a href="https://doi.org/10.1080/00223891.2015.1117928">https://doi.org/10.1080/00223891.2015.1117928</a></li>
     <li>Stucky, B. D., &amp; Edelen, M. O. (2015). Using hierarchical IRT models to create unidimensional measures from multidimensional data. In S. P. Reise &amp; D. A. Revicki (Eds.), <em>Handbook of item response theory modeling: Applications to typical performance assessment</em> (pp. 183–206). Routledge.</li>
     <li>Stucky, B. D., Thissen, D., &amp; Edelen, M. O. (2013). Using logistic approximations of marginal trace lines to develop short assessments. <em>Applied Psychological Measurement, 37</em>(1), 41–57. <a href="https://doi.org/10.1177/0146621612462759">https://doi.org/10.1177/0146621612462759</a></li>
     <li>Zinbarg, R. E., Revelle, W., Yovel, I., &amp; Li, W. (2005). Cronbach's α, Revelle's β, and McDonald's ω<sub>H</sub>: Their relations with each other and two alternative conceptualizations of reliability. <em>Psychometrika, 70</em>(1), 123–133. <a href="https://doi.org/10.1007/s11336-003-0974-7">https://doi.org/10.1007/s11336-003-0974-7</a></li>
@@ -252,7 +252,7 @@
    quantity it names is then not there to be read. Anything the
    estimation printed that the catalogue does not account for is
    reported in full and treated as a message to check, since a message
-   nobody recognises is not the same as no message.
+   nobody recognizes is not the same as no message.
    ================================================================== */
 var MPWARN = (function () {
   "use strict";
@@ -358,7 +358,7 @@ var MPWARN = (function () {
     { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
   ];
 
-  /* A request Mplus did not honour: the quantity it names is not in the
+  /* A request Mplus did not honor: the quantity it names is not in the
      file, and nothing is to be reported as if it had been computed. */
   var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
 
@@ -589,6 +589,29 @@ var BF = (function () {
       warn.push("A uniqueness printed just below zero for " + escList(roundedNegative) +
         " was set to zero: the shortfall is no larger than the error the three-decimal printing of the " +
         "loadings can produce. Check the unrounded estimate before reporting the indices.");
+    }
+    /* Where the uniquenesses come from is the usual reason why an index
+       computed here and the same index computed by hand or in a spreadsheet
+       do not agree to the last decimal. A calculator that takes only the
+       loadings has to put one minus the sum of their squares in place of the
+       uniqueness; this page uses the residual variance the file prints when
+       there is one. The two agree in an orthogonal bifactor model up to the
+       three decimals the output is printed with, and the largest gap is
+       reported so that a difference can be placed at once. */
+    if (model.useResid) {
+      var gap = 0, gapAt = "";
+      for (i = 0; i < n; i++) {
+        if (model.resid[i] === null || !isFinite(model.resid[i])) continue;
+        var d = Math.abs(model.resid[i] - (1 - common[i]));
+        if (d > gap) { gap = d; gapAt = names[i]; }
+      }
+      if (gap > 0.0015)
+        warn.push("The uniquenesses used here are the standardized residual variances the file prints. " +
+          "One minus the sum of the squared loadings, which is what a calculator that reads only the loadings " +
+          "has to use in their place, differs from them by up to " + gap.toFixed(3) + " (on " + escList([gapAt]) +
+          "). In a bifactor model whose factors are orthogonal the two agree to the printing error of the " +
+          "loadings, so a gap this size means the item carries variance from something else in the model, and " +
+          "an index computed the other way will differ from the one below.");
     }
     var zeroUniqueness = [];
     for (i = 0; i < n; i++) if (theta[i] === 0 && !wasRounded[i]) zeroUniqueness.push(names[i]);
@@ -2392,6 +2415,60 @@ function mplusToGrid(parsed, generalName, groupIndex) {
   window.addEventListener("resize", schedule);
   if (window.MutationObserver)
     new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+
+<script>
+/* Choosing the same file a second time.
+
+   A file control fires its change event only when the value it holds changes,
+   so a file that is chosen again after the model has been run a second time
+   would be ignored and the page would keep showing the results of the earlier
+   run. The value is cleared once the file has been handed over, which leaves
+   the page ready to read the same name again. The file itself is already held
+   by the reader, so clearing the control does not interrupt the reading. */
+(function () {
+  var inputs = document.querySelectorAll('input[type="file"]'), i;
+  for (i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener("change", function () {
+      var el = this;
+      window.setTimeout(function () { try { el.value = ""; } catch (e) {} }, 0);
+    });
+  }
+})();
+
+/* Several files where the page reads one.
+
+   A page that reads a single output takes the first file and leaves the rest,
+   which is silent and looks like a file that was read wrongly. What happened
+   is said here instead. */
+(function () {
+  var drop = document.getElementById("drop");
+  if (!drop) return;
+  var input = drop.querySelector('input[type="file"]');
+  if (!input || input.multiple) return;
+  var note = null;
+  function clear() { if (note && note.parentNode) { note.parentNode.removeChild(note); note = null; } }
+  function say(count, first) {
+    clear();
+    note = document.createElement("div");
+    note.className = "status warn";
+    note.setAttribute("role", "status");
+    note.innerHTML = "<p><span class=\"tag\">Only one file was read.</span> This page reads one output at a time. " +
+      count + " files were given; " + (first || "the first one") + " was read and the others were left. " +
+      "Load them one at a time.</p>";
+    if (drop.nextSibling) drop.parentNode.insertBefore(note, drop.nextSibling);
+    else drop.parentNode.appendChild(note);
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  drop.addEventListener("drop", function (event) {
+    var files = event.dataTransfer && event.dataTransfer.files;
+    if (files && files.length > 1) say(files.length, "<code>" + esc(files[0].name) + "</code>"); else clear();
+  });
+  input.addEventListener("change", function () {
+    if (this.files && this.files.length > 1) say(this.files.length, "<code>" + esc(this.files[0].name) + "</code>");
+    else clear();
+  });
 })();
 </script>
 </body>

@@ -55,7 +55,7 @@
     <li>Fit the model at the item level in M<em>plus</em>, with every item as an indicator of the construct it belongs to, and add this line to the input file, exactly as it is written here: <code>OUTPUT: STDYX MODINDICES;</code></li>
     <li>Run that input in M<em>plus</em>. The program writes a plain text file with the same name as the input and the extension <code>.out</code>, in the same folder as the input.</li>
     <li>Drag the <code>.out</code> file onto the box below, or click that box, or move the focus to it and press Enter, to choose the file from your computer. It is read inside your browser and semstudio.tools does not transmit the file contents; processing occurs in the browser.</li>
-    <li>Choose which items are to be parceled: those of one factor, or those of every factor at once, each factor then taken as a facet of one construct. The item names, their standardized loadings and their facet all come from that choice.</li>
+    <li>Choose which items are to be parceled. Parcels are built for one construct at a time, so an output with several factors opens on the first of them and the menu holds the others. The reading that takes every factor at once puts the items of all of them into the same parcels and treats each factor as a facet of one construct: it belongs to a model whose factors are facets of a single construct, not to one whose factors are distinct constructs. The item names, their standardized loadings and their facet all come from that choice.</li>
     <li>Choose how the items are to be allocated, how many parcels are wanted, and whether a parcel is the mean or the sum of its items. These are decisions about the scheme, not values from the file.</li>
     <li>Press <em>Build the parcels from this file</em>, then read the allocation table, the M<em>plus</em> input written under it, and the paragraph that describes what was done.</li>
   </ol>
@@ -342,7 +342,7 @@
    quantity it names is then not there to be read. Anything the
    estimation printed that the catalogue does not account for is
    reported in full and treated as a message to check, since a message
-   nobody recognises is not the same as no message.
+   nobody recognizes is not the same as no message.
    ================================================================== */
 var MPWARN = (function () {
   "use strict";
@@ -448,7 +448,7 @@ var MPWARN = (function () {
     { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
   ];
 
-  /* A request Mplus did not honour: the quantity it names is not in the
+  /* A request Mplus did not honor: the quantity it names is not in the
      file, and nothing is to be reported as if it had been computed. */
   var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
 
@@ -2481,7 +2481,11 @@ function parcelSelfTest() {
         var o2 = document.createElement("option");
         o2.value = "*"; o2.textContent = "every factor at once, each factor a facet of one construct";
         sel.appendChild(o2);
-        sel.value = "*";
+        /* The items of several factors go into one set of parcels only when
+           those factors are facets of one construct. That is a decision about
+           the model, not something the output states, so the page opens on the
+           first factor and leaves the other reading to be chosen. */
+        sel.value = parsed.std.order[0];
       }
       $("factor-picker").hidden = false;
       applyFactorChoice(true);
@@ -2513,6 +2517,12 @@ function parcelSelfTest() {
     if (!lastParsed.converged) extra.push("The output does not say that the estimation terminated normally, so these loadings may not be from a converged solution.");
     if (lastParsed.warnings) extra.push(lastParsed.warnings + " warning" + (lastParsed.warnings === 1 ? "" : "s") + " in the output.");
     if (lastParsed.nGroups > 1 || lastParsed.std.otherGroups) extra.push("The output has more than one group; only the first was read.");
+    if (choice !== "*" && lastParsed.std.order.length > 1)
+      extra.push("This output has " + lastParsed.std.order.length + " factors: " + lastParsed.std.order.join(", ") +
+        ". Parcels are built for one construct at a time, and the menu above opens on " + choice +
+        ". Choosing every factor at once puts the items of all of them into the same parcels, each factor taken as a facet of " +
+        "one construct: that is right for a model whose factors are facets of one construct and wrong for a model whose " +
+        "factors are distinct constructs, where the parcels of each factor are built separately.");
     if (lastParsed.shortcut) extra.push("The output holds several models under the invariance shortcut; the " + lastParsed.shortcut.first.toLowerCase() + " model was read.");
     if (res.cross && res.cross.length) extra.push("Loads on more than one factor: " + res.cross.join(", ") + ". Each was given the factor on which its loading is largest in absolute value; a cross-loading item is not cleanly a member of one facet.");
     if (lastParsed.std.uncomputable.length) extra.push("The 999.000 sentinel was printed for " + lastParsed.std.uncomputable.join(", ") + "; those values were left out.");
@@ -2747,6 +2757,60 @@ function parcelSelfTest() {
   window.addEventListener("resize", schedule);
   if (window.MutationObserver)
     new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+
+<script>
+/* Choosing the same file a second time.
+
+   A file control fires its change event only when the value it holds changes,
+   so a file that is chosen again after the model has been run a second time
+   would be ignored and the page would keep showing the results of the earlier
+   run. The value is cleared once the file has been handed over, which leaves
+   the page ready to read the same name again. The file itself is already held
+   by the reader, so clearing the control does not interrupt the reading. */
+(function () {
+  var inputs = document.querySelectorAll('input[type="file"]'), i;
+  for (i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener("change", function () {
+      var el = this;
+      window.setTimeout(function () { try { el.value = ""; } catch (e) {} }, 0);
+    });
+  }
+})();
+
+/* Several files where the page reads one.
+
+   A page that reads a single output takes the first file and leaves the rest,
+   which is silent and looks like a file that was read wrongly. What happened
+   is said here instead. */
+(function () {
+  var drop = document.getElementById("drop");
+  if (!drop) return;
+  var input = drop.querySelector('input[type="file"]');
+  if (!input || input.multiple) return;
+  var note = null;
+  function clear() { if (note && note.parentNode) { note.parentNode.removeChild(note); note = null; } }
+  function say(count, first) {
+    clear();
+    note = document.createElement("div");
+    note.className = "status warn";
+    note.setAttribute("role", "status");
+    note.innerHTML = "<p><span class=\"tag\">Only one file was read.</span> This page reads one output at a time. " +
+      count + " files were given; " + (first || "the first one") + " was read and the others were left. " +
+      "Load them one at a time.</p>";
+    if (drop.nextSibling) drop.parentNode.insertBefore(note, drop.nextSibling);
+    else drop.parentNode.appendChild(note);
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  drop.addEventListener("drop", function (event) {
+    var files = event.dataTransfer && event.dataTransfer.files;
+    if (files && files.length > 1) say(files.length, "<code>" + esc(files[0].name) + "</code>"); else clear();
+  });
+  input.addEventListener("change", function () {
+    if (this.files && this.files.length > 1) say(this.files.length, "<code>" + esc(this.files[0].name) + "</code>");
+    else clear();
+  });
 })();
 </script>
 </body>

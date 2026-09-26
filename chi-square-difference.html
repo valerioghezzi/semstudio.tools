@@ -219,7 +219,7 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
       <li>Raftery, A. E. (1995). Bayesian model selection in social research. <em>Sociological Methodology, 25</em>, 111–163. <a href="https://doi.org/10.2307/271063">https://doi.org/10.2307/271063</a></li>
       <li>Rutkowski, L., &amp; Svetina, D. (2014). Assessing the hypothesis of measurement invariance in the context of large-scale international surveys. <em>Educational and Psychological Measurement, 74</em>(1), 31–57. <a href="https://doi.org/10.1177/0013164413498257">https://doi.org/10.1177/0013164413498257</a></li>
       <li>Satorra, A., &amp; Bentler, P. M. (2001). A scaled difference chi-square test statistic for moment structure analysis. <em>Psychometrika, 66</em>(4), 507–514. <a href="https://doi.org/10.1007/BF02296192">https://doi.org/10.1007/BF02296192</a></li>
-      <li>Satorra, A., &amp; Bentler, P. M. (2010). Ensuring positiveness of the scaled difference chi-square test statistic. <em>Psychometrika, 75</em>(2), 243–248. <a href="https://doi.org/10.1007/s11336-009-9135-y">https://doi.org/10.1007/s11336-009-9135-y</a></li>
+      <li>Satorra, A., &amp; Bentler, P. M. (2010). Ensuring positiveness of the scaled difference chi-square test statistic. <em>Psychometrika, 75</em>(2), 243–248. <a href="https://doi.org/10.1007/s11336-009-9135-y">https://doi.org/10.1007/s11336-009-9135-y</a> Corrigenda: <em>Psychometrika, 90</em>(1), 415. <a href="https://doi.org/10.1017/psy.2024.12">https://doi.org/10.1017/psy.2024.12</a></li>
       <li>Svetina, D., Rutkowski, L., &amp; Rutkowski, D. (2020). Multiple-group invariance with categorical outcomes using updated guidelines: An illustration using <span class="mp">M</span><em>plus</em> and the lavaan/semTools packages. <em>Structural Equation Modeling, 27</em>(1), 111–130. <a href="https://doi.org/10.1080/10705511.2019.1602776">https://doi.org/10.1080/10705511.2019.1602776</a></li>
     </ul>
   </div>
@@ -254,7 +254,7 @@ ANALYSIS:   DIFFTEST = deriv.dat;</pre>
    quantity it names is then not there to be read. Anything the
    estimation printed that the catalogue does not account for is
    reported in full and treated as a message to check, since a message
-   nobody recognises is not the same as no message.
+   nobody recognizes is not the same as no message.
    ================================================================== */
 var MPWARN = (function () {
   "use strict";
@@ -360,7 +360,7 @@ var MPWARN = (function () {
     { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
   ];
 
-  /* A request Mplus did not honour: the quantity it names is not in the
+  /* A request Mplus did not honor: the quantity it names is not in the
      file, and nothing is to be reported as if it had been computed. */
   var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
 
@@ -3180,6 +3180,60 @@ if(/[?&]selftest=1\b/.test(window.location.search)){
   window.addEventListener("resize", schedule);
   if (window.MutationObserver)
     new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+
+<script>
+/* Choosing the same file a second time.
+
+   A file control fires its change event only when the value it holds changes,
+   so a file that is chosen again after the model has been run a second time
+   would be ignored and the page would keep showing the results of the earlier
+   run. The value is cleared once the file has been handed over, which leaves
+   the page ready to read the same name again. The file itself is already held
+   by the reader, so clearing the control does not interrupt the reading. */
+(function () {
+  var inputs = document.querySelectorAll('input[type="file"]'), i;
+  for (i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener("change", function () {
+      var el = this;
+      window.setTimeout(function () { try { el.value = ""; } catch (e) {} }, 0);
+    });
+  }
+})();
+
+/* Several files where the page reads one.
+
+   A page that reads a single output takes the first file and leaves the rest,
+   which is silent and looks like a file that was read wrongly. What happened
+   is said here instead. */
+(function () {
+  var drop = document.getElementById("drop");
+  if (!drop) return;
+  var input = drop.querySelector('input[type="file"]');
+  if (!input || input.multiple) return;
+  var note = null;
+  function clear() { if (note && note.parentNode) { note.parentNode.removeChild(note); note = null; } }
+  function say(count, first) {
+    clear();
+    note = document.createElement("div");
+    note.className = "status warn";
+    note.setAttribute("role", "status");
+    note.innerHTML = "<p><span class=\"tag\">Only one file was read.</span> This page reads one output at a time. " +
+      count + " files were given; " + (first || "the first one") + " was read and the others were left. " +
+      "Load them one at a time.</p>";
+    if (drop.nextSibling) drop.parentNode.insertBefore(note, drop.nextSibling);
+    else drop.parentNode.appendChild(note);
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  drop.addEventListener("drop", function (event) {
+    var files = event.dataTransfer && event.dataTransfer.files;
+    if (files && files.length > 1) say(files.length, "<code>" + esc(files[0].name) + "</code>"); else clear();
+  });
+  input.addEventListener("change", function () {
+    if (this.files && this.files.length > 1) say(this.files.length, "<code>" + esc(this.files[0].name) + "</code>");
+    else clear();
+  });
 })();
 </script>
 </body>

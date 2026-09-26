@@ -166,7 +166,7 @@ F3 BY x9-x12;</textarea>
 
   <h3>What the page reads</h3>
   <p>From the STDYX section: the rotated standardized loading of every item on every factor, the correlations between the factors printed under the <code>WITH</code> headings whose two names are factors, the residual variances, and the residual covariances, which are the <code>WITH</code> pairs whose two names are items. From the echoed input under INPUT INSTRUCTIONS: the target pattern, that is which items each factor was asked to load on and which of its loadings the rotation was asked to keep near zero, written with the <code>~0</code> notation. Nothing is typed into this half of the page, and no index is computed from a quantity that was not read from the file.</p>
-  <p>The target pattern is what defines the subscale of a factor, and a coefficient of a subscale needs one. A rotation that specifies no targets, such as <code>BI-GEOMIN</code>, leaves the file with no statement of which items belong to which factor; the page then reports only the quantities that do not need a subscale and says which ones it left out.</p>
+  <p>The target pattern is what defines the subscale of a factor. A rotation that specifies no targets, such as <code>GEOMIN</code> or <code>BI-GEOMIN</code>, leaves the file with no statement of which items belong to which factor; the subscale is then taken to be the set of items whose largest rotated loading in absolute value falls on the factor, the page says that it did so and shows the assignment item by item, and it leaves out the percentage of uncontaminated correlations, which counts pairs of items from a stated target pattern.</p><p>Omega, the average variance extracted and construct replicability are computed on the items of the subscale from their loadings on that factor alone. The cross-loadings of an item on the other factors do not enter the numerator: what share of an item belongs to a factor it was not written for is not determined by the rotated solution, and the coefficient reported for an ESEM solution in the literature is <math><mrow><mi>&#x3C9;</mi><mo>=</mo><msup><mrow><mo stretchy="false">(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mrow><mo>|</mo><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>|</mo></mrow><mo stretchy="false">)</mo></mrow><mn>2</mn></msup><mo>/</mo><mrow><mo stretchy="false">[</mo><msup><mrow><mo stretchy="false">(</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><mrow><mo>|</mo><msub><mi>&#x3BB;</mi><mi>i</mi></msub><mo>|</mo></mrow><mo stretchy="false">)</mo></mrow><mn>2</mn></msup><mo>+</mo><munder><mo movablelimits="false">&#x2211;</mo><mi>i</mi></munder><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub><mo stretchy="false">]</mo></mrow></mrow></math>, with <math><mrow><msub><mi>&#x3BB;</mi><mi>i</mi></msub></mrow></math> the loading of item <var>i</var> on the factor it is written for and <math><mrow><msub><mi>&#x3B4;</mi><mrow><mi>i</mi><mi>i</mi></mrow></msub></mrow></math> its uniqueness (T&#243;th-Kir&#225;ly, B&#337;the, Rig&#243;, &amp; Orosz, 2017).</p>
 
   <h3>Communality with correlated factors</h3>
   <p>With cross-loadings and correlated factors the variance of an item accounted for by the common factors is not the sum of its squared loadings: the covariance between the factors enters it as well.</p>
@@ -264,7 +264,7 @@ F3 BY x9-x12;</textarea>
    quantity it names is then not there to be read. Anything the
    estimation printed that the catalogue does not account for is
    reported in full and treated as a message to check, since a message
-   nobody recognises is not the same as no message.
+   nobody recognizes is not the same as no message.
    ================================================================== */
 var MPWARN = (function () {
   "use strict";
@@ -370,7 +370,7 @@ var MPWARN = (function () {
     { re: /All variables are uncorrelated with all other variables/i, say: "the model constrains all within-class variable correlations to zero" }
   ];
 
-  /* A request Mplus did not honour: the quantity it names is not in the
+  /* A request Mplus did not honor: the quantity it names is not in the
      file, and nothing is to be reported as if it had been computed. */
   var IGNORED = /Request for ([A-Z0-9=_.\/() ,+-]{2,60}?)\s+(?:is|will be)\s+(?:ignored|changed)/gi;
 
@@ -636,12 +636,35 @@ var ES = (function () {
     }
 
     /* The subscale of a factor is its set of target items, read from the
-       echoed MODEL command. Without one, no coefficient of a subscale. */
+       echoed MODEL command. A rotation that states no targets, such as
+       GEOMIN or BI-GEOMIN, leaves the file without that statement. The
+       subscale is then taken to be the set of items whose largest rotated
+       loading in absolute value falls on the factor, which is the assignment
+       the rotated solution itself supports, and the page says so and lists
+       every item beside the factor it went to. Omega, the average variance
+       extracted and construct replicability are computed on those sets from
+       the target loadings alone, as they are in the ESEM literature: the
+       cross-loadings of an item on the other factors do not enter the
+       numerator, because the share of an item that belongs to a factor it
+       was not written for is not determined by the model. */
     var target = model.target || null;
-    var setOf = [], haveTargets = !!target;
+    var setOf = [], haveTargets = !!target, assignedByLargest = false, assignment = null;
+    if (!target && K >= 1 && n > 0) {
+      assignment = [];
+      for (i = 0; i < n; i++) {
+        var best = -1, bestAbs = 0;
+        for (k = 0; k < K; k++) {
+          var av = Math.abs(L[i][k]);
+          if (av > bestAbs) { bestAbs = av; best = k; }
+        }
+        assignment.push(bestAbs > 0 ? best : -1);
+      }
+      assignedByLargest = true;
+    }
     for (f = 0; f < K; f++) {
       var I = [];
       if (target) { for (i = 0; i < n; i++) if (target[i][f]) I.push(i); }
+      else if (assignment) { for (i = 0; i < n; i++) if (assignment[i] === f) I.push(i); }
       setOf.push(I);
     }
 
@@ -762,7 +785,8 @@ var ES = (function () {
     return {
       empty: false, warnings: warn, errors: err,
       n: n, K: K, factors: factors, general: g, orth: orth, maxOff: maxOff,
-      haveTargets: haveTargets, per: per, items: items, theta: theta, h2: h2,
+      haveTargets: haveTargets, assignedByLargest: assignedByLargest, assignment: assignment,
+      setOf: setOf, per: per, items: items, theta: theta, h2: h2,
       totalCommon: totalCommon, resCov: resCov, Sigma: Sigma, fdNote: fdNote,
       puc: puc, pucNote: pucNote, contaminated: contaminated, totalPairs: totalPairs
     };
@@ -1132,9 +1156,17 @@ function readModelPattern(input, order) {
   var statements = text.split(";"), out = [], s, i;
   for (s = 0; s < statements.length; s++) {
     var st = statements[s];
-    var mb = /([A-Za-z][A-Za-z0-9_]*)[ \t\r\n]+BY[ \t\r\n]+([\s\S]*)$/i.exec(st);
+    /* The left side of a BY statement can name one factor, a list of them or
+       a range written with a hyphen. An ESEM block written as f1-f2 BY y1-y6
+       measures every factor of the block by every item, so such a statement
+       declares no target pattern at all, and reading its last name as the one
+       factor of the statement would give every item to that factor alone. */
+    var mb = /([A-Za-z][A-Za-z0-9_]*(?:[ \t]*-[ \t]*[A-Za-z][A-Za-z0-9_]*)?(?:[ \t\r\n]+[A-Za-z][A-Za-z0-9_]*(?:[ \t]*-[ \t]*[A-Za-z][A-Za-z0-9_]*)?)*)[ \t\r\n]+BY[ \t\r\n]+([\s\S]*)$/i.exec(st);
     if (!mb) continue;
-    var factor = mb[1].toUpperCase(), body = mb[2];
+    var lhs = mb[1].replace(/[ \t]*-[ \t]*/g, "-").trim().split(/\s+/)
+      .filter(function (t) { return t.length; })
+      .map(function (t) { return t.toUpperCase(); });
+    var factor = lhs[lhs.length - 1], body = mb[2];
     var setLabel = null;
     var msl = /\([ \t]*\*[ \t]*([A-Za-z0-9_]+)[ \t]*\)/.exec(body);
     if (msl) { setLabel = msl[1]; body = body.replace(msl[0], " "); }
@@ -1151,7 +1183,7 @@ function readModelPattern(input, order) {
       var list = range ? range : [bare];
       if (isZero) zeros = zeros.concat(list); else targets = targets.concat(list);
     }
-    out.push({ factor: factor, targets: targets, zeros: zeros, set: setLabel });
+    out.push({ factor: factor, lhs: lhs, targets: targets, zeros: zeros, set: setLabel });
   }
   return out.length ? out : null;
 }
@@ -1215,23 +1247,48 @@ function buildModel(parsed, echoed, groupIndex, generalName) {
   if (pattern) {
     target = [];
     for (i = 0; i < n; i++) { target.push(new Array(K)); for (f = 0; f < K; f++) target[i][f] = false; }
-    var unknownItems = [], unknownFactors = [], covered = 0;
+    var unknownItems = [], unknownFactors = [], covered = 0, blockFactors = [];
     pattern.forEach(function (st) {
       if (st.set) anyEsemSet = true;
-      var fi = factors.indexOf(st.factor);
-      if (fi < 0) { if (unknownFactors.indexOf(st.factor) < 0) unknownFactors.push(st.factor); return; }
+      /* Every factor on the left of the statement, with a range such as
+         F1-F2 expanded against the factors of the output. */
+      var lhs = st.lhs || [st.factor], side = [], u;
+      for (u = 0; u < lhs.length; u++) {
+        var ex = expandRange(lhs[u], factors);
+        if (ex && ex.length) side = side.concat(ex);
+        else side.push(lhs[u]);
+      }
+      if (side.length > 1) {
+        /* An ESEM block: each of these factors is measured by all the items
+           of the statement, so the statement states no target for any of
+           them. */
+        side.forEach(function (nm) {
+          var bi = factors.indexOf(nm);
+          if (bi >= 0) { if (blockFactors.indexOf(nm) < 0) blockFactors.push(nm); }
+          else if (unknownFactors.indexOf(nm) < 0) unknownFactors.push(nm);
+        });
+        return;
+      }
+      var fi = factors.indexOf(side[0]);
+      if (fi < 0) { if (unknownFactors.indexOf(side[0]) < 0) unknownFactors.push(side[0]); return; }
       st.targets.forEach(function (nm) {
         if (Object.prototype.hasOwnProperty.call(seen, nm)) { target[seen[nm]][fi] = true; covered++; }
         else if (unknownItems.indexOf(nm) < 0) unknownItems.push(nm);
       });
     });
+    if (blockFactors.length) {
+      target = null;
+      patternNotes.push("The echoed MODEL command measures " + escList(blockFactors) +
+        " by the same items in one statement, which is how an ESEM block is written: every factor of the block is " +
+        "measured by every item of it, so the command states no target pattern for those factors.");
+    }
     if (unknownFactors.length)
       patternNotes.push("The echoed MODEL command names " + escList(unknownFactors) +
         " on the left of a BY statement, and the STDYX section has no such factor.");
     if (unknownItems.length)
       patternNotes.push("The echoed MODEL command names " + escList(unknownItems) +
         " as an indicator, and the STDYX section has no such item.");
-    if (!covered) { target = null; patternNotes.push("No BY statement of the echoed MODEL command could be matched to the factors of the output."); }
+    if (target && !covered) { target = null; patternNotes.push("No BY statement of the echoed MODEL command could be matched to the factors of the output."); }
   }
 
   var general = -1;
@@ -1354,7 +1411,7 @@ function buildModel(parsed, echoed, groupIndex, generalName) {
       (m.anyEsemSet ? "The echoed MODEL command marks at least one set of factors as an ESEM block. " : "") +
       (res.haveTargets
         ? "The target pattern was read from the echoed MODEL command, so the subscale of each factor is known."
-        : "No target pattern could be read from the echoed MODEL command, so the coefficients of a subscale are not computed. Only the quantities defined on the whole set of items or on single items are reported below.") +
+        : "No target pattern was read from the echoed MODEL command, which is what a rotation without targets, such as GEOMIN or BI-GEOMIN, leaves behind. The subscale of a factor is therefore taken to be the set of items whose largest rotated loading in absolute value falls on it, and the items of each are listed under the loadings below. Omega, the average variance extracted and construct replicability are computed on those sets from the target loadings alone, as they are in the ESEM literature, the cross-loadings of an item on the other factors staying out of the numerator; the percentage of uncontaminated correlations, which counts pairs from a stated target pattern, is not reported.") +
       (m.patternNotes.length ? " " + m.patternNotes.join(" ") : ""));
 
     if (res.resCov.length) {
@@ -1373,7 +1430,8 @@ function buildModel(parsed, echoed, groupIndex, generalName) {
 
     /* Factors */
     out += "<h3>Factors</h3>";
-    out += '<p class="table-note">One row per factor. The subscale is the set of items the echoed MODEL command targets on it.</p>';
+    out += '<p class="table-note">One row per factor. The subscale is the set of items the echoed MODEL command targets on it' +
+      (res.assignedByLargest ? ", or, with no target pattern in the file, the set of items whose largest loading in absolute value falls on it" : "") + '.</p>';
     out += '<div class="table-wrap"><table><caption class="visually-hidden">Coefficients of each factor</caption><tr>' +
       "<th>Factor</th><th>Items</th><th>ω</th><th>AVE</th><th>H</th>" +
       (res.orth ? "<th>ω of the total</th><th>ω hierarchical</th><th>ECV</th><th>ECV within</th><th>FD</th>" : "") +
@@ -1381,7 +1439,7 @@ function buildModel(parsed, echoed, groupIndex, generalName) {
     for (f = 0; f < res.per.length; f++) {
       var r = res.per[f];
       out += "<tr><th scope=\"row\">" + esc(r.name) + ((r.isGeneral && res.factors.length > 1) ? " (general)" : "") + "</th>" +
-        '<td class="num">' + (res.haveTargets ? r.nItems : "—") + "</td>" +
+        '<td class="num">' + ((res.haveTargets || res.assignedByLargest) ? r.nItems : "—") + "</td>" +
         '<td class="num">' + p3(r.omega) + "</td>" +
         '<td class="num">' + p3(r.ave) + "</td>" +
         '<td class="num">' + p3(r.H) + "</td>";
@@ -1423,7 +1481,7 @@ function buildModel(parsed, echoed, groupIndex, generalName) {
       var it = res.items[i];
       out += "<tr><th scope=\"row\">" + esc(it.name) + "</th>";
       for (f = 0; f < res.factors.length; f++) {
-        var isTarget = res.haveTargets && m.target[i][f];
+        var isTarget = res.haveTargets ? m.target[i][f] : (res.assignment ? res.assignment[i] === f : false);
         out += '<td class="num' + (isTarget ? " target" : " zeroed") + '">' + p3(it.loadings[f]) + "</td>";
       }
       out += '<td class="num">' + p3(it.h2) + '</td><td class="num">' + p3(it.theta) + "</td>";
@@ -2231,6 +2289,60 @@ function selfTest() {
   window.addEventListener("resize", schedule);
   if (window.MutationObserver)
     new MutationObserver(schedule).observe(document.getElementById("main") || document.body, { childList: true, subtree: true });
+})();
+</script>
+
+<script>
+/* Choosing the same file a second time.
+
+   A file control fires its change event only when the value it holds changes,
+   so a file that is chosen again after the model has been run a second time
+   would be ignored and the page would keep showing the results of the earlier
+   run. The value is cleared once the file has been handed over, which leaves
+   the page ready to read the same name again. The file itself is already held
+   by the reader, so clearing the control does not interrupt the reading. */
+(function () {
+  var inputs = document.querySelectorAll('input[type="file"]'), i;
+  for (i = 0; i < inputs.length; i++) {
+    inputs[i].addEventListener("change", function () {
+      var el = this;
+      window.setTimeout(function () { try { el.value = ""; } catch (e) {} }, 0);
+    });
+  }
+})();
+
+/* Several files where the page reads one.
+
+   A page that reads a single output takes the first file and leaves the rest,
+   which is silent and looks like a file that was read wrongly. What happened
+   is said here instead. */
+(function () {
+  var drop = document.getElementById("drop");
+  if (!drop) return;
+  var input = drop.querySelector('input[type="file"]');
+  if (!input || input.multiple) return;
+  var note = null;
+  function clear() { if (note && note.parentNode) { note.parentNode.removeChild(note); note = null; } }
+  function say(count, first) {
+    clear();
+    note = document.createElement("div");
+    note.className = "status warn";
+    note.setAttribute("role", "status");
+    note.innerHTML = "<p><span class=\"tag\">Only one file was read.</span> This page reads one output at a time. " +
+      count + " files were given; " + (first || "the first one") + " was read and the others were left. " +
+      "Load them one at a time.</p>";
+    if (drop.nextSibling) drop.parentNode.insertBefore(note, drop.nextSibling);
+    else drop.parentNode.appendChild(note);
+  }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  drop.addEventListener("drop", function (event) {
+    var files = event.dataTransfer && event.dataTransfer.files;
+    if (files && files.length > 1) say(files.length, "<code>" + esc(files[0].name) + "</code>"); else clear();
+  });
+  input.addEventListener("change", function () {
+    if (this.files && this.files.length > 1) say(this.files.length, "<code>" + esc(this.files[0].name) + "</code>");
+    else clear();
+  });
 })();
 </script>
 </body>
